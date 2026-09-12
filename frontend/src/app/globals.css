@@ -1,0 +1,50 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Telugu:wght@400;500;700&family=Poppins:wght@400;600;700&display=swap');
+
+:root {
+  --maroon: #7A0C2E;
+  --gold: #D4AF37;
+  --cream: #FFF8E7;
+  --navy: #0F1F3C;
+}
+
+body {
+  font-family: 'Poppins', 'Noto Sans Telugu', sans-serif;
+  background: #FFF8E7;
+  color: #1a1a1a;
+}
+
+.telugu {
+  font-family: 'Noto Sans Telugu', sans-serif;
+}
+
+.card-shadow {
+  box-shadow: 0 10px 40px rgba(122, 12, 46, 0.15);
+}
+
+.gold-gradient {
+  background: linear-gradient(135deg, #D4AF37 0%, #FFD700 50%, #D4AF37 100%);
+}
+
+.maroon-gradient {
+  background: linear-gradient(135deg, #7A0C2E 0%, #A0143A 100%);
+}
+
+.navy-gradient {
+  background: linear-gradient(135deg, #0F1F3C 0%, #1E3A5F 100%);
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
