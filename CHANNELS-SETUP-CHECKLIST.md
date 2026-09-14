@@ -1,4 +1,4 @@
-# 📢 Mana Vivaha — Channel Setup Checklist (83 channels)
+# 📢 Mana Vivaha — Channel Setup Checklist (52 channels)
 
 > Ee file `setup_channels.py --plan` tho auto-generate ayyindi. Prathi channel ki:
 > **Name → Username → Description → 📌 pinned post** (copy-paste ready).
@@ -36,7 +36,6 @@ BOT_TOKEN=xxxx python setup_channels.py --apply --wave 1
 🙏 *📢 TSAP Matrimony Official | మన వివాహ — TS-AP*
 ━━━━━━━━━━━━━━━━━━
 Telugu Matrimony — TS + AP
-
 ఇక్కడ ఏం దొరుకుతుంది:
 ✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
 ✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
@@ -83,7 +82,6 @@ Telugu Matrimony — TS + AP
 🙏 *👰 AP Brides | ఆంధ్రా వధువులు*
 ━━━━━━━━━━━━━━━━━━
 Telugu Matrimony — TS + AP
-
 ఇక్కడ ఏం దొరుకుతుంది:
 ✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
 ✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
@@ -130,7 +128,6 @@ Telugu Matrimony — TS + AP
 🙏 *🤵 AP Grooms | ఆంధ్రా వరులు*
 ━━━━━━━━━━━━━━━━━━
 Telugu Matrimony — TS + AP
-
 ఇక్కడ ఏం దొరుకుతుంది:
 ✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
 ✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
@@ -177,7 +174,6 @@ Telugu Matrimony — TS + AP
 🙏 *👰 TS Brides | తెలంగాణ వధువులు*
 ━━━━━━━━━━━━━━━━━━
 Telugu Matrimony — TS + AP
-
 ఇక్కడ ఏం దొరుకుతుంది:
 ✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
 ✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
@@ -224,7 +220,6 @@ Telugu Matrimony — TS + AP
 🙏 *🤵 TS Grooms | తెలంగాణ వరులు*
 ━━━━━━━━━━━━━━━━━━
 Telugu Matrimony — TS + AP
-
 ఇక్కడ ఏం దొరుకుతుంది:
 ✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
 ✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
@@ -250,113 +245,19 @@ Telugu Matrimony — TS + AP
 
 ```
 
-### ⬜ `c_brahmin_bride`
-
-| Item | Value |
-|---|---|
-| Name | `👰 Brahmin Brides | బ్రాహ్మణ వధువులు` |
-| Username | `@manavivaha_brahmin_bride` (taken ayithe: @tsap_brahmin_bride, @mv_brahmin_brd, @manavivaha_brahmin_brd) |
-| Link | https://t.me/manavivaha_brahmin_bride |
-| Hashtags | #Brahmin #Bride #TS #AP |
-
-**Description (paste in channel → Edit → Description):**
-
-```
-బ్రాహ్మణ వధువులు — TS + AP అన్ని జిల్లాలు. నిజమైన profiles, ఫోటో గోప్యం, 3 requests FREE, ₹99లో 5. #Brahmin #Bride #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
-```
-
-**📌 Pin this post (channel ki welcome + rules):**
-
-```
-🙏 *👰 Brahmin Brides | బ్రాహ్మణ వధువులు*
-━━━━━━━━━━━━━━━━━━
-*బ్రాహ్మణ*
-
-ఇక్కడ ఏం దొరుకుతుంది:
-✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
-✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
-✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
-✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
-
-ఎలా use చేయాలి (3 steps):
-1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
-2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
-3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
-
-🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
-
-⚠️ *చట్టాలు (తప్పక చదవండి):*
-🚫 ఇక్కడ *chatting లేదు* — spam, మోసం, డబ్బు అడగడం కూడా లేదు
-💰 Advance/registration/visa డబ్బు ఎవరు అడిగినా *100% మోసం* → వెంటనే report చేయండి
-🚫 బయట numbers/business promos పెట్టొద్దు → remove + ban
-🚨 మోసం జరిగితే: /safety లో report (మీ పేరు ఎక్కడా కనిపించదు)
-
-🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
-🔗 మా website: https://manavivaha.in
-📢 Official: @TSAP_MATRIMONY | All channels: #Brahmin #Bride #TS #AP/channels
-
-```
-
-### ⬜ `c_brahmin_groom`
-
-| Item | Value |
-|---|---|
-| Name | `🤵 Brahmin Grooms | బ్రాహ్మణ వరులు` |
-| Username | `@manavivaha_brahmin_groom` (taken ayithe: @tsap_brahmin_groom, @mv_brahmin_grm, @manavivaha_brahmin_grm) |
-| Link | https://t.me/manavivaha_brahmin_groom |
-| Hashtags | #Brahmin #Groom #TS #AP |
-
-**Description (paste in channel → Edit → Description):**
-
-```
-బ్రాహ్మణ వరులు — TS + AP అన్ని జిల్లాలు. ఉద్యోగం/చదువు/జాతకం వివరాలతో profiles. 3 requests FREE. #Brahmin #Groom #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
-```
-
-**📌 Pin this post (channel ki welcome + rules):**
-
-```
-🙏 *🤵 Brahmin Grooms | బ్రాహ్మణ వరులు*
-━━━━━━━━━━━━━━━━━━
-*బ్రాహ్మణ*
-
-ఇక్కడ ఏం దొరుకుతుంది:
-✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
-✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
-✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
-✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
-
-ఎలా use చేయాలి (3 steps):
-1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
-2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
-3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
-
-🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
-
-⚠️ *చట్టాలు (తప్పక చదవండి):*
-🚫 ఇక్కడ *chatting లేదు* — spam, మోసం, డబ్బు అడగడం కూడా లేదు
-💰 Advance/registration/visa డబ్బు ఎవరు అడిగినా *100% మోసం* → వెంటనే report చేయండి
-🚫 బయట numbers/business promos పెట్టొద్దు → remove + ban
-🚨 మోసం జరిగితే: /safety లో report (మీ పేరు ఎక్కడా కనిపించదు)
-
-🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
-🔗 మా website: https://manavivaha.in
-📢 Official: @TSAP_MATRIMONY | All channels: #Brahmin #Groom #TS #AP/channels
-
-```
-
 ### ⬜ `c_kamma_bride`
 
 | Item | Value |
 |---|---|
 | Name | `👰 Kamma Brides | కమ్మ వధువులు` |
-| Username | `@manavivaha_kamma_bride` (taken ayithe: @tsap_kamma_bride, @mv_kamma_brd, @manavivaha_kamma_brd) |
+| Username | `@manavivaha_kamma_bride` (taken ayithe: @tsap_kamma_bride, @mv_kamma_brd) |
 | Link | https://t.me/manavivaha_kamma_bride |
 | Hashtags | #Kamma #Bride #TS #AP |
 
 **Description (paste in channel → Edit → Description):**
 
 ```
-కమ్మ వధువులు — TS + AP అన్ని జిల్లాలు. నిజమైన profiles, ఫోటో గోప్యం, 3 requests FREE, ₹99లో 5. #Kamma #Bride #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
+కమ్మ — Kamma (Brides). Sub-castes: Kamma • Chowdary • Choudary. నిజమైన profiles, 3 requests FREE, ₹99లో 5. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
 ```
 
 **📌 Pin this post (channel ki welcome + rules):**
@@ -365,6 +266,7 @@ Telugu Matrimony — TS + AP
 🙏 *👰 Kamma Brides | కమ్మ వధువులు*
 ━━━━━━━━━━━━━━━━━━
 *కమ్మ*
+👥 ఈ channel లో: *Kamma • Chowdary • Choudary*
 
 ఇక్కడ ఏం దొరుకుతుంది:
 ✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
@@ -396,14 +298,14 @@ Telugu Matrimony — TS + AP
 | Item | Value |
 |---|---|
 | Name | `🤵 Kamma Grooms | కమ్మ వరులు` |
-| Username | `@manavivaha_kamma_groom` (taken ayithe: @tsap_kamma_groom, @mv_kamma_grm, @manavivaha_kamma_grm) |
+| Username | `@manavivaha_kamma_groom` (taken ayithe: @tsap_kamma_groom, @mv_kamma_grm) |
 | Link | https://t.me/manavivaha_kamma_groom |
 | Hashtags | #Kamma #Groom #TS #AP |
 
 **Description (paste in channel → Edit → Description):**
 
 ```
-కమ్మ వరులు — TS + AP అన్ని జిల్లాలు. ఉద్యోగం/చదువు/జాతకం వివరాలతో profiles. 3 requests FREE. #Kamma #Groom #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
+కమ్మ — Kamma (Grooms). Sub-castes: Kamma • Chowdary • Choudary. నిజమైన profiles, 3 requests FREE, ₹99లో 5. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
 ```
 
 **📌 Pin this post (channel ki welcome + rules):**
@@ -412,6 +314,7 @@ Telugu Matrimony — TS + AP
 🙏 *🤵 Kamma Grooms | కమ్మ వరులు*
 ━━━━━━━━━━━━━━━━━━
 *కమ్మ*
+👥 ఈ channel లో: *Kamma • Chowdary • Choudary*
 
 ఇక్కడ ఏం దొరుకుతుంది:
 ✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
@@ -442,23 +345,24 @@ Telugu Matrimony — TS + AP
 
 | Item | Value |
 |---|---|
-| Name | `👰 Kapu Brides | కాపు వధువులు` |
-| Username | `@manavivaha_kapu_bride` (taken ayithe: @tsap_kapu_bride, @mv_kapu_brd, @manavivaha_kapu_brd) |
+| Name | `👰 Kapu • Balija • Telaga Brides | కాపు • బలిజ • తెలగ వధువులు` |
+| Username | `@manavivaha_kapu_bride` (taken ayithe: @tsap_kapu_bride, @mv_kapu_brd) |
 | Link | https://t.me/manavivaha_kapu_bride |
 | Hashtags | #Kapu #Bride #TS #AP |
 
 **Description (paste in channel → Edit → Description):**
 
 ```
-కాపు వధువులు — TS + AP అన్ని జిల్లాలు. నిజమైన profiles, ఫోటో గోప్యం, 3 requests FREE, ₹99లో 5. #Kapu #Bride #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
+కాపు • బలిజ • తెలగ — Kapu • Balija • Telaga (Brides). Sub-castes: Kapu • Ontari • Turupu Kapu • Palli Kapu • Balija. నిజమైన profiles, 3 requests FREE, ₹99లో 5. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
 ```
 
 **📌 Pin this post (channel ki welcome + rules):**
 
 ```
-🙏 *👰 Kapu Brides | కాపు వధువులు*
+🙏 *👰 Kapu • Balija • Telaga Brides | కాపు • బలిజ • తెలగ వధువులు*
 ━━━━━━━━━━━━━━━━━━
-*కాపు*
+*కాపు • బలిజ • తెలగ*
+👥 ఈ channel లో: *Kapu • Ontari • Turupu Kapu • Palli Kapu • Balija • Gajula Balija • Setti Balija • Surya Balija • Telaga • Telagu*
 
 ఇక్కడ ఏం దొరుకుతుంది:
 ✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
@@ -489,23 +393,24 @@ Telugu Matrimony — TS + AP
 
 | Item | Value |
 |---|---|
-| Name | `🤵 Kapu Grooms | కాపు వరులు` |
-| Username | `@manavivaha_kapu_groom` (taken ayithe: @tsap_kapu_groom, @mv_kapu_grm, @manavivaha_kapu_grm) |
+| Name | `🤵 Kapu • Balija • Telaga Grooms | కాపు • బలిజ • తెలగ వరులు` |
+| Username | `@manavivaha_kapu_groom` (taken ayithe: @tsap_kapu_groom, @mv_kapu_grm) |
 | Link | https://t.me/manavivaha_kapu_groom |
 | Hashtags | #Kapu #Groom #TS #AP |
 
 **Description (paste in channel → Edit → Description):**
 
 ```
-కాపు వరులు — TS + AP అన్ని జిల్లాలు. ఉద్యోగం/చదువు/జాతకం వివరాలతో profiles. 3 requests FREE. #Kapu #Groom #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
+కాపు • బలిజ • తెలగ — Kapu • Balija • Telaga (Grooms). Sub-castes: Kapu • Ontari • Turupu Kapu • Palli Kapu • Balija. నిజమైన profiles, 3 requests FREE, ₹99లో 5. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
 ```
 
 **📌 Pin this post (channel ki welcome + rules):**
 
 ```
-🙏 *🤵 Kapu Grooms | కాపు వరులు*
+🙏 *🤵 Kapu • Balija • Telaga Grooms | కాపు • బలిజ • తెలగ వరులు*
 ━━━━━━━━━━━━━━━━━━
-*కాపు*
+*కాపు • బలిజ • తెలగ*
+👥 ఈ channel లో: *Kapu • Ontari • Turupu Kapu • Palli Kapu • Balija • Gajula Balija • Setti Balija • Surya Balija • Telaga • Telagu*
 
 ఇక్కడ ఏం దొరుకుతుంది:
 ✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
@@ -537,14 +442,14 @@ Telugu Matrimony — TS + AP
 | Item | Value |
 |---|---|
 | Name | `👰 Reddy Brides | రెడ్డి వధువులు` |
-| Username | `@manavivaha_reddy_bride` (taken ayithe: @tsap_reddy_bride, @mv_reddy_brd, @manavivaha_reddy_brd) |
+| Username | `@manavivaha_reddy_bride` (taken ayithe: @tsap_reddy_bride, @mv_reddy_brd) |
 | Link | https://t.me/manavivaha_reddy_bride |
 | Hashtags | #Reddy #Bride #TS #AP |
 
 **Description (paste in channel → Edit → Description):**
 
 ```
-రెడ్డి వధువులు — TS + AP అన్ని జిల్లాలు. నిజమైన profiles, ఫోటో గోప్యం, 3 requests FREE, ₹99లో 5. #Reddy #Bride #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
+రెడ్డి — Reddy (Brides). Sub-castes: Reddy • Pakanati Reddy • Motati Reddy • Gudati Reddy • Deshathi Reddy. నిజమైన profiles, 3 requests FREE, ₹99లో 5. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
 ```
 
 **📌 Pin this post (channel ki welcome + rules):**
@@ -553,6 +458,7 @@ Telugu Matrimony — TS + AP
 🙏 *👰 Reddy Brides | రెడ్డి వధువులు*
 ━━━━━━━━━━━━━━━━━━
 *రెడ్డి*
+👥 ఈ channel లో: *Reddy • Pakanati Reddy • Motati Reddy • Gudati Reddy • Deshathi Reddy*
 
 ఇక్కడ ఏం దొరుకుతుంది:
 ✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
@@ -584,14 +490,14 @@ Telugu Matrimony — TS + AP
 | Item | Value |
 |---|---|
 | Name | `🤵 Reddy Grooms | రెడ్డి వరులు` |
-| Username | `@manavivaha_reddy_groom` (taken ayithe: @tsap_reddy_groom, @mv_reddy_grm, @manavivaha_reddy_grm) |
+| Username | `@manavivaha_reddy_groom` (taken ayithe: @tsap_reddy_groom, @mv_reddy_grm) |
 | Link | https://t.me/manavivaha_reddy_groom |
 | Hashtags | #Reddy #Groom #TS #AP |
 
 **Description (paste in channel → Edit → Description):**
 
 ```
-రెడ్డి వరులు — TS + AP అన్ని జిల్లాలు. ఉద్యోగం/చదువు/జాతకం వివరాలతో profiles. 3 requests FREE. #Reddy #Groom #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
+రెడ్డి — Reddy (Grooms). Sub-castes: Reddy • Pakanati Reddy • Motati Reddy • Gudati Reddy • Deshathi Reddy. నిజమైన profiles, 3 requests FREE, ₹99లో 5. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
 ```
 
 **📌 Pin this post (channel ki welcome + rules):**
@@ -600,6 +506,7 @@ Telugu Matrimony — TS + AP
 🙏 *🤵 Reddy Grooms | రెడ్డి వరులు*
 ━━━━━━━━━━━━━━━━━━
 *రెడ్డి*
+👥 ఈ channel లో: *Reddy • Pakanati Reddy • Motati Reddy • Gudati Reddy • Deshathi Reddy*
 
 ఇక్కడ ఏం దొరుకుతుంది:
 ✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
@@ -626,27 +533,28 @@ Telugu Matrimony — TS + AP
 
 ```
 
-### ⬜ `c_velama_bride`
+### ⬜ `christian_ap_bride`
 
 | Item | Value |
 |---|---|
-| Name | `👰 Velama Brides | వెలమ వధువులు` |
-| Username | `@manavivaha_velama_bride` (taken ayithe: @tsap_velama_bride, @mv_velama_brd, @manavivaha_velama_brd) |
-| Link | https://t.me/manavivaha_velama_bride |
-| Hashtags | #Velama #Bride #TS #AP |
+| Name | `✝️ AP Christian Brides | ఆంధ్రా క్రైస్తవ వధువులు` |
+| Username | `@manavivaha_christian_ap_bride` (taken ayithe: @apchristianbride, @mv_christ_ap_brd, @manavivaha_christ_ap_brd) |
+| Link | https://t.me/manavivaha_christian_ap_bride |
+| Hashtags | #Christian #Bride #AndhraPradesh #Wedding |
 
 **Description (paste in channel → Edit → Description):**
 
 ```
-వెలమ వధువులు — TS + AP అన్ని జిల్లాలు. నిజమైన profiles, ఫోటో గోప్యం, 3 requests FREE, ₹99లో 5. #Velama #Bride #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
+ఆంధ్రా క్రైస్తవ వధువులు — AP. ఫోటో గోప్యం, నిజమైన profiles, 3 requests FREE, ₹99లో 5. #Christian #Bride #AndhraPradesh Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
 ```
 
 **📌 Pin this post (channel ki welcome + rules):**
 
 ```
-🙏 *👰 Velama Brides | వెలమ వధువులు*
+🙏 *✝️ AP Christian Brides | ఆంధ్రా క్రైస్తవ వధువులు*
 ━━━━━━━━━━━━━━━━━━
-*వెలమ*
+Telugu Matrimony — TS + AP
+👥 AP Christian — Catholic • CSI • Baptist • Pentecost • Born Again
 
 ఇక్కడ ఏం దొరుకుతుంది:
 ✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
@@ -669,31 +577,32 @@ Telugu Matrimony — TS + AP
 
 🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
 🔗 మా website: https://manavivaha.in
-📢 Official: @TSAP_MATRIMONY | All channels: #Velama #Bride #TS #AP/channels
+📢 Official: @TSAP_MATRIMONY | All channels: #Christian #Bride #AndhraPradesh #Wedding/channels
 
 ```
 
-### ⬜ `c_velama_groom`
+### ⬜ `christian_ap_groom`
 
 | Item | Value |
 |---|---|
-| Name | `🤵 Velama Grooms | వెలమ వరులు` |
-| Username | `@manavivaha_velama_groom` (taken ayithe: @tsap_velama_groom, @mv_velama_grm, @manavivaha_velama_grm) |
-| Link | https://t.me/manavivaha_velama_groom |
-| Hashtags | #Velama #Groom #TS #AP |
+| Name | `✝️ AP Christian Grooms | ఆంధ్రా క్రైస్తవ వరులు` |
+| Username | `@manavivaha_christian_ap_groom` (taken ayithe: @apchristiangroom, @mv_christ_ap_grm, @manavivaha_christ_ap_grm) |
+| Link | https://t.me/manavivaha_christian_ap_groom |
+| Hashtags | #Christian #Groom #AndhraPradesh #Wedding |
 
 **Description (paste in channel → Edit → Description):**
 
 ```
-వెలమ వరులు — TS + AP అన్ని జిల్లాలు. ఉద్యోగం/చదువు/జాతకం వివరాలతో profiles. 3 requests FREE. #Velama #Groom #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
+ఆంధ్రా క్రైస్తవ వరులు — AP. ఫోటో గోప్యం, నిజమైన profiles, 3 requests FREE, ₹99లో 5. #Christian #Groom #AndhraPradesh Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
 ```
 
 **📌 Pin this post (channel ki welcome + rules):**
 
 ```
-🙏 *🤵 Velama Grooms | వెలమ వరులు*
+🙏 *✝️ AP Christian Grooms | ఆంధ్రా క్రైస్తవ వరులు*
 ━━━━━━━━━━━━━━━━━━
-*వెలమ*
+Telugu Matrimony — TS + AP
+👥 AP Christian — Catholic • CSI • Baptist • Pentecost • Born Again
 
 ఇక్కడ ఏం దొరుకుతుంది:
 ✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
@@ -716,31 +625,32 @@ Telugu Matrimony — TS + AP
 
 🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
 🔗 మా website: https://manavivaha.in
-📢 Official: @TSAP_MATRIMONY | All channels: #Velama #Groom #TS #AP/channels
+📢 Official: @TSAP_MATRIMONY | All channels: #Christian #Groom #AndhraPradesh #Wedding/channels
 
 ```
 
-### ⬜ `c_vysya_bride`
+### ⬜ `christian_ts_bride`
 
 | Item | Value |
 |---|---|
-| Name | `👰 Vysya Brides | వైశ్య వధువులు` |
-| Username | `@manavivaha_vysya_bride` (taken ayithe: @tsap_vysya_bride, @mv_vysya_brd, @manavivaha_vysya_brd) |
-| Link | https://t.me/manavivaha_vysya_bride |
-| Hashtags | #Vysya #Bride #TS #AP |
+| Name | `✝️ Telangana Christian Brides | తెలంగాణ క్రైస్తవ వధువులు` |
+| Username | `@manavivaha_christian_ts_bride` (taken ayithe: @tschristianbride, @mv_christ_ts_brd, @manavivaha_christ_ts_brd) |
+| Link | https://t.me/manavivaha_christian_ts_bride |
+| Hashtags | #Christian #Bride #Telangana #Wedding |
 
 **Description (paste in channel → Edit → Description):**
 
 ```
-వైశ్య వధువులు — TS + AP అన్ని జిల్లాలు. నిజమైన profiles, ఫోటో గోప్యం, 3 requests FREE, ₹99లో 5. #Vysya #Bride #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
+తెలంగాణ క్రైస్తవ వధువులు — Telangana. ఫోటో గోప్యం, నిజమైన profiles, 3 requests FREE, ₹99లో 5. #Christian #Bride #Telangana Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
 ```
 
 **📌 Pin this post (channel ki welcome + rules):**
 
 ```
-🙏 *👰 Vysya Brides | వైశ్య వధువులు*
+🙏 *✝️ Telangana Christian Brides | తెలంగాణ క్రైస్తవ వధువులు*
 ━━━━━━━━━━━━━━━━━━
-*వైశ్య*
+Telugu Matrimony — TS + AP
+👥 Telangana Christian — Catholic • CSI • Baptist • Pentecost • Born Again
 
 ఇక్కడ ఏం దొరుకుతుంది:
 ✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
@@ -763,31 +673,32 @@ Telugu Matrimony — TS + AP
 
 🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
 🔗 మా website: https://manavivaha.in
-📢 Official: @TSAP_MATRIMONY | All channels: #Vysya #Bride #TS #AP/channels
+📢 Official: @TSAP_MATRIMONY | All channels: #Christian #Bride #Telangana #Wedding/channels
 
 ```
 
-### ⬜ `c_vysya_groom`
+### ⬜ `christian_ts_groom`
 
 | Item | Value |
 |---|---|
-| Name | `🤵 Vysya Grooms | వైశ్య వరులు` |
-| Username | `@manavivaha_vysya_groom` (taken ayithe: @tsap_vysya_groom, @mv_vysya_grm, @manavivaha_vysya_grm) |
-| Link | https://t.me/manavivaha_vysya_groom |
-| Hashtags | #Vysya #Groom #TS #AP |
+| Name | `✝️ Telangana Christian Grooms | తెలంగాణ క్రైస్తవ వరులు` |
+| Username | `@manavivaha_christian_ts_groom` (taken ayithe: @tschristiangroom, @mv_christ_ts_grm, @manavivaha_christ_ts_grm) |
+| Link | https://t.me/manavivaha_christian_ts_groom |
+| Hashtags | #Christian #Groom #Telangana #Wedding |
 
 **Description (paste in channel → Edit → Description):**
 
 ```
-వైశ్య వరులు — TS + AP అన్ని జిల్లాలు. ఉద్యోగం/చదువు/జాతకం వివరాలతో profiles. 3 requests FREE. #Vysya #Groom #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
+తెలంగాణ క్రైస్తవ వరులు — Telangana. ఫోటో గోప్యం, నిజమైన profiles, 3 requests FREE, ₹99లో 5. #Christian #Groom #Telangana Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
 ```
 
 **📌 Pin this post (channel ki welcome + rules):**
 
 ```
-🙏 *🤵 Vysya Grooms | వైశ్య వరులు*
+🙏 *✝️ Telangana Christian Grooms | తెలంగాణ క్రైస్తవ వరులు*
 ━━━━━━━━━━━━━━━━━━
-*వైశ్య*
+Telugu Matrimony — TS + AP
+👥 Telangana Christian — Catholic • CSI • Baptist • Pentecost • Born Again
 
 ఇక్కడ ఏం దొరుకుతుంది:
 ✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
@@ -810,7 +721,245 @@ Telugu Matrimony — TS + AP
 
 🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
 🔗 మా website: https://manavivaha.in
-📢 Official: @TSAP_MATRIMONY | All channels: #Vysya #Groom #TS #AP/channels
+📢 Official: @TSAP_MATRIMONY | All channels: #Christian #Groom #Telangana #Wedding/channels
+
+```
+
+### ⬜ `hindu`
+
+| Item | Value |
+|---|---|
+| Name | `🕉️ Hindu Matrimony | హిందూ వివాహాలు` |
+| Username | `@manavivaha_hindu` (taken ayithe: @manavivaha_hindus, @tsap_hindu) |
+| Link | https://t.me/manavivaha_hindu |
+| Hashtags | #Hindu #TeluguMatrimony |
+
+**Description (paste in channel → Edit → Description):**
+
+```
+🕉️ Hindu Matrimony — హిందూ వివాహాలు. వధువులు + వరులు, అన్ని జిల్లాలు. 3 FREE requests, ₹99లో 5. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
+```
+
+**📌 Pin this post (channel ki welcome + rules):**
+
+```
+🙏 *🕉️ Hindu Matrimony | హిందూ వివాహాలు*
+━━━━━━━━━━━━━━━━━━
+Telugu Matrimony — TS + AP
+ఇక్కడ ఏం దొరుకుతుంది:
+✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
+✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
+✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
+✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
+
+ఎలా use చేయాలి (3 steps):
+1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
+2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
+3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
+
+🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
+
+⚠️ *చట్టాలు (తప్పక చదవండి):*
+🚫 ఇక్కడ *chatting లేదు* — spam, మోసం, డబ్బు అడగడం కూడా లేదు
+💰 Advance/registration/visa డబ్బు ఎవరు అడిగినా *100% మోసం* → వెంటనే report చేయండి
+🚫 బయట numbers/business promos పెట్టొద్దు → remove + ban
+🚨 మోసం జరిగితే: /safety లో report (మీ పేరు ఎక్కడా కనిపించదు)
+
+🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
+🔗 మా website: https://manavivaha.in
+📢 Official: @TSAP_MATRIMONY | All channels: #Hindu #TeluguMatrimony/channels
+
+```
+
+### ⬜ `muslim_ap_bride`
+
+| Item | Value |
+|---|---|
+| Name | `☪️ AP Muslim Brides | ఆంధ్రా ముస్లిం వధువులు` |
+| Username | `@manavivaha_muslim_ap_bride` (taken ayithe: @apmuslimbride, @mv_muslim_ap_brd, @manavivaha_muslim_ap_brd) |
+| Link | https://t.me/manavivaha_muslim_ap_bride |
+| Hashtags | #Muslim #Bride #AndhraPradesh #Nikah |
+
+**Description (paste in channel → Edit → Description):**
+
+```
+ఆంధ్రా ముస్లిం వధువులు — AP. ఫోటో గోప్యం, నిజమైన profiles, 3 requests FREE, ₹99లో 5. #Muslim #Bride #AndhraPradesh Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
+```
+
+**📌 Pin this post (channel ki welcome + rules):**
+
+```
+🙏 *☪️ AP Muslim Brides | ఆంధ్రా ముస్లిం వధువులు*
+━━━━━━━━━━━━━━━━━━
+Telugu Matrimony — TS + AP
+👥 AP Muslim — Sheikh • Syed • Pathan • Momin • Qureshi • Labbai — antha okate channel
+
+ఇక్కడ ఏం దొరుకుతుంది:
+✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
+✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
+✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
+✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
+
+ఎలా use చేయాలి (3 steps):
+1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
+2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
+3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
+
+🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
+
+⚠️ *చట్టాలు (తప్పక చదవండి):*
+🚫 ఇక్కడ *chatting లేదు* — spam, మోసం, డబ్బు అడగడం కూడా లేదు
+💰 Advance/registration/visa డబ్బు ఎవరు అడిగినా *100% మోసం* → వెంటనే report చేయండి
+🚫 బయట numbers/business promos పెట్టొద్దు → remove + ban
+🚨 మోసం జరిగితే: /safety లో report (మీ పేరు ఎక్కడా కనిపించదు)
+
+🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
+🔗 మా website: https://manavivaha.in
+📢 Official: @TSAP_MATRIMONY | All channels: #Muslim #Bride #AndhraPradesh #Nikah/channels
+
+```
+
+### ⬜ `muslim_ap_groom`
+
+| Item | Value |
+|---|---|
+| Name | `☪️ AP Muslim Grooms | ఆంధ్రా ముస్లిం వరులు` |
+| Username | `@manavivaha_muslim_ap_groom` (taken ayithe: @apmuslimgroom, @mv_muslim_ap_grm, @manavivaha_muslim_ap_grm) |
+| Link | https://t.me/manavivaha_muslim_ap_groom |
+| Hashtags | #Muslim #Groom #AndhraPradesh #Nikah |
+
+**Description (paste in channel → Edit → Description):**
+
+```
+ఆంధ్రా ముస్లిం వరులు — AP. ఫోటో గోప్యం, నిజమైన profiles, 3 requests FREE, ₹99లో 5. #Muslim #Groom #AndhraPradesh Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
+```
+
+**📌 Pin this post (channel ki welcome + rules):**
+
+```
+🙏 *☪️ AP Muslim Grooms | ఆంధ్రా ముస్లిం వరులు*
+━━━━━━━━━━━━━━━━━━
+Telugu Matrimony — TS + AP
+👥 AP Muslim — Sheikh • Syed • Pathan • Momin • Qureshi • Labbai — antha okate channel
+
+ఇక్కడ ఏం దొరుకుతుంది:
+✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
+✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
+✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
+✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
+
+ఎలా use చేయాలి (3 steps):
+1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
+2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
+3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
+
+🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
+
+⚠️ *చట్టాలు (తప్పక చదవండి):*
+🚫 ఇక్కడ *chatting లేదు* — spam, మోసం, డబ్బు అడగడం కూడా లేదు
+💰 Advance/registration/visa డబ్బు ఎవరు అడిగినా *100% మోసం* → వెంటనే report చేయండి
+🚫 బయట numbers/business promos పెట్టొద్దు → remove + ban
+🚨 మోసం జరిగితే: /safety లో report (మీ పేరు ఎక్కడా కనిపించదు)
+
+🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
+🔗 మా website: https://manavivaha.in
+📢 Official: @TSAP_MATRIMONY | All channels: #Muslim #Groom #AndhraPradesh #Nikah/channels
+
+```
+
+### ⬜ `muslim_ts_bride`
+
+| Item | Value |
+|---|---|
+| Name | `☪️ Telangana Muslim Brides | తెలంగాణ ముస్లిం వధువులు` |
+| Username | `@manavivaha_muslim_ts_bride` (taken ayithe: @tsmuslimbride, @mv_muslim_ts_brd, @manavivaha_muslim_ts_brd) |
+| Link | https://t.me/manavivaha_muslim_ts_bride |
+| Hashtags | #Muslim #Bride #Telangana #Nikah |
+
+**Description (paste in channel → Edit → Description):**
+
+```
+తెలంగాణ ముస్లిం వధువులు — Telangana. ఫోటో గోప్యం, నిజమైన profiles, 3 requests FREE, ₹99లో 5. #Muslim #Bride #Telangana Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
+```
+
+**📌 Pin this post (channel ki welcome + rules):**
+
+```
+🙏 *☪️ Telangana Muslim Brides | తెలంగాణ ముస్లిం వధువులు*
+━━━━━━━━━━━━━━━━━━
+Telugu Matrimony — TS + AP
+👥 Telangana Muslim — Sheikh • Syed • Pathan • Momin • Qureshi • Labbai — antha okate channel
+
+ఇక్కడ ఏం దొరుకుతుంది:
+✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
+✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
+✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
+✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
+
+ఎలా use చేయాలి (3 steps):
+1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
+2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
+3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
+
+🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
+
+⚠️ *చట్టాలు (తప్పక చదవండి):*
+🚫 ఇక్కడ *chatting లేదు* — spam, మోసం, డబ్బు అడగడం కూడా లేదు
+💰 Advance/registration/visa డబ్బు ఎవరు అడిగినా *100% మోసం* → వెంటనే report చేయండి
+🚫 బయట numbers/business promos పెట్టొద్దు → remove + ban
+🚨 మోసం జరిగితే: /safety లో report (మీ పేరు ఎక్కడా కనిపించదు)
+
+🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
+🔗 మా website: https://manavivaha.in
+📢 Official: @TSAP_MATRIMONY | All channels: #Muslim #Bride #Telangana #Nikah/channels
+
+```
+
+### ⬜ `muslim_ts_groom`
+
+| Item | Value |
+|---|---|
+| Name | `☪️ Telangana Muslim Grooms | తెలంగాణ ముస్లిం వరులు` |
+| Username | `@manavivaha_muslim_ts_groom` (taken ayithe: @tsmuslimgroom, @mv_muslim_ts_grm, @manavivaha_muslim_ts_grm) |
+| Link | https://t.me/manavivaha_muslim_ts_groom |
+| Hashtags | #Muslim #Groom #Telangana #Nikah |
+
+**Description (paste in channel → Edit → Description):**
+
+```
+తెలంగాణ ముస్లిం వరులు — Telangana. ఫోటో గోప్యం, నిజమైన profiles, 3 requests FREE, ₹99లో 5. #Muslim #Groom #Telangana Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
+```
+
+**📌 Pin this post (channel ki welcome + rules):**
+
+```
+🙏 *☪️ Telangana Muslim Grooms | తెలంగాణ ముస్లిం వరులు*
+━━━━━━━━━━━━━━━━━━
+Telugu Matrimony — TS + AP
+👥 Telangana Muslim — Sheikh • Syed • Pathan • Momin • Qureshi • Labbai — antha okate channel
+
+ఇక్కడ ఏం దొరుకుతుంది:
+✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
+✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
+✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
+✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
+
+ఎలా use చేయాలి (3 steps):
+1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
+2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
+3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
+
+🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
+
+⚠️ *చట్టాలు (తప్పక చదవండి):*
+🚫 ఇక్కడ *chatting లేదు* — spam, మోసం, డబ్బు అడగడం కూడా లేదు
+💰 Advance/registration/visa డబ్బు ఎవరు అడిగినా *100% మోసం* → వెంటనే report చేయండి
+🚫 బయట numbers/business promos పెట్టొద్దు → remove + ban
+🚨 మోసం జరిగితే: /safety లో report (మీ పేరు ఎక్కడా కనిపించదు)
+
+🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
+🔗 మా website: https://manavivaha.in
+📢 Official: @TSAP_MATRIMONY | All channels: #Muslim #Groom #Telangana #Nikah/channels
 
 ```
 
@@ -838,7 +987,6 @@ Telugu Matrimony — TS + AP
 🙏 *🌍 NRI Telugu Matrimony | విదేశీ సంబంధాలు*
 ━━━━━━━━━━━━━━━━━━
 Telugu Matrimony — TS + AP
-
 ఇక్కడ ఏం దొరుకుతుంది:
 ✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
 ✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
@@ -864,27 +1012,28 @@ Telugu Matrimony — TS + AP
 
 ```
 
-### ⬜ `c_goud_bride`
+### ⬜ `c_brahmin_bride`
 
 | Item | Value |
 |---|---|
-| Name | `👰 Goud Brides | గౌడ్ వధువులు` |
-| Username | `@manavivaha_goud_bride` (taken ayithe: @tsap_goud_bride, @mv_goud_brd, @manavivaha_goud_brd) |
-| Link | https://t.me/manavivaha_goud_bride |
-| Hashtags | #Goud #Bride #TS #AP |
+| Name | `👰 Brahmin Brides | బ్రాహ్మణ వధువులు` |
+| Username | `@manavivaha_brahmin_bride` (taken ayithe: @tsap_brahmin_bride, @mv_brahmin_brd) |
+| Link | https://t.me/manavivaha_brahmin_bride |
+| Hashtags | #Brahmin #Bride #TS #AP |
 
 **Description (paste in channel → Edit → Description):**
 
 ```
-గౌడ్ వధువులు — TS + AP అన్ని జిల్లాలు. నిజమైన profiles, ఫోటో గోప్యం, 3 requests FREE, ₹99లో 5. #Goud #Bride #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
+బ్రాహ్మణ — Brahmin (Brides). Sub-castes: Vaidiki Brahmin • Niyogi Brahmin • Sistla • Dravida Brahmin • Iyer. నిజమైన profiles, 3 requests FREE, ₹99లో 5. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
 ```
 
 **📌 Pin this post (channel ki welcome + rules):**
 
 ```
-🙏 *👰 Goud Brides | గౌడ్ వధువులు*
+🙏 *👰 Brahmin Brides | బ్రాహ్మణ వధువులు*
 ━━━━━━━━━━━━━━━━━━
-*గౌడ్*
+*బ్రాహ్మణ*
+👥 ఈ channel లో: *Vaidiki Brahmin • Niyogi Brahmin • Sistla • Dravida Brahmin • Iyer*
 
 ఇక్కడ ఏం దొరుకుతుంది:
 ✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
@@ -907,31 +1056,32 @@ Telugu Matrimony — TS + AP
 
 🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
 🔗 మా website: https://manavivaha.in
-📢 Official: @TSAP_MATRIMONY | All channels: #Goud #Bride #TS #AP/channels
+📢 Official: @TSAP_MATRIMONY | All channels: #Brahmin #Bride #TS #AP/channels
 
 ```
 
-### ⬜ `c_goud_groom`
+### ⬜ `c_brahmin_groom`
 
 | Item | Value |
 |---|---|
-| Name | `🤵 Goud Grooms | గౌడ్ వరులు` |
-| Username | `@manavivaha_goud_groom` (taken ayithe: @tsap_goud_groom, @mv_goud_grm, @manavivaha_goud_grm) |
-| Link | https://t.me/manavivaha_goud_groom |
-| Hashtags | #Goud #Groom #TS #AP |
+| Name | `🤵 Brahmin Grooms | బ్రాహ్మణ వరులు` |
+| Username | `@manavivaha_brahmin_groom` (taken ayithe: @tsap_brahmin_groom, @mv_brahmin_grm) |
+| Link | https://t.me/manavivaha_brahmin_groom |
+| Hashtags | #Brahmin #Groom #TS #AP |
 
 **Description (paste in channel → Edit → Description):**
 
 ```
-గౌడ్ వరులు — TS + AP అన్ని జిల్లాలు. ఉద్యోగం/చదువు/జాతకం వివరాలతో profiles. 3 requests FREE. #Goud #Groom #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
+బ్రాహ్మణ — Brahmin (Grooms). Sub-castes: Vaidiki Brahmin • Niyogi Brahmin • Sistla • Dravida Brahmin • Iyer. నిజమైన profiles, 3 requests FREE, ₹99లో 5. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
 ```
 
 **📌 Pin this post (channel ki welcome + rules):**
 
 ```
-🙏 *🤵 Goud Grooms | గౌడ్ వరులు*
+🙏 *🤵 Brahmin Grooms | బ్రాహ్మణ వరులు*
 ━━━━━━━━━━━━━━━━━━
-*గౌడ్*
+*బ్రాహ్మణ*
+👥 ఈ channel లో: *Vaidiki Brahmin • Niyogi Brahmin • Sistla • Dravida Brahmin • Iyer*
 
 ఇక్కడ ఏం దొరుకుతుంది:
 ✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
@@ -954,950 +1104,7 @@ Telugu Matrimony — TS + AP
 
 🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
 🔗 మా website: https://manavivaha.in
-📢 Official: @TSAP_MATRIMONY | All channels: #Goud #Groom #TS #AP/channels
-
-```
-
-### ⬜ `c_mala_bride`
-
-| Item | Value |
-|---|---|
-| Name | `👰 Mala Brides | మాల వధువులు` |
-| Username | `@manavivaha_mala_bride` (taken ayithe: @tsap_mala_bride, @mv_mala_brd, @manavivaha_mala_brd) |
-| Link | https://t.me/manavivaha_mala_bride |
-| Hashtags | #Mala #Bride #TS #AP |
-
-**Description (paste in channel → Edit → Description):**
-
-```
-మాల వధువులు — TS + AP అన్ని జిల్లాలు. నిజమైన profiles, ఫోటో గోప్యం, 3 requests FREE, ₹99లో 5. #Mala #Bride #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
-```
-
-**📌 Pin this post (channel ki welcome + rules):**
-
-```
-🙏 *👰 Mala Brides | మాల వధువులు*
-━━━━━━━━━━━━━━━━━━
-*మాల*
-
-ఇక్కడ ఏం దొరుకుతుంది:
-✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
-✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
-✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
-✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
-
-ఎలా use చేయాలి (3 steps):
-1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
-2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
-3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
-
-🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
-
-⚠️ *చట్టాలు (తప్పక చదవండి):*
-🚫 ఇక్కడ *chatting లేదు* — spam, మోసం, డబ్బు అడగడం కూడా లేదు
-💰 Advance/registration/visa డబ్బు ఎవరు అడిగినా *100% మోసం* → వెంటనే report చేయండి
-🚫 బయట numbers/business promos పెట్టొద్దు → remove + ban
-🚨 మోసం జరిగితే: /safety లో report (మీ పేరు ఎక్కడా కనిపించదు)
-
-🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
-🔗 మా website: https://manavivaha.in
-📢 Official: @TSAP_MATRIMONY | All channels: #Mala #Bride #TS #AP/channels
-
-```
-
-### ⬜ `c_mala_groom`
-
-| Item | Value |
-|---|---|
-| Name | `🤵 Mala Grooms | మాల వరులు` |
-| Username | `@manavivaha_mala_groom` (taken ayithe: @tsap_mala_groom, @mv_mala_grm, @manavivaha_mala_grm) |
-| Link | https://t.me/manavivaha_mala_groom |
-| Hashtags | #Mala #Groom #TS #AP |
-
-**Description (paste in channel → Edit → Description):**
-
-```
-మాల వరులు — TS + AP అన్ని జిల్లాలు. ఉద్యోగం/చదువు/జాతకం వివరాలతో profiles. 3 requests FREE. #Mala #Groom #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
-```
-
-**📌 Pin this post (channel ki welcome + rules):**
-
-```
-🙏 *🤵 Mala Grooms | మాల వరులు*
-━━━━━━━━━━━━━━━━━━
-*మాల*
-
-ఇక్కడ ఏం దొరుకుతుంది:
-✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
-✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
-✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
-✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
-
-ఎలా use చేయాలి (3 steps):
-1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
-2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
-3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
-
-🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
-
-⚠️ *చట్టాలు (తప్పక చదవండి):*
-🚫 ఇక్కడ *chatting లేదు* — spam, మోసం, డబ్బు అడగడం కూడా లేదు
-💰 Advance/registration/visa డబ్బు ఎవరు అడిగినా *100% మోసం* → వెంటనే report చేయండి
-🚫 బయట numbers/business promos పెట్టొద్దు → remove + ban
-🚨 మోసం జరిగితే: /safety లో report (మీ పేరు ఎక్కడా కనిపించదు)
-
-🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
-🔗 మా website: https://manavivaha.in
-📢 Official: @TSAP_MATRIMONY | All channels: #Mala #Groom #TS #AP/channels
-
-```
-
-### ⬜ `c_mudiraj_bride`
-
-| Item | Value |
-|---|---|
-| Name | `👰 Mudiraj Brides | ముదిరాజ్ వధువులు` |
-| Username | `@manavivaha_mudiraj_bride` (taken ayithe: @tsap_mudiraj_bride, @mv_mudiraj_brd, @manavivaha_mudiraj_brd) |
-| Link | https://t.me/manavivaha_mudiraj_bride |
-| Hashtags | #Mudiraj #Bride #TS #AP |
-
-**Description (paste in channel → Edit → Description):**
-
-```
-ముదిరాజ్ వధువులు — TS + AP అన్ని జిల్లాలు. నిజమైన profiles, ఫోటో గోప్యం, 3 requests FREE, ₹99లో 5. #Mudiraj #Bride #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
-```
-
-**📌 Pin this post (channel ki welcome + rules):**
-
-```
-🙏 *👰 Mudiraj Brides | ముదిరాజ్ వధువులు*
-━━━━━━━━━━━━━━━━━━
-*ముదిరాజ్*
-
-ఇక్కడ ఏం దొరుకుతుంది:
-✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
-✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
-✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
-✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
-
-ఎలా use చేయాలి (3 steps):
-1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
-2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
-3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
-
-🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
-
-⚠️ *చట్టాలు (తప్పక చదవండి):*
-🚫 ఇక్కడ *chatting లేదు* — spam, మోసం, డబ్బు అడగడం కూడా లేదు
-💰 Advance/registration/visa డబ్బు ఎవరు అడిగినా *100% మోసం* → వెంటనే report చేయండి
-🚫 బయట numbers/business promos పెట్టొద్దు → remove + ban
-🚨 మోసం జరిగితే: /safety లో report (మీ పేరు ఎక్కడా కనిపించదు)
-
-🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
-🔗 మా website: https://manavivaha.in
-📢 Official: @TSAP_MATRIMONY | All channels: #Mudiraj #Bride #TS #AP/channels
-
-```
-
-### ⬜ `c_mudiraj_groom`
-
-| Item | Value |
-|---|---|
-| Name | `🤵 Mudiraj Grooms | ముదిరాజ్ వరులు` |
-| Username | `@manavivaha_mudiraj_groom` (taken ayithe: @tsap_mudiraj_groom, @mv_mudiraj_grm, @manavivaha_mudiraj_grm) |
-| Link | https://t.me/manavivaha_mudiraj_groom |
-| Hashtags | #Mudiraj #Groom #TS #AP |
-
-**Description (paste in channel → Edit → Description):**
-
-```
-ముదిరాజ్ వరులు — TS + AP అన్ని జిల్లాలు. ఉద్యోగం/చదువు/జాతకం వివరాలతో profiles. 3 requests FREE. #Mudiraj #Groom #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
-```
-
-**📌 Pin this post (channel ki welcome + rules):**
-
-```
-🙏 *🤵 Mudiraj Grooms | ముదిరాజ్ వరులు*
-━━━━━━━━━━━━━━━━━━
-*ముదిరాజ్*
-
-ఇక్కడ ఏం దొరుకుతుంది:
-✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
-✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
-✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
-✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
-
-ఎలా use చేయాలి (3 steps):
-1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
-2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
-3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
-
-🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
-
-⚠️ *చట్టాలు (తప్పక చదవండి):*
-🚫 ఇక్కడ *chatting లేదు* — spam, మోసం, డబ్బు అడగడం కూడా లేదు
-💰 Advance/registration/visa డబ్బు ఎవరు అడిగినా *100% మోసం* → వెంటనే report చేయండి
-🚫 బయట numbers/business promos పెట్టొద్దు → remove + ban
-🚨 మోసం జరిగితే: /safety లో report (మీ పేరు ఎక్కడా కనిపించదు)
-
-🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
-🔗 మా website: https://manavivaha.in
-📢 Official: @TSAP_MATRIMONY | All channels: #Mudiraj #Groom #TS #AP/channels
-
-```
-
-### ⬜ `c_munnuru_kapu_bride`
-
-| Item | Value |
-|---|---|
-| Name | `👰 Munnuru Kapu Brides | మున్నూరు కాపు వధువులు` |
-| Username | `@manavivaha_munnurukapu_bride` (taken ayithe: @tsap_munnurukapu_bride, @mv_munnurukapu_brd, @manavivaha_munnurukapu_brd) |
-| Link | https://t.me/manavivaha_munnurukapu_bride |
-| Hashtags | #Munnurukapu #Bride #TS #AP |
-
-**Description (paste in channel → Edit → Description):**
-
-```
-మున్నూరు కాపు వధువులు — TS + AP అన్ని జిల్లాలు. నిజమైన profiles, ఫోటో గోప్యం, 3 requests FREE, ₹99లో 5. #Munnurukapu #Bride #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
-```
-
-**📌 Pin this post (channel ki welcome + rules):**
-
-```
-🙏 *👰 Munnuru Kapu Brides | మున్నూరు కాపు వధువులు*
-━━━━━━━━━━━━━━━━━━
-*మున్నూరు కాపు*
-
-ఇక్కడ ఏం దొరుకుతుంది:
-✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
-✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
-✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
-✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
-
-ఎలా use చేయాలి (3 steps):
-1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
-2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
-3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
-
-🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
-
-⚠️ *చట్టాలు (తప్పక చదవండి):*
-🚫 ఇక్కడ *chatting లేదు* — spam, మోసం, డబ్బు అడగడం కూడా లేదు
-💰 Advance/registration/visa డబ్బు ఎవరు అడిగినా *100% మోసం* → వెంటనే report చేయండి
-🚫 బయట numbers/business promos పెట్టొద్దు → remove + ban
-🚨 మోసం జరిగితే: /safety లో report (మీ పేరు ఎక్కడా కనిపించదు)
-
-🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
-🔗 మా website: https://manavivaha.in
-📢 Official: @TSAP_MATRIMONY | All channels: #Munnurukapu #Bride #TS #AP/channels
-
-```
-
-### ⬜ `c_munnuru_kapu_groom`
-
-| Item | Value |
-|---|---|
-| Name | `🤵 Munnuru Kapu Grooms | మున్నూరు కాపు వరులు` |
-| Username | `@manavivaha_munnurukapu_groom` (taken ayithe: @tsap_munnurukapu_groom, @mv_munnurukapu_grm, @manavivaha_munnurukapu_grm) |
-| Link | https://t.me/manavivaha_munnurukapu_groom |
-| Hashtags | #Munnurukapu #Groom #TS #AP |
-
-**Description (paste in channel → Edit → Description):**
-
-```
-మున్నూరు కాపు వరులు — TS + AP అన్ని జిల్లాలు. ఉద్యోగం/చదువు/జాతకం వివరాలతో profiles. 3 requests FREE. #Munnurukapu #Groom #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
-```
-
-**📌 Pin this post (channel ki welcome + rules):**
-
-```
-🙏 *🤵 Munnuru Kapu Grooms | మున్నూరు కాపు వరులు*
-━━━━━━━━━━━━━━━━━━
-*మున్నూరు కాపు*
-
-ఇక్కడ ఏం దొరుకుతుంది:
-✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
-✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
-✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
-✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
-
-ఎలా use చేయాలి (3 steps):
-1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
-2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
-3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
-
-🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
-
-⚠️ *చట్టాలు (తప్పక చదవండి):*
-🚫 ఇక్కడ *chatting లేదు* — spam, మోసం, డబ్బు అడగడం కూడా లేదు
-💰 Advance/registration/visa డబ్బు ఎవరు అడిగినా *100% మోసం* → వెంటనే report చేయండి
-🚫 బయట numbers/business promos పెట్టొద్దు → remove + ban
-🚨 మోసం జరిగితే: /safety లో report (మీ పేరు ఎక్కడా కనిపించదు)
-
-🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
-🔗 మా website: https://manavivaha.in
-📢 Official: @TSAP_MATRIMONY | All channels: #Munnurukapu #Groom #TS #AP/channels
-
-```
-
-### ⬜ `c_padmashali_bride`
-
-| Item | Value |
-|---|---|
-| Name | `👰 Padmashali Brides | పద్మశాలి వధువులు` |
-| Username | `@manavivaha_padmashali_bride` (taken ayithe: @tsap_padmashali_bride, @mv_padmashali_brd, @manavivaha_padmashali_brd) |
-| Link | https://t.me/manavivaha_padmashali_bride |
-| Hashtags | #Padmashali #Bride #TS #AP |
-
-**Description (paste in channel → Edit → Description):**
-
-```
-పద్మశాలి వధువులు — TS + AP అన్ని జిల్లాలు. నిజమైన profiles, ఫోటో గోప్యం, 3 requests FREE, ₹99లో 5. #Padmashali #Bride #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
-```
-
-**📌 Pin this post (channel ki welcome + rules):**
-
-```
-🙏 *👰 Padmashali Brides | పద్మశాలి వధువులు*
-━━━━━━━━━━━━━━━━━━
-*పద్మశాలి*
-
-ఇక్కడ ఏం దొరుకుతుంది:
-✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
-✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
-✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
-✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
-
-ఎలా use చేయాలి (3 steps):
-1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
-2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
-3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
-
-🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
-
-⚠️ *చట్టాలు (తప్పక చదవండి):*
-🚫 ఇక్కడ *chatting లేదు* — spam, మోసం, డబ్బు అడగడం కూడా లేదు
-💰 Advance/registration/visa డబ్బు ఎవరు అడిగినా *100% మోసం* → వెంటనే report చేయండి
-🚫 బయట numbers/business promos పెట్టొద్దు → remove + ban
-🚨 మోసం జరిగితే: /safety లో report (మీ పేరు ఎక్కడా కనిపించదు)
-
-🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
-🔗 మా website: https://manavivaha.in
-📢 Official: @TSAP_MATRIMONY | All channels: #Padmashali #Bride #TS #AP/channels
-
-```
-
-### ⬜ `c_padmashali_groom`
-
-| Item | Value |
-|---|---|
-| Name | `🤵 Padmashali Grooms | పద్మశాలి వరులు` |
-| Username | `@manavivaha_padmashali_groom` (taken ayithe: @tsap_padmashali_groom, @mv_padmashali_grm, @manavivaha_padmashali_grm) |
-| Link | https://t.me/manavivaha_padmashali_groom |
-| Hashtags | #Padmashali #Groom #TS #AP |
-
-**Description (paste in channel → Edit → Description):**
-
-```
-పద్మశాలి వరులు — TS + AP అన్ని జిల్లాలు. ఉద్యోగం/చదువు/జాతకం వివరాలతో profiles. 3 requests FREE. #Padmashali #Groom #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
-```
-
-**📌 Pin this post (channel ki welcome + rules):**
-
-```
-🙏 *🤵 Padmashali Grooms | పద్మశాలి వరులు*
-━━━━━━━━━━━━━━━━━━
-*పద్మశాలి*
-
-ఇక్కడ ఏం దొరుకుతుంది:
-✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
-✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
-✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
-✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
-
-ఎలా use చేయాలి (3 steps):
-1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
-2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
-3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
-
-🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
-
-⚠️ *చట్టాలు (తప్పక చదవండి):*
-🚫 ఇక్కడ *chatting లేదు* — spam, మోసం, డబ్బు అడగడం కూడా లేదు
-💰 Advance/registration/visa డబ్బు ఎవరు అడిగినా *100% మోసం* → వెంటనే report చేయండి
-🚫 బయట numbers/business promos పెట్టొద్దు → remove + ban
-🚨 మోసం జరిగితే: /safety లో report (మీ పేరు ఎక్కడా కనిపించదు)
-
-🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
-🔗 మా website: https://manavivaha.in
-📢 Official: @TSAP_MATRIMONY | All channels: #Padmashali #Groom #TS #AP/channels
-
-```
-
-### ⬜ `c_yadav_bride`
-
-| Item | Value |
-|---|---|
-| Name | `👰 Yadav Brides | యాదవ వధువులు` |
-| Username | `@manavivaha_yadav_bride` (taken ayithe: @tsap_yadav_bride, @mv_yadav_brd, @manavivaha_yadav_brd) |
-| Link | https://t.me/manavivaha_yadav_bride |
-| Hashtags | #Yadav #Bride #TS #AP |
-
-**Description (paste in channel → Edit → Description):**
-
-```
-యాదవ వధువులు — TS + AP అన్ని జిల్లాలు. నిజమైన profiles, ఫోటో గోప్యం, 3 requests FREE, ₹99లో 5. #Yadav #Bride #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
-```
-
-**📌 Pin this post (channel ki welcome + rules):**
-
-```
-🙏 *👰 Yadav Brides | యాదవ వధువులు*
-━━━━━━━━━━━━━━━━━━
-*యాదవ*
-
-ఇక్కడ ఏం దొరుకుతుంది:
-✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
-✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
-✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
-✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
-
-ఎలా use చేయాలి (3 steps):
-1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
-2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
-3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
-
-🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
-
-⚠️ *చట్టాలు (తప్పక చదవండి):*
-🚫 ఇక్కడ *chatting లేదు* — spam, మోసం, డబ్బు అడగడం కూడా లేదు
-💰 Advance/registration/visa డబ్బు ఎవరు అడిగినా *100% మోసం* → వెంటనే report చేయండి
-🚫 బయట numbers/business promos పెట్టొద్దు → remove + ban
-🚨 మోసం జరిగితే: /safety లో report (మీ పేరు ఎక్కడా కనిపించదు)
-
-🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
-🔗 మా website: https://manavivaha.in
-📢 Official: @TSAP_MATRIMONY | All channels: #Yadav #Bride #TS #AP/channels
-
-```
-
-### ⬜ `c_yadav_groom`
-
-| Item | Value |
-|---|---|
-| Name | `🤵 Yadav Grooms | యాదవ వరులు` |
-| Username | `@manavivaha_yadav_groom` (taken ayithe: @tsap_yadav_groom, @mv_yadav_grm, @manavivaha_yadav_grm) |
-| Link | https://t.me/manavivaha_yadav_groom |
-| Hashtags | #Yadav #Groom #TS #AP |
-
-**Description (paste in channel → Edit → Description):**
-
-```
-యాదవ వరులు — TS + AP అన్ని జిల్లాలు. ఉద్యోగం/చదువు/జాతకం వివరాలతో profiles. 3 requests FREE. #Yadav #Groom #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
-```
-
-**📌 Pin this post (channel ki welcome + rules):**
-
-```
-🙏 *🤵 Yadav Grooms | యాదవ వరులు*
-━━━━━━━━━━━━━━━━━━
-*యాదవ*
-
-ఇక్కడ ఏం దొరుకుతుంది:
-✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
-✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
-✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
-✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
-
-ఎలా use చేయాలి (3 steps):
-1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
-2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
-3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
-
-🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
-
-⚠️ *చట్టాలు (తప్పక చదవండి):*
-🚫 ఇక్కడ *chatting లేదు* — spam, మోసం, డబ్బు అడగడం కూడా లేదు
-💰 Advance/registration/visa డబ్బు ఎవరు అడిగినా *100% మోసం* → వెంటనే report చేయండి
-🚫 బయట numbers/business promos పెట్టొద్దు → remove + ban
-🚨 మోసం జరిగితే: /safety లో report (మీ పేరు ఎక్కడా కనిపించదు)
-
-🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
-🔗 మా website: https://manavivaha.in
-📢 Official: @TSAP_MATRIMONY | All channels: #Yadav #Groom #TS #AP/channels
-
-```
-
-### ⬜ `christian`
-
-| Item | Value |
-|---|---|
-| Name | `✝️ Christian Matrimony | క్రైస్తవ వివాహాలు` |
-| Username | `@manavivaha_christian` (taken ayithe: @manavivaha_christians, @tsap_christian) |
-| Link | https://t.me/manavivaha_christian |
-| Hashtags | #Christian #TeluguChristian #Wedding |
-
-**Description (paste in channel → Edit → Description):**
-
-```
-✝️ Christian Matrimony — క్రైస్తవ వివాహాలు. వధువులు + వరులు, అన్ని జిల్లాలు. 3 FREE requests, ₹99లో 5. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
-```
-
-**📌 Pin this post (channel ki welcome + rules):**
-
-```
-🙏 *✝️ Christian Matrimony | క్రైస్తవ వివాహాలు*
-━━━━━━━━━━━━━━━━━━
-Telugu Matrimony — TS + AP
-
-ఇక్కడ ఏం దొరుకుతుంది:
-✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
-✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
-✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
-✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
-
-ఎలా use చేయాలి (3 steps):
-1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
-2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
-3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
-
-🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
-
-⚠️ *చట్టాలు (తప్పక చదవండి):*
-🚫 ఇక్కడ *chatting లేదు* — spam, మోసం, డబ్బు అడగడం కూడా లేదు
-💰 Advance/registration/visa డబ్బు ఎవరు అడిగినా *100% మోసం* → వెంటనే report చేయండి
-🚫 బయట numbers/business promos పెట్టొద్దు → remove + ban
-🚨 మోసం జరిగితే: /safety లో report (మీ పేరు ఎక్కడా కనిపించదు)
-
-🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
-🔗 మా website: https://manavivaha.in
-📢 Official: @TSAP_MATRIMONY | All channels: #Christian #TeluguChristian #Wedding/channels
-
-```
-
-### ⬜ `hindu`
-
-| Item | Value |
-|---|---|
-| Name | `🕉️ Hindu Matrimony | హిందూ వివాహాలు` |
-| Username | `@manavivaha_hindu` (taken ayithe: @manavivaha_hindus, @tsap_hindu) |
-| Link | https://t.me/manavivaha_hindu |
-| Hashtags | #Hindu #TeluguMatrimony |
-
-**Description (paste in channel → Edit → Description):**
-
-```
-🕉️ Hindu Matrimony — హిందూ వివాహాలు. వధువులు + వరులు, అన్ని జిల్లాలు. 3 FREE requests, ₹99లో 5. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
-```
-
-**📌 Pin this post (channel ki welcome + rules):**
-
-```
-🙏 *🕉️ Hindu Matrimony | హిందూ వివాహాలు*
-━━━━━━━━━━━━━━━━━━
-Telugu Matrimony — TS + AP
-
-ఇక్కడ ఏం దొరుకుతుంది:
-✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
-✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
-✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
-✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
-
-ఎలా use చేయాలి (3 steps):
-1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
-2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
-3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
-
-🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
-
-⚠️ *చట్టాలు (తప్పక చదవండి):*
-🚫 ఇక్కడ *chatting లేదు* — spam, మోసం, డబ్బు అడగడం కూడా లేదు
-💰 Advance/registration/visa డబ్బు ఎవరు అడిగినా *100% మోసం* → వెంటనే report చేయండి
-🚫 బయట numbers/business promos పెట్టొద్దు → remove + ban
-🚨 మోసం జరిగితే: /safety లో report (మీ పేరు ఎక్కడా కనిపించదు)
-
-🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
-🔗 మా website: https://manavivaha.in
-📢 Official: @TSAP_MATRIMONY | All channels: #Hindu #TeluguMatrimony/channels
-
-```
-
-### ⬜ `muslim`
-
-| Item | Value |
-|---|---|
-| Name | `☪️ Muslim Matrimony | ముస్లిం వివాహాలు` |
-| Username | `@manavivaha_muslim` (taken ayithe: @manavivaha_muslims, @tsap_muslim) |
-| Link | https://t.me/manavivaha_muslim |
-| Hashtags | #Muslim #Nikah #TeluguMuslim |
-
-**Description (paste in channel → Edit → Description):**
-
-```
-☪️ Muslim Matrimony — ముస్లిం వివాహాలు. వధువులు + వరులు, అన్ని జిల్లాలు. 3 FREE requests, ₹99లో 5. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
-```
-
-**📌 Pin this post (channel ki welcome + rules):**
-
-```
-🙏 *☪️ Muslim Matrimony | ముస్లిం వివాహాలు*
-━━━━━━━━━━━━━━━━━━
-Telugu Matrimony — TS + AP
-
-ఇక్కడ ఏం దొరుకుతుంది:
-✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
-✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
-✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
-✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
-
-ఎలా use చేయాలి (3 steps):
-1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
-2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
-3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
-
-🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
-
-⚠️ *చట్టాలు (తప్పక చదవండి):*
-🚫 ఇక్కడ *chatting లేదు* — spam, మోసం, డబ్బు అడగడం కూడా లేదు
-💰 Advance/registration/visa డబ్బు ఎవరు అడిగినా *100% మోసం* → వెంటనే report చేయండి
-🚫 బయట numbers/business promos పెట్టొద్దు → remove + ban
-🚨 మోసం జరిగితే: /safety లో report (మీ పేరు ఎక్కడా కనిపించదు)
-
-🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
-🔗 మా website: https://manavivaha.in
-📢 Official: @TSAP_MATRIMONY | All channels: #Muslim #Nikah #TeluguMuslim/channels
-
-```
-
-### ⬜ `govt_jobs`
-
-| Item | Value |
-|---|---|
-| Name | `🏛️ Govt Jobs Matrimony | ప్రభుత్వ ఉద్యోగులు` |
-| Username | `@manavivaha_govt` (taken ayithe: @tsap_govt, @manavivaha_govtjobs) |
-| Link | https://t.me/manavivaha_govt |
-| Hashtags | #GovtJob #SoftwarekaduGovt |
-
-**Description (paste in channel → Edit → Description):**
-
-```
-🏛️ Govt Jobs Matrimony — ప్రభుత్వ ఉద్యోగులు. ఈ కేటగిరీ ప్రత్యేక profiles matrame — వేరే ఎక్కడా దొరకవు. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
-```
-
-**📌 Pin this post (channel ki welcome + rules):**
-
-```
-🙏 *🏛️ Govt Jobs Matrimony | ప్రభుత్వ ఉద్యోగులు*
-━━━━━━━━━━━━━━━━━━
-Telugu Matrimony — TS + AP
-
-ఇక్కడ ఏం దొరుకుతుంది:
-✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
-✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
-✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
-✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
-
-ఎలా use చేయాలి (3 steps):
-1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
-2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
-3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
-
-🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
-
-⚠️ *చట్టాలు (తప్పక చదవండి):*
-🚫 ఇక్కడ *chatting లేదు* — spam, మోసం, డబ్బు అడగడం కూడా లేదు
-💰 Advance/registration/visa డబ్బు ఎవరు అడిగినా *100% మోసం* → వెంటనే report చేయండి
-🚫 బయట numbers/business promos పెట్టొద్దు → remove + ban
-🚨 మోసం జరిగితే: /safety లో report (మీ పేరు ఎక్కడా కనిపించదు)
-
-🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
-🔗 మా website: https://manavivaha.in
-📢 Official: @TSAP_MATRIMONY | All channels: #GovtJob #SoftwarekaduGovt/channels
-
-```
-
-### ⬜ `second_marriage`
-
-| Item | Value |
-|---|---|
-| Name | `💍 Second Marriage | రెండో పెళ్లి` |
-| Username | `@manavivaha_second` (taken ayithe: @tsap_second, @manavivaha_remarriage) |
-| Link | https://t.me/manavivaha_second |
-| Hashtags | #SecondMarriage #Remarriage #Respect |
-
-**Description (paste in channel → Edit → Description):**
-
-```
-💍 Second Marriage — రెండో పెళ్లి. ఈ కేటగిరీ ప్రత్యేక profiles matrame — వేరే ఎక్కడా దొరకవు. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
-```
-
-**📌 Pin this post (channel ki welcome + rules):**
-
-```
-🙏 *💍 Second Marriage | రెండో పెళ్లి*
-━━━━━━━━━━━━━━━━━━
-Telugu Matrimony — TS + AP
-
-ఇక్కడ ఏం దొరుకుతుంది:
-✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
-✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
-✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
-✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
-
-ఎలా use చేయాలి (3 steps):
-1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
-2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
-3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
-
-🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
-
-⚠️ *చట్టాలు (తప్పక చదవండి):*
-🚫 ఇక్కడ *chatting లేదు* — spam, మోసం, డబ్బు అడగడం కూడా లేదు
-💰 Advance/registration/visa డబ్బు ఎవరు అడిగినా *100% మోసం* → వెంటనే report చేయండి
-🚫 బయట numbers/business promos పెట్టొద్దు → remove + ban
-🚨 మోసం జరిగితే: /safety లో report (మీ పేరు ఎక్కడా కనిపించదు)
-
-🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
-🔗 మా website: https://manavivaha.in
-📢 Official: @TSAP_MATRIMONY | All channels: #SecondMarriage #Remarriage #Respect/channels
-
-```
-
-
-## 🌊 WAVE 3
-
-### ⬜ `boya`
-
-| Item | Value |
-|---|---|
-| Name | `💍 Boya Matrimony | బోయ వివాహాలు` |
-| Username | `@manavivaha_boya` (taken ayithe: @manavivaha_valmiki, @tsap_boya) |
-| Link | https://t.me/manavivaha_boya |
-| Hashtags | #Boya #Valmiki |
-
-**Description (paste in channel → Edit → Description):**
-
-```
-బోయ వివాహాలు — వధువులు + వరులు, TS + AP. #Boya #Valmiki Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
-```
-
-**📌 Pin this post (channel ki welcome + rules):**
-
-```
-🙏 *💍 Boya Matrimony | బోయ వివాహాలు*
-━━━━━━━━━━━━━━━━━━
-Telugu Matrimony — TS + AP
-
-ఇక్కడ ఏం దొరుకుతుంది:
-✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
-✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
-✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
-✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
-
-ఎలా use చేయాలి (3 steps):
-1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
-2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
-3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
-
-🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
-
-⚠️ *చట్టాలు (తప్పక చదవండి):*
-🚫 ఇక్కడ *chatting లేదు* — spam, మోసం, డబ్బు అడగడం కూడా లేదు
-💰 Advance/registration/visa డబ్బు ఎవరు అడిగినా *100% మోసం* → వెంటనే report చేయండి
-🚫 బయట numbers/business promos పెట్టొద్దు → remove + ban
-🚨 మోసం జరిగితే: /safety లో report (మీ పేరు ఎక్కడా కనిపించదు)
-
-🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
-🔗 మా website: https://manavivaha.in
-📢 Official: @TSAP_MATRIMONY | All channels: #Boya #Valmiki/channels
-
-```
-
-### ⬜ `c_balija_bride`
-
-| Item | Value |
-|---|---|
-| Name | `👰 Balija Brides | బలిజ వధువులు` |
-| Username | `@manavivaha_balija_bride` (taken ayithe: @tsap_balija_bride, @mv_balija_brd, @manavivaha_balija_brd) |
-| Link | https://t.me/manavivaha_balija_bride |
-| Hashtags | #Balija #Bride #TS #AP |
-
-**Description (paste in channel → Edit → Description):**
-
-```
-బలిజ వధువులు — TS + AP అన్ని జిల్లాలు. నిజమైన profiles, ఫోటో గోప్యం, 3 requests FREE, ₹99లో 5. #Balija #Bride #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
-```
-
-**📌 Pin this post (channel ki welcome + rules):**
-
-```
-🙏 *👰 Balija Brides | బలిజ వధువులు*
-━━━━━━━━━━━━━━━━━━
-*బలిజ*
-
-ఇక్కడ ఏం దొరుకుతుంది:
-✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
-✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
-✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
-✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
-
-ఎలా use చేయాలి (3 steps):
-1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
-2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
-3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
-
-🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
-
-⚠️ *చట్టాలు (తప్పక చదవండి):*
-🚫 ఇక్కడ *chatting లేదు* — spam, మోసం, డబ్బు అడగడం కూడా లేదు
-💰 Advance/registration/visa డబ్బు ఎవరు అడిగినా *100% మోసం* → వెంటనే report చేయండి
-🚫 బయట numbers/business promos పెట్టొద్దు → remove + ban
-🚨 మోసం జరిగితే: /safety లో report (మీ పేరు ఎక్కడా కనిపించదు)
-
-🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
-🔗 మా website: https://manavivaha.in
-📢 Official: @TSAP_MATRIMONY | All channels: #Balija #Bride #TS #AP/channels
-
-```
-
-### ⬜ `c_balija_groom`
-
-| Item | Value |
-|---|---|
-| Name | `🤵 Balija Grooms | బలిజ వరులు` |
-| Username | `@manavivaha_balija_groom` (taken ayithe: @tsap_balija_groom, @mv_balija_grm, @manavivaha_balija_grm) |
-| Link | https://t.me/manavivaha_balija_groom |
-| Hashtags | #Balija #Groom #TS #AP |
-
-**Description (paste in channel → Edit → Description):**
-
-```
-బలిజ వరులు — TS + AP అన్ని జిల్లాలు. ఉద్యోగం/చదువు/జాతకం వివరాలతో profiles. 3 requests FREE. #Balija #Groom #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
-```
-
-**📌 Pin this post (channel ki welcome + rules):**
-
-```
-🙏 *🤵 Balija Grooms | బలిజ వరులు*
-━━━━━━━━━━━━━━━━━━
-*బలిజ*
-
-ఇక్కడ ఏం దొరుకుతుంది:
-✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
-✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
-✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
-✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
-
-ఎలా use చేయాలి (3 steps):
-1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
-2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
-3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
-
-🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
-
-⚠️ *చట్టాలు (తప్పక చదవండి):*
-🚫 ఇక్కడ *chatting లేదు* — spam, మోసం, డబ్బు అడగడం కూడా లేదు
-💰 Advance/registration/visa డబ్బు ఎవరు అడిగినా *100% మోసం* → వెంటనే report చేయండి
-🚫 బయట numbers/business promos పెట్టొద్దు → remove + ban
-🚨 మోసం జరిగితే: /safety లో report (మీ పేరు ఎక్కడా కనిపించదు)
-
-🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
-🔗 మా website: https://manavivaha.in
-📢 Official: @TSAP_MATRIMONY | All channels: #Balija #Groom #TS #AP/channels
-
-```
-
-### ⬜ `c_lambada_bride`
-
-| Item | Value |
-|---|---|
-| Name | `👰 Lambada Brides | లంబాడ వధువులు` |
-| Username | `@manavivaha_lambada_bride` (taken ayithe: @tsap_lambada_bride, @mv_lambada_brd, @manavivaha_lambada_brd) |
-| Link | https://t.me/manavivaha_lambada_bride |
-| Hashtags | #Lambada #Bride #TS #AP |
-
-**Description (paste in channel → Edit → Description):**
-
-```
-లంబాడ వధువులు — TS + AP అన్ని జిల్లాలు. నిజమైన profiles, ఫోటో గోప్యం, 3 requests FREE, ₹99లో 5. #Lambada #Bride #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
-```
-
-**📌 Pin this post (channel ki welcome + rules):**
-
-```
-🙏 *👰 Lambada Brides | లంబాడ వధువులు*
-━━━━━━━━━━━━━━━━━━
-*లంబాడ*
-
-ఇక్కడ ఏం దొరుకుతుంది:
-✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
-✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
-✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
-✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
-
-ఎలా use చేయాలి (3 steps):
-1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
-2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
-3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
-
-🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
-
-⚠️ *చట్టాలు (తప్పక చదవండి):*
-🚫 ఇక్కడ *chatting లేదు* — spam, మోసం, డబ్బు అడగడం కూడా లేదు
-💰 Advance/registration/visa డబ్బు ఎవరు అడిగినా *100% మోసం* → వెంటనే report చేయండి
-🚫 బయట numbers/business promos పెట్టొద్దు → remove + ban
-🚨 మోసం జరిగితే: /safety లో report (మీ పేరు ఎక్కడా కనిపించదు)
-
-🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
-🔗 మా website: https://manavivaha.in
-📢 Official: @TSAP_MATRIMONY | All channels: #Lambada #Bride #TS #AP/channels
-
-```
-
-### ⬜ `c_lambada_groom`
-
-| Item | Value |
-|---|---|
-| Name | `🤵 Lambada Grooms | లంబాడ వరులు` |
-| Username | `@manavivaha_lambada_groom` (taken ayithe: @tsap_lambada_groom, @mv_lambada_grm, @manavivaha_lambada_grm) |
-| Link | https://t.me/manavivaha_lambada_groom |
-| Hashtags | #Lambada #Groom #TS #AP |
-
-**Description (paste in channel → Edit → Description):**
-
-```
-లంబాడ వరులు — TS + AP అన్ని జిల్లాలు. ఉద్యోగం/చదువు/జాతకం వివరాలతో profiles. 3 requests FREE. #Lambada #Groom #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
-```
-
-**📌 Pin this post (channel ki welcome + rules):**
-
-```
-🙏 *🤵 Lambada Grooms | లంబాడ వరులు*
-━━━━━━━━━━━━━━━━━━
-*లంబాడ*
-
-ఇక్కడ ఏం దొరుకుతుంది:
-✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
-✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
-✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
-✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
-
-ఎలా use చేయాలి (3 steps):
-1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
-2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
-3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
-
-🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
-
-⚠️ *చట్టాలు (తప్పక చదవండి):*
-🚫 ఇక్కడ *chatting లేదు* — spam, మోసం, డబ్బు అడగడం కూడా లేదు
-💰 Advance/registration/visa డబ్బు ఎవరు అడిగినా *100% మోసం* → వెంటనే report చేయండి
-🚫 బయట numbers/business promos పెట్టొద్దు → remove + ban
-🚨 మోసం జరిగితే: /safety లో report (మీ పేరు ఎక్కడా కనిపించదు)
-
-🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
-🔗 మా website: https://manavivaha.in
-📢 Official: @TSAP_MATRIMONY | All channels: #Lambada #Groom #TS #AP/channels
+📢 Official: @TSAP_MATRIMONY | All channels: #Brahmin #Groom #TS #AP/channels
 
 ```
 
@@ -1906,14 +1113,14 @@ Telugu Matrimony — TS + AP
 | Item | Value |
 |---|---|
 | Name | `👰 Madiga Brides | మాదిగ వధువులు` |
-| Username | `@manavivaha_madiga_bride` (taken ayithe: @tsap_madiga_bride, @mv_madiga_brd, @manavivaha_madiga_brd) |
+| Username | `@manavivaha_madiga_bride` (taken ayithe: @tsap_madiga_bride, @mv_madiga_brd) |
 | Link | https://t.me/manavivaha_madiga_bride |
 | Hashtags | #Madiga #Bride #TS #AP |
 
 **Description (paste in channel → Edit → Description):**
 
 ```
-మాదిగ వధువులు — TS + AP అన్ని జిల్లాలు. నిజమైన profiles, ఫోటో గోప్యం, 3 requests FREE, ₹99లో 5. #Madiga #Bride #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
+మాదిగ — Madiga (Brides). Sub-castes: Madiga • Madiga Dasu • Mashteen • Madiga Dasari. నిజమైన profiles, 3 requests FREE, ₹99లో 5. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
 ```
 
 **📌 Pin this post (channel ki welcome + rules):**
@@ -1922,6 +1129,7 @@ Telugu Matrimony — TS + AP
 🙏 *👰 Madiga Brides | మాదిగ వధువులు*
 ━━━━━━━━━━━━━━━━━━
 *మాదిగ*
+👥 ఈ channel లో: *Madiga • Madiga Dasu • Mashteen • Madiga Dasari*
 
 ఇక్కడ ఏం దొరుకుతుంది:
 ✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
@@ -1953,14 +1161,14 @@ Telugu Matrimony — TS + AP
 | Item | Value |
 |---|---|
 | Name | `🤵 Madiga Grooms | మాదిగ వరులు` |
-| Username | `@manavivaha_madiga_groom` (taken ayithe: @tsap_madiga_groom, @mv_madiga_grm, @manavivaha_madiga_grm) |
+| Username | `@manavivaha_madiga_groom` (taken ayithe: @tsap_madiga_groom, @mv_madiga_grm) |
 | Link | https://t.me/manavivaha_madiga_groom |
 | Hashtags | #Madiga #Groom #TS #AP |
 
 **Description (paste in channel → Edit → Description):**
 
 ```
-మాదిగ వరులు — TS + AP అన్ని జిల్లాలు. ఉద్యోగం/చదువు/జాతకం వివరాలతో profiles. 3 requests FREE. #Madiga #Groom #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
+మాదిగ — Madiga (Grooms). Sub-castes: Madiga • Madiga Dasu • Mashteen • Madiga Dasari. నిజమైన profiles, 3 requests FREE, ₹99లో 5. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
 ```
 
 **📌 Pin this post (channel ki welcome + rules):**
@@ -1969,6 +1177,7 @@ Telugu Matrimony — TS + AP
 🙏 *🤵 Madiga Grooms | మాదిగ వరులు*
 ━━━━━━━━━━━━━━━━━━
 *మాదిగ*
+👥 ఈ channel లో: *Madiga • Madiga Dasu • Mashteen • Madiga Dasari*
 
 ఇక్కడ ఏం దొరుకుతుంది:
 ✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
@@ -1995,27 +1204,28 @@ Telugu Matrimony — TS + AP
 
 ```
 
-### ⬜ `c_raju_bride`
+### ⬜ `c_mala_bride`
 
 | Item | Value |
 |---|---|
-| Name | `👰 Raju Brides | రాజు వధువులు` |
-| Username | `@manavivaha_raju_bride` (taken ayithe: @tsap_raju_bride, @mv_raju_brd, @manavivaha_raju_brd) |
-| Link | https://t.me/manavivaha_raju_bride |
-| Hashtags | #Raju #Bride #TS #AP |
+| Name | `👰 Mala Brides | మాల వధువులు` |
+| Username | `@manavivaha_mala_bride` (taken ayithe: @tsap_mala_bride, @mv_mala_brd) |
+| Link | https://t.me/manavivaha_mala_bride |
+| Hashtags | #Mala #Bride #TS #AP |
 
 **Description (paste in channel → Edit → Description):**
 
 ```
-రాజు వధువులు — TS + AP అన్ని జిల్లాలు. నిజమైన profiles, ఫోటో గోప్యం, 3 requests FREE, ₹99లో 5. #Raju #Bride #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
+మాల — Mala (Brides). Sub-castes: Mala • Mala Ayawaru • Mala Dasari. నిజమైన profiles, 3 requests FREE, ₹99లో 5. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
 ```
 
 **📌 Pin this post (channel ki welcome + rules):**
 
 ```
-🙏 *👰 Raju Brides | రాజు వధువులు*
+🙏 *👰 Mala Brides | మాల వధువులు*
 ━━━━━━━━━━━━━━━━━━
-*రాజు*
+*మాల*
+👥 ఈ channel లో: *Mala • Mala Ayawaru • Mala Dasari*
 
 ఇక్కడ ఏం దొరుకుతుంది:
 ✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
@@ -2038,31 +1248,32 @@ Telugu Matrimony — TS + AP
 
 🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
 🔗 మా website: https://manavivaha.in
-📢 Official: @TSAP_MATRIMONY | All channels: #Raju #Bride #TS #AP/channels
+📢 Official: @TSAP_MATRIMONY | All channels: #Mala #Bride #TS #AP/channels
 
 ```
 
-### ⬜ `c_raju_groom`
+### ⬜ `c_mala_groom`
 
 | Item | Value |
 |---|---|
-| Name | `🤵 Raju Grooms | రాజు వరులు` |
-| Username | `@manavivaha_raju_groom` (taken ayithe: @tsap_raju_groom, @mv_raju_grm, @manavivaha_raju_grm) |
-| Link | https://t.me/manavivaha_raju_groom |
-| Hashtags | #Raju #Groom #TS #AP |
+| Name | `🤵 Mala Grooms | మాల వరులు` |
+| Username | `@manavivaha_mala_groom` (taken ayithe: @tsap_mala_groom, @mv_mala_grm) |
+| Link | https://t.me/manavivaha_mala_groom |
+| Hashtags | #Mala #Groom #TS #AP |
 
 **Description (paste in channel → Edit → Description):**
 
 ```
-రాజు వరులు — TS + AP అన్ని జిల్లాలు. ఉద్యోగం/చదువు/జాతకం వివరాలతో profiles. 3 requests FREE. #Raju #Groom #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
+మాల — Mala (Grooms). Sub-castes: Mala • Mala Ayawaru • Mala Dasari. నిజమైన profiles, 3 requests FREE, ₹99లో 5. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
 ```
 
 **📌 Pin this post (channel ki welcome + rules):**
 
 ```
-🙏 *🤵 Raju Grooms | రాజు వరులు*
+🙏 *🤵 Mala Grooms | మాల వరులు*
 ━━━━━━━━━━━━━━━━━━
-*రాజు*
+*మాల*
+👥 ఈ channel లో: *Mala • Mala Ayawaru • Mala Dasari*
 
 ఇక్కడ ఏం దొరుకుతుంది:
 ✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
@@ -2085,31 +1296,32 @@ Telugu Matrimony — TS + AP
 
 🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
 🔗 మా website: https://manavivaha.in
-📢 Official: @TSAP_MATRIMONY | All channels: #Raju #Groom #TS #AP/channels
+📢 Official: @TSAP_MATRIMONY | All channels: #Mala #Groom #TS #AP/channels
 
 ```
 
-### ⬜ `c_telaga_bride`
+### ⬜ `c_munnuru_kapu`
 
 | Item | Value |
 |---|---|
-| Name | `👰 Telaga Brides | తెలగ వధువులు` |
-| Username | `@manavivaha_telaga_bride` (taken ayithe: @tsap_telaga_bride, @mv_telaga_brd, @manavivaha_telaga_brd) |
-| Link | https://t.me/manavivaha_telaga_bride |
-| Hashtags | #Telaga #Bride #TS #AP |
+| Name | `💍 Munnuru Kapu Matrimony | మున్నూరు కాపు — వధువులు + వరులు` |
+| Username | `@manavivaha_munnuru_kapu` (taken ayithe: @tsap_munnuru_kapu, @manavivaha_munnuru_kapu_community) |
+| Link | https://t.me/manavivaha_munnuru_kapu |
+| Hashtags | #MunnuruKapu #Bride #Groom #TS #AP |
 
 **Description (paste in channel → Edit → Description):**
 
 ```
-తెలగ వధువులు — TS + AP అన్ని జిల్లాలు. నిజమైన profiles, ఫోటో గోప్యం, 3 requests FREE, ₹99లో 5. #Telaga #Bride #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
+మున్నూరు కాపు — Munnuru Kapu (Brides + Grooms). Sub-castes: Munnuru Kapu • Munnuru. నిజమైన profiles, 3 requests FREE, ₹99లో 5. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
 ```
 
 **📌 Pin this post (channel ki welcome + rules):**
 
 ```
-🙏 *👰 Telaga Brides | తెలగ వధువులు*
+🙏 *💍 Munnuru Kapu Matrimony | మున్నూరు కాపు — వధువులు + వరులు*
 ━━━━━━━━━━━━━━━━━━
-*తెలగ*
+*మున్నూరు కాపు*
+👥 ఈ channel లో: *Munnuru Kapu • Munnuru*
 
 ఇక్కడ ఏం దొరుకుతుంది:
 ✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
@@ -2132,31 +1344,32 @@ Telugu Matrimony — TS + AP
 
 🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
 🔗 మా website: https://manavivaha.in
-📢 Official: @TSAP_MATRIMONY | All channels: #Telaga #Bride #TS #AP/channels
+📢 Official: @TSAP_MATRIMONY | All channels: #MunnuruKapu #Bride #Groom #TS #AP/channels
 
 ```
 
-### ⬜ `c_telaga_groom`
+### ⬜ `c_velama_bride`
 
 | Item | Value |
 |---|---|
-| Name | `🤵 Telaga Grooms | తెలగ వరులు` |
-| Username | `@manavivaha_telaga_groom` (taken ayithe: @tsap_telaga_groom, @mv_telaga_grm, @manavivaha_telaga_grm) |
-| Link | https://t.me/manavivaha_telaga_groom |
-| Hashtags | #Telaga #Groom #TS #AP |
+| Name | `👰 Velama Brides | వెలమ వధువులు` |
+| Username | `@manavivaha_velama_bride` (taken ayithe: @tsap_velama_bride, @mv_velama_brd) |
+| Link | https://t.me/manavivaha_velama_bride |
+| Hashtags | #Velama #Bride #TS #AP |
 
 **Description (paste in channel → Edit → Description):**
 
 ```
-తెలగ వరులు — TS + AP అన్ని జిల్లాలు. ఉద్యోగం/చదువు/జాతకం వివరాలతో profiles. 3 requests FREE. #Telaga #Groom #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
+వెలమ — Velama (Brides). Sub-castes: Velama • Padma Velama • Koppula Velama. నిజమైన profiles, 3 requests FREE, ₹99లో 5. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
 ```
 
 **📌 Pin this post (channel ki welcome + rules):**
 
 ```
-🙏 *🤵 Telaga Grooms | తెలగ వరులు*
+🙏 *👰 Velama Brides | వెలమ వధువులు*
 ━━━━━━━━━━━━━━━━━━
-*తెలగ*
+*వెలమ*
+👥 ఈ channel లో: *Velama • Padma Velama • Koppula Velama*
 
 ఇక్కడ ఏం దొరుకుతుంది:
 ✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
@@ -2179,31 +1392,32 @@ Telugu Matrimony — TS + AP
 
 🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
 🔗 మా website: https://manavivaha.in
-📢 Official: @TSAP_MATRIMONY | All channels: #Telaga #Groom #TS #AP/channels
+📢 Official: @TSAP_MATRIMONY | All channels: #Velama #Bride #TS #AP/channels
 
 ```
 
-### ⬜ `c_viswakarma_bride`
+### ⬜ `c_velama_groom`
 
 | Item | Value |
 |---|---|
-| Name | `👰 Viswakarma Brides | విశ్వకర్మ వధువులు` |
-| Username | `@manavivaha_viswakarma_bride` (taken ayithe: @tsap_viswakarma_bride, @mv_viswakarma_brd, @manavivaha_viswakarma_brd) |
-| Link | https://t.me/manavivaha_viswakarma_bride |
-| Hashtags | #Viswakarma #Bride #TS #AP |
+| Name | `🤵 Velama Grooms | వెలమ వరులు` |
+| Username | `@manavivaha_velama_groom` (taken ayithe: @tsap_velama_groom, @mv_velama_grm) |
+| Link | https://t.me/manavivaha_velama_groom |
+| Hashtags | #Velama #Groom #TS #AP |
 
 **Description (paste in channel → Edit → Description):**
 
 ```
-విశ్వకర్మ వధువులు — TS + AP అన్ని జిల్లాలు. నిజమైన profiles, ఫోటో గోప్యం, 3 requests FREE, ₹99లో 5. #Viswakarma #Bride #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
+వెలమ — Velama (Grooms). Sub-castes: Velama • Padma Velama • Koppula Velama. నిజమైన profiles, 3 requests FREE, ₹99లో 5. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
 ```
 
 **📌 Pin this post (channel ki welcome + rules):**
 
 ```
-🙏 *👰 Viswakarma Brides | విశ్వకర్మ వధువులు*
+🙏 *🤵 Velama Grooms | వెలమ వరులు*
 ━━━━━━━━━━━━━━━━━━
-*విశ్వకర్మ*
+*వెలమ*
+👥 ఈ channel లో: *Velama • Padma Velama • Koppula Velama*
 
 ఇక్కడ ఏం దొరుకుతుంది:
 ✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
@@ -2226,31 +1440,32 @@ Telugu Matrimony — TS + AP
 
 🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
 🔗 మా website: https://manavivaha.in
-📢 Official: @TSAP_MATRIMONY | All channels: #Viswakarma #Bride #TS #AP/channels
+📢 Official: @TSAP_MATRIMONY | All channels: #Velama #Groom #TS #AP/channels
 
 ```
 
-### ⬜ `c_viswakarma_groom`
+### ⬜ `c_viswabrahmana`
 
 | Item | Value |
 |---|---|
-| Name | `🤵 Viswakarma Grooms | విశ్వకర్మ వరులు` |
-| Username | `@manavivaha_viswakarma_groom` (taken ayithe: @tsap_viswakarma_groom, @mv_viswakarma_grm, @manavivaha_viswakarma_grm) |
-| Link | https://t.me/manavivaha_viswakarma_groom |
-| Hashtags | #Viswakarma #Groom #TS #AP |
+| Name | `💍 Viswabrahmana (Viswakarma) Matrimony | విశ్వబ్రాహ్మణ — వధువులు + వరులు` |
+| Username | `@manavivaha_viswabrahmana` (taken ayithe: @tsap_viswabrahmana, @manavivaha_viswabrahmana_community) |
+| Link | https://t.me/manavivaha_viswabrahmana |
+| Hashtags | #Viswabrahmana #Bride #Groom #TS #AP |
 
 **Description (paste in channel → Edit → Description):**
 
 ```
-విశ్వకర్మ వరులు — TS + AP అన్ని జిల్లాలు. ఉద్యోగం/చదువు/జాతకం వివరాలతో profiles. 3 requests FREE. #Viswakarma #Groom #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
+విశ్వబ్రాహ్మణ — Viswabrahmana (Viswakarma) (Brides + Grooms). Sub-castes: Viswakarma • Viswabrahmin • Viswabrahmana • Kamsali • Kammari. నిజమైన profiles, 3 requests FREE, ₹99లో 5. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
 ```
 
 **📌 Pin this post (channel ki welcome + rules):**
 
 ```
-🙏 *🤵 Viswakarma Grooms | విశ్వకర్మ వరులు*
+🙏 *💍 Viswabrahmana (Viswakarma) Matrimony | విశ్వబ్రాహ్మణ — వధువులు + వరులు*
 ━━━━━━━━━━━━━━━━━━
-*విశ్వకర్మ*
+*విశ్వబ్రాహ్మణ*
+👥 ఈ channel లో: *Viswakarma • Viswabrahmin • Viswabrahmana • Kamsali • Kammari • Kanchari • Vadla • Ausula • Silpi • Shilpi • Vadrangi • Achari*
 
 ఇక్కడ ఏం దొరుకుతుంది:
 ✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
@@ -2273,31 +1488,32 @@ Telugu Matrimony — TS + AP
 
 🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
 🔗 మా website: https://manavivaha.in
-📢 Official: @TSAP_MATRIMONY | All channels: #Viswakarma #Groom #TS #AP/channels
+📢 Official: @TSAP_MATRIMONY | All channels: #Viswabrahmana #Bride #Groom #TS #AP/channels
 
 ```
 
-### ⬜ `interfaith`
+### ⬜ `c_vysya_bride`
 
 | Item | Value |
 |---|---|
-| Name | `💞 Inter-Faith & Love | ప్రేమ వివాహాలు` |
-| Username | `@manavivaha_interfaith` (taken ayithe: @manavivaha_intercaste, @manavivaha_mixedmarriage) |
-| Link | https://t.me/manavivaha_interfaith |
-| Hashtags | #Intercaste #LoveMarriage #RegisterMarriage |
+| Name | `👰 Arya Vysya • Komati Brides | వైశ్య • కోమటి వధువులు` |
+| Username | `@manavivaha_vysya_bride` (taken ayithe: @tsap_vysya_bride, @mv_vysya_brd) |
+| Link | https://t.me/manavivaha_vysya_bride |
+| Hashtags | #Vysya #Bride #TS #AP |
 
 **Description (paste in channel → Edit → Description):**
 
 ```
-💞 Inter-Faith & Love — ప్రేమ వివాహాలు. వధువులు + వరులు, అన్ని జిల్లాలు. 3 FREE requests, ₹99లో 5. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
+వైశ్య • కోమటి — Arya Vysya • Komati (Brides). Sub-castes: Arya Vysya • Komati • Komti • Vaishya • Sadhu Chetty. నిజమైన profiles, 3 requests FREE, ₹99లో 5. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
 ```
 
 **📌 Pin this post (channel ki welcome + rules):**
 
 ```
-🙏 *💞 Inter-Faith & Love | ప్రేమ వివాహాలు*
+🙏 *👰 Arya Vysya • Komati Brides | వైశ్య • కోమటి వధువులు*
 ━━━━━━━━━━━━━━━━━━
-Telugu Matrimony — TS + AP
+*వైశ్య • కోమటి*
+👥 ఈ channel లో: *Arya Vysya • Komati • Komti • Vaishya • Sadhu Chetty*
 
 ఇక్కడ ఏం దొరుకుతుంది:
 ✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
@@ -2320,7 +1536,151 @@ Telugu Matrimony — TS + AP
 
 🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
 🔗 మా website: https://manavivaha.in
-📢 Official: @TSAP_MATRIMONY | All channels: #Intercaste #LoveMarriage #RegisterMarriage/channels
+📢 Official: @TSAP_MATRIMONY | All channels: #Vysya #Bride #TS #AP/channels
+
+```
+
+### ⬜ `c_vysya_groom`
+
+| Item | Value |
+|---|---|
+| Name | `🤵 Arya Vysya • Komati Grooms | వైశ్య • కోమటి వరులు` |
+| Username | `@manavivaha_vysya_groom` (taken ayithe: @tsap_vysya_groom, @mv_vysya_grm) |
+| Link | https://t.me/manavivaha_vysya_groom |
+| Hashtags | #Vysya #Groom #TS #AP |
+
+**Description (paste in channel → Edit → Description):**
+
+```
+వైశ్య • కోమటి — Arya Vysya • Komati (Grooms). Sub-castes: Arya Vysya • Komati • Komti • Vaishya • Sadhu Chetty. నిజమైన profiles, 3 requests FREE, ₹99లో 5. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
+```
+
+**📌 Pin this post (channel ki welcome + rules):**
+
+```
+🙏 *🤵 Arya Vysya • Komati Grooms | వైశ్య • కోమటి వరులు*
+━━━━━━━━━━━━━━━━━━
+*వైశ్య • కోమటి*
+👥 ఈ channel లో: *Arya Vysya • Komati • Komti • Vaishya • Sadhu Chetty*
+
+ఇక్కడ ఏం దొరుకుతుంది:
+✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
+✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
+✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
+✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
+
+ఎలా use చేయాలి (3 steps):
+1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
+2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
+3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
+
+🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
+
+⚠️ *చట్టాలు (తప్పక చదవండి):*
+🚫 ఇక్కడ *chatting లేదు* — spam, మోసం, డబ్బు అడగడం కూడా లేదు
+💰 Advance/registration/visa డబ్బు ఎవరు అడిగినా *100% మోసం* → వెంటనే report చేయండి
+🚫 బయట numbers/business promos పెట్టొద్దు → remove + ban
+🚨 మోసం జరిగితే: /safety లో report (మీ పేరు ఎక్కడా కనిపించదు)
+
+🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
+🔗 మా website: https://manavivaha.in
+📢 Official: @TSAP_MATRIMONY | All channels: #Vysya #Groom #TS #AP/channels
+
+```
+
+### ⬜ `c_yadava_goud_bride`
+
+| Item | Value |
+|---|---|
+| Name | `👰 Yadava • Goud • Golla Brides | యాదవ • గౌడ • గొల్ల వధువులు` |
+| Username | `@manavivaha_yadava_goud_bride` (taken ayithe: @tsap_yadava_goud_bride, @mv_yadava_goud_brd) |
+| Link | https://t.me/manavivaha_yadava_goud_bride |
+| Hashtags | #YadavaGoud #Bride #TS #AP |
+
+**Description (paste in channel → Edit → Description):**
+
+```
+యాదవ • గౌడ • గొల్ల — Yadava • Goud • Golla (Brides). Sub-castes: Yadav • Yadava • Golla • Kuruma • Kuruba. నిజమైన profiles, 3 requests FREE, ₹99లో 5. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
+```
+
+**📌 Pin this post (channel ki welcome + rules):**
+
+```
+🙏 *👰 Yadava • Goud • Golla Brides | యాదవ • గౌడ • గొల్ల వధువులు*
+━━━━━━━━━━━━━━━━━━
+*యాదవ • గౌడ • గొల్ల*
+👥 ఈ channel లో: *Yadav • Yadava • Golla • Kuruma • Kuruba • Goud • Gouda • Ediga • Gamalla • Idiga • Settibalija*
+
+ఇక్కడ ఏం దొరుకుతుంది:
+✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
+✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
+✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
+✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
+
+ఎలా use చేయాలి (3 steps):
+1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
+2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
+3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
+
+🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
+
+⚠️ *చట్టాలు (తప్పక చదవండి):*
+🚫 ఇక్కడ *chatting లేదు* — spam, మోసం, డబ్బు అడగడం కూడా లేదు
+💰 Advance/registration/visa డబ్బు ఎవరు అడిగినా *100% మోసం* → వెంటనే report చేయండి
+🚫 బయట numbers/business promos పెట్టొద్దు → remove + ban
+🚨 మోసం జరిగితే: /safety లో report (మీ పేరు ఎక్కడా కనిపించదు)
+
+🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
+🔗 మా website: https://manavivaha.in
+📢 Official: @TSAP_MATRIMONY | All channels: #YadavaGoud #Bride #TS #AP/channels
+
+```
+
+### ⬜ `c_yadava_goud_groom`
+
+| Item | Value |
+|---|---|
+| Name | `🤵 Yadava • Goud • Golla Grooms | యాదవ • గౌడ • గొల్ల వరులు` |
+| Username | `@manavivaha_yadava_goud_groom` (taken ayithe: @tsap_yadava_goud_groom, @mv_yadava_goud_grm) |
+| Link | https://t.me/manavivaha_yadava_goud_groom |
+| Hashtags | #YadavaGoud #Groom #TS #AP |
+
+**Description (paste in channel → Edit → Description):**
+
+```
+యాదవ • గౌడ • గొల్ల — Yadava • Goud • Golla (Grooms). Sub-castes: Yadav • Yadava • Golla • Kuruma • Kuruba. నిజమైన profiles, 3 requests FREE, ₹99లో 5. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
+```
+
+**📌 Pin this post (channel ki welcome + rules):**
+
+```
+🙏 *🤵 Yadava • Goud • Golla Grooms | యాదవ • గౌడ • గొల్ల వరులు*
+━━━━━━━━━━━━━━━━━━
+*యాదవ • గౌడ • గొల్ల*
+👥 ఈ channel లో: *Yadav • Yadava • Golla • Kuruma • Kuruba • Goud • Gouda • Ediga • Gamalla • Idiga • Settibalija*
+
+ఇక్కడ ఏం దొరుకుతుంది:
+✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
+✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
+✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
+✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
+
+ఎలా use చేయాలి (3 steps):
+1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
+2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
+3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
+
+🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
+
+⚠️ *చట్టాలు (తప్పక చదవండి):*
+🚫 ఇక్కడ *chatting లేదు* — spam, మోసం, డబ్బు అడగడం కూడా లేదు
+💰 Advance/registration/visa డబ్బు ఎవరు అడిగినా *100% మోసం* → వెంటనే report చేయండి
+🚫 బయట numbers/business promos పెట్టొద్దు → remove + ban
+🚨 మోసం జరిగితే: /safety లో report (మీ పేరు ఎక్కడా కనిపించదు)
+
+🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
+🔗 మా website: https://manavivaha.in
+📢 Official: @TSAP_MATRIMONY | All channels: #YadavaGoud #Groom #TS #AP/channels
 
 ```
 
@@ -2345,7 +1705,6 @@ Telugu Matrimony — TS + AP
 🙏 *🕊️ Other Religions | ఇతర మత వివాహాలు*
 ━━━━━━━━━━━━━━━━━━
 Telugu Matrimony — TS + AP
-
 ఇక్కడ ఏం దొరుకుతుంది:
 ✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
 ✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
@@ -2371,27 +1730,77 @@ Telugu Matrimony — TS + AP
 
 ```
 
-### ⬜ `above_35`
+### ⬜ `second_marriage`
 
 | Item | Value |
 |---|---|
-| Name | `🎂 35+ Matrimony | 35 ఏళ్ల పైన` |
-| Username | `@manavivaha_35plus` (taken ayithe: @tsap_35plus, @manavivaha_late) |
-| Link | https://t.me/manavivaha_35plus |
-| Hashtags | #35Plus #LateMarriage |
+| Name | `💍 Second Marriage | రెండో పెళ్లి` |
+| Username | `@manavivaha_second` (taken ayithe: @tsap_second, @manavivaha_remarriage) |
+| Link | https://t.me/manavivaha_second |
+| Hashtags | #SecondMarriage #Remarriage #Respect |
 
 **Description (paste in channel → Edit → Description):**
 
 ```
-🎂 35+ Matrimony — 35 ఏళ్ల పైన. ఈ కేటగిరీ ప్రత్యేక profiles matrame — వేరే ఎక్కడా దొరకవు. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
+💍 Second Marriage — రెండో పెళ్లి. ఈ కేటగిరీ ప్రత్యేక profiles matrame — వేరే ఎక్కడా దొరకవు. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
 ```
 
 **📌 Pin this post (channel ki welcome + rules):**
 
 ```
-🙏 *🎂 35+ Matrimony | 35 ఏళ్ల పైన*
+🙏 *💍 Second Marriage | రెండో పెళ్లి*
 ━━━━━━━━━━━━━━━━━━
 Telugu Matrimony — TS + AP
+ఇక్కడ ఏం దొరుకుతుంది:
+✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
+✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
+✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
+✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
+
+ఎలా use చేయాలి (3 steps):
+1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
+2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
+3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
+
+🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
+
+⚠️ *చట్టాలు (తప్పక చదవండి):*
+🚫 ఇక్కడ *chatting లేదు* — spam, మోసం, డబ్బు అడగడం కూడా లేదు
+💰 Advance/registration/visa డబ్బు ఎవరు అడిగినా *100% మోసం* → వెంటనే report చేయండి
+🚫 బయట numbers/business promos పెట్టొద్దు → remove + ban
+🚨 మోసం జరిగితే: /safety లో report (మీ పేరు ఎక్కడా కనిపించదు)
+
+🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
+🔗 మా website: https://manavivaha.in
+📢 Official: @TSAP_MATRIMONY | All channels: #SecondMarriage #Remarriage #Respect/channels
+
+```
+
+
+## 🌊 WAVE 3
+
+### ⬜ `c_lambada_banjara`
+
+| Item | Value |
+|---|---|
+| Name | `💍 Lambada • Banjara (ST) Matrimony | లంబాడ • బంజార — వధువులు + వరులు` |
+| Username | `@manavivaha_lambada_banjara` (taken ayithe: @tsap_lambada_banjara, @manavivaha_lambada_banjara_community) |
+| Link | https://t.me/manavivaha_lambada_banjara |
+| Hashtags | #LambadaBanjara #Bride #Groom #TS #AP |
+
+**Description (paste in channel → Edit → Description):**
+
+```
+లంబాడ • బంజార — Lambada • Banjara (ST) (Brides + Grooms). Sub-castes: Lambada • Lambadi • Banjara • Lambani • Sugali. నిజమైన profiles, 3 requests FREE, ₹99లో 5. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
+```
+
+**📌 Pin this post (channel ki welcome + rules):**
+
+```
+🙏 *💍 Lambada • Banjara (ST) Matrimony | లంబాడ • బంజార — వధువులు + వరులు*
+━━━━━━━━━━━━━━━━━━
+*లంబాడ • బంజార*
+👥 ఈ channel లో: *Lambada • Lambadi • Banjara • Lambani • Sugali*
 
 ఇక్కడ ఏం దొరుకుతుంది:
 ✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
@@ -2414,7 +1823,341 @@ Telugu Matrimony — TS + AP
 
 🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
 🔗 మా website: https://manavivaha.in
-📢 Official: @TSAP_MATRIMONY | All channels: #35Plus #LateMarriage/channels
+📢 Official: @TSAP_MATRIMONY | All channels: #LambadaBanjara #Bride #Groom #TS #AP/channels
+
+```
+
+### ⬜ `c_mudiraj`
+
+| Item | Value |
+|---|---|
+| Name | `💍 Mudiraj • Tenugollu Matrimony | ముదిరాజ • తెనుగొల్ల — వధువులు + వరులు` |
+| Username | `@manavivaha_mudiraj` (taken ayithe: @tsap_mudiraj, @manavivaha_mudiraj_community) |
+| Link | https://t.me/manavivaha_mudiraj |
+| Hashtags | #Mudiraj #Bride #Groom #TS #AP |
+
+**Description (paste in channel → Edit → Description):**
+
+```
+ముదిరాజ • తెనుగొల్ల — Mudiraj • Tenugollu (Brides + Grooms). Sub-castes: Mudiraj • Mudiraju • Mutrasi • Tenugollu. నిజమైన profiles, 3 requests FREE, ₹99లో 5. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
+```
+
+**📌 Pin this post (channel ki welcome + rules):**
+
+```
+🙏 *💍 Mudiraj • Tenugollu Matrimony | ముదిరాజ • తెనుగొల్ల — వధువులు + వరులు*
+━━━━━━━━━━━━━━━━━━
+*ముదిరాజ • తెనుగొల్ల*
+👥 ఈ channel లో: *Mudiraj • Mudiraju • Mutrasi • Tenugollu*
+
+ఇక్కడ ఏం దొరుకుతుంది:
+✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
+✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
+✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
+✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
+
+ఎలా use చేయాలి (3 steps):
+1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
+2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
+3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
+
+🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
+
+⚠️ *చట్టాలు (తప్పక చదవండి):*
+🚫 ఇక్కడ *chatting లేదు* — spam, మోసం, డబ్బు అడగడం కూడా లేదు
+💰 Advance/registration/visa డబ్బు ఎవరు అడిగినా *100% మోసం* → వెంటనే report చేయండి
+🚫 బయట numbers/business promos పెట్టొద్దు → remove + ban
+🚨 మోసం జరిగితే: /safety లో report (మీ పేరు ఎక్కడా కనిపించదు)
+
+🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
+🔗 మా website: https://manavivaha.in
+📢 Official: @TSAP_MATRIMONY | All channels: #Mudiraj #Bride #Groom #TS #AP/channels
+
+```
+
+### ⬜ `c_others_bc`
+
+| Item | Value |
+|---|---|
+| Name | `💍 Other BC Communities Matrimony | ఇతర BC కులాలు — వధువులు + వరులు` |
+| Username | `@manavivaha_others_bc` (taken ayithe: @tsap_others_bc, @manavivaha_others_bc_community) |
+| Link | https://t.me/manavivaha_others_bc |
+| Hashtags | #OthersBc #Bride #Groom #TS #AP |
+
+**Description (paste in channel → Edit → Description):**
+
+```
+ఇతర BC కులాలు — Other BC Communities (Brides + Grooms). Sub-castes: Kummara • Kulala • Salivahana • Gandla • Telikula. నిజమైన profiles, 3 requests FREE, ₹99లో 5. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
+```
+
+**📌 Pin this post (channel ki welcome + rules):**
+
+```
+🙏 *💍 Other BC Communities Matrimony | ఇతర BC కులాలు — వధువులు + వరులు*
+━━━━━━━━━━━━━━━━━━
+*ఇతర BC కులాలు*
+👥 ఈ channel లో: *Kummara • Kulala • Salivahana • Gandla • Telikula • Uppara • Sagara • Vaddera • Odde • Rajaka • Chakali • Mangali • Nayi-Brahmin • Boya*
+
+ఇక్కడ ఏం దొరుకుతుంది:
+✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
+✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
+✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
+✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
+
+ఎలా use చేయాలి (3 steps):
+1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
+2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
+3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
+
+🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
+
+⚠️ *చట్టాలు (తప్పక చదవండి):*
+🚫 ఇక్కడ *chatting లేదు* — spam, మోసం, డబ్బు అడగడం కూడా లేదు
+💰 Advance/registration/visa డబ్బు ఎవరు అడిగినా *100% మోసం* → వెంటనే report చేయండి
+🚫 బయట numbers/business promos పెట్టొద్దు → remove + ban
+🚨 మోసం జరిగితే: /safety లో report (మీ పేరు ఎక్కడా కనిపించదు)
+
+🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
+🔗 మా website: https://manavivaha.in
+📢 Official: @TSAP_MATRIMONY | All channels: #OthersBc #Bride #Groom #TS #AP/channels
+
+```
+
+### ⬜ `c_others_sc`
+
+| Item | Value |
+|---|---|
+| Name | `💍 Other SC Communities Matrimony | ఇతర SC కులాలు — వధువులు + వరులు` |
+| Username | `@manavivaha_others_sc` (taken ayithe: @tsap_others_sc, @manavivaha_others_sc_community) |
+| Link | https://t.me/manavivaha_others_sc |
+| Hashtags | #OthersSc #Bride #Groom #TS #AP |
+
+**Description (paste in channel → Edit → Description):**
+
+```
+ఇతర SC కులాలు — Other SC Communities (Brides + Grooms). Sub-castes: Adi Andhra • Adi Dravida • Arundhatiya • Relli • Arwa Mala. నిజమైన profiles, 3 requests FREE, ₹99లో 5. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
+```
+
+**📌 Pin this post (channel ki welcome + rules):**
+
+```
+🙏 *💍 Other SC Communities Matrimony | ఇతర SC కులాలు — వధువులు + వరులు*
+━━━━━━━━━━━━━━━━━━
+*ఇతర SC కులాలు*
+👥 ఈ channel లో: *Adi Andhra • Adi Dravida • Arundhatiya • Relli • Arwa Mala • Samban • Dandasi*
+
+ఇక్కడ ఏం దొరుకుతుంది:
+✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
+✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
+✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
+✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
+
+ఎలా use చేయాలి (3 steps):
+1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
+2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
+3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
+
+🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
+
+⚠️ *చట్టాలు (తప్పక చదవండి):*
+🚫 ఇక్కడ *chatting లేదు* — spam, మోసం, డబ్బు అడగడం కూడా లేదు
+💰 Advance/registration/visa డబ్బు ఎవరు అడిగినా *100% మోసం* → వెంటనే report చేయండి
+🚫 బయట numbers/business promos పెట్టొద్దు → remove + ban
+🚨 మోసం జరిగితే: /safety లో report (మీ పేరు ఎక్కడా కనిపించదు)
+
+🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
+🔗 మా website: https://manavivaha.in
+📢 Official: @TSAP_MATRIMONY | All channels: #OthersSc #Bride #Groom #TS #AP/channels
+
+```
+
+### ⬜ `c_others_st`
+
+| Item | Value |
+|---|---|
+| Name | `💍 Other ST Communities Matrimony | ఇతర ST కులాలు — వధువులు + వరులు` |
+| Username | `@manavivaha_others_st` (taken ayithe: @tsap_others_st, @manavivaha_others_st_community) |
+| Link | https://t.me/manavivaha_others_st |
+| Hashtags | #OthersSt #Bride #Groom #TS #AP |
+
+**Description (paste in channel → Edit → Description):**
+
+```
+ఇతర ST కులాలు — Other ST Communities (Brides + Grooms). Sub-castes: Koya • Koitur • Gond • Rajgond • Naikpod. నిజమైన profiles, 3 requests FREE, ₹99లో 5. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
+```
+
+**📌 Pin this post (channel ki welcome + rules):**
+
+```
+🙏 *💍 Other ST Communities Matrimony | ఇతర ST కులాలు — వధువులు + వరులు*
+━━━━━━━━━━━━━━━━━━
+*ఇతర ST కులాలు*
+👥 ఈ channel లో: *Koya • Koitur • Gond • Rajgond • Naikpod • Chenchu • Bagata • Konda Reddi • Savara • Andh*
+
+ఇక్కడ ఏం దొరుకుతుంది:
+✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
+✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
+✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
+✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
+
+ఎలా use చేయాలి (3 steps):
+1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
+2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
+3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
+
+🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
+
+⚠️ *చట్టాలు (తప్పక చదవండి):*
+🚫 ఇక్కడ *chatting లేదు* — spam, మోసం, డబ్బు అడగడం కూడా లేదు
+💰 Advance/registration/visa డబ్బు ఎవరు అడిగినా *100% మోసం* → వెంటనే report చేయండి
+🚫 బయట numbers/business promos పెట్టొద్దు → remove + ban
+🚨 మోసం జరిగితే: /safety లో report (మీ పేరు ఎక్కడా కనిపించదు)
+
+🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
+🔗 మా website: https://manavivaha.in
+📢 Official: @TSAP_MATRIMONY | All channels: #OthersSt #Bride #Groom #TS #AP/channels
+
+```
+
+### ⬜ `c_padmashali_weavers`
+
+| Item | Value |
+|---|---|
+| Name | `💍 Padmashali • Devanga (Weavers) Matrimony | పద్మశాలి • దేవాంగ — వధువులు + వరులు` |
+| Username | `@manavivaha_padmashali_weavers` (taken ayithe: @tsap_padmashali_weavers, @manavivaha_padmashali_weavers_community) |
+| Link | https://t.me/manavivaha_padmashali_weavers |
+| Hashtags | #PadmashaliWeavers #Bride #Groom #TS #AP |
+
+**Description (paste in channel → Edit → Description):**
+
+```
+పద్మశాలి • దేవాంగ — Padmashali • Devanga (Weavers) (Brides + Grooms). Sub-castes: Padmashali • Padmasali • Sali • Pattusali • Thogata. నిజమైన profiles, 3 requests FREE, ₹99లో 5. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
+```
+
+**📌 Pin this post (channel ki welcome + rules):**
+
+```
+🙏 *💍 Padmashali • Devanga (Weavers) Matrimony | పద్మశాలి • దేవాంగ — వధువులు + వరులు*
+━━━━━━━━━━━━━━━━━━
+*పద్మశాలి • దేవాంగ*
+👥 ఈ channel లో: *Padmashali • Padmasali • Sali • Pattusali • Thogata • Devanga • Devanga Chettiar*
+
+ఇక్కడ ఏం దొరుకుతుంది:
+✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
+✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
+✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
+✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
+
+ఎలా use చేయాలి (3 steps):
+1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
+2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
+3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
+
+🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
+
+⚠️ *చట్టాలు (తప్పక చదవండి):*
+🚫 ఇక్కడ *chatting లేదు* — spam, మోసం, డబ్బు అడగడం కూడా లేదు
+💰 Advance/registration/visa డబ్బు ఎవరు అడిగినా *100% మోసం* → వెంటనే report చేయండి
+🚫 బయట numbers/business promos పెట్టొద్దు → remove + ban
+🚨 మోసం జరిగితే: /safety లో report (మీ పేరు ఎక్కడా కనిపించదు)
+
+🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
+🔗 మా website: https://manavivaha.in
+📢 Official: @TSAP_MATRIMONY | All channels: #PadmashaliWeavers #Bride #Groom #TS #AP/channels
+
+```
+
+### ⬜ `c_raju_kshatriya`
+
+| Item | Value |
+|---|---|
+| Name | `💍 Raju • Kshatriya Matrimony | రాజు • క్షత్రియ — వధువులు + వరులు` |
+| Username | `@manavivaha_raju_kshatriya` (taken ayithe: @tsap_raju_kshatriya, @manavivaha_raju_kshatriya_community) |
+| Link | https://t.me/manavivaha_raju_kshatriya |
+| Hashtags | #RajuKshatriya #Bride #Groom #TS #AP |
+
+**Description (paste in channel → Edit → Description):**
+
+```
+రాజు • క్షత్రియ — Raju • Kshatriya (Brides + Grooms). Sub-castes: Raju • Rajulu • Kshatriya • Vanniyar. నిజమైన profiles, 3 requests FREE, ₹99లో 5. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
+```
+
+**📌 Pin this post (channel ki welcome + rules):**
+
+```
+🙏 *💍 Raju • Kshatriya Matrimony | రాజు • క్షత్రియ — వధువులు + వరులు*
+━━━━━━━━━━━━━━━━━━
+*రాజు • క్షత్రియ*
+👥 ఈ channel లో: *Raju • Rajulu • Kshatriya • Vanniyar*
+
+ఇక్కడ ఏం దొరుకుతుంది:
+✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
+✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
+✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
+✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
+
+ఎలా use చేయాలి (3 steps):
+1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
+2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
+3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
+
+🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
+
+⚠️ *చట్టాలు (తప్పక చదవండి):*
+🚫 ఇక్కడ *chatting లేదు* — spam, మోసం, డబ్బు అడగడం కూడా లేదు
+💰 Advance/registration/visa డబ్బు ఎవరు అడిగినా *100% మోసం* → వెంటనే report చేయండి
+🚫 బయట numbers/business promos పెట్టొద్దు → remove + ban
+🚨 మోసం జరిగితే: /safety లో report (మీ పేరు ఎక్కడా కనిపించదు)
+
+🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
+🔗 మా website: https://manavivaha.in
+📢 Official: @TSAP_MATRIMONY | All channels: #RajuKshatriya #Bride #Groom #TS #AP/channels
+
+```
+
+### ⬜ `interfaith`
+
+| Item | Value |
+|---|---|
+| Name | `💞 Inter-Faith & Love | ప్రేమ వివాహాలు` |
+| Username | `@manavivaha_interfaith` (taken ayithe: @manavivaha_intercaste, @manavivaha_mixedmarriage) |
+| Link | https://t.me/manavivaha_interfaith |
+| Hashtags | #Intercaste #LoveMarriage #RegisterMarriage |
+
+**Description (paste in channel → Edit → Description):**
+
+```
+💞 Inter-Faith & Love — ప్రేమ వివాహాలు. వధువులు + వరులు, అన్ని జిల్లాలు. 3 FREE requests, ₹99లో 5. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
+```
+
+**📌 Pin this post (channel ki welcome + rules):**
+
+```
+🙏 *💞 Inter-Faith & Love | ప్రేమ వివాహాలు*
+━━━━━━━━━━━━━━━━━━
+Telugu Matrimony — TS + AP
+ఇక్కడ ఏం దొరుకుతుంది:
+✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
+✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
+✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
+✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
+
+ఎలా use చేయాలి (3 steps):
+1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
+2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
+3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
+
+🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
+
+⚠️ *చట్టాలు (తప్పక చదవండి):*
+🚫 ఇక్కడ *chatting లేదు* — spam, మోసం, డబ్బు అడగడం కూడా లేదు
+💰 Advance/registration/visa డబ్బు ఎవరు అడిగినా *100% మోసం* → వెంటనే report చేయండి
+🚫 బయట numbers/business promos పెట్టొద్దు → remove + ban
+🚨 మోసం జరిగితే: /safety లో report (మీ పేరు ఎక్కడా కనిపించదు)
+
+🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
+🔗 మా website: https://manavivaha.in
+📢 Official: @TSAP_MATRIMONY | All channels: #Intercaste #LoveMarriage #RegisterMarriage/channels
 
 ```
 
@@ -2439,7 +2182,6 @@ Telugu Matrimony — TS + AP
 🙏 *🤝 Bureau / Broker Network | బ్రోకర్ల నెట్‌వర్క్*
 ━━━━━━━━━━━━━━━━━━
 Telugu Matrimony — TS + AP
-
 ఇక్కడ ఏం దొరుకుతుంది:
 ✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
 ✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
@@ -2486,7 +2228,6 @@ Telugu Matrimony — TS + AP
 🙏 *♿ Differently-Abled | ప్రత్యేక సామర్థ్యం*
 ━━━━━━━━━━━━━━━━━━
 Telugu Matrimony — TS + AP
-
 ఇక్కడ ఏం దొరుకుతుంది:
 ✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
 ✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
@@ -2512,28 +2253,27 @@ Telugu Matrimony — TS + AP
 
 ```
 
-### ⬜ `doctors`
+### ⬜ `doctors_teachers`
 
 | Item | Value |
 |---|---|
-| Name | `🩺 Doctors Matrimony | వైద్యులు` |
-| Username | `@manavivaha_doctors` (taken ayithe: @tsap_doctors, @manavivaha_medical) |
-| Link | https://t.me/manavivaha_doctors |
-| Hashtags | #Doctors #Healthcare |
+| Name | `🩺 Doctors & Teachers Matrimony | వైద్యులు + ఉపాధ్యాయులు` |
+| Username | `@manavivaha_professionals` (taken ayithe: @manavivaha_doctors, @tsap_doctors, @manavivaha_teachers) |
+| Link | https://t.me/manavivaha_professionals |
+| Hashtags | #Doctors #Teachers #Healthcare |
 
 **Description (paste in channel → Edit → Description):**
 
 ```
-🩺 Doctors Matrimony — వైద్యులు. ఈ కేటగిరీ ప్రత్యేక profiles matrame — వేరే ఎక్కడా దొరకవు. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
+🩺 Doctors & Teachers Matrimony — వైద్యులు + ఉపాధ్యాయులు. ఈ కేటగిరీ ప్రత్యేక profiles matrame — వేరే ఎక్కడా దొరకవు. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
 ```
 
 **📌 Pin this post (channel ki welcome + rules):**
 
 ```
-🙏 *🩺 Doctors Matrimony | వైద్యులు*
+🙏 *🩺 Doctors & Teachers Matrimony | వైద్యులు + ఉపాధ్యాయులు*
 ━━━━━━━━━━━━━━━━━━
 Telugu Matrimony — TS + AP
-
 ఇక్కడ ఏం దొరుకుతుంది:
 ✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
 ✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
@@ -2555,7 +2295,7 @@ Telugu Matrimony — TS + AP
 
 🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
 🔗 మా website: https://manavivaha.in
-📢 Official: @TSAP_MATRIMONY | All channels: #Doctors #Healthcare/channels
+📢 Official: @TSAP_MATRIMONY | All channels: #Doctors #Teachers #Healthcare/channels
 
 ```
 
@@ -2580,7 +2320,6 @@ Telugu Matrimony — TS + AP
 🙏 *🚨 Fraud Alerts | మోసం జాగ్రత్త*
 ━━━━━━━━━━━━━━━━━━
 Telugu Matrimony — TS + AP
-
 ఇక్కడ ఏం దొరుకుతుంది:
 ✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
 ✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
@@ -2606,6 +2345,52 @@ Telugu Matrimony — TS + AP
 
 ```
 
+### ⬜ `govt_jobs`
+
+| Item | Value |
+|---|---|
+| Name | `🏛️ Govt Jobs Matrimony | ప్రభుత్వ ఉద్యోగులు` |
+| Username | `@manavivaha_govt` (taken ayithe: @tsap_govt, @manavivaha_govtjobs) |
+| Link | https://t.me/manavivaha_govt |
+| Hashtags | #GovtJob #GovtTeacher |
+
+**Description (paste in channel → Edit → Description):**
+
+```
+🏛️ Govt Jobs Matrimony — ప్రభుత్వ ఉద్యోగులు. ఈ కేటగిరీ ప్రత్యేక profiles matrame — వేరే ఎక్కడా దొరకవు. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
+```
+
+**📌 Pin this post (channel ki welcome + rules):**
+
+```
+🙏 *🏛️ Govt Jobs Matrimony | ప్రభుత్వ ఉద్యోగులు*
+━━━━━━━━━━━━━━━━━━
+Telugu Matrimony — TS + AP
+ఇక్కడ ఏం దొరుకుతుంది:
+✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
+✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
+✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
+✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
+
+ఎలా use చేయాలి (3 steps):
+1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
+2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
+3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
+
+🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
+
+⚠️ *చట్టాలు (తప్పక చదవండి):*
+🚫 ఇక్కడ *chatting లేదు* — spam, మోసం, డబ్బు అడగడం కూడా లేదు
+💰 Advance/registration/visa డబ్బు ఎవరు అడిగినా *100% మోసం* → వెంటనే report చేయండి
+🚫 బయట numbers/business promos పెట్టొద్దు → remove + ban
+🚨 మోసం జరిగితే: /safety లో report (మీ పేరు ఎక్కడా కనిపించదు)
+
+🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
+🔗 మా website: https://manavivaha.in
+📢 Official: @TSAP_MATRIMONY | All channels: #GovtJob #GovtTeacher/channels
+
+```
+
 ### ⬜ `software_it`
 
 | Item | Value |
@@ -2627,7 +2412,6 @@ Telugu Matrimony — TS + AP
 🙏 *💻 Software Matrimony | సాఫ్ట్‌వేర్ ఉద్యోగులు*
 ━━━━━━━━━━━━━━━━━━
 Telugu Matrimony — TS + AP
-
 ఇక్కడ ఏం దొరుకుతుంది:
 ✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
 ✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
@@ -2674,7 +2458,6 @@ Telugu Matrimony — TS + AP
 🙏 *🏆 Success Stories | విజయ గాథలు*
 ━━━━━━━━━━━━━━━━━━
 Telugu Matrimony — TS + AP
-
 ఇక్కడ ఏం దొరుకుతుంది:
 ✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
 ✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
@@ -2697,1230 +2480,5 @@ Telugu Matrimony — TS + AP
 🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
 🔗 మా website: https://manavivaha.in
 📢 Official: @TSAP_MATRIMONY | All channels: #SuccessStory #ManaVivaha/channels
-
-```
-
-
-## 🌊 WAVE 4
-
-### ⬜ `adi_andhra`
-
-| Item | Value |
-|---|---|
-| Name | `💍 Adi Andhra Matrimony | ఆది ఆంధ్ర వివాహాలు` |
-| Username | `@manavivaha_adi_andhra` (taken ayithe: @manavivaha_adiandhra, @tsap_adi_andhra) |
-| Link | https://t.me/manavivaha_adi_andhra |
-| Hashtags | #AdiAndhra #SC |
-
-**Description (paste in channel → Edit → Description):**
-
-```
-ఆది ఆంధ్ర వివాహాలు — వధువులు + వరులు, TS + AP. #AdiAndhra #SC Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
-```
-
-**📌 Pin this post (channel ki welcome + rules):**
-
-```
-🙏 *💍 Adi Andhra Matrimony | ఆది ఆంధ్ర వివాహాలు*
-━━━━━━━━━━━━━━━━━━
-Telugu Matrimony — TS + AP
-
-ఇక్కడ ఏం దొరుకుతుంది:
-✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
-✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
-✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
-✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
-
-ఎలా use చేయాలి (3 steps):
-1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
-2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
-3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
-
-🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
-
-⚠️ *చట్టాలు (తప్పక చదవండి):*
-🚫 ఇక్కడ *chatting లేదు* — spam, మోసం, డబ్బు అడగడం కూడా లేదు
-💰 Advance/registration/visa డబ్బు ఎవరు అడిగినా *100% మోసం* → వెంటనే report చేయండి
-🚫 బయట numbers/business promos పెట్టొద్దు → remove + ban
-🚨 మోసం జరిగితే: /safety లో report (మీ పేరు ఎక్కడా కనిపించదు)
-
-🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
-🔗 మా website: https://manavivaha.in
-📢 Official: @TSAP_MATRIMONY | All channels: #AdiAndhra #SC/channels
-
-```
-
-### ⬜ `bestha`
-
-| Item | Value |
-|---|---|
-| Name | `💍 Bestha Matrimony | బెస్త వివాహాలు` |
-| Username | `@manavivaha_bestha` (taken ayithe: @manavivaha_gangaputra, @tsap_bestha) |
-| Link | https://t.me/manavivaha_bestha |
-| Hashtags | #Bestha #Gangaputra |
-
-**Description (paste in channel → Edit → Description):**
-
-```
-బెస్త వివాహాలు — వధువులు + వరులు, TS + AP. #Bestha #Gangaputra Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
-```
-
-**📌 Pin this post (channel ki welcome + rules):**
-
-```
-🙏 *💍 Bestha Matrimony | బెస్త వివాహాలు*
-━━━━━━━━━━━━━━━━━━
-Telugu Matrimony — TS + AP
-
-ఇక్కడ ఏం దొరుకుతుంది:
-✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
-✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
-✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
-✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
-
-ఎలా use చేయాలి (3 steps):
-1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
-2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
-3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
-
-🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
-
-⚠️ *చట్టాలు (తప్పక చదవండి):*
-🚫 ఇక్కడ *chatting లేదు* — spam, మోసం, డబ్బు అడగడం కూడా లేదు
-💰 Advance/registration/visa డబ్బు ఎవరు అడిగినా *100% మోసం* → వెంటనే report చేయండి
-🚫 బయట numbers/business promos పెట్టొద్దు → remove + ban
-🚨 మోసం జరిగితే: /safety లో report (మీ పేరు ఎక్కడా కనిపించదు)
-
-🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
-🔗 మా website: https://manavivaha.in
-📢 Official: @TSAP_MATRIMONY | All channels: #Bestha #Gangaputra/channels
-
-```
-
-### ⬜ `bhatraju`
-
-| Item | Value |
-|---|---|
-| Name | `💍 Bhatraju Matrimony | భట్రాజు వివాహాలు` |
-| Username | `@manavivaha_bhatraju` (taken ayithe: @tsap_bhatraju) |
-| Link | https://t.me/manavivaha_bhatraju |
-| Hashtags | #Bhatraju |
-
-**Description (paste in channel → Edit → Description):**
-
-```
-భట్రాజు వివాహాలు — వధువులు + వరులు, TS + AP. #Bhatraju Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
-```
-
-**📌 Pin this post (channel ki welcome + rules):**
-
-```
-🙏 *💍 Bhatraju Matrimony | భట్రాజు వివాహాలు*
-━━━━━━━━━━━━━━━━━━
-Telugu Matrimony — TS + AP
-
-ఇక్కడ ఏం దొరుకుతుంది:
-✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
-✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
-✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
-✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
-
-ఎలా use చేయాలి (3 steps):
-1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
-2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
-3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
-
-🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
-
-⚠️ *చట్టాలు (తప్పక చదవండి):*
-🚫 ఇక్కడ *chatting లేదు* — spam, మోసం, డబ్బు అడగడం కూడా లేదు
-💰 Advance/registration/visa డబ్బు ఎవరు అడిగినా *100% మోసం* → వెంటనే report చేయండి
-🚫 బయట numbers/business promos పెట్టొద్దు → remove + ban
-🚨 మోసం జరిగితే: /safety లో report (మీ పేరు ఎక్కడా కనిపించదు)
-
-🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
-🔗 మా website: https://manavivaha.in
-📢 Official: @TSAP_MATRIMONY | All channels: #Bhatraju/channels
-
-```
-
-### ⬜ `dasari`
-
-| Item | Value |
-|---|---|
-| Name | `💍 Dasari Matrimony | దాసరి వివాహాలు` |
-| Username | `@manavivaha_dasari` (taken ayithe: @tsap_dasari) |
-| Link | https://t.me/manavivaha_dasari |
-| Hashtags | #Dasari |
-
-**Description (paste in channel → Edit → Description):**
-
-```
-దాసరి వివాహాలు — వధువులు + వరులు, TS + AP. #Dasari Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
-```
-
-**📌 Pin this post (channel ki welcome + rules):**
-
-```
-🙏 *💍 Dasari Matrimony | దాసరి వివాహాలు*
-━━━━━━━━━━━━━━━━━━
-Telugu Matrimony — TS + AP
-
-ఇక్కడ ఏం దొరుకుతుంది:
-✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
-✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
-✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
-✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
-
-ఎలా use చేయాలి (3 steps):
-1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
-2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
-3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
-
-🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
-
-⚠️ *చట్టాలు (తప్పక చదవండి):*
-🚫 ఇక్కడ *chatting లేదు* — spam, మోసం, డబ్బు అడగడం కూడా లేదు
-💰 Advance/registration/visa డబ్బు ఎవరు అడిగినా *100% మోసం* → వెంటనే report చేయండి
-🚫 బయట numbers/business promos పెట్టొద్దు → remove + ban
-🚨 మోసం జరిగితే: /safety లో report (మీ పేరు ఎక్కడా కనిపించదు)
-
-🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
-🔗 మా website: https://manavivaha.in
-📢 Official: @TSAP_MATRIMONY | All channels: #Dasari/channels
-
-```
-
-### ⬜ `devanga`
-
-| Item | Value |
-|---|---|
-| Name | `💍 Devanga Matrimony | దేవాంగ వివాహాలు` |
-| Username | `@manavivaha_devanga` (taken ayithe: @tsap_devanga) |
-| Link | https://t.me/manavivaha_devanga |
-| Hashtags | #Devanga |
-
-**Description (paste in channel → Edit → Description):**
-
-```
-దేవాంగ వివాహాలు — వధువులు + వరులు, TS + AP. #Devanga Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
-```
-
-**📌 Pin this post (channel ki welcome + rules):**
-
-```
-🙏 *💍 Devanga Matrimony | దేవాంగ వివాహాలు*
-━━━━━━━━━━━━━━━━━━
-Telugu Matrimony — TS + AP
-
-ఇక్కడ ఏం దొరుకుతుంది:
-✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
-✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
-✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
-✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
-
-ఎలా use చేయాలి (3 steps):
-1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
-2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
-3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
-
-🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
-
-⚠️ *చట్టాలు (తప్పక చదవండి):*
-🚫 ఇక్కడ *chatting లేదు* — spam, మోసం, డబ్బు అడగడం కూడా లేదు
-💰 Advance/registration/visa డబ్బు ఎవరు అడిగినా *100% మోసం* → వెంటనే report చేయండి
-🚫 బయట numbers/business promos పెట్టొద్దు → remove + ban
-🚨 మోసం జరిగితే: /safety లో report (మీ పేరు ఎక్కడా కనిపించదు)
-
-🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
-🔗 మా website: https://manavivaha.in
-📢 Official: @TSAP_MATRIMONY | All channels: #Devanga/channels
-
-```
-
-### ⬜ `gandla`
-
-| Item | Value |
-|---|---|
-| Name | `💍 Gandla Matrimony | గండ్ల వివాహాలు` |
-| Username | `@manavivaha_gandla` (taken ayithe: @manavivaha_telikula, @tsap_gandla) |
-| Link | https://t.me/manavivaha_gandla |
-| Hashtags | #Gandla #Telikula |
-
-**Description (paste in channel → Edit → Description):**
-
-```
-గండ్ల వివాహాలు — వధువులు + వరులు, TS + AP. #Gandla #Telikula Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
-```
-
-**📌 Pin this post (channel ki welcome + rules):**
-
-```
-🙏 *💍 Gandla Matrimony | గండ్ల వివాహాలు*
-━━━━━━━━━━━━━━━━━━
-Telugu Matrimony — TS + AP
-
-ఇక్కడ ఏం దొరుకుతుంది:
-✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
-✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
-✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
-✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
-
-ఎలా use చేయాలి (3 steps):
-1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
-2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
-3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
-
-🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
-
-⚠️ *చట్టాలు (తప్పక చదవండి):*
-🚫 ఇక్కడ *chatting లేదు* — spam, మోసం, డబ్బు అడగడం కూడా లేదు
-💰 Advance/registration/visa డబ్బు ఎవరు అడిగినా *100% మోసం* → వెంటనే report చేయండి
-🚫 బయట numbers/business promos పెట్టొద్దు → remove + ban
-🚨 మోసం జరిగితే: /safety లో report (మీ పేరు ఎక్కడా కనిపించదు)
-
-🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
-🔗 మా website: https://manavivaha.in
-📢 Official: @TSAP_MATRIMONY | All channels: #Gandla #Telikula/channels
-
-```
-
-### ⬜ `gavara`
-
-| Item | Value |
-|---|---|
-| Name | `💍 Gavara Matrimony | గవర వివాహాలు` |
-| Username | `@manavivaha_gavara` (taken ayithe: @tsap_gavara) |
-| Link | https://t.me/manavivaha_gavara |
-| Hashtags | #Gavara |
-
-**Description (paste in channel → Edit → Description):**
-
-```
-గవర వివాహాలు — వధువులు + వరులు, TS + AP. #Gavara Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
-```
-
-**📌 Pin this post (channel ki welcome + rules):**
-
-```
-🙏 *💍 Gavara Matrimony | గవర వివాహాలు*
-━━━━━━━━━━━━━━━━━━
-Telugu Matrimony — TS + AP
-
-ఇక్కడ ఏం దొరుకుతుంది:
-✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
-✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
-✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
-✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
-
-ఎలా use చేయాలి (3 steps):
-1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
-2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
-3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
-
-🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
-
-⚠️ *చట్టాలు (తప్పక చదవండి):*
-🚫 ఇక్కడ *chatting లేదు* — spam, మోసం, డబ్బు అడగడం కూడా లేదు
-💰 Advance/registration/visa డబ్బు ఎవరు అడిగినా *100% మోసం* → వెంటనే report చేయండి
-🚫 బయట numbers/business promos పెట్టొద్దు → remove + ban
-🚨 మోసం జరిగితే: /safety లో report (మీ పేరు ఎక్కడా కనిపించదు)
-
-🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
-🔗 మా website: https://manavivaha.in
-📢 Official: @TSAP_MATRIMONY | All channels: #Gavara/channels
-
-```
-
-### ⬜ `gond`
-
-| Item | Value |
-|---|---|
-| Name | `💍 Gond Matrimony | గోండ్ వివాహాలు` |
-| Username | `@manavivaha_gond` (taken ayithe: @manavivaha_naikpod, @tsap_gond) |
-| Link | https://t.me/manavivaha_gond |
-| Hashtags | #Gond #ST |
-
-**Description (paste in channel → Edit → Description):**
-
-```
-గోండ్ వివాహాలు — వధువులు + వరులు, TS + AP. #Gond #ST Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
-```
-
-**📌 Pin this post (channel ki welcome + rules):**
-
-```
-🙏 *💍 Gond Matrimony | గోండ్ వివాహాలు*
-━━━━━━━━━━━━━━━━━━
-Telugu Matrimony — TS + AP
-
-ఇక్కడ ఏం దొరుకుతుంది:
-✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
-✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
-✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
-✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
-
-ఎలా use చేయాలి (3 steps):
-1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
-2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
-3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
-
-🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
-
-⚠️ *చట్టాలు (తప్పక చదవండి):*
-🚫 ఇక్కడ *chatting లేదు* — spam, మోసం, డబ్బు అడగడం కూడా లేదు
-💰 Advance/registration/visa డబ్బు ఎవరు అడిగినా *100% మోసం* → వెంటనే report చేయండి
-🚫 బయట numbers/business promos పెట్టొద్దు → remove + ban
-🚨 మోసం జరిగితే: /safety లో report (మీ పేరు ఎక్కడా కనిపించదు)
-
-🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
-🔗 మా website: https://manavivaha.in
-📢 Official: @TSAP_MATRIMONY | All channels: #Gond #ST/channels
-
-```
-
-### ⬜ `jalari`
-
-| Item | Value |
-|---|---|
-| Name | `💍 Jalari Matrimony | జలరి వివాహాలు` |
-| Username | `@manavivaha_jalari` (taken ayithe: @tsap_jalari) |
-| Link | https://t.me/manavivaha_jalari |
-| Hashtags | #Jalari |
-
-**Description (paste in channel → Edit → Description):**
-
-```
-జలరి వివాహాలు — వధువులు + వరులు, TS + AP. #Jalari Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
-```
-
-**📌 Pin this post (channel ki welcome + rules):**
-
-```
-🙏 *💍 Jalari Matrimony | జలరి వివాహాలు*
-━━━━━━━━━━━━━━━━━━
-Telugu Matrimony — TS + AP
-
-ఇక్కడ ఏం దొరుకుతుంది:
-✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
-✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
-✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
-✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
-
-ఎలా use చేయాలి (3 steps):
-1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
-2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
-3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
-
-🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
-
-⚠️ *చట్టాలు (తప్పక చదవండి):*
-🚫 ఇక్కడ *chatting లేదు* — spam, మోసం, డబ్బు అడగడం కూడా లేదు
-💰 Advance/registration/visa డబ్బు ఎవరు అడిగినా *100% మోసం* → వెంటనే report చేయండి
-🚫 బయట numbers/business promos పెట్టొద్దు → remove + ban
-🚨 మోసం జరిగితే: /safety లో report (మీ పేరు ఎక్కడా కనిపించదు)
-
-🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
-🔗 మా website: https://manavivaha.in
-📢 Official: @TSAP_MATRIMONY | All channels: #Jalari/channels
-
-```
-
-### ⬜ `jangam`
-
-| Item | Value |
-|---|---|
-| Name | `💍 Jangam Matrimony | జంగం వివాహాలు` |
-| Username | `@manavivaha_jangam` (taken ayithe: @tsap_jangam) |
-| Link | https://t.me/manavivaha_jangam |
-| Hashtags | #Jangam |
-
-**Description (paste in channel → Edit → Description):**
-
-```
-జంగం వివాహాలు — వధువులు + వరులు, TS + AP. #Jangam Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
-```
-
-**📌 Pin this post (channel ki welcome + rules):**
-
-```
-🙏 *💍 Jangam Matrimony | జంగం వివాహాలు*
-━━━━━━━━━━━━━━━━━━
-Telugu Matrimony — TS + AP
-
-ఇక్కడ ఏం దొరుకుతుంది:
-✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
-✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
-✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
-✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
-
-ఎలా use చేయాలి (3 steps):
-1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
-2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
-3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
-
-🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
-
-⚠️ *చట్టాలు (తప్పక చదవండి):*
-🚫 ఇక్కడ *chatting లేదు* — spam, మోసం, డబ్బు అడగడం కూడా లేదు
-💰 Advance/registration/visa డబ్బు ఎవరు అడిగినా *100% మోసం* → వెంటనే report చేయండి
-🚫 బయట numbers/business promos పెట్టొద్దు → remove + ban
-🚨 మోసం జరిగితే: /safety లో report (మీ పేరు ఎక్కడా కనిపించదు)
-
-🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
-🔗 మా website: https://manavivaha.in
-📢 Official: @TSAP_MATRIMONY | All channels: #Jangam/channels
-
-```
-
-### ⬜ `jogi`
-
-| Item | Value |
-|---|---|
-| Name | `💍 Jogi Matrimony | జోగి వివాహాలు` |
-| Username | `@manavivaha_jogi` (taken ayithe: @tsap_jogi) |
-| Link | https://t.me/manavivaha_jogi |
-| Hashtags | #Jogi |
-
-**Description (paste in channel → Edit → Description):**
-
-```
-జోగి వివాహాలు — వధువులు + వరులు, TS + AP. #Jogi Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
-```
-
-**📌 Pin this post (channel ki welcome + rules):**
-
-```
-🙏 *💍 Jogi Matrimony | జోగి వివాహాలు*
-━━━━━━━━━━━━━━━━━━
-Telugu Matrimony — TS + AP
-
-ఇక్కడ ఏం దొరుకుతుంది:
-✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
-✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
-✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
-✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
-
-ఎలా use చేయాలి (3 steps):
-1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
-2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
-3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
-
-🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
-
-⚠️ *చట్టాలు (తప్పక చదవండి):*
-🚫 ఇక్కడ *chatting లేదు* — spam, మోసం, డబ్బు అడగడం కూడా లేదు
-💰 Advance/registration/visa డబ్బు ఎవరు అడిగినా *100% మోసం* → వెంటనే report చేయండి
-🚫 బయట numbers/business promos పెట్టొద్దు → remove + ban
-🚨 మోసం జరిగితే: /safety లో report (మీ పేరు ఎక్కడా కనిపించదు)
-
-🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
-🔗 మా website: https://manavivaha.in
-📢 Official: @TSAP_MATRIMONY | All channels: #Jogi/channels
-
-```
-
-### ⬜ `kalinga`
-
-| Item | Value |
-|---|---|
-| Name | `💍 Kalinga Matrimony | కళింగ వివాహాలు` |
-| Username | `@manavivaha_kalinga` (taken ayithe: @tsap_kalinga) |
-| Link | https://t.me/manavivaha_kalinga |
-| Hashtags | #Kalinga |
-
-**Description (paste in channel → Edit → Description):**
-
-```
-కళింగ వివాహాలు — వధువులు + వరులు, TS + AP. #Kalinga Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
-```
-
-**📌 Pin this post (channel ki welcome + rules):**
-
-```
-🙏 *💍 Kalinga Matrimony | కళింగ వివాహాలు*
-━━━━━━━━━━━━━━━━━━
-Telugu Matrimony — TS + AP
-
-ఇక్కడ ఏం దొరుకుతుంది:
-✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
-✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
-✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
-✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
-
-ఎలా use చేయాలి (3 steps):
-1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
-2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
-3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
-
-🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
-
-⚠️ *చట్టాలు (తప్పక చదవండి):*
-🚫 ఇక్కడ *chatting లేదు* — spam, మోసం, డబ్బు అడగడం కూడా లేదు
-💰 Advance/registration/visa డబ్బు ఎవరు అడిగినా *100% మోసం* → వెంటనే report చేయండి
-🚫 బయట numbers/business promos పెట్టొద్దు → remove + ban
-🚨 మోసం జరిగితే: /safety లో report (మీ పేరు ఎక్కడా కనిపించదు)
-
-🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
-🔗 మా website: https://manavivaha.in
-📢 Official: @TSAP_MATRIMONY | All channels: #Kalinga/channels
-
-```
-
-### ⬜ `koppula_velama`
-
-| Item | Value |
-|---|---|
-| Name | `💍 Koppula Velama Matrimony | కొప్పుల వెలమ వివాహాలు` |
-| Username | `@manavivaha_koppula_velama` (taken ayithe: @manavivaha_koppulavelama) |
-| Link | https://t.me/manavivaha_koppula_velama |
-| Hashtags | #KoppulaVelama |
-
-**Description (paste in channel → Edit → Description):**
-
-```
-కొప్పుల వెలమ వివాహాలు — వధువులు + వరులు, TS + AP. #KoppulaVelama Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
-```
-
-**📌 Pin this post (channel ki welcome + rules):**
-
-```
-🙏 *💍 Koppula Velama Matrimony | కొప్పుల వెలమ వివాహాలు*
-━━━━━━━━━━━━━━━━━━
-Telugu Matrimony — TS + AP
-
-ఇక్కడ ఏం దొరుకుతుంది:
-✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
-✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
-✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
-✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
-
-ఎలా use చేయాలి (3 steps):
-1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
-2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
-3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
-
-🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
-
-⚠️ *చట్టాలు (తప్పక చదవండి):*
-🚫 ఇక్కడ *chatting లేదు* — spam, మోసం, డబ్బు అడగడం కూడా లేదు
-💰 Advance/registration/visa డబ్బు ఎవరు అడిగినా *100% మోసం* → వెంటనే report చేయండి
-🚫 బయట numbers/business promos పెట్టొద్దు → remove + ban
-🚨 మోసం జరిగితే: /safety లో report (మీ పేరు ఎక్కడా కనిపించదు)
-
-🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
-🔗 మా website: https://manavivaha.in
-📢 Official: @TSAP_MATRIMONY | All channels: #KoppulaVelama/channels
-
-```
-
-### ⬜ `koya`
-
-| Item | Value |
-|---|---|
-| Name | `💍 Koya Matrimony | కోయ వివాహాలు` |
-| Username | `@manavivaha_koya` (taken ayithe: @tsap_koya) |
-| Link | https://t.me/manavivaha_koya |
-| Hashtags | #Koya #ST |
-
-**Description (paste in channel → Edit → Description):**
-
-```
-కోయ వివాహాలు — వధువులు + వరులు, TS + AP. #Koya #ST Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
-```
-
-**📌 Pin this post (channel ki welcome + rules):**
-
-```
-🙏 *💍 Koya Matrimony | కోయ వివాహాలు*
-━━━━━━━━━━━━━━━━━━
-Telugu Matrimony — TS + AP
-
-ఇక్కడ ఏం దొరుకుతుంది:
-✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
-✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
-✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
-✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
-
-ఎలా use చేయాలి (3 steps):
-1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
-2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
-3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
-
-🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
-
-⚠️ *చట్టాలు (తప్పక చదవండి):*
-🚫 ఇక్కడ *chatting లేదు* — spam, మోసం, డబ్బు అడగడం కూడా లేదు
-💰 Advance/registration/visa డబ్బు ఎవరు అడిగినా *100% మోసం* → వెంటనే report చేయండి
-🚫 బయట numbers/business promos పెట్టొద్దు → remove + ban
-🚨 మోసం జరిగితే: /safety లో report (మీ పేరు ఎక్కడా కనిపించదు)
-
-🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
-🔗 మా website: https://manavivaha.in
-📢 Official: @TSAP_MATRIMONY | All channels: #Koya #ST/channels
-
-```
-
-### ⬜ `kummara`
-
-| Item | Value |
-|---|---|
-| Name | `💍 Kummara Matrimony | కుమ్మరి వివాహాలు` |
-| Username | `@manavivaha_kummara` (taken ayithe: @manavivaha_kulala, @tsap_kummara) |
-| Link | https://t.me/manavivaha_kummara |
-| Hashtags | #Kummara #Kulala |
-
-**Description (paste in channel → Edit → Description):**
-
-```
-కుమ్మరి వివాహాలు — వధువులు + వరులు, TS + AP. #Kummara #Kulala Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
-```
-
-**📌 Pin this post (channel ki welcome + rules):**
-
-```
-🙏 *💍 Kummara Matrimony | కుమ్మరి వివాహాలు*
-━━━━━━━━━━━━━━━━━━
-Telugu Matrimony — TS + AP
-
-ఇక్కడ ఏం దొరుకుతుంది:
-✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
-✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
-✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
-✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
-
-ఎలా use చేయాలి (3 steps):
-1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
-2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
-3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
-
-🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
-
-⚠️ *చట్టాలు (తప్పక చదవండి):*
-🚫 ఇక్కడ *chatting లేదు* — spam, మోసం, డబ్బు అడగడం కూడా లేదు
-💰 Advance/registration/visa డబ్బు ఎవరు అడిగినా *100% మోసం* → వెంటనే report చేయండి
-🚫 బయట numbers/business promos పెట్టొద్దు → remove + ban
-🚨 మోసం జరిగితే: /safety లో report (మీ పేరు ఎక్కడా కనిపించదు)
-
-🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
-🔗 మా website: https://manavivaha.in
-📢 Official: @TSAP_MATRIMONY | All channels: #Kummara #Kulala/channels
-
-```
-
-### ⬜ `kuruba`
-
-| Item | Value |
-|---|---|
-| Name | `💍 Kuruba Matrimony | కురుబ వివాహాలు` |
-| Username | `@manavivaha_kuruba` (taken ayithe: @tsap_kuruba) |
-| Link | https://t.me/manavivaha_kuruba |
-| Hashtags | #Kuruba |
-
-**Description (paste in channel → Edit → Description):**
-
-```
-కురుబ వివాహాలు — వధువులు + వరులు, TS + AP. #Kuruba Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
-```
-
-**📌 Pin this post (channel ki welcome + rules):**
-
-```
-🙏 *💍 Kuruba Matrimony | కురుబ వివాహాలు*
-━━━━━━━━━━━━━━━━━━
-Telugu Matrimony — TS + AP
-
-ఇక్కడ ఏం దొరుకుతుంది:
-✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
-✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
-✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
-✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
-
-ఎలా use చేయాలి (3 steps):
-1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
-2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
-3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
-
-🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
-
-⚠️ *చట్టాలు (తప్పక చదవండి):*
-🚫 ఇక్కడ *chatting లేదు* — spam, మోసం, డబ్బు అడగడం కూడా లేదు
-💰 Advance/registration/visa డబ్బు ఎవరు అడిగినా *100% మోసం* → వెంటనే report చేయండి
-🚫 బయట numbers/business promos పెట్టొద్దు → remove + ban
-🚨 మోసం జరిగితే: /safety లో report (మీ పేరు ఎక్కడా కనిపించదు)
-
-🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
-🔗 మా website: https://manavivaha.in
-📢 Official: @TSAP_MATRIMONY | All channels: #Kuruba/channels
-
-```
-
-### ⬜ `mangali`
-
-| Item | Value |
-|---|---|
-| Name | `💍 Mangali Matrimony | మంగలి వివాహాలు` |
-| Username | `@manavivaha_mangali` (taken ayithe: @manavivaha_nayi, @tsap_mangali) |
-| Link | https://t.me/manavivaha_mangali |
-| Hashtags | #Mangali |
-
-**Description (paste in channel → Edit → Description):**
-
-```
-మంగలి వివాహాలు — వధువులు + వరులు, TS + AP. #Mangali Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
-```
-
-**📌 Pin this post (channel ki welcome + rules):**
-
-```
-🙏 *💍 Mangali Matrimony | మంగలి వివాహాలు*
-━━━━━━━━━━━━━━━━━━
-Telugu Matrimony — TS + AP
-
-ఇక్కడ ఏం దొరుకుతుంది:
-✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
-✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
-✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
-✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
-
-ఎలా use చేయాలి (3 steps):
-1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
-2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
-3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
-
-🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
-
-⚠️ *చట్టాలు (తప్పక చదవండి):*
-🚫 ఇక్కడ *chatting లేదు* — spam, మోసం, డబ్బు అడగడం కూడా లేదు
-💰 Advance/registration/visa డబ్బు ఎవరు అడిగినా *100% మోసం* → వెంటనే report చేయండి
-🚫 బయట numbers/business promos పెట్టొద్దు → remove + ban
-🚨 మోసం జరిగితే: /safety లో report (మీ పేరు ఎక్కడా కనిపించదు)
-
-🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
-🔗 మా website: https://manavivaha.in
-📢 Official: @TSAP_MATRIMONY | All channels: #Mangali/channels
-
-```
-
-### ⬜ `rajaka`
-
-| Item | Value |
-|---|---|
-| Name | `💍 Rajaka Matrimony | రజక వివాహాలు` |
-| Username | `@manavivaha_rajaka` (taken ayithe: @manavivaha_chakali, @tsap_rajaka) |
-| Link | https://t.me/manavivaha_rajaka |
-| Hashtags | #Rajaka #Chakali |
-
-**Description (paste in channel → Edit → Description):**
-
-```
-రజక వివాహాలు — వధువులు + వరులు, TS + AP. #Rajaka #Chakali Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
-```
-
-**📌 Pin this post (channel ki welcome + rules):**
-
-```
-🙏 *💍 Rajaka Matrimony | రజక వివాహాలు*
-━━━━━━━━━━━━━━━━━━
-Telugu Matrimony — TS + AP
-
-ఇక్కడ ఏం దొరుకుతుంది:
-✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
-✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
-✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
-✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
-
-ఎలా use చేయాలి (3 steps):
-1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
-2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
-3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
-
-🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
-
-⚠️ *చట్టాలు (తప్పక చదవండి):*
-🚫 ఇక్కడ *chatting లేదు* — spam, మోసం, డబ్బు అడగడం కూడా లేదు
-💰 Advance/registration/visa డబ్బు ఎవరు అడిగినా *100% మోసం* → వెంటనే report చేయండి
-🚫 బయట numbers/business promos పెట్టొద్దు → remove + ban
-🚨 మోసం జరిగితే: /safety లో report (మీ పేరు ఎక్కడా కనిపించదు)
-
-🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
-🔗 మా website: https://manavivaha.in
-📢 Official: @TSAP_MATRIMONY | All channels: #Rajaka #Chakali/channels
-
-```
-
-### ⬜ `sc_others`
-
-| Item | Value |
-|---|---|
-| Name | `💍 Sc Others Matrimony | SC ఇతరులు వివాహాలు` |
-| Username | `@manavivaha_sc_others` (taken ayithe: @manavivaha_sccommunities) |
-| Link | https://t.me/manavivaha_sc_others |
-| Hashtags | #SC #TeluguMatrimony |
-
-**Description (paste in channel → Edit → Description):**
-
-```
-SC ఇతరులు వివాహాలు — వధువులు + వరులు, TS + AP. #SC #TeluguMatrimony Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
-```
-
-**📌 Pin this post (channel ki welcome + rules):**
-
-```
-🙏 *💍 Sc Others Matrimony | SC ఇతరులు వివాహాలు*
-━━━━━━━━━━━━━━━━━━
-Telugu Matrimony — TS + AP
-
-ఇక్కడ ఏం దొరుకుతుంది:
-✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
-✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
-✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
-✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
-
-ఎలా use చేయాలి (3 steps):
-1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
-2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
-3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
-
-🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
-
-⚠️ *చట్టాలు (తప్పక చదవండి):*
-🚫 ఇక్కడ *chatting లేదు* — spam, మోసం, డబ్బు అడగడం కూడా లేదు
-💰 Advance/registration/visa డబ్బు ఎవరు అడిగినా *100% మోసం* → వెంటనే report చేయండి
-🚫 బయట numbers/business promos పెట్టొద్దు → remove + ban
-🚨 మోసం జరిగితే: /safety లో report (మీ పేరు ఎక్కడా కనిపించదు)
-
-🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
-🔗 మా website: https://manavivaha.in
-📢 Official: @TSAP_MATRIMONY | All channels: #SC #TeluguMatrimony/channels
-
-```
-
-### ⬜ `srisayana`
-
-| Item | Value |
-|---|---|
-| Name | `💍 Srisayana Matrimony | శ్రీసాయన వివాహాలు` |
-| Username | `@manavivaha_srisayana` (taken ayithe: @manavivaha_segidi, @tsap_srisayana) |
-| Link | https://t.me/manavivaha_srisayana |
-| Hashtags | #Srisayana #Segidi |
-
-**Description (paste in channel → Edit → Description):**
-
-```
-శ్రీసాయన వివాహాలు — వధువులు + వరులు, TS + AP. #Srisayana #Segidi Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
-```
-
-**📌 Pin this post (channel ki welcome + rules):**
-
-```
-🙏 *💍 Srisayana Matrimony | శ్రీసాయన వివాహాలు*
-━━━━━━━━━━━━━━━━━━
-Telugu Matrimony — TS + AP
-
-ఇక్కడ ఏం దొరుకుతుంది:
-✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
-✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
-✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
-✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
-
-ఎలా use చేయాలి (3 steps):
-1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
-2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
-3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
-
-🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
-
-⚠️ *చట్టాలు (తప్పక చదవండి):*
-🚫 ఇక్కడ *chatting లేదు* — spam, మోసం, డబ్బు అడగడం కూడా లేదు
-💰 Advance/registration/visa డబ్బు ఎవరు అడిగినా *100% మోసం* → వెంటనే report చేయండి
-🚫 బయట numbers/business promos పెట్టొద్దు → remove + ban
-🚨 మోసం జరిగితే: /safety లో report (మీ పేరు ఎక్కడా కనిపించదు)
-
-🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
-🔗 మా website: https://manavivaha.in
-📢 Official: @TSAP_MATRIMONY | All channels: #Srisayana #Segidi/channels
-
-```
-
-### ⬜ `st_others`
-
-| Item | Value |
-|---|---|
-| Name | `💍 St Others Matrimony | ST ఇతరులు వివాహాలు` |
-| Username | `@manavivaha_st_others` (taken ayithe: @manavivaha_stcommunities) |
-| Link | https://t.me/manavivaha_st_others |
-| Hashtags | #ST #Adivasi #TeluguMatrimony |
-
-**Description (paste in channel → Edit → Description):**
-
-```
-ST ఇతరులు వివాహాలు — వధువులు + వరులు, TS + AP. #ST #Adivasi #TeluguMatrimony Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
-```
-
-**📌 Pin this post (channel ki welcome + rules):**
-
-```
-🙏 *💍 St Others Matrimony | ST ఇతరులు వివాహాలు*
-━━━━━━━━━━━━━━━━━━
-Telugu Matrimony — TS + AP
-
-ఇక్కడ ఏం దొరుకుతుంది:
-✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
-✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
-✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
-✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
-
-ఎలా use చేయాలి (3 steps):
-1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
-2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
-3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
-
-🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
-
-⚠️ *చట్టాలు (తప్పక చదవండి):*
-🚫 ఇక్కడ *chatting లేదు* — spam, మోసం, డబ్బు అడగడం కూడా లేదు
-💰 Advance/registration/visa డబ్బు ఎవరు అడిగినా *100% మోసం* → వెంటనే report చేయండి
-🚫 బయట numbers/business promos పెట్టొద్దు → remove + ban
-🚨 మోసం జరిగితే: /safety లో report (మీ పేరు ఎక్కడా కనిపించదు)
-
-🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
-🔗 మా website: https://manavivaha.in
-📢 Official: @TSAP_MATRIMONY | All channels: #ST #Adivasi #TeluguMatrimony/channels
-
-```
-
-### ⬜ `uppara`
-
-| Item | Value |
-|---|---|
-| Name | `💍 Uppara Matrimony | ఉప్పర వివాహాలు` |
-| Username | `@manavivaha_uppara` (taken ayithe: @manavivaha_sagara, @tsap_uppara) |
-| Link | https://t.me/manavivaha_uppara |
-| Hashtags | #Uppara #Sagara |
-
-**Description (paste in channel → Edit → Description):**
-
-```
-ఉప్పర వివాహాలు — వధువులు + వరులు, TS + AP. #Uppara #Sagara Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
-```
-
-**📌 Pin this post (channel ki welcome + rules):**
-
-```
-🙏 *💍 Uppara Matrimony | ఉప్పర వివాహాలు*
-━━━━━━━━━━━━━━━━━━
-Telugu Matrimony — TS + AP
-
-ఇక్కడ ఏం దొరుకుతుంది:
-✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
-✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
-✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
-✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
-
-ఎలా use చేయాలి (3 steps):
-1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
-2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
-3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
-
-🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
-
-⚠️ *చట్టాలు (తప్పక చదవండి):*
-🚫 ఇక్కడ *chatting లేదు* — spam, మోసం, డబ్బు అడగడం కూడా లేదు
-💰 Advance/registration/visa డబ్బు ఎవరు అడిగినా *100% మోసం* → వెంటనే report చేయండి
-🚫 బయట numbers/business promos పెట్టొద్దు → remove + ban
-🚨 మోసం జరిగితే: /safety లో report (మీ పేరు ఎక్కడా కనిపించదు)
-
-🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
-🔗 మా website: https://manavivaha.in
-📢 Official: @TSAP_MATRIMONY | All channels: #Uppara #Sagara/channels
-
-```
-
-### ⬜ `vadabalija`
-
-| Item | Value |
-|---|---|
-| Name | `💍 Vadabalija Matrimony | వడబలిజ వివాహాలు` |
-| Username | `@manavivaha_vadabalija` (taken ayithe: @tsap_vadabalija) |
-| Link | https://t.me/manavivaha_vadabalija |
-| Hashtags | #Vadabalija |
-
-**Description (paste in channel → Edit → Description):**
-
-```
-వడబలిజ వివాహాలు — వధువులు + వరులు, TS + AP. #Vadabalija Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
-```
-
-**📌 Pin this post (channel ki welcome + rules):**
-
-```
-🙏 *💍 Vadabalija Matrimony | వడబలిజ వివాహాలు*
-━━━━━━━━━━━━━━━━━━
-Telugu Matrimony — TS + AP
-
-ఇక్కడ ఏం దొరుకుతుంది:
-✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
-✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
-✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
-✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
-
-ఎలా use చేయాలి (3 steps):
-1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
-2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
-3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
-
-🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
-
-⚠️ *చట్టాలు (తప్పక చదవండి):*
-🚫 ఇక్కడ *chatting లేదు* — spam, మోసం, డబ్బు అడగడం కూడా లేదు
-💰 Advance/registration/visa డబ్బు ఎవరు అడిగినా *100% మోసం* → వెంటనే report చేయండి
-🚫 బయట numbers/business promos పెట్టొద్దు → remove + ban
-🚨 మోసం జరిగితే: /safety లో report (మీ పేరు ఎక్కడా కనిపించదు)
-
-🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
-🔗 మా website: https://manavivaha.in
-📢 Official: @TSAP_MATRIMONY | All channels: #Vadabalija/channels
-
-```
-
-### ⬜ `vaddera`
-
-| Item | Value |
-|---|---|
-| Name | `💍 Vaddera Matrimony | వడ్డెర వివాహాలు` |
-| Username | `@manavivaha_vaddera` (taken ayithe: @manavivaha_odde, @tsap_vaddera) |
-| Link | https://t.me/manavivaha_vaddera |
-| Hashtags | #Vaddera #Odde |
-
-**Description (paste in channel → Edit → Description):**
-
-```
-వడ్డెర వివాహాలు — వధువులు + వరులు, TS + AP. #Vaddera #Odde Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
-```
-
-**📌 Pin this post (channel ki welcome + rules):**
-
-```
-🙏 *💍 Vaddera Matrimony | వడ్డెర వివాహాలు*
-━━━━━━━━━━━━━━━━━━
-Telugu Matrimony — TS + AP
-
-ఇక్కడ ఏం దొరుకుతుంది:
-✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
-✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
-✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
-✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
-
-ఎలా use చేయాలి (3 steps):
-1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
-2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
-3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
-
-🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
-
-⚠️ *చట్టాలు (తప్పక చదవండి):*
-🚫 ఇక్కడ *chatting లేదు* — spam, మోసం, డబ్బు అడగడం కూడా లేదు
-💰 Advance/registration/visa డబ్బు ఎవరు అడిగినా *100% మోసం* → వెంటనే report చేయండి
-🚫 బయట numbers/business promos పెట్టొద్దు → remove + ban
-🚨 మోసం జరిగితే: /safety లో report (మీ పేరు ఎక్కడా కనిపించదు)
-
-🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
-🔗 మా website: https://manavivaha.in
-📢 Official: @TSAP_MATRIMONY | All channels: #Vaddera #Odde/channels
-
-```
-
-### ⬜ `love_register`
-
-| Item | Value |
-|---|---|
-| Name | `❤️ Love & Register Marriage | ప్రేమ + రిజిస్టర్ పెళ్లి` |
-| Username | `@manavivaha_love` (taken ayithe: @tsap_love) |
-| Link | https://t.me/manavivaha_love |
-| Hashtags | #LoveMarriage #RegisterMarriage |
-
-**Description (paste in channel → Edit → Description):**
-
-```
-❤️ Love & Register Marriage — ప్రేమ + రిజిస్టర్ పెళ్లి. ఈ కేటగిరీ ప్రత్యేక profiles matrame — వేరే ఎక్కడా దొరకవు. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
-```
-
-**📌 Pin this post (channel ki welcome + rules):**
-
-```
-🙏 *❤️ Love & Register Marriage | ప్రేమ + రిజిస్టర్ పెళ్లి*
-━━━━━━━━━━━━━━━━━━
-Telugu Matrimony — TS + AP
-
-ఇక్కడ ఏం దొరుకుతుంది:
-✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
-✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
-✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
-✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
-
-ఎలా use చేయాలి (3 steps):
-1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
-2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
-3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
-
-🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
-
-⚠️ *చట్టాలు (తప్పక చదవండి):*
-🚫 ఇక్కడ *chatting లేదు* — spam, మోసం, డబ్బు అడగడం కూడా లేదు
-💰 Advance/registration/visa డబ్బు ఎవరు అడిగినా *100% మోసం* → వెంటనే report చేయండి
-🚫 బయట numbers/business promos పెట్టొద్దు → remove + ban
-🚨 మోసం జరిగితే: /safety లో report (మీ పేరు ఎక్కడా కనిపించదు)
-
-🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
-🔗 మా website: https://manavivaha.in
-📢 Official: @TSAP_MATRIMONY | All channels: #LoveMarriage #RegisterMarriage/channels
-
-```
-
-### ⬜ `teachers`
-
-| Item | Value |
-|---|---|
-| Name | `👩‍🏫 Teachers Matrimony | ఉపాధ్యాయులు` |
-| Username | `@manavivaha_teachers` (taken ayithe: @tsap_teachers, @manavivaha_lecturers) |
-| Link | https://t.me/manavivaha_teachers |
-| Hashtags | #Teacher #Lecturer |
-
-**Description (paste in channel → Edit → Description):**
-
-```
-👩‍🏫 Teachers Matrimony — ఉపాధ్యాయులు. ఈ కేటగిరీ ప్రత్యేక profiles matrame — వేరే ఎక్కడా దొరకవు. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
-```
-
-**📌 Pin this post (channel ki welcome + rules):**
-
-```
-🙏 *👩‍🏫 Teachers Matrimony | ఉపాధ్యాయులు*
-━━━━━━━━━━━━━━━━━━
-Telugu Matrimony — TS + AP
-
-ఇక్కడ ఏం దొరుకుతుంది:
-✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
-✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
-✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
-✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
-
-ఎలా use చేయాలి (3 steps):
-1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
-2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
-3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
-
-🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
-
-⚠️ *చట్టాలు (తప్పక చదవండి):*
-🚫 ఇక్కడ *chatting లేదు* — spam, మోసం, డబ్బు అడగడం కూడా లేదు
-💰 Advance/registration/visa డబ్బు ఎవరు అడిగినా *100% మోసం* → వెంటనే report చేయండి
-🚫 బయట numbers/business promos పెట్టొద్దు → remove + ban
-🚨 మోసం జరిగితే: /safety లో report (మీ పేరు ఎక్కడా కనిపించదు)
-
-🌐 Register FREE (3 నిమిషాలు): https://manavivaha.in
-🔗 మా website: https://manavivaha.in
-📢 Official: @TSAP_MATRIMONY | All channels: #Teacher #Lecturer/channels
 
 ```

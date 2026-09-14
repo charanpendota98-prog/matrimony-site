@@ -40,7 +40,7 @@ from publisher import (dead_letters, requeue_dead,
 )
 from wa_antiban import ENGINE as WA_ENGINE
 from interest import (
-    PLANS as INTEREST_PLANS, plan_list, get_plan, plan_by_amount,
+    PLANS as INTEREST_PLANS, plan_list, get_plan, plan_by_amount, apply_payment,
     can_send_interest, create_interest, respond_interest, expire_old,
     interest_to_owner_text, interest_accepted_text, interest_declined_text,
     interest_notify_text, inbox_for, sent_for, safe_user,
@@ -540,44 +540,52 @@ def deduct_credit_api(tsap_id: str, target_id: str):
     if not user: raise HTTPException(404, "User not found")
     result = deduct_credit(user)
     if not result["success"]:
-        return JSONResponse(status_code=402, content={"message_telugu": result["message_telugu"], "credits": 0, "pay_url": "/pay?plan=TRIAL_99"})
+        return JSONResponse(status_code=402, content={"message_telugu": result["message_telugu"], "credits": 0, "pay_url": "/pricing"})
     # log
     return {"success": True, "credits_left": result["credits"], "target_number": "98480xxxxx", "message_telugu": result["message_telugu"]}
 
 @app.post("/api/payment/webhook")
-def payment_webhook(user_id: str, amount: int, razorpay_payment_id: str, referral_code: str = ""):
+def payment_webhook(user_id: str, amount: int, razorpay_payment_id: str = "", referral_code: str = "",
+                    plan_code: str = "", signature_verified: bool = False):
     """
-    Razorpay webhook → verify → add credits → referral commission
-    Pin-to-Pin:
-    1. Verify payment (mock)
-    2. Add credits based on plan
-    3. If referral_code → process commission
-    4. Daily scheduler ON
-    5. Send numbers unlock
+    💰 Razorpay/UPI webhook → verify → plan apply → referral commission.
+
+    ⚠️ IMPORTANT: plan add cheyyadam ikkada **okate source of truth** (interest.PLANS / ADDONS / RENEWALS).
+    Amount batti plan kanukkuntundi (lekapote plan_code pampandi) — pata credits.py plans ippudu vaddu.
     """
-    user = next((u for u in DB_USERS if u["tsap_id"]==user_id), None)
-    if not user: raise HTTPException(404, "User not found")
+    user = next((u for u in DB_USERS if u["tsap_id"] == user_id), None)
+    if not user:
+        raise HTTPException(404, "User not found")
+    if not razorpay_payment_id and not signature_verified:
+        return JSONResponse(status_code=400, content={
+            "success": False, "error": "razorpay_payment_id / signature_verified ledu",
+            "message_telugu": "⚠️ Payment proof ledu — order id + payment id pampandi"})
 
-    # Determine plan by amount
-    plan_map = {99: "TRIAL_99", 299: "PREMIUM_299", 999: "VIP_999"}
-    plan_key = plan_map.get(amount, "TRIAL_99")
+    applied = apply_payment(user, amount, plan_code)
+    if not applied["ok"]:
+        return JSONResponse(status_code=400, content={
+            "success": False, **applied,
+            "message_telugu": "⚠️ Ee amount ki plan ledu — /api/pricing chusi correct amount pampandi",
+            "valid_amounts": [p["price"] for p in plan_list()] + [a["price"] for a in addon_list()]})
 
-    credit_result = add_credits(user, plan_key, payment_verified=True)
+    # 🧾 payment record (audit)
+    DB_PAYMENTS.append({"at": datetime.utcnow().isoformat(), "tsap_id": user_id, "amount": amount,
+                        "plan": applied["plan"]["code"], "kind": applied["kind"],
+                        "payment_id": razorpay_payment_id, "referral_code": referral_code})
 
-    # Referral commission
+    # 🤝 referral commission (payment vachhina ventane)
     referral_result = None
     if user.get("referred_by"):
         referral_result = process_referral_payment(user, user["referred_by"], amount, DB_USERS)
 
     return {
-        "success": True,
-        "user_id": user_id,
-        "plan": plan_key,
-        "credits_added": PLANS[plan_key]["credits"],
-        "total_credits": user["credits"],
-        "daily_quota": PLANS[plan_key]["daily"],
+        "success": True, "user_id": user_id, "amount": amount,
+        "plan": applied["plan"]["code"], "kind": applied["kind"],
+        "profiles_added": applied["profiles_added"], "total_credits": applied["credits"],
+        "plan_expiry": applied["expiry"], "perks": applied["plan"].get("perks", []),
         "referral_commission": referral_result,
-        "message_telugu": f"🎉 Payment success! {PLANS[plan_key]['credits']} credits add ayyayi. Rojoo {PLANS[plan_key]['daily']} matches vasthayi!"
+        "gst_note": "GST invoice kavali ante 24h lo support ki cheppandi (manavivaha.in/refund lo contact undi)",
+        "message_telugu": applied["message_telugu"],
     }
 
 @app.get("/api/referral/leaderboard")
@@ -616,7 +624,7 @@ def admin_make_premium(tsap_id: str, gift_credits: int = 10):
     user = next((u for u in DB_USERS if u["tsap_id"]==tsap_id), None)
     if not user: raise HTTPException(404, "Not found")
     user["credits"] += gift_credits
-    user["plan"] = "PREMIUM_299"
+    user["plan"] = "S_199"
     return {"success": True, "tsap_id": tsap_id, "new_credits": user["credits"], "message_telugu": f"💎 Admin gift! {gift_credits} credits FREE + Premium!"}
 
 def _channel_public(key: str, ch: dict) -> dict:
@@ -687,7 +695,7 @@ def channels_setup_plan(wave: Optional[int] = None):
 
 @app.get("/api/channels")
 def channels(tier: Optional[str] = None):
-    """FULL master registry — 83 channels (L0 Official → L4 Special, caste × bride/groom)."""
+    """FULL master registry — 52 channels (L0 Official → L4 Special, caste clusters × bride/groom)."""
     tiers = channels_by_tier()
     out_tiers = {
         t: [_channel_public(c["key"], c) for c in items]

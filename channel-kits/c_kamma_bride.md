@@ -1,7 +1,7 @@
 # 👰 Kamma Brides | కమ్మ వధువులు
 
 - **Key:** `c_kamma_bride`  •  **Tier:** L3_CASTE  •  **Wave:** 1  •  **Status:** create ⬜
-- **Username:** `@manavivaha_kamma_bride` (already taken? → @tsap_kamma_bride, @mv_kamma_brd, @manavivaha_kamma_brd)
+- **Username:** `@manavivaha_kamma_bride` (already taken? → @tsap_kamma_bride, @mv_kamma_brd)
 - **Link:** https://t.me/manavivaha_kamma_bride
 - **Hashtags:** #Kamma #Bride #TS #AP
 - **DP image:** `/home/user/matrimony-site/backend/channel_assets/c_kamma_bride.png`
@@ -15,7 +15,7 @@ Username: `manavivaha_kamma_bride`
 Description:
 
 ```
-కమ్మ వధువులు — TS + AP అన్ని జిల్లాలు. నిజమైన profiles, ఫోటో గోప్యం, 3 requests FREE, ₹99లో 5. #Kamma #Bride #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
+కమ్మ — Kamma (Brides). Sub-castes: Kamma • Chowdary • Choudary. నిజమైన profiles, 3 requests FREE, ₹99లో 5. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
 ```
 
 ## 2) Bot ni admin cheyyi
@@ -28,6 +28,7 @@ Channel → Manage → Administrators → Add Admin → `@telugumatrimony1_bot` 
 🙏 *👰 Kamma Brides | కమ్మ వధువులు*
 ━━━━━━━━━━━━━━━━━━
 *కమ్మ*
+👥 ఈ channel లో: *Kamma • Chowdary • Choudary*
 
 ఇక్కడ ఏం దొరుకుతుంది:
 ✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)

@@ -17,6 +17,15 @@ export default function SiteFooter() {
       ],
     },
     {
+      title: "Pricing & Policies",
+      links: [
+        { href: "/pricing", label: "Pricing (₹29 → ₹499)" },
+        { href: "/refund", label: "Refund & Cancellation" },
+        { href: "/terms", label: "Terms of Use" },
+        { href: "/privacy", label: "Privacy Policy" },
+      ],
+    },
+    {
       title: "Earn",
       links: [
         { href: "/referral", label: "Referral — ₹50/profile" },

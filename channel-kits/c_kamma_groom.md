@@ -1,7 +1,7 @@
 # 🤵 Kamma Grooms | కమ్మ వరులు
 
 - **Key:** `c_kamma_groom`  •  **Tier:** L3_CASTE  •  **Wave:** 1  •  **Status:** create ⬜
-- **Username:** `@manavivaha_kamma_groom` (already taken? → @tsap_kamma_groom, @mv_kamma_grm, @manavivaha_kamma_grm)
+- **Username:** `@manavivaha_kamma_groom` (already taken? → @tsap_kamma_groom, @mv_kamma_grm)
 - **Link:** https://t.me/manavivaha_kamma_groom
 - **Hashtags:** #Kamma #Groom #TS #AP
 - **DP image:** `/home/user/matrimony-site/backend/channel_assets/c_kamma_groom.png`
@@ -15,7 +15,7 @@ Username: `manavivaha_kamma_groom`
 Description:
 
 ```
-కమ్మ వరులు — TS + AP అన్ని జిల్లాలు. ఉద్యోగం/చదువు/జాతకం వివరాలతో profiles. 3 requests FREE. #Kamma #Groom #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
+కమ్మ — Kamma (Grooms). Sub-castes: Kamma • Chowdary • Choudary. నిజమైన profiles, 3 requests FREE, ₹99లో 5. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
 ```
 
 ## 2) Bot ni admin cheyyi
@@ -28,6 +28,7 @@ Channel → Manage → Administrators → Add Admin → `@telugumatrimony1_bot` 
 🙏 *🤵 Kamma Grooms | కమ్మ వరులు*
 ━━━━━━━━━━━━━━━━━━
 *కమ్మ*
+👥 ఈ channel లో: *Kamma • Chowdary • Choudary*
 
 ఇక్కడ ఏం దొరుకుతుంది:
 ✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)

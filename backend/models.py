@@ -116,7 +116,7 @@ class UserDB(BaseModel):
     is_approved: bool = False
     privacy_mode: str = "public"  # public / private
     credits: int = 3
-    plan: str = "FREE"  # FREE, TRIAL_99, PREMIUM_299, VIP_999, BUREAU
+    plan: str = "FREE"  # FREE, S_29, S_99, S_199, S_299, S_499, BUREAU_999, BUREAU_2999
     plan_expiry: Optional[datetime] = None
     source_channel: Optional[str] = ""  # deep link source
     created_at: datetime = Field(default_factory=datetime.utcnow)

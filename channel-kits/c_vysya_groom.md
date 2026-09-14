@@ -1,21 +1,21 @@
-# 🤵 Vysya Grooms | వైశ్య వరులు
+# 🤵 Arya Vysya • Komati Grooms | వైశ్య • కోమటి వరులు
 
-- **Key:** `c_vysya_groom`  •  **Tier:** L3_CASTE  •  **Wave:** 1  •  **Status:** create ⬜
-- **Username:** `@manavivaha_vysya_groom` (already taken? → @tsap_vysya_groom, @mv_vysya_grm, @manavivaha_vysya_grm)
+- **Key:** `c_vysya_groom`  •  **Tier:** L3_CASTE  •  **Wave:** 2  •  **Status:** create ⬜
+- **Username:** `@manavivaha_vysya_groom` (already taken? → @tsap_vysya_groom, @mv_vysya_grm)
 - **Link:** https://t.me/manavivaha_vysya_groom
 - **Hashtags:** #Vysya #Groom #TS #AP
 - **DP image:** `/home/user/matrimony-site/backend/channel_assets/c_vysya_groom.png`
 
 ## 1) Channel create (phone → New Channel)
 
-Name: `🤵 Vysya Grooms | వైశ్య వరులు`
+Name: `🤵 Arya Vysya • Komati Grooms | వైశ్య • కోమటి వరులు`
 
 Username: `manavivaha_vysya_groom`
 
 Description:
 
 ```
-వైశ్య వరులు — TS + AP అన్ని జిల్లాలు. ఉద్యోగం/చదువు/జాతకం వివరాలతో profiles. 3 requests FREE. #Vysya #Groom #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
+వైశ్య • కోమటి — Arya Vysya • Komati (Grooms). Sub-castes: Arya Vysya • Komati • Komti • Vaishya • Sadhu Chetty. నిజమైన profiles, 3 requests FREE, ₹99లో 5. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
 ```
 
 ## 2) Bot ni admin cheyyi
@@ -25,9 +25,10 @@ Channel → Manage → Administrators → Add Admin → `@telugumatrimony1_bot` 
 ## 3) 📌 Pinned welcome post (idi pin cheyyi)
 
 ```
-🙏 *🤵 Vysya Grooms | వైశ్య వరులు*
+🙏 *🤵 Arya Vysya • Komati Grooms | వైశ్య • కోమటి వరులు*
 ━━━━━━━━━━━━━━━━━━
-*వైశ్య*
+*వైశ్య • కోమటి*
+👥 ఈ channel లో: *Arya Vysya • Komati • Komti • Vaishya • Sadhu Chetty*
 
 ఇక్కడ ఏం దొరుకుతుంది:
 ✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
@@ -73,7 +74,7 @@ Channel → Manage → Administrators → Add Admin → `@telugumatrimony1_bot` 
 ## 5) WhatsApp / status lo share text
 
 ```
-💍 *🤵 Vysya Grooms | వైశ్య వరులు*
+💍 *🤵 Arya Vysya • Komati Grooms | వైశ్య • కోమటి వరులు*
 TS + AP తెలుగు మ్యాట్రిమోని — రోజూ కొత్త సంబంధాలు
 
 ✅ 3 requests FREE

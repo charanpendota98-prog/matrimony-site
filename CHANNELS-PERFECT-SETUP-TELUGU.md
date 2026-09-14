@@ -1,7 +1,11 @@
 # 📢 CHANNELS — PERFECT SETUP (4 Main + Caste × Bride/Groom) 🇮🇳
 
-> **Status:** registry ready (83 channels) • kit + DP + automation ready • 4 main channels meere create chesaru (TSBRIDE, TSGROOM1) — AP + caste channels ippudu add cheyyali.
+> **Status:** registry ready (52 channels (smart — 83 kaadu)) • kit + DP + automation ready • 4 main channels meere create chesaru (TSBRIDE, TSGROOM1) — AP + caste channels ippudu add cheyyali.
 > Ee file `backend/setup_channels.py --plan` + `channels_config.py` nunchi auto-sync (drift undadu).
+
+---
+
+> 🆕 **Smart structure (Muslims 4 • Christians 4 • caste clusters):** **CHANNELS-SMART-STRUCTURE-TELUGU.md**
 
 ---
 
@@ -103,7 +107,7 @@ python setup_channels.py --apply --wave 1 --mark-live  # + registry lo LIVE ani 
 ## 4) 🛠️ Commands reference
 
 ```bash
-python setup_channels.py --plan              # anni 83 channels plan + CHANNELS-SETUP-CHECKLIST.md
+python setup_channels.py --plan              # anni 52 channels (smart — 83 kaadu) plan + CHANNELS-SETUP-CHECKLIST.md
 python setup_channels.py --plan --wave 1     # wave-1 matrame (17)
 python setup_channels.py --kit --wave 1      # channel-kits/*.md (prathi channel ki 6-step kit)
 python setup_channels.py --photos            # 83 DP images generate (backend/channel_assets/)
@@ -151,7 +155,7 @@ WA_TEST_FAST=1 /tmp/venv/bin/python test_channels_setup.py   # 78 pass / 0 fail
 WA_TEST_FAST=1 /tmp/venv/bin/python test_channels_router.py  # 61 pass / 0 fail
 python setup_channels.py --self-test                          # fake bot flow PASS
 ```
-- 83 channels • usernames unique + Telegram-valid • titles ≤128 • descriptions 60–255 • config problems **0**
+- 52 channels (smart — 83 kaadu) • usernames unique + Telegram-valid • titles ≤128 • descriptions 60–255 • config problems **0**
 - 18 castes × bride/groom = 36 channels • mixed 25 • 43 castes Telugu names
 - `/api/channels`, `/api/channels/photo/{key}.png`, `/api/channels/{key}/kit`, `/api/channels/setup-plan` — anni 200 (website proxy tho kooda)
 

@@ -15,6 +15,7 @@ Single source of truth: `channels_config.py` ee module nunchi titles/description
 """
 from __future__ import annotations
 
+import re
 from typing import Dict, List
 
 SITE = "https://manavivaha.in"
@@ -39,6 +40,12 @@ CASTE_TELUGU: Dict[str, str] = {
     "vadabalija": "వడబలిజ", "mala": "మాల", "madiga": "మాదిగ", "adi_andhra": "ఆది ఆంధ్ర",
     "sc_others": "SC ఇతరులు", "lambada": "లంబాడ", "koya": "కోయ", "gond": "గోండ్",
     "st_others": "ST ఇతరులు",
+    # ---- clusters (wave 8 restructure) ----
+    "kapu_family": "కాపు • బలిజ • తెలగ", "yadava_goud": "యాదవ • గౌడ • గొల్ల",
+    "viswabrahmana": "విశ్వబ్రహ్మణ", "raju_kshatriya": "రాజు • క్షత్రియ",
+    "padmashali_weavers": "పద్మశాలి • దేవాంగ", "mudiraj": "ముదిరాజ • తెనుగొల్ల",
+    "lambada_banjara": "లంబాడ • బంజార", "others_bc": "ఇతర BC కులాలు",
+    "others_sc": "ఇతర SC కులాలు", "others_st": "ఇతర ST కులాలు",
 }
 
 # ------------------------------------------------------------------ title parts
@@ -63,6 +70,7 @@ SPECIAL_TITLE = {
     "software_it": ("💻 Software Matrimony", "సాఫ్ట్‌వేర్ ఉద్యోగులు"),
     "doctors": ("🩺 Doctors Matrimony", "వైద్యులు"),
     "teachers": ("👩‍🏫 Teachers Matrimony", "ఉపాధ్యాయులు"),
+    "doctors_teachers": ("🩺 Doctors & Teachers Matrimony", "వైద్యులు + ఉపాధ్యాయులు"),
     "above_35": ("🎂 35+ Matrimony", "35 ఏళ్ల పైన"),
     "love_register": ("❤️ Love & Register Marriage", "ప్రేమ + రిజిస్టర్ పెళ్లి"),
     "success_stories": ("🏆 Success Stories", "విజయ గాథలు"),
@@ -89,6 +97,32 @@ def _gender_from_channel(key: str) -> str:
     return ""
 
 
+RELIGION_STATE_TE = {"TS": "తెలంగాణ", "AP": "ఆంధ్రా"}
+RELIGION_STATE_EN = {"TS": "Telangana", "AP": "AP"}
+
+
+def religion_title(key: str, ch: Dict) -> str:
+    """☪️ Muslim / ✝️ Christian — state × gender channels ki title."""
+    sub = ch.get("sub", "")
+    st, g = ch.get("state", "TS"), ch.get("gender", "Bride")
+    icon = {"muslim": "☪️", "christian": "✝️"}.get(sub, "💍")
+    en = "%s %s %s" % (RELIGION_STATE_EN.get(st, st), sub.title(), ("Brides" if g == "Bride" else "Grooms"))
+    te = "%s %s %s" % (RELIGION_STATE_TE.get(st, st), ("ముస్లిం" if sub == "muslim" else "క్రైస్తవ"),
+                       ("వధువులు" if g == "Bride" else "వరులు"))
+    return "%s %s | %s" % (icon, en, te)
+
+
+def cluster_title(key: str, ch: Dict) -> str:
+    """Caste cluster — pedda community (bride/groom separate) + grouped sub-castes."""
+    en = ch.get("cluster_en", "")
+    te = ch.get("cluster_te", "")
+    if key.endswith("_bride"):
+        return "👰 %s Brides | %s వధువులు" % (en, te)
+    if key.endswith("_groom"):
+        return "🤵 %s Grooms | %s వరులు" % (en, te)
+    return "💍 %s Matrimony | %s — వధువులు + వరులు" % (en, te)
+
+
 def perfect_title(key: str, ch: Dict | None = None) -> str:
     """Telegram title — keyword-first (Telegram search lo top vastundi) + Telugu (trust)."""
     if key == "official":
@@ -99,6 +133,11 @@ def perfect_title(key: str, ch: Dict | None = None) -> str:
         return "%s | %s" % RELIGION_TITLE[key]
     if key in SPECIAL_TITLE:
         return "%s | %s" % SPECIAL_TITLE[key]
+    ch = ch or {}
+    if ch.get("sub") in ("muslim", "christian"):
+        return religion_title(key, ch)
+    if key.startswith("c_") and ch.get("cluster_en"):
+        return cluster_title(key, ch)
     caste = _caste_key_from_channel(key)
     tel = CASTE_TELUGU.get(caste, caste.title())
     g = _gender_from_channel(key)
@@ -109,10 +148,54 @@ def perfect_title(key: str, ch: Dict | None = None) -> str:
     return "💍 %s Matrimony | %s వివాహాలు" % (caste.replace("_", " ").title(), tel)
 
 
-def dp_text(key: str) -> Dict[str, str]:
+DP_OVERRIDE: Dict[str, Dict[str, str]] = {
+    "nri_global": {"big": "NRI", "mid": "TELUGU", "small": "USA • UK • GULF • CAN"},
+    "hindu": {"big": "HINDU", "mid": "MATRIMONY", "small": "TS • AP TELUGU"},
+    "other_religion": {"big": "OTHER", "mid": "RELIGIONS", "small": "TS • AP TELUGU"},
+    "interfaith": {"big": "INTER", "mid": "CASTE • FAITH", "small": "LOVE & REGISTER"},
+    "second_marriage": {"big": "2ND", "mid": "MARRIAGE", "small": "DIVORCEE • WIDOW"},
+    "govt_jobs": {"big": "GOVT", "mid": "JOBS", "small": "TEACHER • POLICE • BANK"},
+    "software_it": {"big": "SOFTWARE", "mid": "IT JOBS", "small": "HYD • BLR • USA"},
+    "doctors_teachers": {"big": "DOCTORS", "mid": "TEACHERS", "small": "MEDICAL • EDU"},
+    "success_stories": {"big": "SUCCESS", "mid": "STORIES", "small": "REAL COUPLES"},
+    "fraud_alerts": {"big": "FRAUD", "mid": "ALERTS", "small": "STAY SAFE"},
+    "bureau_network": {"big": "BUREAU", "mid": "BROKERS", "small": "REFERRAL ₹50"},
+}
+
+
+def _fit_words(text: str, limit: int) -> tuple:
+    """Whole words tho fit — 'KAPU BALIJA TELA' la mid-word cut raakunda."""
+    words, line, rest = text.split(), [], []
+    for w in words:
+        if sum(len(x) + 1 for x in line) + len(w) <= limit:
+            line.append(w)
+        else:
+            rest.append(w)
+    return " ".join(line), " ".join(rest)
+
+
+def dp_text(key: str, ch: Dict | None = None) -> Dict[str, str]:
     """DP image lo render ayye text (English — server lo Telugu font ledu)."""
+    ch = ch or {}
     if key == "official":
         return {"big": "TSAP", "mid": "MATRIMONY", "small": "TS • AP TELUGU"}
+    if key in DP_OVERRIDE:
+        return dict(DP_OVERRIDE[key])
+    if ch.get("sub") in ("muslim", "christian"):
+        st = {"TS": "TELANGANA", "AP": "AP"}.get(ch.get("state", "TS"), "TS")
+        return {"big": ch["sub"].upper(),
+                "mid": "%s %s" % (st, "BRIDES" if ch.get("gender") == "Bride" else "GROOMS"),
+                "small": "TS • AP TELUGU"}
+    if key.startswith("c_") and ch.get("cluster_en"):
+        label = "BRIDES" if key.endswith("_bride") else ("GROOMS" if key.endswith("_groom") else "MATRIMONY")
+        if ch.get("cluster", "").startswith("others_"):
+            return {"big": "OTHER", "mid": "%s CASTES" % ch.get("category", ""), "small": "TS • AP TELUGU"}
+        parts = [x.strip() for x in re.sub(r"\([^)]*\)", "", ch["cluster_en"]).split("•") if x.strip()]
+        big, overflow = _fit_words(parts[0].upper(), 13)
+        extra = " ".join([overflow] + [p.upper() for p in parts[1:]]).strip()
+        small, _drop = _fit_words(extra, 20)
+        return {"big": big or parts[0][:12].upper(), "mid": label,
+                "small": small or "TS • AP TELUGU"}
     core = key
     for suf, label in (("_bride", "BRIDES"), ("_groom", "GROOMS")):
         if core.endswith(suf):
@@ -132,14 +215,19 @@ def perfect_description(key: str, ch: Dict | None = None) -> str:
     if key == "official":
         body = ("మన వివాహ — TS/AP నం.1 తెలుగు మ్యాట్రిమోని. రోజూ టాప్-3 సంబంధాలు, విజయ గాథలు, "
                 "మోసం హెచ్చరికలు. 3 requests FREE, ₹99లో 5.")
-    elif key.endswith("_bride") and key.startswith("c_"):
-        caste = _caste_key_from_channel(key)
-        body = ("%s వధువులు — TS + AP అన్ని జిల్లాలు. నిజమైన profiles, ఫోటో గోప్యం, "
-                "3 requests FREE, ₹99లో 5. %s" % (CASTE_TELUGU.get(caste, caste), tags))
-    elif key.endswith("_groom") and key.startswith("c_"):
-        caste = _caste_key_from_channel(key)
-        body = ("%s వరులు — TS + AP అన్ని జిల్లాలు. ఉద్యోగం/చదువు/జాతకం వివరాలతో profiles. "
-                "3 requests FREE. %s" % (CASTE_TELUGU.get(caste, caste), tags))
+    elif ch.get("sub") in ("muslim", "christian"):
+        sub_te = "ముస్లిం" if ch["sub"] == "muslim" else "క్రైస్తవ"
+        st_te = RELIGION_STATE_TE.get(ch.get("state", "TS"), "తెలంగాణ")
+        st_en = RELIGION_STATE_EN.get(ch.get("state", "TS"), "TS")
+        who = "వధువులు" if ch.get("gender") == "Bride" else "వరులు"
+        body = ("%s %s %s — %s. ఫోటో గోప్యం, నిజమైన profiles, 3 requests FREE, ₹99లో 5. %s"
+                % (st_te, sub_te, who, st_en, tags))
+    elif key.startswith("c_") and ch.get("cluster_en"):
+        en, te = ch["cluster_en"], ch["cluster_te"]
+        mem = " • ".join((ch.get("members") or [])[:5])
+        who = ("Brides" if key.endswith("_bride") else "Grooms" if key.endswith("_groom") else "Brides + Grooms")
+        body = ("%s — %s (%s). Sub-castes: %s. నిజమైన profiles, 3 requests FREE, ₹99లో 5."
+                % (te, en, who, mem))
     elif key in REGION_TITLE:
         body = ("%s — %s. అన్ని కులాలు, అన్ని జిల్లాలు, రోజూ కొత్త profiles + పొరుత్తం వివరాలు. "
                 "3 FREE requests, ₹99లో 5." % (REGION_TITLE[key][0], REGION_TITLE[key][1]))
@@ -163,11 +251,20 @@ def pinned_welcome(key: str, ch: Dict | None = None) -> str:
     tags = " ".join(ch.get("hashtags") or [])
     caste_or_type = ""
     if key.startswith("c_"):
-        caste_or_type = CASTE_TELUGU.get(_caste_key_from_channel(key), "")
+        caste_or_type = ch.get("cluster_te") or CASTE_TELUGU.get(_caste_key_from_channel(key), "")
+    members_line = ""
+    if ch.get("members"):
+        members_line = ("👥 ఈ channel లో: *%s*\n\n" % " • ".join(ch["members"][:14]))
+    if ch.get("sub"):   # Muslim / Christian
+        members_line = ("👥 %s %s — %s\n\n"
+                        % (RELIGION_STATE_EN.get(ch.get("state", "TS"), ""), ch["sub"].title(),
+                           ("Catholic • CSI • Baptist • Pentecost • Born Again" if ch["sub"] == "christian"
+                            else "Sheikh • Syed • Pathan • Momin • Qureshi • Labbai — antha okate channel")))
     return (
         "🙏 *%s*\n"
         "━━━━━━━━━━━━━━━━━━\n"
-        "%s\n\n"
+        "%s\n"
+        "%s"
         "ఇక్కడ ఏం దొరుకుతుంది:\n"
         "✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)\n"
         "✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details\n"
@@ -188,7 +285,7 @@ def pinned_welcome(key: str, ch: Dict | None = None) -> str:
         "📢 Official: @TSAP_MATRIMONY | All channels: %s/channels\n"
         "%s"
         % (title, ("*%s*" % caste_or_type) if caste_or_type else "Telugu Matrimony — TS + AP",
-           BOT, SITE, SITE, tags, "")
+           members_line, BOT, SITE, SITE, tags, "")
     )
 
 

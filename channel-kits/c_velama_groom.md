@@ -1,7 +1,7 @@
 # 🤵 Velama Grooms | వెలమ వరులు
 
-- **Key:** `c_velama_groom`  •  **Tier:** L3_CASTE  •  **Wave:** 1  •  **Status:** create ⬜
-- **Username:** `@manavivaha_velama_groom` (already taken? → @tsap_velama_groom, @mv_velama_grm, @manavivaha_velama_grm)
+- **Key:** `c_velama_groom`  •  **Tier:** L3_CASTE  •  **Wave:** 2  •  **Status:** create ⬜
+- **Username:** `@manavivaha_velama_groom` (already taken? → @tsap_velama_groom, @mv_velama_grm)
 - **Link:** https://t.me/manavivaha_velama_groom
 - **Hashtags:** #Velama #Groom #TS #AP
 - **DP image:** `/home/user/matrimony-site/backend/channel_assets/c_velama_groom.png`
@@ -15,7 +15,7 @@ Username: `manavivaha_velama_groom`
 Description:
 
 ```
-వెలమ వరులు — TS + AP అన్ని జిల్లాలు. ఉద్యోగం/చదువు/జాతకం వివరాలతో profiles. 3 requests FREE. #Velama #Groom #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
+వెలమ — Velama (Grooms). Sub-castes: Velama • Padma Velama • Koppula Velama. నిజమైన profiles, 3 requests FREE, ₹99లో 5. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
 ```
 
 ## 2) Bot ni admin cheyyi
@@ -28,6 +28,7 @@ Channel → Manage → Administrators → Add Admin → `@telugumatrimony1_bot` 
 🙏 *🤵 Velama Grooms | వెలమ వరులు*
 ━━━━━━━━━━━━━━━━━━
 *వెలమ*
+👥 ఈ channel లో: *Velama • Padma Velama • Koppula Velama*
 
 ఇక్కడ ఏం దొరుకుతుంది:
 ✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)

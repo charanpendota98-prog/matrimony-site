@@ -68,7 +68,7 @@ export default function ChannelsPage() {
         <div className="maroon-gradient rounded-[1.5rem] p-6 text-white">
           <h1 className="font-bold text-xl">📢 Mana Vivaha — Master Channel Network</h1>
           <p className="text-xs mt-1 opacity-90">
-            One profile post → auto ga anni relevant channels lo ki. **4 main (TS/AP × Bride/Groom)** + **caste prakaram (bride/groom separate)** + religion + special — {CHANNEL_STATS.total} channels.
+            One profile post → auto ga anni relevant channels lo ki. **4 main (TS/AP × Bride/Groom)** + **Muslim 4 (TS/AP × Bride/Groom)** + **Christian 4** + **caste clusters** (pedda communities ki bride/groom separate, chinna sub-castes grouped) + special — {CHANNEL_STATS.total} channels.
           </p>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mt-4">
             {[

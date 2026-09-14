@@ -1,7 +1,7 @@
 # 👰 Reddy Brides | రెడ్డి వధువులు
 
 - **Key:** `c_reddy_bride`  •  **Tier:** L3_CASTE  •  **Wave:** 1  •  **Status:** create ⬜
-- **Username:** `@manavivaha_reddy_bride` (already taken? → @tsap_reddy_bride, @mv_reddy_brd, @manavivaha_reddy_brd)
+- **Username:** `@manavivaha_reddy_bride` (already taken? → @tsap_reddy_bride, @mv_reddy_brd)
 - **Link:** https://t.me/manavivaha_reddy_bride
 - **Hashtags:** #Reddy #Bride #TS #AP
 - **DP image:** `/home/user/matrimony-site/backend/channel_assets/c_reddy_bride.png`
@@ -15,7 +15,7 @@ Username: `manavivaha_reddy_bride`
 Description:
 
 ```
-రెడ్డి వధువులు — TS + AP అన్ని జిల్లాలు. నిజమైన profiles, ఫోటో గోప్యం, 3 requests FREE, ₹99లో 5. #Reddy #Bride #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
+రెడ్డి — Reddy (Brides). Sub-castes: Reddy • Pakanati Reddy • Motati Reddy • Gudati Reddy • Deshathi Reddy. నిజమైన profiles, 3 requests FREE, ₹99లో 5. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
 ```
 
 ## 2) Bot ni admin cheyyi
@@ -28,6 +28,7 @@ Channel → Manage → Administrators → Add Admin → `@telugumatrimony1_bot` 
 🙏 *👰 Reddy Brides | రెడ్డి వధువులు*
 ━━━━━━━━━━━━━━━━━━
 *రెడ్డి*
+👥 ఈ channel లో: *Reddy • Pakanati Reddy • Motati Reddy • Gudati Reddy • Deshathi Reddy*
 
 ఇక్కడ ఏం దొరుకుతుంది:
 ✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)

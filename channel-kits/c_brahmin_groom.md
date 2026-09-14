@@ -1,7 +1,7 @@
 # 🤵 Brahmin Grooms | బ్రాహ్మణ వరులు
 
-- **Key:** `c_brahmin_groom`  •  **Tier:** L3_CASTE  •  **Wave:** 1  •  **Status:** create ⬜
-- **Username:** `@manavivaha_brahmin_groom` (already taken? → @tsap_brahmin_groom, @mv_brahmin_grm, @manavivaha_brahmin_grm)
+- **Key:** `c_brahmin_groom`  •  **Tier:** L3_CASTE  •  **Wave:** 2  •  **Status:** create ⬜
+- **Username:** `@manavivaha_brahmin_groom` (already taken? → @tsap_brahmin_groom, @mv_brahmin_grm)
 - **Link:** https://t.me/manavivaha_brahmin_groom
 - **Hashtags:** #Brahmin #Groom #TS #AP
 - **DP image:** `/home/user/matrimony-site/backend/channel_assets/c_brahmin_groom.png`
@@ -15,7 +15,7 @@ Username: `manavivaha_brahmin_groom`
 Description:
 
 ```
-బ్రాహ్మణ వరులు — TS + AP అన్ని జిల్లాలు. ఉద్యోగం/చదువు/జాతకం వివరాలతో profiles. 3 requests FREE. #Brahmin #Groom #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
+బ్రాహ్మణ — Brahmin (Grooms). Sub-castes: Vaidiki Brahmin • Niyogi Brahmin • Sistla • Dravida Brahmin • Iyer. నిజమైన profiles, 3 requests FREE, ₹99లో 5. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
 ```
 
 ## 2) Bot ni admin cheyyi
@@ -28,6 +28,7 @@ Channel → Manage → Administrators → Add Admin → `@telugumatrimony1_bot` 
 🙏 *🤵 Brahmin Grooms | బ్రాహ్మణ వరులు*
 ━━━━━━━━━━━━━━━━━━
 *బ్రాహ్మణ*
+👥 ఈ channel లో: *Vaidiki Brahmin • Niyogi Brahmin • Sistla • Dravida Brahmin • Iyer*
 
 ఇక్కడ ఏం దొరుకుతుంది:
 ✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)

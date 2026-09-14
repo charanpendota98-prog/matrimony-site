@@ -44,18 +44,33 @@ check("Telugu names unnai (TS Brides → తెలంగాణ వధువు�
 
 print("=== 2. CASTE × BRIDE/GROOM (caste prakaram) ===")
 rep = C.caste_split_report()
-check("18 castes ki bride/groom separate", rep["split_castes"] == 18 and rep["caste_gender_channels"] == 36)
-check("migilina castes ki mixed channel", rep["mixed_caste_channels"] == 25, rep["mixed_caste_channels"])
-check("wave-1 lo top 6 castes (Reddy/Kamma/Kapu/Velama/Vysya/Brahmin)",
-      all(c.replace(" ", "").lower() in [x.replace(" ", "").lower() for x in
-                                          ["Reddy", "Kamma", "Kapu", "Velama", "Vysya", "Brahmin"]]
-          for c in [r["caste"] for r in rep["by_wave"][1]]), [r["caste"] for r in rep["by_wave"][1]])
-for caste in ("reddy", "mala", "madiga", "lambada"):
+check("9 pedda clusters ki bride/groom separate", rep["split_clusters"] == 9 and rep["caste_gender_channels"] == 18,
+      (rep["split_clusters"], rep["caste_gender_channels"]))
+check("migilina clusters ki single channel (both)", rep["mixed_caste_channels"] == 9, rep["mixed_caste_channels"])
+check("127 sub-castes cover (clusters lo members)", rep["sub_castes_covered"] >= 120, rep["sub_castes_covered"])
+_w1_clusters = [r["cluster"] for r in rep["by_wave"][1]]
+check("wave-1 lo top 3 clusters (reddy/kamma/kapu)", set(_w1_clusters) == {"reddy", "kamma", "kapu"}, _w1_clusters)
+_w2_clusters = [r["cluster"] for r in rep["by_wave"][2]]
+check("wave-2 lo Velama/Vysya/Brahmin/Mala/Madiga/Viswabrahmana unnai",
+      {"velama", "vysya", "brahmin", "mala", "madiga", "viswabrahmana", "yadava_goud"} <= set(_w2_clusters),
+      _w2_clusters)
+for caste in ("reddy", "mala", "madiga", "kapu", "yadava_goud"):
     pair = C.SPLIT_MAP.get(caste)
     check("SPLIT_MAP[%s] bride+groom" % caste, bool(pair) and pair["Bride"] in C.CHANNELS and pair["Groom"] in C.CHANNELS)
-check("Split caste ki mixed channel delete ayyindi (duplicate ledu)", "reddy" not in C.CHANNELS and "mala" not in C.CHANNELS)
-check("Mixed channel migilina vatilo undi (kummara)", "kummara" in C.CHANNELS and C.CHANNELS["kummara"]["tier"] == "L3_CASTE")
-check("43 castes ki Telugu name map", len(CC.CASTE_TELUGU) >= 43, len(CC.CASTE_TELUGU))
+check("Split cluster ki single channel ledu (duplicate ledu)", "reddy" not in C.CHANNELS and "mala" not in C.CHANNELS)
+check("Single channel clusters unnai (viswabrahmana / others_bc / lambada_banjara)",
+      all(k in C.CHANNELS and C.CHANNELS[k]["tier"] == "L3_CASTE"
+          for k in ("c_viswabrahmana", "c_others_bc", "c_lambada_banjara")))
+check("Viswabrahmana 5 sub-castes okate channel lo (members)",
+      {"Kamsali", "Kammari", "Kanchari", "Vadla", "Ausula", "Vadrangi", "Silpi"} <=
+      set(C.CHANNELS["c_viswabrahmana"]["members"]), C.CHANNELS["c_viswabrahmana"]["members"][:6])
+check("Muslim 4 + Christian 4 channels (TS/AP × bride/groom, no sub-division)",
+      sum(1 for c in C.CHANNELS.values() if c.get("sub") == "muslim") == 4
+      and sum(1 for c in C.CHANNELS.values() if c.get("sub") == "christian") == 4)
+check("Muslim channel lo Sheikh/Syed map avthunnai",
+      C.resolve_caste_key("Sheikh") is None and "muslim_ts_bride" in C.CHANNELS
+      and C.resolve_caste_key("Syed") is None)
+check("Telugu name map (clusters + castes)", len(CC.CASTE_TELUGU) >= 43, len(CC.CASTE_TELUGU))
 check("Caste channel title lo caste Telugu + Bride/Groom",
       "రెడ్డి వధువులు" in C.CHANNELS["c_reddy_bride"]["name"]
       and "రెడ్డి వరులు" in C.CHANNELS["c_reddy_groom"]["name"], C.CHANNELS["c_reddy_bride"]["name"])
@@ -86,25 +101,26 @@ check("DP text English (server lo Telugu font ledu)", CC.dp_text("c_reddy_bride"
 
 print("=== 4. REGISTRY INTEGRITY ===")
 usernames = [v["username"].lower() for v in C.CHANNELS.values()]
-check("83 channels", len(C.CHANNELS) == 83, len(C.CHANNELS))
+check("52 channels (smart structure — 83 kaadu)", len(C.CHANNELS) == 52, len(C.CHANNELS))
 check("Usernames unique + Telegram-valid", len(set(usernames)) == len(usernames)
       and not [u for u in usernames if not re.fullmatch(r"[a-z0-9_]{5,32}", u)])
 fb = [f.lower() for v in C.CHANNELS.values() for f in v.get("fallbacks", [])]
 check("Fallbacks no clash", not [f for f in fb if f in usernames or fb.count(f) > 1])
 check("By tier counts correct", C.channel_stats()["by_tier"] ==
-      {"L0_OFFICIAL": 1, "L1_REGION": 5, "L2_RELIGION": 5, "L3_CASTE": 61, "L4_SPECIAL": 11},
+      {"L0_OFFICIAL": 1, "L1_REGION": 5, "L2_RELIGION": 11, "L3_CASTE": 27, "L4_SPECIAL": 8},
       C.channel_stats()["by_tier"])
 check("LIVE_KEYS_EXTRA block registry lo undi", "LIVE_KEYS_EXTRA" in open(SC.REGISTRY).read())
 
 print("=== 5. SETUP PLAN (wave order) ===")
 plan = C.setup_plan()
-check("Plan anni channels tho", len(plan) == 83, len(plan))
+check("Plan anni channels tho", len(plan) == 52, len(plan))
 check("Plan wave order lo sorted", [r["wave"] for r in plan] == sorted(r["wave"] for r in plan))
 w1 = C.setup_plan(1)
-check("Wave-1 = 17 channels (1 official + 4 main + 12 caste)", len(w1) == 17, len(w1))
+check("Wave-1 = 20 channels (1 official + 4 main + 8 religion + 6 caste + hindu hub)", len(w1) == 20, len(w1))
 check("Wave-1 lo official mundu", w1[0]["key"] == "official", w1[0]["key"])
-check("Wave-1 lo 4 main + caste×gender unnai",
-      {"ts_bride", "ts_groom", "ap_bride", "ap_groom", "c_reddy_bride", "c_kamma_groom"} <= {r["key"] for r in w1})
+check("Wave-1 lo 4 main + Muslim 4 + Christian 4 + caste×gender unnai",
+      {"ts_bride", "ts_groom", "ap_bride", "ap_groom", "muslim_ts_bride", "muslim_ap_groom",
+       "christian_ts_bride", "christian_ap_groom", "c_reddy_bride", "c_kamma_groom"} <= {r["key"] for r in w1})
 check("Plan rows lo desc + fallbacks + hashtags", all(r["desc"] and r["hashtags"] and r["fallbacks"] for r in plan))
 
 print("=== 6. DP IMAGES (channel display pictures) ===")
@@ -117,8 +133,8 @@ try:
     check("DP 512x512 (Telegram square)", Image.open(dp).size == (512, 512), Image.open(dp).size)
 except Exception as e:
     check("PIL open DP", False, repr(e))
-check("Anni 83 DP images unnai (--photos run ayyindi)",
-      len([f for f in os.listdir(SC.ASSET_DIR) if f.endswith(".png")]) >= 83,
+check("Anni 52 DP images unnai (--photos run ayyindi)",
+      len([f for f in os.listdir(SC.ASSET_DIR) if f.endswith(".png")]) >= 52,
       len([f for f in os.listdir(SC.ASSET_DIR) if f.endswith(".png")]))
 
 print("=== 7. APPLY FLOW (FakeBot — Telegram tho matladakunda) ===")
@@ -196,7 +212,7 @@ try:
     check("Checklist md generate (wave 1)", "WAVE 1" in body and "@APBRIDE" in body)
     check("Checklist lo pinned post + description", "📌 Pin this post" in body and "Description" in body)
     kits = SC.write_kits(wave=1)
-    check("Wave-1 kits 17 files", len(kits) == 17, len(kits))
+    check("Wave-1 kits 20 files", len(kits) == 20, len(kits))
     kit = open([k for k in kits if k.endswith("c_reddy_bride.md")][0]).read()
     check("Kit lo 6 steps (create/admin/pin/rules/share/command)",
           all(x in kit for x in ("New Channel", "Administrators", "Pinned welcome", "Rules post", "--apply --key c_reddy_bride")))
@@ -212,7 +228,7 @@ try:
 
     with TestClient(main.app) as c:
         d = c.get("/api/channels").json()
-        check("GET /api/channels stats total 83", d["stats"]["total"] == 83, d["stats"]["total"])
+        check("GET /api/channels stats total 52", d["stats"]["total"] == 52, d["stats"]["total"])
         check("Channels lo photo field (DP URL)", all("photo" in x for x in d["channels_by_tier"]["L1_REGION"]))
         check("L1 lo 4 main unnai", len(d["channels_by_tier"]["L1_REGION"]) >= 4)
         check("L3 caste channels lo caste + gender fields",
@@ -228,12 +244,12 @@ try:
         check("Kit 404 tappu key ki", c.get("/api/channels/nope/kit").status_code == 404)
 
         sp = c.get("/api/channels/setup-plan").json()
-        check("GET /api/channels/setup-plan", len(sp["plan"]) == 83 and sp["caste_coverage"]["caste_gender_channels"] == 36)
+        check("GET /api/channels/setup-plan", len(sp["plan"]) == 52 and sp["caste_coverage"]["caste_gender_channels"] == 18)
         check("setup-plan lo config problems ledu", sp["config_problems"] == [])
-        check("setup-plan wave filter", len(c.get("/api/channels/setup-plan?wave=1").json()["plan"]) == 17)
+        check("setup-plan wave filter", len(c.get("/api/channels/setup-plan?wave=1").json()["plan"]) == 20)
 
         tier = c.get("/api/channels?tier=L3_CASTE").json()
-        check("Tier filter works (L3 61)", tier["count"] == 61, tier["count"])
+        check("Tier filter works (L3 27)", tier["count"] == 27, tier["count"])
 except Exception as e:  # pragma: no cover
     check("TestClient suite", False, repr(e))
 

@@ -36,6 +36,7 @@ export const SITE_CONFIG = {
   // ---------- Pricing (home page lo chupisthundi) ----------
   pricing: {                       // 1 credit = 1 profile (interest request)
     currency: "₹",
+    single: 29,                    // ₹29 → 1 profile (oke request — impulse)
     trial: 99,                     // ₹99 → 5 profiles
     family: 199,                   // ₹199 → 12 profiles
     premium: 299,                  // ₹299 → 25 profiles
@@ -44,6 +45,7 @@ export const SITE_CONFIG = {
     freeCredits: 3,                // modati 3 interest requests FREE
     referralPerPay: 50,            // referrer ki ₹50
     bundles: [
+      { price: 29, profiles: 1, label: "Okka Request" },
       { price: 99, profiles: 5, label: "Sambandham" },
       { price: 199, profiles: 12, label: "Family" },
       { price: 299, profiles: 25, label: "Premium" },

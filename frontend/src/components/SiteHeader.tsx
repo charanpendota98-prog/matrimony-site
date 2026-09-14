@@ -8,6 +8,7 @@ import { SITE_CONFIG } from "@/lib/site-config";
 const NAV: { href: string; label: string; xl?: boolean }[] = [
   { href: "/", label: "Home" },
   { href: "/channels", label: "Channels" },
+  { href: "/pricing", label: "Pricing 💰" },
   { href: "/porutham", label: "Porutham 💍", xl: true },
   { href: "/safety", label: "Safety 🛡️", xl: true },
   { href: "/requests", label: "Requests 💌" },

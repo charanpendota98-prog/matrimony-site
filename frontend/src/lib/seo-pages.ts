@@ -3,7 +3,7 @@
  * =======================================
  * Top matrimony sites 1 lakh+ pages tho Google nunchi free traffic teesukuntayi
  * (Shaadi: "reddy bride hyderabad" → landing page). Manam kooda ade chestham —
- * 43 castes × 2 roles × districts = **1,200+ landing pages**, anni auto-generate.
+ * 18 caste CLUSTERS × 2 roles × districts = **500+ landing pages**, anni auto-generate.
  *
  * URL pattern:  /castes/reddy-bride-hyderabad
  *               /castes/kamma-groom
@@ -51,14 +51,18 @@ function channelRef(c: any): ChannelRef {
 
 /** Caste + role ki correct channel — split unte caste×gender, lekapote mixed channel. */
 export function channelForCaste(casteKey: string, role: Role): ChannelRef | null {
-  const split = CH_BY_KEY.get(`c_${casteKey}_${role}`);
-  const mixed = CH_BY_KEY.get(casteKey);
-  const ch = split || mixed;
+  const split = CH_BY_KEY.get(`c_${casteKey}_${role}`);        // pedda cluster → bride/groom separate
+  const single = CH_BY_KEY.get(`c_${casteKey}`);               // cluster single channel (both genders)
+  const legacy = CH_BY_KEY.get(casteKey);                      // purathana key (safety)
+  const ch = split || single || legacy;
   return ch ? channelRef(ch) : null;
 }
 
+/** True ayithe bride/groom channels **veru veru** unnai (single cluster lo okate channel) */
 export function channelSplit(casteKey: string): boolean {
-  return CH_BY_KEY.has(`c_${casteKey}_bride`) && CH_BY_KEY.has(`c_${casteKey}_groom`);
+  const b = CH_BY_KEY.get(`c_${casteKey}_bride`);
+  const g = CH_BY_KEY.get(`c_${casteKey}_groom`);
+  return !!(b && g && b.username !== g.username);
 }
 
 /** L3 channels nunchi unique caste keys (caste×gender + mixed rendu nunchi) */
@@ -87,7 +91,8 @@ function casteDisplayName(key: string, channelName: string): string {
 export const CASTES: CasteInfo[] = casteKeysInOrder().map((key) => {
   const bride = channelForCaste(key, "bride");
   const groom = channelForCaste(key, "groom");
-  const base = (bride || groom)!;
+  const base = bride || groom;
+  if (!base) return null;                     // channel ledu → ee caste page generate cheyyaku
   const name = casteDisplayName(key, base.name);
   return {
     key,
@@ -103,7 +108,7 @@ export const CASTES: CasteInfo[] = casteKeysInOrder().map((key) => {
     live: base.live,
     hashtags: base.hashtags,
   };
-});
+}).filter(Boolean) as CasteInfo[];
 
 export type DistrictInfo = { slug: string; name: string; state: "TS" | "AP" };
 

@@ -325,6 +325,93 @@ def test_pricing_consistency():
     check("Chatting ledu model confirm", plans.get("chatting") is False, plans.get("chatting"))
 
 
+def test_pricing_pages_and_payments():
+    """
+    💰 PRICING V2 — ₹29 micro tier, webhook mapping fix, /pricing + legal pages.
+    (User question: "emi aina wrong chesthunna? inka bestga cheyochaa?")
+    """
+    print("\n[8] PRICING V2 — MICRO TIER + PAYMENT MAPPING + POLICY PAGES")
+    from fastapi.testclient import TestClient
+    import interest as I
+    import credits as CR
+    import main
+    root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+    # ---- ₹29 micro tier (impulse + anchor) ----
+    codes = [p["code"] for p in I.plan_list()]
+    check("₹29 micro tier (S_29) ladder lo undi", codes[0] == "S_29", codes)
+    micro = I.get_plan("S_29")
+    check("S_29 → 1 profile @ ₹29 (anchor: top tier ₹10/profile)", micro["price"] == 29 and micro["profiles"] == 1)
+    check("S_29 ki 15 రోజుల validity", micro["validity_days"] == 15)
+    per = [p["per_profile"] for p in I.plan_list()]
+    check("₹/profile ladder thaggutundi (29 → 20 → 17 → 12 → 10)",
+          per == [29, 20, 17, 12, 10], per)
+
+    # ---- legacy credits.py == kotha interest.py (okka pricing truth) ----
+    mismatch = [(k, v["price"], v["credits"]) for k, v in CR.PLANS.items()
+                if k in ("S_29", "S_99", "S_199", "S_299", "S_499")
+                and (v["price"], v["credits"]) != (I.PLANS[k]["price"], I.PLANS[k]["profiles"])]
+    check("credits.py amounts/credits interest.py tho match (legacy drift ledu)", not mismatch, mismatch)
+    check("legacy aliases kooda kotha prices ki map (TRIAL_99 → ₹99/5)",
+          CR.PLANS["TRIAL_99"]["price"] == 99 and CR.PLANS["TRIAL_99"]["credits"] == 5)
+
+    # ---- apply_payment (webhook + order rendu okate source) ----
+    u = {"tsap_id": "TSAP-M-2025-1042", "credits": 0}
+    r199 = I.apply_payment(u, 199)
+    check("apply_payment ₹199 → S_199 + 12 profiles", r199["ok"] and r199["plan"]["code"] == "S_199"
+          and r199["profiles_added"] == 12 and u["credits"] == 12, r199.get("message_telugu"))
+    check("apply_payment expiry set ayyindi", bool(u.get("plan_expiry")))
+    r29 = I.apply_payment(u, 29)
+    check("apply_payment ₹29 → +1 profile (total 13)", r29["profiles_added"] == 1 and u["credits"] == 13)
+    r_add = I.apply_payment(u, 49)
+    check("apply_payment ₹49 → addon (boost) — credits add avvavu", r_add["kind"] == "addon" and u["credits"] == 13)
+    r_bad = I.apply_payment(u, 150)
+    check("tappu amount (₹150) reject avutundi", not r_bad["ok"] and u["credits"] == 13)
+
+    # ---- webhook endpoint (neeDHA bug: legacy plan_map) ----
+    with TestClient(main.app) as c:
+        w = c.post("/api/payment/webhook?user_id=TSAP-F-2025-1042&amount=499&razorpay_payment_id=pay_T1").json()
+        check("webhook ₹499 → S_499 + 50 profiles", w["success"] and w["plan"] == "S_499"
+              and w["profiles_added"] == 50, w.get("plan"))
+        check("webhook lo legacy TRIAL_99/PREMIUM_299 vellavu", w["plan"] not in ("TRIAL_99", "PREMIUM_299", "VIP_999"))
+        check("webhook message lo profiles kanipisthundi ('profiles')", "profiles" in w["message_telugu"], w["message_telugu"][:80])
+        check("webhook GST note + perks unnai", "gst_note" in w and isinstance(w.get("perks"), list))
+        w2 = c.post("/api/payment/webhook?user_id=TSAP-F-2025-1042&amount=150&razorpay_payment_id=pay_T2")
+        check("webhook tappu amount → 400 + correct amounts list", w2.status_code == 400
+              and 199 in w2.json().get("valid_amounts", []), w2.status_code)
+        w3 = c.post("/api/payment/webhook?user_id=TSAP-F-2025-1042&amount=99")
+        check("webhook payment proof lekapote reject", w3.status_code == 400)
+        plans_api = c.get("/api/plans").json()
+    check("API /api/plans lo S_29 kooda chupisthundi",
+          any(p["code"] == "S_29" for p in plans_api["plans"]))
+
+    # ---- /pricing + legal pages (Razorpay approval + trust) ----
+    pages = {name: pathlib_read(os.path.join(root, "frontend", "src", "app", name, "page.tsx"))
+             for name in ("pricing", "terms", "privacy", "refund")}
+    check("/pricing page undi + /api/plans nunchi data", "/api/plans" in pages["pricing"])
+    check("/pricing lo anni tiers + addons + renewal", all(x in pages["pricing"] for x in
+          ("S_499", "Vivaha VIP", "addons", "renewal", "Compare")))
+    check("/pricing lo micro tier explain + FAQ", pages["pricing"].count("details") > 0 and "Okka Request" in pages["pricing"])
+    check("/refund policy lo decline-refund + 7-day + GST", all(x in pages["refund"] for x in
+          ("7 ", "declin", "GST", "6")))
+    check("/terms lo eligibility 18+/21+ + chatting ledu + banned list", all(x in pages["terms"] for x in
+          ("21+", "Chatting", "Prohibited", "Hyderabad")))
+    check("/privacy lo DPDP + grievance officer + delete 30 days", all(x in pages["privacy"] for x in
+          ("Grievance", "30 ", "delete", "ammamu")))
+    _links = {"pricing": ["/refund", "/terms", "/privacy"], "terms": ["/pricing", "/refund", "/privacy"],
+              "privacy": ["/pricing", "/refund", "/safety"], "refund": ["/pricing", "/terms", "/privacy"]}
+    _bad = [k for k, need in _links.items() if not all(('href="%s"' % u) in pages[k] for u in need)]
+    check("legal pages cross-links unnai", not _bad, _bad)
+    footer = pathlib_read(os.path.join(root, "frontend", "src", "components", "SiteFooter.tsx"))
+    header = pathlib_read(os.path.join(root, "frontend", "src", "components", "SiteHeader.tsx"))
+    check("Footer lo Pricing + Policies column", all(x in footer for x in ("/pricing", "/refund", "/terms", "/privacy")))
+    check("Nav lo Pricing link", 'href: "/pricing"' in header)
+    sitemap = pathlib_read(os.path.join(root, "frontend", "src", "app", "sitemap.ts"))
+    check("Sitemap lo pricing + policies", all(x in sitemap for x in ("/pricing", "/refund", "/privacy", "/terms")))
+    site_cfg = pathlib_read(os.path.join(root, "frontend", "src", "lib", "site-config.ts"))
+    check("site-config lo ₹29 bundle", "single: 29" in site_cfg and "Okka Request" in site_cfg)
+
+
 def pathlib_read(path):
     with open(path, "r", encoding="utf-8") as f:
         return f.read()
@@ -342,6 +429,7 @@ if __name__ == "__main__":
     test_api_endpoints_and_register_namaste()
     test_antiban_breaks_and_expiry()
     test_pricing_consistency()
+    test_pricing_pages_and_payments()
     print("\n" + "=" * 68)
     print(" RESULT: %d passed, %d failed" % (len(PASS), len(FAIL)))
     if FAIL:

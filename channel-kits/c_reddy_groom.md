@@ -1,7 +1,7 @@
 # 🤵 Reddy Grooms | రెడ్డి వరులు
 
 - **Key:** `c_reddy_groom`  •  **Tier:** L3_CASTE  •  **Wave:** 1  •  **Status:** create ⬜
-- **Username:** `@manavivaha_reddy_groom` (already taken? → @tsap_reddy_groom, @mv_reddy_grm, @manavivaha_reddy_grm)
+- **Username:** `@manavivaha_reddy_groom` (already taken? → @tsap_reddy_groom, @mv_reddy_grm)
 - **Link:** https://t.me/manavivaha_reddy_groom
 - **Hashtags:** #Reddy #Groom #TS #AP
 - **DP image:** `/home/user/matrimony-site/backend/channel_assets/c_reddy_groom.png`
@@ -15,7 +15,7 @@ Username: `manavivaha_reddy_groom`
 Description:
 
 ```
-రెడ్డి వరులు — TS + AP అన్ని జిల్లాలు. ఉద్యోగం/చదువు/జాతకం వివరాలతో profiles. 3 requests FREE. #Reddy #Groom #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
+రెడ్డి — Reddy (Grooms). Sub-castes: Reddy • Pakanati Reddy • Motati Reddy • Gudati Reddy • Deshathi Reddy. నిజమైన profiles, 3 requests FREE, ₹99లో 5. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
 ```
 
 ## 2) Bot ni admin cheyyi
@@ -28,6 +28,7 @@ Channel → Manage → Administrators → Add Admin → `@telugumatrimony1_bot` 
 🙏 *🤵 Reddy Grooms | రెడ్డి వరులు*
 ━━━━━━━━━━━━━━━━━━
 *రెడ్డి*
+👥 ఈ channel లో: *Reddy • Pakanati Reddy • Motati Reddy • Gudati Reddy • Deshathi Reddy*
 
 ఇక్కడ ఏం దొరుకుతుంది:
 ✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)

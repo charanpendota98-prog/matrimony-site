@@ -4,14 +4,15 @@ Mana Vivaha (TSAP Matrimony) — MASTER CHANNEL REGISTRY + AUTO-ROUTER
 One profile post → automatic ga annni relevant channels lo ki vellali.
 Idi single source of truth: backend, bot, website anni ikkada nunchi chaduvutayi.
 
-LEVELS:
+LEVELS (SMART STRUCTURE — 51 channels, 83 kaadu):
   L0 OFFICIAL   — 1  (brand hub, top-3/day, success stories)
   L1 REGION     — 5  (TS Bride/Groom, AP Bride/Groom, NRI/Other-States)
-  L2 RELIGION   — 5  (Hindu, Muslim, Christian, Other, Inter-Faith)
-  L3 CASTE      — 43 (Hindu caste-wise — ONE channel per caste, hashtag filter)
-  L4 SPECIAL    — 11 (2nd marriage, differently-abled, govt job, IT, doctors...)
+  L2 RELIGION   — 11 (Muslim ×4 [TS/AP × bride/groom], Christian ×4, Hindu hub, Other, Inter-Faith)
+  L3 CASTE      — 27 (Hindu CASTE CLUSTERS — pedda communities ki bride/groom separate,
+                      chinna sub-castes (ex: Viswabrahmana 5) okate channel lo kalipamu)
+  L4 SPECIAL    — 8  (2nd marriage, differently-abled, govt job, IT, doctors+teachers, success, fraud, bureau)
   ---------------------------------------------------------------
-  TOTAL         — 65 channels
+  TOTAL         — 52 channels (wave 1 = 20, wave 2 = 16, wave 3 = 15)
 
 IMPORTANT RULES:
   * Username okkate Telegram lo unique — conflict ayithe FALLBACK list chudu.
@@ -19,7 +20,7 @@ IMPORTANT RULES:
   * Max 5 channels per profile auto-post (spam taggadaniki) — priority order lo.
 """
 
-from typing import Dict
+from typing import Dict, List
 
 BOT_USERNAME = "@telugumatrimony1_bot"
 BRAND = "Mana Vivaha"
@@ -124,42 +125,82 @@ CHANNELS = {
     # ===================== LEVEL 2 — RELIGION =====================
     "hindu": {
         "tier": "L2_RELIGION",
-        "name": "🕉️ Hindu Matrimony | హిందూ వివాహాలు",
+        "name": "🕉️ Hindu Matrimony Hub | హిందూ వివాహాలు",
         "username": "manavivaha_hindu",
         "fallbacks": ["manavivaha_hindus", "tsap_hindu"],
         "desc": ("Hindu Telugu matches — anni kulasthulu, anni districts.\n"
-                 "Caste-wise channels kooda undi — profile search: caste filter use cheyyandi.\n"
-                 "manavivaha.in/register"),
+                 "Caste-wise channels kooda undi — profile lo caste filter use cheyyandi.\n"
+                 "manavivaha.in/register • Bot: @telugumatrimony1_bot"),
         "hashtags": ["#Hindu", "#TeluguMatrimony"],
-        "wave": 2,
+        "wave": 1,
         "live": False,
         "route": {"religion": "Hindu"},
     },
-    "muslim": {
-        "tier": "L2_RELIGION",
-        "name": "☪️ Muslim Matrimony | ముస్లిం వివాహాలు",
-        "username": "manavivaha_muslim",
-        "fallbacks": ["manavivaha_muslims", "tsap_muslim"],
-        "desc": ("Muslim Telugu matches — Sheikh, Syed, Pathan, Momin, Qureshi, Labbai...\n"
-                 "Bride & Groom rendu — hashtag tho filter: #Bride #Groom #Sheikh #Syed\n"
-                 "manavivaha.in/register • Bot: @telugumatrimony1_bot"),
-        "hashtags": ["#Muslim", "#Nikah", "#TeluguMuslim"],
-        "wave": 2,
-        "live": False,
-        "route": {"religion": "Muslim"},
+    # ---- MUSLIM (4 — TS/AP × bride/groom; Sheikh/Syed/Pathan antha same channel) ----
+    "muslim_ts_bride": {
+        "tier": "L2_RELIGION", "sub": "muslim", "state": "TS", "gender": "Bride",
+        "religion": "Muslim", "name": "", "desc": "",
+        "username": "manavivaha_muslim_ts_bride",
+        "fallbacks": ["tsmuslimbride", "mv_muslim_ts_brd", "manavivaha_muslim_ts_brd"],
+        "hashtags": ["#Muslim", "#Bride", "#Telangana", "#Nikah"],
+        "wave": 1, "live": False, "route": {"religion": "Muslim", "state": "TS", "gender": "Bride"},
     },
-    "christian": {
-        "tier": "L2_RELIGION",
-        "name": "✝️ Christian Matrimony | క్రైస్తవ వివాహాలు",
-        "username": "manavivaha_christian",
-        "fallbacks": ["manavivaha_christians", "tsap_christian"],
-        "desc": ("Christian Telugu matches — Catholic, CSI, Baptist, Pentecost, Born Again.\n"
-                 "Bride & Groom rendu — filter: #Catholic #CSI #Baptist\n"
-                 "manavivaha.in/register"),
-        "hashtags": ["#Christian", "#TeluguChristian", "#Wedding"],
-        "wave": 2,
-        "live": False,
-        "route": {"religion": "Christian"},
+    "muslim_ts_groom": {
+        "tier": "L2_RELIGION", "sub": "muslim", "state": "TS", "gender": "Groom",
+        "religion": "Muslim", "name": "", "desc": "",
+        "username": "manavivaha_muslim_ts_groom",
+        "fallbacks": ["tsmuslimgroom", "mv_muslim_ts_grm", "manavivaha_muslim_ts_grm"],
+        "hashtags": ["#Muslim", "#Groom", "#Telangana", "#Nikah"],
+        "wave": 1, "live": False, "route": {"religion": "Muslim", "state": "TS", "gender": "Groom"},
+    },
+    "muslim_ap_bride": {
+        "tier": "L2_RELIGION", "sub": "muslim", "state": "AP", "gender": "Bride",
+        "religion": "Muslim", "name": "", "desc": "",
+        "username": "manavivaha_muslim_ap_bride",
+        "fallbacks": ["apmuslimbride", "mv_muslim_ap_brd", "manavivaha_muslim_ap_brd"],
+        "hashtags": ["#Muslim", "#Bride", "#AndhraPradesh", "#Nikah"],
+        "wave": 1, "live": False, "route": {"religion": "Muslim", "state": "AP", "gender": "Bride"},
+    },
+    "muslim_ap_groom": {
+        "tier": "L2_RELIGION", "sub": "muslim", "state": "AP", "gender": "Groom",
+        "religion": "Muslim", "name": "", "desc": "",
+        "username": "manavivaha_muslim_ap_groom",
+        "fallbacks": ["apmuslimgroom", "mv_muslim_ap_grm", "manavivaha_muslim_ap_grm"],
+        "hashtags": ["#Muslim", "#Groom", "#AndhraPradesh", "#Nikah"],
+        "wave": 1, "live": False, "route": {"religion": "Muslim", "state": "AP", "gender": "Groom"},
+    },
+    # ---- CHRISTIAN (4 — TS/AP × bride/groom; Catholic/CSI/Baptist antha same channel) ----
+    "christian_ts_bride": {
+        "tier": "L2_RELIGION", "sub": "christian", "state": "TS", "gender": "Bride",
+        "religion": "Christian", "name": "", "desc": "",
+        "username": "manavivaha_christian_ts_bride",
+        "fallbacks": ["tschristianbride", "mv_christ_ts_brd", "manavivaha_christ_ts_brd"],
+        "hashtags": ["#Christian", "#Bride", "#Telangana", "#Wedding"],
+        "wave": 1, "live": False, "route": {"religion": "Christian", "state": "TS", "gender": "Bride"},
+    },
+    "christian_ts_groom": {
+        "tier": "L2_RELIGION", "sub": "christian", "state": "TS", "gender": "Groom",
+        "religion": "Christian", "name": "", "desc": "",
+        "username": "manavivaha_christian_ts_groom",
+        "fallbacks": ["tschristiangroom", "mv_christ_ts_grm", "manavivaha_christ_ts_grm"],
+        "hashtags": ["#Christian", "#Groom", "#Telangana", "#Wedding"],
+        "wave": 1, "live": False, "route": {"religion": "Christian", "state": "TS", "gender": "Groom"},
+    },
+    "christian_ap_bride": {
+        "tier": "L2_RELIGION", "sub": "christian", "state": "AP", "gender": "Bride",
+        "religion": "Christian", "name": "", "desc": "",
+        "username": "manavivaha_christian_ap_bride",
+        "fallbacks": ["apchristianbride", "mv_christ_ap_brd", "manavivaha_christ_ap_brd"],
+        "hashtags": ["#Christian", "#Bride", "#AndhraPradesh", "#Wedding"],
+        "wave": 1, "live": False, "route": {"religion": "Christian", "state": "AP", "gender": "Bride"},
+    },
+    "christian_ap_groom": {
+        "tier": "L2_RELIGION", "sub": "christian", "state": "AP", "gender": "Groom",
+        "religion": "Christian", "name": "", "desc": "",
+        "username": "manavivaha_christian_ap_groom",
+        "fallbacks": ["apchristiangroom", "mv_christ_ap_grm", "manavivaha_christ_ap_grm"],
+        "hashtags": ["#Christian", "#Groom", "#AndhraPradesh", "#Wedding"],
+        "wave": 1, "live": False, "route": {"religion": "Christian", "state": "AP", "gender": "Groom"},
     },
     "other_religion": {
         "tier": "L2_RELIGION",
@@ -169,9 +210,7 @@ CHANNELS = {
         "desc": ("Sikh • Jain • Buddhist • Parsi • Jewish • No-caste/No-religion — Telugu matches.\n"
                  "Respectful, private, verified. manavivaha.in/register"),
         "hashtags": ["#OtherReligions", "#Respect"],
-        "wave": 3,
-        "live": False,
-        "route": {"religion": "Other"},
+        "wave": 2, "live": False, "route": {"religion": "Other"},
     },
     "interfaith": {
         "tier": "L2_RELIGION",
@@ -182,193 +221,15 @@ CHANNELS = {
                  "No-caste filter • Full privacy • Couple corner.\n"
                  "manavivaha.in/register • Height secret maintain chestham 🤝"),
         "hashtags": ["#Intercaste", "#LoveMarriage", "#RegisterMarriage"],
-        "wave": 3,
-        "live": False,
-        "route": {"flag": "interfaith"},
+        "wave": 3, "live": False, "route": {"flag": "interfaith"},
     },
 
-    # ===================== LEVEL 3 — HINDU CASTE (43) =====================
-    # ---- OC / Forward (7) ----
-    "reddy": {"tier": "L3_CASTE", "name": "💍 Reddy Matrimony | TS-AP",
-              "username": "manavivaha_reddy", "fallbacks": ["tsap_reddy", "manavivaha_reddys"],
-              "desc": "Reddy brides & grooms — TS + AP anni districts. #Bride #Groom #Nalgonda #Hyderabad",
-              "hashtags": ["#Reddy"], "wave": 1, "live": False, "route": {"caste": "Reddy"}},
-    "kamma": {"tier": "L3_CASTE", "name": "💍 Kamma Matrimony | TS-AP",
-              "username": "manavivaha_kamma", "fallbacks": ["tsap_kamma", "manavivaha_kammas"],
-              "desc": "Kamma brides & grooms — Guntur, Krishna, Prakasam, Khammam, Hyderabad.",
-              "hashtags": ["#Kamma"], "wave": 1, "live": False, "route": {"caste": "Kamma"}},
-    "kapu": {"tier": "L3_CASTE", "name": "💍 Kapu Matrimony | TS-AP",
-             "username": "manavivaha_kapu", "fallbacks": ["tsap_kapu", "manavivaha_kapus"],
-             "desc": "Kapu • Telaga • Balija • Ontari — united Kapu community matches.",
-             "hashtags": ["#Kapu", "#Telaga", "#Balija"], "wave": 1, "live": False, "route": {"caste": "Kapu"}},
-    "velama": {"tier": "L3_CASTE", "name": "💍 Velama Matrimony | TS-AP",
-               "username": "manavivaha_velama", "fallbacks": ["tsap_velama"],
-               "desc": "Velama + Koppula Velama + Padma Velama matches — TS + AP.",
-               "hashtags": ["#Velama"], "wave": 1, "live": False, "route": {"caste": "Velama"}},
-    "vysya": {"tier": "L3_CASTE", "name": "💍 Arya Vysya / Komati Matrimony",
-              "username": "manavivaha_vysya", "fallbacks": ["tsap_vysya", "manavivaha_aryavysya"],
-              "desc": "Arya Vysya • Komati • Vaishya • Vysya — business families welcome.",
-              "hashtags": ["#AryaVysya", "#Komati", "#Vysya"], "wave": 2, "live": False, "route": {"caste": "Vysya"}},
-    "brahmin": {"tier": "L3_CASTE", "name": "💍 Brahmin Matrimony | TS-AP",
-                "username": "manavivaha_brahmin", "fallbacks": ["tsap_brahmin", "manavivaha_brahmins"],
-                "desc": "Vaidiki • Niyogi • Sistla • Dravida Brahmin — gothram + sutram matching.",
-                "hashtags": ["#Brahmin", "#Gothram"], "wave": 2, "live": False, "route": {"caste": "Brahmin"}},
-    "raju": {"tier": "L3_CASTE", "name": "💍 Raju / Kshatriya Matrimony",
-             "username": "manavivaha_raju", "fallbacks": ["tsap_raju", "manavivaha_kshatriya"],
-             "desc": "Raju • Kshatriya • Vanniyar • Rajulu matches.",
-             "hashtags": ["#Raju", "#Kshatriya"], "wave": 3, "live": False, "route": {"caste": "Raju"}},
+    # ===================== LEVEL 3 — HINDU CASTE CLUSTERS (smart groups) =====================
+    # 🔑 IDEA: Telugu lo konni castes **okka kula group** laage untayi (ex: Viswabrahmana = 5 sub-castes).
+    #         Anduke chinna sub-castes ni okate channel lo kalipamu — create cheyyadam suluvu,
+    #         audience kooda oke chota vastundi. Pedda communities ki bride/groom **separate** channels.
 
-    # ---- BC / Backward Classes (28) ----
-    "goud": {"tier": "L3_CASTE", "name": "💍 Goud Matrimony | TS-AP",
-             "username": "manavivaha_goud", "fallbacks": ["tsap_goud", "manavivaha_gouda"],
-             "desc": "Goud • Gouda • Ediga • Gamalla • Idiga • Settibalija — today community.",
-             "hashtags": ["#Goud", "#Ediga", "#Gamalla"], "wave": 2, "live": False, "route": {"caste": "Goud"}},
-    "yadav": {"tier": "L3_CASTE", "name": "💍 Yadav / Golla Matrimony",
-              "username": "manavivaha_yadav", "fallbacks": ["tsap_yadav", "manavivaha_golla"],
-              "desc": "Yadav • Golla • Kuruma • Yadava — cattle & farming families.",
-              "hashtags": ["#Yadav", "#Golla", "#Kuruma"], "wave": 2, "live": False, "route": {"caste": "Yadav"}},
-    "mudiraj": {"tier": "L3_CASTE", "name": "💍 Mudiraj Matrimony | TS-AP",
-                "username": "manavivaha_mudiraj", "fallbacks": ["tsap_mudiraj", "manavivaha_mutrasi"],
-                "desc": "Mudiraj • Mudiraju • Mutrasi • Tenugollu matches.",
-                "hashtags": ["#Mudiraj", "#Tenugollu"], "wave": 3, "live": False, "route": {"caste": "Mudiraj"}},
-    "padmashali": {"tier": "L3_CASTE", "name": "💍 Padmashali / Sali Matrimony",
-                   "username": "manavivaha_padmashali", "fallbacks": ["tsap_padmashali", "manavivaha_sali"],
-                   "desc": "Padmashali • Padmasali • Sali • Pattusali • Thogata — weaver community.",
-                   "hashtags": ["#Padmashali", "#Sali", "#Thogata"], "wave": 3, "live": False, "route": {"caste": "Padmashali"}},
-    "munnuru_kapu": {"tier": "L3_CASTE", "name": "💍 Munnuru Kapu Matrimony",
-                     "username": "manavivaha_munnuru_kapu", "fallbacks": ["manavivaha_munnurukapu"],
-                     "desc": "Munnuru Kapu — Telangana community matches.",
-                     "hashtags": ["#MunnuruKapu", "#Telangana"], "wave": 3, "live": False, "route": {"caste": "Munnuru Kapu"}},
-    "balija": {"tier": "L3_CASTE", "name": "💍 Balija Matrimony | TS-AP",
-               "username": "manavivaha_balija", "fallbacks": ["tsap_balija"],
-               "desc": "Balija • Gajula Balija • Setti Balija • Surya Balija matches.",
-               "hashtags": ["#Balija"], "wave": 3, "live": False, "route": {"caste": "Balija"}},
-    "telaga": {"tier": "L3_CASTE", "name": "💍 Telaga Matrimony | TS-AP",
-               "username": "manavivaha_telaga", "fallbacks": ["tsap_telaga"],
-               "desc": "Telaga community matches — balija/telaga united channel.",
-               "hashtags": ["#Telaga"], "wave": 3, "live": False, "route": {"caste": "Telaga"}},
-    "koppula_velama": {"tier": "L3_CASTE", "name": "💍 Koppula Velama Matrimony",
-                       "username": "manavivaha_koppula_velama", "fallbacks": ["manavivaha_koppulavelama"],
-                       "desc": "Koppula Velama — North Andhra + Godavari districts.",
-                       "hashtags": ["#KoppulaVelama"], "wave": 4, "live": False, "route": {"caste": "Koppula Velama"}},
-    "kalinga": {"tier": "L3_CASTE", "name": "💍 Kalinga Matrimony | TS-AP",
-                "username": "manavivaha_kalinga", "fallbacks": ["tsap_kalinga"],
-                "desc": "Kinthala • Buragana • Pandiri Kalinga — Srikakulam, Vizianagaram focus.",
-                "hashtags": ["#Kalinga"], "wave": 4, "live": False, "route": {"caste": "Kalinga"}},
-    "boya": {"tier": "L3_CASTE", "name": "💍 Boya / Valmiki Matrimony",
-             "username": "manavivaha_boya", "fallbacks": ["manavivaha_valmiki", "tsap_boya"],
-             "desc": "Boya • Valmiki • Boya Bedar • Nishadi • Yellapu — Telangana BC matches.",
-             "hashtags": ["#Boya", "#Valmiki"], "wave": 3, "live": False, "route": {"caste": "Boya"}},
-    "kuruba": {"tier": "L3_CASTE", "name": "💍 Kuruba / Kuruma Matrimony",
-               "username": "manavivaha_kuruba", "fallbacks": ["tsap_kuruba"],
-               "desc": "Kuruba • Kuruma shepherds — Rayalaseema + Telangana.",
-               "hashtags": ["#Kuruba"], "wave": 4, "live": False, "route": {"caste": "Kuruba"}},
-    "uppara": {"tier": "L3_CASTE", "name": "💍 Uppara / Sagara Matrimony",
-               "username": "manavivaha_uppara", "fallbacks": ["manavivaha_sagara", "tsap_uppara"],
-               "desc": "Uppara • Sagara • Uppari — traditional stone/lime work families.",
-               "hashtags": ["#Uppara", "#Sagara"], "wave": 4, "live": False, "route": {"caste": "Uppara"}},
-    "vaddera": {"tier": "L3_CASTE", "name": "💍 Vaddera / Odde Matrimony",
-                "username": "manavivaha_vaddera", "fallbacks": ["manavivaha_odde", "tsap_vaddera"],
-                "desc": "Vaddera • Vaddelu • Odde • Oddilu • Vadde — building work community.",
-                "hashtags": ["#Vaddera", "#Odde"], "wave": 4, "live": False, "route": {"caste": "Vaddera"}},
-    "rajaka": {"tier": "L3_CASTE", "name": "💍 Rajaka / Chakali Matrimony",
-               "username": "manavivaha_rajaka", "fallbacks": ["manavivaha_chakali", "tsap_rajaka"],
-               "desc": "Rajaka • Chakali • Vannar • Agnikulakshatriya matches.",
-               "hashtags": ["#Rajaka", "#Chakali"], "wave": 4, "live": False, "route": {"caste": "Rajaka"}},
-    "mangali": {"tier": "L3_CASTE", "name": "💍 Mangali / Nayi-Brahmin Matrimony",
-                "username": "manavivaha_mangali", "fallbacks": ["manavivaha_nayi", "tsap_mangali"],
-                "desc": "Mangali • Mangala • Nayi-Brahmin • Bhajanthri matches.",
-                "hashtags": ["#Mangali"], "wave": 4, "live": False, "route": {"caste": "Mangali"}},
-    "viswakarma": {"tier": "L3_CASTE", "name": "💍 Viswabrahmin / Viswakarma Matrimony",
-                   "username": "manavivaha_viswakarma", "fallbacks": ["manavivaha_viswabrahmin", "tsap_viswakarma"],
-                   "desc": "Viswakarma • Kamsali • Kammari • Kanchari • Vadla • Ausula — 5 sub-castes.",
-                   "hashtags": ["#Viswakarma", "#Viswabrahmin", "#Kamsali"], "wave": 3, "live": False, "route": {"caste": "Viswakarma"}},
-    "kummara": {"tier": "L3_CASTE", "name": "💍 Kummara / Kulala Matrimony",
-                "username": "manavivaha_kummara", "fallbacks": ["manavivaha_kulala", "tsap_kummara"],
-                "desc": "Kummara • Kulala • Salivahana — pottery community matches.",
-                "hashtags": ["#Kummara", "#Kulala"], "wave": 4, "live": False, "route": {"caste": "Kummara"}},
-    "gandla": {"tier": "L3_CASTE", "name": "💍 Gandla / Telikula Matrimony",
-               "username": "manavivaha_gandla", "fallbacks": ["manavivaha_telikula", "tsap_gandla"],
-               "desc": "Gandla • Telikula • Devathilakula — oil presser community.",
-               "hashtags": ["#Gandla", "#Telikula"], "wave": 4, "live": False, "route": {"caste": "Gandla"}},
-    "devanga": {"tier": "L3_CASTE", "name": "💍 Devanga Matrimony | TS-AP",
-                "username": "manavivaha_devanga", "fallbacks": ["tsap_devanga"],
-                "desc": "Devanga • Devanga Chettiar — weaver community matches.",
-                "hashtags": ["#Devanga"], "wave": 4, "live": False, "route": {"caste": "Devanga"}},
-    "srisayana": {"tier": "L3_CASTE", "name": "💍 Srisayana / Segidi Matrimony",
-                  "username": "manavivaha_srisayana", "fallbacks": ["manavivaha_segidi", "tsap_srisayana"],
-                  "desc": "Srisayana • Segidi — North Andhra matches.",
-                  "hashtags": ["#Srisayana", "#Segidi"], "wave": 4, "live": False, "route": {"caste": "Srisayana"}},
-    "jangam": {"tier": "L3_CASTE", "name": "💍 Jangam Matrimony | TS-AP",
-               "username": "manavivaha_jangam", "fallbacks": ["tsap_jangam"],
-               "desc": "Jangam • Jangalu • Beda Jangam community matches.",
-               "hashtags": ["#Jangam"], "wave": 4, "live": False, "route": {"caste": "Jangam"}},
-    "jogi": {"tier": "L3_CASTE", "name": "💍 Jogi Matrimony | TS-AP",
-             "username": "manavivaha_jogi", "fallbacks": ["tsap_jogi"],
-             "desc": "Jogi • Jogula community matches.",
-             "hashtags": ["#Jogi"], "wave": 4, "live": False, "route": {"caste": "Jogi"}},
-    "dasari": {"tier": "L3_CASTE", "name": "💍 Dasari Matrimony | TS-AP",
-               "username": "manavivaha_dasari", "fallbacks": ["tsap_dasari"],
-               "desc": "Dasari • Dasari community matches — respectful space.",
-               "hashtags": ["#Dasari"], "wave": 4, "live": False, "route": {"caste": "Dasari"}},
-    "bhatraju": {"tier": "L3_CASTE", "name": "💍 Bhatraju Matrimony | TS-AP",
-                 "username": "manavivaha_bhatraju", "fallbacks": ["tsap_bhatraju"],
-                 "desc": "Bhatraju • Bhatrajulu community matches.",
-                 "hashtags": ["#Bhatraju"], "wave": 4, "live": False, "route": {"caste": "Bhatraju"}},
-    "gavara": {"tier": "L3_CASTE", "name": "💍 Gavara Matrimony | TS-AP",
-               "username": "manavivaha_gavara", "fallbacks": ["tsap_gavara"],
-               "desc": "Gavara community matches — North Andhra + Godavari.",
-               "hashtags": ["#Gavara"], "wave": 4, "live": False, "route": {"caste": "Gavara"}},
-    "bestha": {"tier": "L3_CASTE", "name": "💍 Bestha / Gangaputra Matrimony",
-               "username": "manavivaha_bestha", "fallbacks": ["manavivaha_gangaputra", "tsap_bestha"],
-               "desc": "Bestha • Gangaputra • Gangavar — fishing community matches.",
-               "hashtags": ["#Bestha", "#Gangaputra"], "wave": 4, "live": False, "route": {"caste": "Bestha"}},
-    "jalari": {"tier": "L3_CASTE", "name": "💍 Jalari Matrimony | TS-AP",
-               "username": "manavivaha_jalari", "fallbacks": ["tsap_jalari"],
-               "desc": "Jalari fishermen community matches — coastal AP focus.",
-               "hashtags": ["#Jalari"], "wave": 4, "live": False, "route": {"caste": "Jalari"}},
-    "vadabalija": {"tier": "L3_CASTE", "name": "💍 Vadabalija Matrimony",
-                   "username": "manavivaha_vadabalija", "fallbacks": ["tsap_vadabalija"],
-                   "desc": "Vadabalija community matches — coastal districts.",
-                   "hashtags": ["#Vadabalija"], "wave": 4, "live": False, "route": {"caste": "Vadabalija"}},
-
-    # ---- SC (4) ----
-    "mala": {"tier": "L3_CASTE", "name": "💍 Mala Matrimony | TS-AP",
-             "username": "manavivaha_mala", "fallbacks": ["tsap_mala", "manavivaha_sc_mala"],
-             "desc": "Mala • Mala Ayawaru • Mala Dasari — SC community, full dignity + privacy.",
-             "hashtags": ["#Mala", "#SC"], "wave": 2, "live": False, "route": {"caste": "Mala"}},
-    "madiga": {"tier": "L3_CASTE", "name": "💍 Madiga Matrimony | TS-AP",
-               "username": "manavivaha_madiga", "fallbacks": ["tsap_madiga", "manavivaha_sc_madiga"],
-               "desc": "Madiga • Madiga Dasu • Mashteen — SC community, full dignity + privacy.",
-               "hashtags": ["#Madiga", "#SC"], "wave": 2, "live": False, "route": {"caste": "Madiga"}},
-    "adi_andhra": {"tier": "L3_CASTE", "name": "💍 Adi Andhra Matrimony",
-                   "username": "manavivaha_adi_andhra", "fallbacks": ["manavivaha_adiandhra", "tsap_adi_andhra"],
-                   "desc": "Adi Andhra • Adi Dravida • Arundhatiya — SC community matches.",
-                   "hashtags": ["#AdiAndhra", "#SC"], "wave": 4, "live": False, "route": {"caste": "Adi Andhra"}},
-    "sc_others": {"tier": "L3_CASTE", "name": "💍 SC Other Communities Matrimony",
-                  "username": "manavivaha_sc_others", "fallbacks": ["manavivaha_sccommunities"],
-                  "desc": "Relli • Mala Dasu • Arwa Mala • Samban • Dandasi — anni SC sub-castes okkate chota.",
-                  "hashtags": ["#SC", "#TeluguMatrimony"], "wave": 4, "live": False, "route": {"caste": "SC-Others"}},
-
-    # ---- ST (4) ----
-    "lambada": {"tier": "L3_CASTE", "name": "💍 Lambada / Banjara Matrimony",
-                "username": "manavivaha_lambada", "fallbacks": ["manavivaha_banjara", "tsap_lambada"],
-                "desc": "Lambada • Banjara • Lambani — ST community, traditional + modern matches.",
-                "hashtags": ["#Lambada", "#Banjara", "#ST"], "wave": 2, "live": False, "route": {"caste": "Lambada"}},
-    "koya": {"tier": "L3_CASTE", "name": "💍 Koya Matrimony | Agency Areas",
-             "username": "manavivaha_koya", "fallbacks": ["tsap_koya"],
-             "desc": "Koya • Koitur • Bhine Koya — Godavari agency area ST matches.",
-             "hashtags": ["#Koya", "#ST"], "wave": 4, "live": False, "route": {"caste": "Koya"}},
-    "gond": {"tier": "L3_CASTE", "name": "💍 Gond / Naikpod Matrimony",
-             "username": "manavivaha_gond", "fallbacks": ["manavivaha_naikpod", "tsap_gond"],
-             "desc": "Gond • Rajgond • Naikpod • Koitur — Adilabad + agency ST matches.",
-             "hashtags": ["#Gond", "#ST"], "wave": 4, "live": False, "route": {"caste": "Gond"}},
-    "st_others": {"tier": "L3_CASTE", "name": "💍 ST Other Communities Matrimony",
-                  "username": "manavivaha_st_others", "fallbacks": ["manavivaha_stcommunities"],
-                  "desc": "Chenchu • Andh • Bagata • Konda Reddi • Savara — anni ST sub-castes okkate chota.",
-                  "hashtags": ["#ST", "#Adivasi", "#TeluguMatrimony"], "wave": 4, "live": False, "route": {"caste": "ST-Others"}},
-
-    # ===================== LEVEL 4 — SPECIAL (11) =====================
+    # ===================== LEVEL 4 — SPECIAL (7) =====================
     "second_marriage": {"tier": "L4_SPECIAL", "name": "💔 2nd Marriage | Divorcee & Widow",
                         "username": "manavivaha_second", "fallbacks": ["tsap_second", "manavivaha_remarriage"],
                         "desc": ("Divorcee • Widow • Widower — 2nd innings ki respect tho platform.\n"
@@ -377,7 +238,8 @@ CHANNELS = {
                         "hashtags": ["#SecondMarriage", "#Remarriage", "#Respect"], "wave": 2, "live": False,
                         "route": {"flag": "second_marriage"}},
     "differently_abled": {"tier": "L4_SPECIAL", "name": "♿ Differently Abled Matrimony",
-                          "username": "manavivaha_able", "fallbacks": ["tsap_handicapped", "manavivaha_differentlyabled"],
+                          "username": "manavivaha_able",
+                          "fallbacks": ["tsap_handicapped", "manavivaha_differentlyabled"],
                           "desc": ("Differently abled brides & grooms — special care, special respect.\n"
                                    "Family support + verified profiles only. manavivaha.in/register"),
                           "hashtags": ["#DifferentlyAbled", "#SpecialCare"], "wave": 3, "live": False,
@@ -385,34 +247,20 @@ CHANNELS = {
     "govt_jobs": {"tier": "L4_SPECIAL", "name": "👮 Govt Job Matches | ప్రభుత్వ ఉద్యోగం",
                   "username": "manavivaha_govt", "fallbacks": ["tsap_govt", "manavivaha_govtjobs"],
                   "desc": "Teacher • Police • Bank • Railway • Group-1/2 • SI • Constable • Nurse — govt job profiles.",
-                  "hashtags": ["#GovtJob", "#SoftwarekaduGovt"], "wave": 2, "live": False,
+                  "hashtags": ["#GovtJob", "#GovtTeacher"], "wave": 3, "live": False,
                   "route": {"flag": "govt_job"}},
     "software_it": {"tier": "L4_SPECIAL", "name": "💻 Software / IT Matches",
                     "username": "manavivaha_software", "fallbacks": ["tsap_software", "manavivaha_it"],
                     "desc": "Software • IT • MNC • Product companies — HYD, BLR, PUNE, USA.",
                     "hashtags": ["#Software", "#IT", "#Hyderabad"], "wave": 3, "live": False,
                     "route": {"flag": "software"}},
-    "doctors": {"tier": "L4_SPECIAL", "name": "🩺 Doctors & Healthcare Matches",
-                "username": "manavivaha_doctors", "fallbacks": ["tsap_doctors", "manavivaha_medical"],
-                "desc": "MBBS • MD • MS • BDS • Nursing • Pharma — medical professional matches.",
-                "hashtags": ["#Doctors", "#Healthcare"], "wave": 3, "live": False,
-                "route": {"flag": "doctor"}},
-    "teachers": {"tier": "L4_SPECIAL", "name": "🎓 Teachers & Lecturers Matches",
-                 "username": "manavivaha_teachers", "fallbacks": ["tsap_teachers", "manavivaha_lecturers"],
-                 "desc": "School Teacher • Lecturer • Professor • Anganwadi — education field matches.",
-                 "hashtags": ["#Teacher", "#Lecturer"], "wave": 4, "live": False,
-                 "route": {"flag": "teacher"}},
-    "above_35": {"tier": "L4_SPECIAL", "name": "🕰️ 35+ Matches | Late Marriage",
-                 "username": "manavivaha_35plus", "fallbacks": ["tsap_35plus", "manavivaha_late"],
-                 "desc": ("35+ brides & grooms — late marriage ki kooda best sambandham untundi.\n"
-                          "No age shaming • Serious profiles matrame. manavivaha.in/register"),
-                 "hashtags": ["#35Plus", "#LateMarriage"], "wave": 3, "live": False,
-                 "route": {"flag": "above_35"}},
-    "love_register": {"tier": "L4_SPECIAL", "name": "💞 Love & Register Marriage",
-                      "username": "manavivaha_love", "fallbacks": ["tsap_love"],
-                      "desc": "Love marriage • Register marriage • Parents oppuka kosam help.",
-                      "hashtags": ["#LoveMarriage", "#RegisterMarriage"], "wave": 4, "live": False,
-                      "route": {"flag": "love"}},
+    "doctors_teachers": {"tier": "L4_SPECIAL", "name": "🩺 Doctors & Teachers Matches",
+                         "username": "manavivaha_professionals",
+                         "fallbacks": ["manavivaha_doctors", "tsap_doctors", "manavivaha_teachers"],
+                         "desc": ("MBBS • MD • MS • BDS • Nursing • Pharma • School Teacher • Lecturer • Professor\n"
+                                  "Medical + education professionals — okate chota. manavivaha.in/register"),
+                         "hashtags": ["#Doctors", "#Teachers", "#Healthcare"], "wave": 3, "live": False,
+                         "route": {"flag": "doctor_teacher"}},
     "success_stories": {"tier": "L4_SPECIAL", "name": "🎉 Success Stories & Reviews",
                         "username": "manavivaha_success", "fallbacks": ["tsap_success"],
                         "desc": ("Mana Vivaha tho pelli ayyina couples stories + photos (permission tho).\n"
@@ -439,44 +287,100 @@ LIVE_KEYS_EXTRA = [
 # <<< LIVE_KEYS_EXTRA
 
 # ---------------------------------------------------------------------------
-# ⭐ CASTE × GENDER CHANNELS — "caste prakaram" proper ga (bride/groom separate)
+# ⭐ CASTE CLUSTERS — "caste prakaram" smart ga (bride/groom + grouped sub-castes)
 # ---------------------------------------------------------------------------
-# Telugu matrimony lo inti vaallu **tama caste + bride/groom** channel ne follow avutaru.
-# Anduke top castes ki bride/groom separate channels; chinna castes ki okate mixed channel
-# (andulo #Bride/#Groom hashtag filter).
-CASTE_SPLIT: Dict[str, int] = {
-    # wave 1 — highest volume (TS + AP)
-    "reddy": 1, "kamma": 1, "kapu": 1, "velama": 1, "vysya": 1, "brahmin": 1,
-    # wave 2
-    "goud": 2, "yadav": 2, "mudiraj": 2, "padmashali": 2, "munnuru_kapu": 2, "mala": 2,
-    # wave 3
-    "madiga": 3, "lambada": 3, "raju": 3, "balija": 3, "telaga": 3, "viswakarma": 3,
-}
-SPLIT_MAP: Dict[str, Dict[str, str]] = {}      # caste_key -> {"Bride": key, "Groom": key}
+# members       : ee channel lo cover ayye sub-castes (pinned post + description lo kanipisthundi)
+# split         : True ayithe bride/groom separate channels, False ayithe single (both + hashtag filter)
+# category      : OC / BC / SC / ST (coverage report ki)
+CASTE_CLUSTERS: List[Dict] = [
+    {"key": "reddy", "en": "Reddy", "te": "రెడ్డి", "category": "OC", "split": True, "wave": 1,
+     "members": ["Reddy", "Pakanati Reddy", "Motati Reddy", "Gudati Reddy", "Deshathi Reddy"]},
+    {"key": "kamma", "en": "Kamma", "te": "కమ్మ", "category": "OC", "split": True, "wave": 1,
+     "members": ["Kamma", "Chowdary", "Choudary"]},
+    {"key": "kapu", "en": "Kapu • Balija • Telaga", "te": "కాపు • బలిజ • తెలగ", "category": "OC", "split": True, "wave": 1,
+     "members": ["Kapu", "Ontari", "Turupu Kapu", "Palli Kapu", "Balija", "Gajula Balija", "Setti Balija",
+                 "Surya Balija", "Telaga", "Telagu"]},
+    {"key": "velama", "en": "Velama", "te": "వెలమ", "category": "OC", "split": True, "wave": 2,
+     "members": ["Velama", "Padma Velama", "Koppula Velama"]},
+    {"key": "brahmin", "en": "Brahmin", "te": "బ్రాహ్మణ", "category": "OC", "split": True, "wave": 2,
+     "members": ["Vaidiki Brahmin", "Niyogi Brahmin", "Sistla", "Dravida Brahmin", "Iyer"]},
+    {"key": "vysya", "en": "Arya Vysya • Komati", "te": "వైశ్య • కోమటి", "category": "OC", "split": True, "wave": 2,
+     "members": ["Arya Vysya", "Komati", "Komti", "Vaishya", "Sadhu Chetty"]},
+    {"key": "yadava_goud", "en": "Yadava • Goud • Golla", "te": "యాదవ • గౌడ • గొల్ల", "category": "BC", "split": True,
+     "wave": 2, "members": ["Yadav", "Yadava", "Golla", "Kuruma", "Kuruba", "Goud", "Gouda", "Ediga",
+                            "Gamalla", "Idiga", "Settibalija"]},
+    {"key": "mala", "en": "Mala", "te": "మాల", "category": "SC", "split": True, "wave": 2,
+     "members": ["Mala", "Mala Ayawaru", "Mala Dasari"]},
+    {"key": "madiga", "en": "Madiga", "te": "మాదిగ", "category": "SC", "split": True, "wave": 2,
+     "members": ["Madiga", "Madiga Dasu", "Mashteen", "Madiga Dasari"]},
+    {"key": "viswabrahmana", "en": "Viswabrahmana (Viswakarma)", "te": "విశ్వబ్రాహ్మణ", "category": "BC",
+     "split": False, "wave": 2,
+     "members": ["Viswakarma", "Viswabrahmin", "Viswabrahmana", "Kamsali", "Kammari", "Kanchari", "Vadla",
+                 "Ausula", "Silpi", "Shilpi", "Vadrangi", "Achari"]},
+    {"key": "munnuru_kapu", "en": "Munnuru Kapu", "te": "మున్నూరు కాపు", "category": "BC", "split": False,
+     "wave": 2, "members": ["Munnuru Kapu", "Munnuru"]},
+    {"key": "raju_kshatriya", "en": "Raju • Kshatriya", "te": "రాజు • క్షత్రియ", "category": "OC", "split": False,
+     "wave": 3, "members": ["Raju", "Rajulu", "Kshatriya", "Vanniyar"]},
+    {"key": "padmashali_weavers", "en": "Padmashali • Devanga (Weavers)", "te": "పద్మశాలి • దేవాంగ",
+     "category": "BC", "split": False, "wave": 3,
+     "members": ["Padmashali", "Padmasali", "Sali", "Pattusali", "Thogata", "Devanga", "Devanga Chettiar"]},
+    {"key": "mudiraj", "en": "Mudiraj • Tenugollu", "te": "ముదిరాజ • తెనుగొల్ల", "category": "BC", "split": False,
+     "wave": 3, "members": ["Mudiraj", "Mudiraju", "Mutrasi", "Tenugollu"]},
+    {"key": "lambada_banjara", "en": "Lambada • Banjara (ST)", "te": "లంబాడ • బంజార", "category": "ST",
+     "split": False, "wave": 3, "members": ["Lambada", "Lambadi", "Banjara", "Lambani", "Sugali"]},
+    {"key": "others_bc", "en": "Other BC Communities", "te": "ఇతర BC కులాలు", "category": "BC", "split": False,
+     "wave": 3, "members": ["Kummara", "Kulala", "Salivahana", "Gandla", "Telikula", "Uppara", "Sagara",
+                            "Vaddera", "Odde", "Rajaka", "Chakali", "Mangali", "Nayi-Brahmin", "Boya", "Valmiki",
+                            "Srisayana", "Segidi", "Gavara", "Bestha", "Gangaputra", "Jalari", "Vadabalija",
+                            "Jangam", "Jogi", "Dasari", "Bhatraju", "Kalinga"]},
+    {"key": "others_sc", "en": "Other SC Communities", "te": "ఇతర SC కులాలు", "category": "SC", "split": False,
+     "wave": 3, "members": ["Adi Andhra", "Adi Dravida", "Arundhatiya", "Relli", "Arwa Mala", "Samban", "Dandasi"]},
+    {"key": "others_st", "en": "Other ST Communities", "te": "ఇతర ST కులాలు", "category": "ST", "split": False,
+     "wave": 3, "members": ["Koya", "Koitur", "Gond", "Rajgond", "Naikpod", "Chenchu", "Bagata", "Konda Reddi",
+                            "Savara", "Andh"]},
+]
 
-for _caste, _wave in CASTE_SPLIT.items():
-    _head = _caste.replace("_", "")
-    _pair = {}
-    for _gender, _suffix, _fb in (("Bride", "bride", "brd"), ("Groom", "groom", "grm")):
-        _key = "c_%s_%s" % (_caste, _suffix)
+SPLIT_MAP: Dict[str, Dict[str, str]] = {}      # cluster key -> {"Bride": key, "Groom": key}
+CASTE_TO_CLUSTER: Dict[str, str] = {}          # alias/caste → cluster key
+
+for _cl in CASTE_CLUSTERS:
+    _ck, _en, _te = _cl["key"], _cl["en"], _cl["te"]
+    _slug = _ck
+    if _cl["split"]:
+        _pair = {}
+        for _gender, _suffix, _fb in (("Bride", "bride", "brd"), ("Groom", "groom", "grm")):
+            _key = "c_%s_%s" % (_ck, _suffix)
+            CHANNELS[_key] = {
+                "tier": "L3_CASTE", "cluster": _ck, "cluster_en": _en, "cluster_te": _te,
+                "category": _cl.get("category", ""), "members": list(_cl["members"]),
+                "name": "", "desc": "",
+                "username": ("manavivaha_%s_%s" % (_slug, _suffix))[:32],
+                "fallbacks": ["tsap_%s_%s" % (_slug, _suffix), "mv_%s_%s" % (_slug, _fb)],
+                "hashtags": ["#%s" % _slug.title().replace("_", ""), "#%s" % _suffix.title(), "#TS", "#AP"],
+                "wave": _cl["wave"], "live": False,
+                "route": {"caste": _en, "gender": _gender, "cluster": _ck},
+            }
+            _pair[_gender] = _key
+        SPLIT_MAP[_ck] = _pair
+    else:
+        _key = "c_%s" % _ck
         CHANNELS[_key] = {
-            "tier": "L3_CASTE",
-            "name": "",                       # fill avutundi (channel_content nunchi)
-            "username": ("manavivaha_%s_%s" % (_head, _suffix))[:32],
-            "fallbacks": ["tsap_%s_%s" % (_head, _suffix),
-                          "mv_%s_%s" % (_head, _fb),
-                          "manavivaha_%s_%s" % (_head, _fb)],
-            "desc": "",
-            "hashtags": ["#%s" % _caste.replace("_", "").title(), "#%s" % _suffix.title(),
-                         "#TS", "#AP"],
-            "wave": _wave,
-            "live": False,
-            "route": {"caste": _caste.replace("_", " ").title(), "gender": _gender},
+            "tier": "L3_CASTE", "cluster": _ck, "cluster_en": _en, "cluster_te": _te,
+            "category": _cl.get("category", ""), "members": list(_cl["members"]),
+            "name": "", "desc": "",
+            "username": ("manavivaha_%s" % _slug)[:32],
+            "fallbacks": ["tsap_%s" % _slug, "manavivaha_%s_community" % _slug],
+            "hashtags": ["#%s" % _slug.title().replace("_", ""), "#Bride", "#Groom", "#TS", "#AP"],
+            "wave": _cl["wave"], "live": False,
+            "route": {"caste": _en, "cluster": _ck},
         }
-        _pair[_gender] = _key
-    SPLIT_MAP[_caste] = _pair
-    # split caste ki mixed channel vaddu (duplicate + empty channel avvakunda)
-    CHANNELS.pop(_caste, None)
+        SPLIT_MAP[_ck] = {"Bride": _key, "Groom": _key}
+
+# alias → cluster (sub-caste names antha okate channel ki)
+for _cl in CASTE_CLUSTERS:
+    CASTE_TO_CLUSTER[_cl["key"]] = _cl["key"]
+    for _m in _cl["members"]:
+        CASTE_TO_CLUSTER[_m.strip().lower()] = _cl["key"]
 
 # ---------------------------------------------------------------------------
 # PERFECT CONTENT — title/description anni channel ki (Telugu-first, search-optimised)
@@ -493,71 +397,68 @@ for _k, _ch in CHANNELS.items():
 # CASTE ALIASES — user free-text ni channel key ki map chesthundi
 # ---------------------------------------------------------------------------
 CASTE_ALIASES = {
-    # OC
+    # ---- OC ----
     "reddy": "reddy", "reddi": "reddy", "pakanati": "reddy", "motati": "reddy",
-    "gudati": "reddy", "deshathi": "reddy", "reddy(golla)": "reddy",
-    "kamma": "kamma", "kammas": "kamma", "chowdary": "kamma", "choudary": "kamma",
-    "kapu": "kapu", "ontari": "kapu", "turupu kapu": "kapu", "palli kapu": "kapu",
-    "velama": "velama", "padma velama": "velama", "vellama": "velama",
-    "vysya": "vysya", "arya vysya": "vysya", "komati": "vysya", "komti": "vysya",
+    "gudati": "reddy", "deshathi": "reddy", "pakanati reddy": "reddy", "reddy(golla)": "reddy",
+    "kamma": "kamma", "kammas": "kamma", "chowdary": "kamma", "choudary": "kamma", "kamma chowdary": "kamma",
+    "kapu": "kapu", "ontari": "kapu", "turupu kapu": "kapu", "palli kapu": "kapu", "munnuru": "munnuru_kapu",
+    "munnuru kapu": "munnuru_kapu", "munnurukapu": "munnuru_kapu",
+    "balija": "kapu", "gajula balija": "kapu", "surya balija": "kapu", "setti balija": "kapu",
+    "sadhu balija": "kapu", "telaga": "kapu", "telagu": "kapu",
+    "velama": "velama", "vellama": "velama", "padma velama": "velama", "koppula velama": "velama",
+    "koppula": "velama", "velama(kamma)": "velama",
+    "vysya": "vysya", "arya vysya": "vysya", "aryavysya": "vysya", "komati": "vysya", "komti": "vysya",
     "vaishya": "vysya", "vaishya(arya)": "vysya", "sadhu chetty": "vysya",
-    "brahmin": "brahmin", "telugu brahmin": "brahmin", "vaidiki": "brahmin",
-    "niyogi": "brahmin", "sistla": "brahmin", "dravida brahmin": "brahmin", "iyer": "brahmin",
-    "raju": "raju", "kshatriya": "raju", "rajulu": "raju", "vanniyar": "raju",
-    # BC
-    "goud": "goud", "gouda": "goud", "ediga": "goud", "gamalla": "goud", "idiga": "goud",
-    "settibalija": "goud", "goundla": "goud", "kalalee": "goud",
-    "yadav": "yadav", "yadava": "yadav", "golla": "yadav", "golla(yadava)": "yadav",
-    "kuruma": "yadav", "gorrela": "yadav",
+    "brahmin": "brahmin", "telugu brahmin": "brahmin", "vaidiki": "brahmin", "vaidiki brahmin": "brahmin",
+    "niyogi": "brahmin", "niyogi brahmin": "brahmin", "sistla": "brahmin", "dravida brahmin": "brahmin",
+    "iyer": "brahmin", "iyengar": "brahmin", "smartha": "brahmin", "srivaishnava": "brahmin",
+    "raju": "raju_kshatriya", "rajulu": "raju_kshatriya", "kshatriya": "raju_kshatriya",
+    "vanniyar": "raju_kshatriya", "raju(kshatriya)": "raju_kshatriya",
+    # ---- BC ----
+    "goud": "yadava_goud", "gouda": "yadava_goud", "ediga": "yadava_goud", "gamalla": "yadava_goud",
+    "idiga": "yadava_goud", "settibalija": "yadava_goud", "goundla": "yadava_goud", "kalalee": "yadava_goud",
+    "yadav": "yadava_goud", "yadava": "yadava_goud", "golla": "yadava_goud", "golla(yadava)": "yadava_goud",
+    "kuruma": "yadava_goud", "kuruba": "yadava_goud", "kuruba(golla)": "yadava_goud", "kuruva": "yadava_goud",
+    "gorrela": "yadava_goud",
+    "viswakarma": "viswabrahmana", "viswabrahmin": "viswabrahmana", "viswabrahmana": "viswabrahmana",
+    "kamsali": "viswabrahmana", "kammari": "viswabrahmana", "kanchari": "viswabrahmana",
+    "vadla": "viswabrahmana", "ausula": "viswabrahmana", "silpi": "viswabrahmana", "shilpi": "viswabrahmana",
+    "vadrangi": "viswabrahmana", "achari": "viswabrahmana", "vishwakarma": "viswabrahmana",
+    "padmashali": "padmashali_weavers", "padmasali": "padmashali_weavers", "sali": "padmashali_weavers",
+    "pattusali": "padmashali_weavers", "thogata": "padmashali_weavers", "thogata sali": "padmashali_weavers",
+    "devanga": "padmashali_weavers", "devanga chettiar": "padmashali_weavers",
     "mudiraj": "mudiraj", "mudiraju": "mudiraj", "mutrasi": "mudiraj", "tenugollu": "mudiraj",
-    "padmashali": "padmashali", "padmasali": "padmashali", "sali": "padmashali",
-    "pattusali": "padmashali", "thogata": "padmashali", "thogata sali": "padmashali",
-    "munnuru kapu": "munnuru_kapu", "munnuru": "munnuru_kapu",
-    "balija": "balija", "gajula balija": "balija", "surya balija": "balija",
-    "setti balija": "balija", "sadhu balija": "balija",
-    "telaga": "telaga", "telagu": "telaga",
-    "koppula velama": "koppula_velama", "koppula": "koppula_velama",
-    "kalinga": "kalinga", "kinthala kalinga": "kalinga", "buragam kalinga": "kalinga",
-    "boya": "boya", "valmiki": "boya", "boya bedar": "boya", "nishadi": "boya",
-    "yellapu": "boya", "kirataka": "boya",
-    "kuruba": "kuruba", "kuruba(golla)": "kuruba", "kuruva": "kuruba",
-    "uppara": "uppara", "sagara": "uppara", "sagari": "uppara", "uppari": "uppara",
-    "vaddera": "vaddera", "vaddelu": "vaddera", "odde": "vaddera", "oddilu": "vaddera", "vadde": "vaddera",
-    "rajaka": "rajaka", "chakali": "rajaka", "vannar": "rajaka", "agnikulakshatriya": "rajaka",
-    "mangali": "mangali", "mangala": "mangali", "nayi": "mangali", "nai": "mangali",
-    "nayi-brahmin": "mangali", "bhajanthri": "mangali",
-    "viswakarma": "viswakarma", "viswabrahmin": "viswakarma", "viswabrahmana": "viswakarma",
-    "kamsali": "viswakarma", "kammari": "viswakarma", "kanchari": "viswakarma",
-    "vadla": "viswakarma", "ausula": "viswakarma", "silpi": "viswakarma", "vadrangi": "viswakarma",
-    "kummara": "kummara", "kulala": "kummara", "salivahana": "kummara", "kumbhara": "kummara",
-    "gandla": "gandla", "telikula": "gandla", "devathilakula": "gandla",
-    "devanga": "devanga", "devanga chettiar": "devanga",
-    "srisayana": "srisayana", "segidi": "srisayana",
-    "jangam": "jangam", "jangalu": "jangam", "beda jangam": "jangam",
-    "jogi": "jogi", "jogula": "jogi",
-    "dasari": "dasari", "dasari(formerly)": "dasari",
-    "bhatraju": "bhatraju", "bhatrajulu": "bhatraju",
-    "gavara": "gavara",
-    "bestha": "bestha", "gangaputra": "bestha", "gangavar": "bestha",
-    "jalari": "jalari", "jalari(fishermen)": "jalari",
-    "vadabalija": "vadabalija",
-    # SC
-    "mala": "mala", "sc-mala": "mala", "sc mala": "mala", "mala ayawaru": "mala",
-    "mala dasari": "mala",
+    "kummara": "others_bc", "kulala": "others_bc", "salivahana": "others_bc", "kumbhara": "others_bc",
+    "gandla": "others_bc", "telikula": "others_bc", "devathilakula": "others_bc",
+    "uppara": "others_bc", "sagara": "others_bc", "sagari": "others_bc", "uppari": "others_bc",
+    "vaddera": "others_bc", "vaddelu": "others_bc", "odde": "others_bc", "oddilu": "others_bc",
+    "vadde": "others_bc", "rajaka": "others_bc", "chakali": "others_bc", "vannar": "others_bc",
+    "agnikulakshatriya": "others_bc", "mangali": "others_bc", "mangala": "others_bc", "nayi": "others_bc",
+    "nai": "others_bc", "nayi-brahmin": "others_bc", "bhajanthri": "others_bc",
+    "boya": "others_bc", "valmiki": "others_bc", "boya bedar": "others_bc", "nishadi": "others_bc",
+    "yellapu": "others_bc", "kirataka": "others_bc",
+    "srisayana": "others_bc", "segidi": "others_bc", "jangam": "others_bc", "jangalu": "others_bc",
+    "beda jangam": "others_bc", "jogi": "others_bc", "jogula": "others_bc", "dasari": "others_bc",
+    "bhatraju": "others_bc", "bhatrajulu": "others_bc", "gavara": "others_bc",
+    "kalinga": "others_bc", "kinthala kalinga": "others_bc", "buragam kalinga": "others_bc",
+    "bestha": "others_bc", "gangaputra": "others_bc", "gangavar": "others_bc", "jalari": "others_bc",
+    "vadabalija": "others_bc",
+    # ---- SC ----
+    "mala": "mala", "sc-mala": "mala", "sc mala": "mala", "mala ayawaru": "mala", "mala dasari": "mala",
     "madiga": "madiga", "sc-madiga": "madiga", "sc madiga": "madiga", "madiga dasu": "madiga",
     "mashteen": "madiga", "madiga dasari": "madiga",
-    "adi andhra": "adi_andhra", "adi-andhra": "adi_andhra", "adi dravida": "adi_andhra",
-    "arundhatiya": "adi_andhra",
-    "sc-others": "sc_others", "sc others": "sc_others", "reli": "sc_others", "relli": "sc_others",
-    "arwa mala": "sc_others", "samban": "sc_others", "dandasi": "sc_others",
-    # ST
-    "lambada": "lambada", "lambadi": "lambada", "st-lambadi": "lambada", "st lambadi": "lambada",
-    "banjara": "lambada", "lambani": "lambada", "sugali": "lambada",
-    "koya": "koya", "koitur": "koya", "bhine koya": "koya",
-    "gond": "gond", "rajgond": "gond", "naikpod": "gond",
-    "st-others": "st_others", "st others": "st_others", "chenchu": "st_others",
-    "andh": "st_others", "bagata": "st_others", "konda reddi": "st_others", "savara": "st_others",
-    # Open / no caste
+    "adi andhra": "others_sc", "adi-andhra": "others_sc", "adi dravida": "others_sc",
+    "arundhatiya": "others_sc", "sc-others": "others_sc", "sc others": "others_sc",
+    "reli": "others_sc", "relli": "others_sc", "arwa mala": "others_sc", "samban": "others_sc",
+    "dandasi": "others_sc",
+    # ---- ST ----
+    "lambada": "lambada_banjara", "lambadi": "lambada_banjara", "st-lambadi": "lambada_banjara",
+    "st lambadi": "lambada_banjara", "banjara": "lambada_banjara", "lambani": "lambada_banjara",
+    "sugali": "lambada_banjara",
+    "koya": "others_st", "koitur": "others_st", "gond": "others_st", "rajgond": "others_st",
+    "naikpod": "others_st", "st-others": "others_st", "st others": "others_st", "chenchu": "others_st",
+    "andh": "others_st", "bagata": "others_st", "konda reddi": "others_st", "savara": "others_st",
+    # ---- Open / no caste ----
     "open": None, "other": None, "others": None, "oc": None, "no caste": None, "caste no bar": None,
 }
 
@@ -673,21 +574,34 @@ def setup_plan(wave: int | None = None) -> list:
 
 
 def caste_split_report() -> dict:
-    """Caste × gender coverage report (enni castes ki bride/groom separate unnai)."""
+    """Cluster coverage report — enni communities ki separate channels, enni sub-castes cover."""
     by_wave: Dict[int, list] = {}
-    for caste, wave in sorted(CASTE_SPLIT.items(), key=lambda x: (x[1], x[0])):
-        by_wave.setdefault(wave, []).append({
-            "caste": caste.replace("_", " ").title(),
-            "bride": "@" + CHANNELS[SPLIT_MAP[caste]["Bride"]]["username"],
-            "groom": "@" + CHANNELS[SPLIT_MAP[caste]["Groom"]]["username"],
-        })
-    mixed = [k for k, v in CHANNELS.items() if v.get("tier") == "L3_CASTE" and k not in SPLIT_MAP.values()]
-    mixed_keys = set()
-    for pair in SPLIT_MAP.values():
-        mixed_keys.update(pair.values())
-    mixed = [k for k, v in CHANNELS.items() if v.get("tier") == "L3_CASTE" and k not in mixed_keys]
-    return {"split_castes": len(CASTE_SPLIT), "caste_gender_channels": len(CASTE_SPLIT) * 2,
-            "mixed_caste_channels": len(mixed), "by_wave": by_wave}
+    by_category: Dict[str, int] = {}
+    members_total = 0
+    for cl in sorted(CASTE_CLUSTERS, key=lambda c: (c["wave"], c["key"])):
+        members_total += len(cl["members"])
+        by_category[cl.get("category", "?")] = by_category.get(cl.get("category", "?"), 0) + 1
+        row = {"cluster": cl["key"], "name": cl["en"], "telugu": cl["te"], "category": cl.get("category", ""),
+               "split": bool(cl["split"]), "members": len(cl["members"]),
+               "channel": "@" + CHANNELS[SPLIT_MAP[cl["key"]]["Bride"]]["username"]}
+        if cl["split"]:
+            row["bride"] = "@" + CHANNELS[SPLIT_MAP[cl["key"]]["Bride"]]["username"]
+            row["groom"] = "@" + CHANNELS[SPLIT_MAP[cl["key"]]["Groom"]]["username"]
+        by_wave.setdefault(cl["wave"], []).append(row)
+    split_n = sum(1 for c in CASTE_CLUSTERS if c["split"])
+    single_n = len(CASTE_CLUSTERS) - split_n
+    return {
+        "clusters": len(CASTE_CLUSTERS),
+        "split_clusters": split_n, "single_clusters": single_n,
+        "caste_gender_channels": split_n * 2,          # bride/groom separate unna channels
+        "mixed_caste_channels": single_n,               # single channel (both + hashtag filter)
+        "cluster_channels": split_n * 2 + single_n,
+        "sub_castes_covered": members_total,
+        "by_category": by_category,
+        "by_wave": by_wave,
+        # backward-compat (frontend/test lu ivi kooda chustayi)
+        "split_castes": split_n,
+    }
 
 
 def channel_health_report() -> list:
@@ -845,25 +759,28 @@ def route_profile(profile: dict, max_posts: int = MAX_POSTS) -> dict:
                 ordered.append(("hindu", "top-match digest"))
             else:
                 notes.append("Caste channel undi → general Hindu hub skip (duplication avoid, slot save)")
-            if caste_key in SPLIT_MAP:
-                # ⭐ CASTE × GENDER channel (bride/groom separate) — exact reach
-                ck = SPLIT_MAP[caste_key].get(gender, caste_key)
-                ordered.append((ck, "caste=%s + %s" % (profile.get("caste"), gender)))
+            # ⭐ CLUSTER channel — pedda community ayithe bride/groom separate, chinna vi single
+            ck = SPLIT_MAP.get(caste_key, {}).get(gender, "c_%s" % caste_key if "c_" + caste_key in CHANNELS else None)
+            if ck and ck in CHANNELS:
+                split = bool(SPLIT_MAP.get(caste_key, {}).get("Bride") != SPLIT_MAP.get(caste_key, {}).get("Groom"))
+                ordered.append((ck, "cluster=%s + %s%s" % (caste_key, gender,
+                                                           "" if split else " (single channel — #%s filter)" % gender)))
             else:
-                ordered.append((caste_key, "caste=%s (mixed channel, #%s filter)" % (profile.get("caste"), gender)))
+                ordered.append(("c_others_bc", "caste=%s → Other communities channel" % profile.get("caste")))
         else:
             ordered.append(("hindu", "religion (caste Open/Others)"))
             notes.append("Caste 'Open/Others' — caste channel skip (hashtag #Open)")
-    elif religion == "Muslim":
-        ordered.append(("muslim", "religion"))
-    elif religion == "Christian":
-        ordered.append(("christian", "religion"))
+    elif religion in ("Muslim", "Christian"):
+        # ☪️✝️ religion × state × gender = 4 channels (Sheikh/Syed/Catholic/CSI ante okate channel)
+        _s = state if state in ("TS", "AP") else "TS"
+        ordered.append(("%s_%s_%s" % (religion.lower(), _s.lower(), gender.lower()),
+                        "religion=%s + %s + %s" % (religion, _s, gender)))
     else:
         ordered.append(("other_religion", "religion=Other"))
 
-    # L2b — interfaith / love (optional flag)
-    if profile.get("interfaith") or profile.get("love_marriage"):
-        ordered.append(("interfaith", "inter-caste/love flag"))
+    # L2b — interfaith / love / no-caste-bar (optional flag)
+    if profile.get("interfaith") or profile.get("love_marriage") or profile.get("caste_no_bar"):
+        ordered.append(("interfaith", "inter-caste / love / caste-no-bar flag"))
 
     # L4 — special flags
     if marital and marital not in ("pelli kaledu", "never married", "first marriage", "", "unmarried"):
@@ -874,12 +791,8 @@ def route_profile(profile: dict, max_posts: int = MAX_POSTS) -> dict:
         ordered.append(("govt_jobs", "govt job"))
     if _flag_job(job, BLOCK_SOFTWARE):
         ordered.append(("software_it", "software/IT job"))
-    if _flag_job(job + " " + education, BLOCK_DOCTOR):
-        ordered.append(("doctors", "medical profession"))
-    if _flag_job(job, BLOCK_TEACHER):
-        ordered.append(("teachers", "teaching profession"))
-    if age >= 35:
-        ordered.append(("above_35", f"age={age}"))
+    if _flag_job(job + " " + education, BLOCK_DOCTOR) or _flag_job(job, BLOCK_TEACHER):
+        ordered.append(("doctors_teachers", "medical/teaching profession"))
     if profile.get("wants_nri") or state == "Other":
         ordered.append(("nri_global", "NRI/abroad"))
 

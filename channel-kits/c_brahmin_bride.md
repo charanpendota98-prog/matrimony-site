@@ -1,7 +1,7 @@
 # 👰 Brahmin Brides | బ్రాహ్మణ వధువులు
 
-- **Key:** `c_brahmin_bride`  •  **Tier:** L3_CASTE  •  **Wave:** 1  •  **Status:** create ⬜
-- **Username:** `@manavivaha_brahmin_bride` (already taken? → @tsap_brahmin_bride, @mv_brahmin_brd, @manavivaha_brahmin_brd)
+- **Key:** `c_brahmin_bride`  •  **Tier:** L3_CASTE  •  **Wave:** 2  •  **Status:** create ⬜
+- **Username:** `@manavivaha_brahmin_bride` (already taken? → @tsap_brahmin_bride, @mv_brahmin_brd)
 - **Link:** https://t.me/manavivaha_brahmin_bride
 - **Hashtags:** #Brahmin #Bride #TS #AP
 - **DP image:** `/home/user/matrimony-site/backend/channel_assets/c_brahmin_bride.png`
@@ -15,7 +15,7 @@ Username: `manavivaha_brahmin_bride`
 Description:
 
 ```
-బ్రాహ్మణ వధువులు — TS + AP అన్ని జిల్లాలు. నిజమైన profiles, ఫోటో గోప్యం, 3 requests FREE, ₹99లో 5. #Brahmin #Bride #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
+బ్రాహ్మణ — Brahmin (Brides). Sub-castes: Vaidiki Brahmin • Niyogi Brahmin • Sistla • Dravida Brahmin • Iyer. నిజమైన profiles, 3 requests FREE, ₹99లో 5. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
 ```
 
 ## 2) Bot ni admin cheyyi
@@ -28,6 +28,7 @@ Channel → Manage → Administrators → Add Admin → `@telugumatrimony1_bot` 
 🙏 *👰 Brahmin Brides | బ్రాహ్మణ వధువులు*
 ━━━━━━━━━━━━━━━━━━
 *బ్రాహ్మణ*
+👥 ఈ channel లో: *Vaidiki Brahmin • Niyogi Brahmin • Sistla • Dravida Brahmin • Iyer*
 
 ఇక్కడ ఏం దొరుకుతుంది:
 ✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)

@@ -1,21 +1,21 @@
-# 👰 Kapu Brides | కాపు వధువులు
+# 👰 Kapu • Balija • Telaga Brides | కాపు • బలిజ • తెలగ వధువులు
 
 - **Key:** `c_kapu_bride`  •  **Tier:** L3_CASTE  •  **Wave:** 1  •  **Status:** create ⬜
-- **Username:** `@manavivaha_kapu_bride` (already taken? → @tsap_kapu_bride, @mv_kapu_brd, @manavivaha_kapu_brd)
+- **Username:** `@manavivaha_kapu_bride` (already taken? → @tsap_kapu_bride, @mv_kapu_brd)
 - **Link:** https://t.me/manavivaha_kapu_bride
 - **Hashtags:** #Kapu #Bride #TS #AP
 - **DP image:** `/home/user/matrimony-site/backend/channel_assets/c_kapu_bride.png`
 
 ## 1) Channel create (phone → New Channel)
 
-Name: `👰 Kapu Brides | కాపు వధువులు`
+Name: `👰 Kapu • Balija • Telaga Brides | కాపు • బలిజ • తెలగ వధువులు`
 
 Username: `manavivaha_kapu_bride`
 
 Description:
 
 ```
-కాపు వధువులు — TS + AP అన్ని జిల్లాలు. నిజమైన profiles, ఫోటో గోప్యం, 3 requests FREE, ₹99లో 5. #Kapu #Bride #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
+కాపు • బలిజ • తెలగ — Kapu • Balija • Telaga (Brides). Sub-castes: Kapu • Ontari • Turupu Kapu • Palli Kapu • Balija. నిజమైన profiles, 3 requests FREE, ₹99లో 5. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
 ```
 
 ## 2) Bot ni admin cheyyi
@@ -25,9 +25,10 @@ Channel → Manage → Administrators → Add Admin → `@telugumatrimony1_bot` 
 ## 3) 📌 Pinned welcome post (idi pin cheyyi)
 
 ```
-🙏 *👰 Kapu Brides | కాపు వధువులు*
+🙏 *👰 Kapu • Balija • Telaga Brides | కాపు • బలిజ • తెలగ వధువులు*
 ━━━━━━━━━━━━━━━━━━
-*కాపు*
+*కాపు • బలిజ • తెలగ*
+👥 ఈ channel లో: *Kapu • Ontari • Turupu Kapu • Palli Kapu • Balija • Gajula Balija • Setti Balija • Surya Balija • Telaga • Telagu*
 
 ఇక్కడ ఏం దొరుకుతుంది:
 ✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
@@ -73,7 +74,7 @@ Channel → Manage → Administrators → Add Admin → `@telugumatrimony1_bot` 
 ## 5) WhatsApp / status lo share text
 
 ```
-💍 *👰 Kapu Brides | కాపు వధువులు*
+💍 *👰 Kapu • Balija • Telaga Brides | కాపు • బలిజ • తెలగ వధువులు*
 TS + AP తెలుగు మ్యాట్రిమోని — రోజూ కొత్త సంబంధాలు
 
 ✅ 3 requests FREE

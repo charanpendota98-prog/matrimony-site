@@ -52,6 +52,13 @@ PLANS: Dict[str, Dict] = {
         "label": "Free Start", "telugu": "Modati 3 requests FREE", "badge": "No card needed",
         "per_profile": 0, "perks": ["3 interest requests", "WhatsApp lo mee profile share", "Auto-post 65 channels"],
     },
+    "S_29": {
+        "code": "S_29", "price": 29, "profiles": 1, "validity_days": 15,
+        "label": "Okka Request", "telugu": "₹29 → 1 profile (modati try ki)",
+        "badge": "Single • ₹29/profile", "per_profile": 29, "micro": True,
+        "perks": ["1 interest request", "WhatsApp lo mee profile share + 1 card",
+                  "Ee request decline aithe credit refund"],
+    },
     "S_99": {
         "code": "S_99", "price": 99, "profiles": 5, "validity_days": 30,
         "label": "Sambandham", "telugu": "₹99 → 5 profiles", "badge": "Entry • ₹19.8/profile",
@@ -113,7 +120,7 @@ AUTO_EXPIRE_CHECK = True
 
 def plan_list() -> List[Dict]:
     """Purchasable plans (FREE separate ga chupistham)."""
-    return [PLANS["S_99"], PLANS["S_199"], PLANS["S_299"], PLANS["S_499"]]
+    return [PLANS["S_29"], PLANS["S_99"], PLANS["S_199"], PLANS["S_299"], PLANS["S_499"]]
 
 
 def plan_list_with_free() -> List[Dict]:
@@ -150,6 +157,46 @@ def plan_by_amount(amount: int) -> Dict:
         if p["price"] == amount:
             return p
     return PLANS["FREE"]
+
+
+def apply_payment(user: Dict, amount: int, plan_code: str = "") -> Dict:
+    """
+    💰 Payment vachhaka **okka chota** nunchi plan apply (profile credits + expiry).
+    plan_code ichithe adi; lekapote amount batti plan/addon/renewal kantey.
+    Single source of truth = PLANS / ADDONS / RENEWALS (legacy credits.py kaadu).
+    """
+    code = (plan_code or "").upper()
+    plan = None
+    kind = "plan"
+    if code:
+        plan = PLANS.get(code)
+        if not plan and code in ADDONS:
+            plan, kind = ADDONS[code], "addon"
+        if not plan and code in RENEWALS:
+            plan, kind = RENEWALS[code], "renewal"
+    if not plan:                                # amount batti (gateway amount matrame isthundi)
+        matches = [p for p in PLANS.values() if p["price"] == amount and p["price"] > 0]
+        if matches:
+            plan = matches[0]
+        else:
+            matches = [a for a in ADDONS.values() if a["price"] == amount]
+            if matches:
+                plan, kind = matches[0], "addon"
+    if not plan:
+        return {"ok": False, "error": "amount/plan match avvaledu", "amount": amount, "code": code}
+    profiles = int(plan.get("profiles", 0) or 0)
+    if profiles:                                # profile/request credits add
+        user["credits"] = int(user.get("credits", 0)) + profiles
+    user["plan"] = plan["code"]
+    if kind in ("plan", "renewal"):
+        user["plan_expiry"] = datetime.utcnow() + timedelta(days=int(plan.get("validity_days", 30)))
+    user["last_payment"] = {"amount": amount, "plan": plan["code"], "kind": kind,
+                            "at": datetime.utcnow().isoformat()}
+    return {"ok": True, "kind": kind, "plan": plan,
+            "profiles_added": profiles, "credits": user.get("credits", 0),
+            "expiry": user.get("plan_expiry").isoformat() if user.get("plan_expiry") else "",
+            "message_telugu": ("🎉 ₹%d payment success — %s" % (amount, plan.get("telugu", plan.get("label", ""))))
+                              + (" • Mee daggara ippudu %d profiles" % user.get("credits", 0) if profiles else "")}
 
 
 # ------------------------------------------------------------------ helpers

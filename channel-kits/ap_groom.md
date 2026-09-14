@@ -28,7 +28,6 @@ Channel → Manage → Administrators → Add Admin → `@telugumatrimony1_bot` 
 🙏 *🤵 AP Grooms | ఆంధ్రా వరులు*
 ━━━━━━━━━━━━━━━━━━
 Telugu Matrimony — TS + AP
-
 ఇక్కడ ఏం దొరుకుతుంది:
 ✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
 ✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details

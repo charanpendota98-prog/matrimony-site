@@ -32,7 +32,7 @@ docker-compose up -d whatsapp-bridge
 cd backend
 python seed_launch_db.py --count 360 --out launch_profiles.json     # generate
 python seed_launch_db.py --count 360 --load http://localhost:8000   # API ki load
-python setup_channels.py --plan           # 📢 83 channels plan + checklist
+python setup_channels.py --plan           # 📢 52 channels plan + checklist
 python setup_channels.py --kit --wave 1   # wave-1 kits (17 channels) → channel-kits/
 BOT_TOKEN=xxx python setup_channels.py --apply --wave 1   # title/desc/DP/pinned auto set
 # .env: LAUNCH_SEED_COUNT=360 · ADMIN_WHATSAPP_NUMBER=91XXXXXXXXXX · LAUNCH_TARGET_PROFILES=360
@@ -98,7 +98,9 @@ nginx.conf                ← host nginx config (manavivaha.in, /api proxy, SSL 
 | [WHATSAPP-ANTIBAN-AND-REQUESTS.md](WHATSAPP-ANTIBAN-AND-REQUESTS.md) | 🛡️ Anti-ban playbook (120–170s random gap, caps, warmup, recovery) + 💌 requests model + APIs |
 | [WAVE5-MATCH-SCORE-TRUST-PWA.md](WAVE5-MATCH-SCORE-TRUST-PWA.md) | 🧠 Match Score 2.0 (11 weights, explainable, mutual) • 🛡️ Trust & Safety (report/block/verify/moderation) • 💍 porutham report • 🖼️ OG preview images • 📲 PWA |
 | [PLAN-ADVANCED-STRATEGY.md](PLAN-ADVANCED-STRATEGY.md) | 👑 Pricing ladder (₹99→5, ₹199→12, ₹299→25, ₹499→50 VIP), revenue math, 30-day plan, strategies, KPIs |
-| [CHANNELS-PERFECT-SETUP-TELUGU.md](CHANNELS-PERFECT-SETUP-TELUGU.md) | 📢 83 channels — 4 main (TS/AP × Bride/Groom), caste prakaram (18 castes × bride/groom), waves, content standards, setup automation, growth playbook |
+| [CHANNELS-SMART-STRUCTURE-TELUGU.md](CHANNELS-SMART-STRUCTURE-TELUGU.md) | 🎯 NEW smart structure — **52 channels**: Muslim 4 + Christian 4 (TS/AP × bride/groom), 18 caste CLUSTERS (Viswabrahmana 5-12 sub-castes okate channel), wave plan, correct names |
+| [CHANNELS-PERFECT-SETUP-TELUGU.md](CHANNELS-PERFECT-SETUP-TELUGU.md) | 📢 52 channels — 4 main (TS/AP × Bride/Groom), caste prakaram (18 castes × bride/groom), waves, content standards, setup automation, growth playbook |
+| [PRICING-AUDIT-TELUGU.md](PRICING-AUDIT-TELUGU.md) | 💰 Pricing audit + final ladder (₹29 → ₹499), 3 fixes (webhook bug, micro tier, legal pages), unit economics, revenue roadmap |
 | [FAILOVER-BOTS-WHATSAPP-TELUGU.md](FAILOVER-BOTS-WHATSAPP-TELUGU.md) | 🔁 Enni bots (3) + enni WhatsApp numbers (3) kavali, okati fail aithe inkokati ela pampistundi, 83 channel names, one-by-one to-do |
 | [CHANNEL-CREATE-LIST-TELUGU.md](CHANNEL-CREATE-LIST-TELUGU.md) | 📱 Phone lo channel create cheyyadaniki copy-paste list (name + username + fallbacks, wave order lo) |
 | [CHANNELS-SETUP-CHECKLIST.md](CHANNELS-SETUP-CHECKLIST.md) | 📋 auto-generated copy-paste checklist (prathi channel: name/username/desc/📌 pinned post) |
@@ -109,7 +111,7 @@ nginx.conf                ← host nginx config (manavivaha.in, /api proxy, SSL 
 ## 🔑 API (main)
 ```
 POST /api/register              → ID + card + top-3 matches + auto-post queue
-GET  /api/channels              → 83 channels (tiers, live/pending, join + deep links + DP)
+GET  /api/channels              → 52 channels (tiers, live/pending, join + deep links + DP)
 GET  /api/channels/photo/{key}.png      → 🖼️ channel DP (512x512 — Telegram setChatPhoto + website)
 GET  /api/channels/{key}/kit            → desc + 📌 pinned post + rules + WhatsApp share text (copy-paste)
 GET  /api/channels/setup-plan           → wave order plan + caste×gender coverage + config health

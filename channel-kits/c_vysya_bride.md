@@ -1,21 +1,21 @@
-# 👰 Vysya Brides | వైశ్య వధువులు
+# 👰 Arya Vysya • Komati Brides | వైశ్య • కోమటి వధువులు
 
-- **Key:** `c_vysya_bride`  •  **Tier:** L3_CASTE  •  **Wave:** 1  •  **Status:** create ⬜
-- **Username:** `@manavivaha_vysya_bride` (already taken? → @tsap_vysya_bride, @mv_vysya_brd, @manavivaha_vysya_brd)
+- **Key:** `c_vysya_bride`  •  **Tier:** L3_CASTE  •  **Wave:** 2  •  **Status:** create ⬜
+- **Username:** `@manavivaha_vysya_bride` (already taken? → @tsap_vysya_bride, @mv_vysya_brd)
 - **Link:** https://t.me/manavivaha_vysya_bride
 - **Hashtags:** #Vysya #Bride #TS #AP
 - **DP image:** `/home/user/matrimony-site/backend/channel_assets/c_vysya_bride.png`
 
 ## 1) Channel create (phone → New Channel)
 
-Name: `👰 Vysya Brides | వైశ్య వధువులు`
+Name: `👰 Arya Vysya • Komati Brides | వైశ్య • కోమటి వధువులు`
 
 Username: `manavivaha_vysya_bride`
 
 Description:
 
 ```
-వైశ్య వధువులు — TS + AP అన్ని జిల్లాలు. నిజమైన profiles, ఫోటో గోప్యం, 3 requests FREE, ₹99లో 5. #Vysya #Bride #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
+వైశ్య • కోమటి — Arya Vysya • Komati (Brides). Sub-castes: Arya Vysya • Komati • Komti • Vaishya • Sadhu Chetty. నిజమైన profiles, 3 requests FREE, ₹99లో 5. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
 ```
 
 ## 2) Bot ni admin cheyyi
@@ -25,9 +25,10 @@ Channel → Manage → Administrators → Add Admin → `@telugumatrimony1_bot` 
 ## 3) 📌 Pinned welcome post (idi pin cheyyi)
 
 ```
-🙏 *👰 Vysya Brides | వైశ్య వధువులు*
+🙏 *👰 Arya Vysya • Komati Brides | వైశ్య • కోమటి వధువులు*
 ━━━━━━━━━━━━━━━━━━
-*వైశ్య*
+*వైశ్య • కోమటి*
+👥 ఈ channel లో: *Arya Vysya • Komati • Komti • Vaishya • Sadhu Chetty*
 
 ఇక్కడ ఏం దొరుకుతుంది:
 ✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
@@ -73,7 +74,7 @@ Channel → Manage → Administrators → Add Admin → `@telugumatrimony1_bot` 
 ## 5) WhatsApp / status lo share text
 
 ```
-💍 *👰 Vysya Brides | వైశ్య వధువులు*
+💍 *👰 Arya Vysya • Komati Brides | వైశ్య • కోమటి వధువులు*
 TS + AP తెలుగు మ్యాట్రిమోని — రోజూ కొత్త సంబంధాలు
 
 ✅ 3 requests FREE

@@ -12,7 +12,7 @@
 | 2 | **Backup bot** (kotha bot) | Channels lo **post** only — primary 429/401/down aithe | `BOT_TOKEN_BACKUP` | Telegram okka bot ki ~30 msg/sec limit; primary aagipote posts aagakudadu |
 | 3 | **Alert bot** (kotha bot) | Admin alerts: kotha profile, interest, WhatsApp fail, monitoring | `BOT_TOKEN_ALERT` | User messages valla alert bot rate-limit avvakudadu |
 
-**Enni channels ki add cheyyali?** — 3 bots ni **ANNI 83 channels** ki admin cheyyali (Channel → Administrators → Add → **Post + Edit + Pin + Change Info** ✅). Appude failover pani chestundi — primary aagipote backup bot **ade channel** lo post estundi.
+**Enni channels ki add cheyyali?** — 3 bots ni **ANNI 52 channels** ki admin cheyyali (Channel → Administrators → Add → **Post + Edit + Pin + Change Info** ✅). Appude failover pani chestundi — primary aagipote backup bot **ade channel** lo post estundi.
 
 ### 🤖 Bots ela create cheyyali (2 nimushalu — @BotFather)
 ```
@@ -85,109 +85,78 @@ curl -X POST localhost:8000/api/wa/dead/requeue   # bridge fix ayyaka malli pamp
 
 ---
 
-## 4️⃣ CHANNELS — ANNI PERU + EEM CHESTUNTAYO (WAVE ORDER LO)
+## 4️⃣ CHANNELS — ANNI PERU (SMART DIVISION — **52 channels**, 83 kaadu)
 
-**Total: 83 channels** · live: 2 · create cheyyalsinavi: 81
+**Total: 52 channels** · live: 2 · create cheyyalsinavi: 50
+
+> 🧠 **Smart structure:** pedda communities ki **bride/groom separate**, chinna sub-castes (ex: Viswabrahmana 5-12) **okate channel**,
+> **Muslim 4** (TS/AP × bride/groom) + **Christian 4** — malli division ledu. Full details: **CHANNELS-SMART-STRUCTURE-TELUGU.md**
 
 ### 🌊 Wave order — ila cheyyandi (okkesari anni vaddu!)
 | Wave | Enni | Emi |
 |---|---|---|
-| **Wave 1** | 17 | Official + TS/AP bride/groom + NRI + top-6 castes × bride/groom |
-| **Wave 2** | 18 | Goud, Yadav, Mudiraj, Padmashali, Munnuru Kapu, Mala (+religion/special) |
-| **Wave 3** | 22 | Madiga, Lambada, Raju, Balija, Telaga, Viswakarma + migilinavi |
-| **Wave 4** | 26 | Mixed-caste + region + special + utility channels |
+| **Wave 1** | 20 | Official + TS/AP bride/groom + **Muslim 4 + Christian 4** + top-3 caste clusters (Reddy/Kamma/Kapu × bride/groom) + Hindu hub |
+| **Wave 2** | 17 | Velama, Brahmin, Vysya, Yadava-Goud, Mala, Madiga (×2), Viswabrahmana, Munnuru Kapu, NRI, Other religions, 2nd marriage |
+| **Wave 3** | 15 | Padmashali-Devanga, Raju-Kshatriya, Mudiraj, Lambada-Banjara, Other BC/SC/ST, Inter-faith, + special (govt/IT/doctors/success/fraud/bureau/able) |
 
-### 📋 FULL LIST — 83 channels (copy-paste ready)
+### 📋 FULL LIST — 52 channels (copy-paste ready)
 
 | # | Channel Name | Username | Wave | Status |
 |---|---|---|---|---|
-| 1 | 📢 TSAP Matrimony Official \| మన వివాహ — TS-AP | @TSAP_MATRIMONY | 1 | ⬜ create |
-| 2 | 👰 AP Brides \| ఆంధ్రా వధువులు | @APBRIDE | 1 | ⬜ create |
-| 3 | 🤵 AP Grooms \| ఆంధ్రా వరులు | @APGROOM1 | 1 | ⬜ create |
+| 1 | 👰 AP Brides \| ఆంధ్రా వధువులు | @APBRIDE | 1 | ⬜ create |
+| 2 | 🤵 AP Grooms \| ఆంధ్రా వరులు | @APGROOM1 | 1 | ⬜ create |
+| 3 | 📢 TSAP Matrimony Official \| మన వివాహ — TS-AP | @TSAP_MATRIMONY | 1 | ⬜ create |
 | 4 | 👰 TS Brides \| తెలంగాణ వధువులు | @TSBRIDE | 1 | ✅ LIVE |
 | 5 | 🤵 TS Grooms \| తెలంగాణ వరులు | @TSGROOM1 | 1 | ✅ LIVE |
-| 6 | 👰 Brahmin Brides \| బ్రాహ్మణ వధువులు | @manavivaha_brahmin_bride | 1 | ⬜ create |
-| 7 | 🤵 Brahmin Grooms \| బ్రాహ్మణ వరులు | @manavivaha_brahmin_groom | 1 | ⬜ create |
-| 8 | 👰 Kamma Brides \| కమ్మ వధువులు | @manavivaha_kamma_bride | 1 | ⬜ create |
-| 9 | 🤵 Kamma Grooms \| కమ్మ వరులు | @manavivaha_kamma_groom | 1 | ⬜ create |
-| 10 | 👰 Kapu Brides \| కాపు వధువులు | @manavivaha_kapu_bride | 1 | ⬜ create |
-| 11 | 🤵 Kapu Grooms \| కాపు వరులు | @manavivaha_kapu_groom | 1 | ⬜ create |
-| 12 | 👰 Reddy Brides \| రెడ్డి వధువులు | @manavivaha_reddy_bride | 1 | ⬜ create |
-| 13 | 🤵 Reddy Grooms \| రెడ్డి వరులు | @manavivaha_reddy_groom | 1 | ⬜ create |
-| 14 | 👰 Velama Brides \| వెలమ వధువులు | @manavivaha_velama_bride | 1 | ⬜ create |
-| 15 | 🤵 Velama Grooms \| వెలమ వరులు | @manavivaha_velama_groom | 1 | ⬜ create |
-| 16 | 👰 Vysya Brides \| వైశ్య వధువులు | @manavivaha_vysya_bride | 1 | ⬜ create |
-| 17 | 🤵 Vysya Grooms \| వైశ్య వరులు | @manavivaha_vysya_groom | 1 | ⬜ create |
-| 18 | 🌍 NRI Telugu Matrimony \| విదేశీ సంబంధాలు | @manavivaha_nri | 2 | ⬜ create |
-| 19 | ✝️ Christian Matrimony \| క్రైస్తవ వివాహాలు | @manavivaha_christian | 2 | ⬜ create |
-| 20 | 🕉️ Hindu Matrimony \| హిందూ వివాహాలు | @manavivaha_hindu | 2 | ⬜ create |
-| 21 | ☪️ Muslim Matrimony \| ముస్లిం వివాహాలు | @manavivaha_muslim | 2 | ⬜ create |
-| 22 | 👰 Goud Brides \| గౌడ్ వధువులు | @manavivaha_goud_bride | 2 | ⬜ create |
-| 23 | 🤵 Goud Grooms \| గౌడ్ వరులు | @manavivaha_goud_groom | 2 | ⬜ create |
-| 24 | 👰 Mala Brides \| మాల వధువులు | @manavivaha_mala_bride | 2 | ⬜ create |
-| 25 | 🤵 Mala Grooms \| మాల వరులు | @manavivaha_mala_groom | 2 | ⬜ create |
-| 26 | 👰 Mudiraj Brides \| ముదిరాజ్ వధువులు | @manavivaha_mudiraj_bride | 2 | ⬜ create |
-| 27 | 🤵 Mudiraj Grooms \| ముదిరాజ్ వరులు | @manavivaha_mudiraj_groom | 2 | ⬜ create |
-| 28 | 👰 Munnuru Kapu Brides \| మున్నూరు కాపు వధువులు | @manavivaha_munnurukapu_bride | 2 | ⬜ create |
-| 29 | 🤵 Munnuru Kapu Grooms \| మున్నూరు కాపు వరులు | @manavivaha_munnurukapu_groom | 2 | ⬜ create |
-| 30 | 👰 Padmashali Brides \| పద్మశాలి వధువులు | @manavivaha_padmashali_bride | 2 | ⬜ create |
-| 31 | 🤵 Padmashali Grooms \| పద్మశాలి వరులు | @manavivaha_padmashali_groom | 2 | ⬜ create |
-| 32 | 👰 Yadav Brides \| యాదవ వధువులు | @manavivaha_yadav_bride | 2 | ⬜ create |
-| 33 | 🤵 Yadav Grooms \| యాదవ వరులు | @manavivaha_yadav_groom | 2 | ⬜ create |
-| 34 | 🏛️ Govt Jobs Matrimony \| ప్రభుత్వ ఉద్యోగులు | @manavivaha_govt | 2 | ⬜ create |
-| 35 | 💍 Second Marriage \| రెండో పెళ్లి | @manavivaha_second | 2 | ⬜ create |
-| 36 | 💞 Inter-Faith & Love \| ప్రేమ వివాహాలు | @manavivaha_interfaith | 3 | ⬜ create |
-| 37 | 🕊️ Other Religions \| ఇతర మత వివాహాలు | @manavivaha_other_religions | 3 | ⬜ create |
-| 38 | 👰 Balija Brides \| బలిజ వధువులు | @manavivaha_balija_bride | 3 | ⬜ create |
-| 39 | 🤵 Balija Grooms \| బలిజ వరులు | @manavivaha_balija_groom | 3 | ⬜ create |
-| 40 | 💍 Boya Matrimony \| బోయ వివాహాలు | @manavivaha_boya | 3 | ⬜ create |
-| 41 | 👰 Lambada Brides \| లంబాడ వధువులు | @manavivaha_lambada_bride | 3 | ⬜ create |
-| 42 | 🤵 Lambada Grooms \| లంబాడ వరులు | @manavivaha_lambada_groom | 3 | ⬜ create |
-| 43 | 👰 Madiga Brides \| మాదిగ వధువులు | @manavivaha_madiga_bride | 3 | ⬜ create |
-| 44 | 🤵 Madiga Grooms \| మాదిగ వరులు | @manavivaha_madiga_groom | 3 | ⬜ create |
-| 45 | 👰 Raju Brides \| రాజు వధువులు | @manavivaha_raju_bride | 3 | ⬜ create |
-| 46 | 🤵 Raju Grooms \| రాజు వరులు | @manavivaha_raju_groom | 3 | ⬜ create |
-| 47 | 👰 Telaga Brides \| తెలగ వధువులు | @manavivaha_telaga_bride | 3 | ⬜ create |
-| 48 | 🤵 Telaga Grooms \| తెలగ వరులు | @manavivaha_telaga_groom | 3 | ⬜ create |
-| 49 | 👰 Viswakarma Brides \| విశ్వకర్మ వధువులు | @manavivaha_viswakarma_bride | 3 | ⬜ create |
-| 50 | 🤵 Viswakarma Grooms \| విశ్వకర్మ వరులు | @manavivaha_viswakarma_groom | 3 | ⬜ create |
-| 51 | 🎂 35+ Matrimony \| 35 ఏళ్ల పైన | @manavivaha_35plus | 3 | ⬜ create |
-| 52 | ♿ Differently-Abled \| ప్రత్యేక సామర్థ్యం | @manavivaha_able | 3 | ⬜ create |
-| 53 | 🚨 Fraud Alerts \| మోసం జాగ్రత్త | @manavivaha_alerts | 3 | ⬜ create |
-| 54 | 🤝 Bureau / Broker Network \| బ్రోకర్ల నెట్‌వర్క్ | @manavivaha_bureau | 3 | ⬜ create |
-| 55 | 🩺 Doctors Matrimony \| వైద్యులు | @manavivaha_doctors | 3 | ⬜ create |
-| 56 | 💻 Software Matrimony \| సాఫ్ట్‌వేర్ ఉద్యోగులు | @manavivaha_software | 3 | ⬜ create |
-| 57 | 🏆 Success Stories \| విజయ గాథలు | @manavivaha_success | 3 | ⬜ create |
-| 58 | 💍 Adi Andhra Matrimony \| ఆది ఆంధ్ర వివాహాలు | @manavivaha_adi_andhra | 4 | ⬜ create |
-| 59 | 💍 Bestha Matrimony \| బెస్త వివాహాలు | @manavivaha_bestha | 4 | ⬜ create |
-| 60 | 💍 Bhatraju Matrimony \| భట్రాజు వివాహాలు | @manavivaha_bhatraju | 4 | ⬜ create |
-| 61 | 💍 Dasari Matrimony \| దాసరి వివాహాలు | @manavivaha_dasari | 4 | ⬜ create |
-| 62 | 💍 Devanga Matrimony \| దేవాంగ వివాహాలు | @manavivaha_devanga | 4 | ⬜ create |
-| 63 | 💍 Gandla Matrimony \| గండ్ల వివాహాలు | @manavivaha_gandla | 4 | ⬜ create |
-| 64 | 💍 Gavara Matrimony \| గవర వివాహాలు | @manavivaha_gavara | 4 | ⬜ create |
-| 65 | 💍 Gond Matrimony \| గోండ్ వివాహాలు | @manavivaha_gond | 4 | ⬜ create |
-| 66 | 💍 Jalari Matrimony \| జలరి వివాహాలు | @manavivaha_jalari | 4 | ⬜ create |
-| 67 | 💍 Jangam Matrimony \| జంగం వివాహాలు | @manavivaha_jangam | 4 | ⬜ create |
-| 68 | 💍 Jogi Matrimony \| జోగి వివాహాలు | @manavivaha_jogi | 4 | ⬜ create |
-| 69 | 💍 Kalinga Matrimony \| కళింగ వివాహాలు | @manavivaha_kalinga | 4 | ⬜ create |
-| 70 | 💍 Koppula Velama Matrimony \| కొప్పుల వెలమ వివాహాలు | @manavivaha_koppula_velama | 4 | ⬜ create |
-| 71 | 💍 Koya Matrimony \| కోయ వివాహాలు | @manavivaha_koya | 4 | ⬜ create |
-| 72 | 💍 Kummara Matrimony \| కుమ్మరి వివాహాలు | @manavivaha_kummara | 4 | ⬜ create |
-| 73 | 💍 Kuruba Matrimony \| కురుబ వివాహాలు | @manavivaha_kuruba | 4 | ⬜ create |
-| 74 | 💍 Mangali Matrimony \| మంగలి వివాహాలు | @manavivaha_mangali | 4 | ⬜ create |
-| 75 | 💍 Rajaka Matrimony \| రజక వివాహాలు | @manavivaha_rajaka | 4 | ⬜ create |
-| 76 | 💍 Sc Others Matrimony \| SC ఇతరులు వివాహాలు | @manavivaha_sc_others | 4 | ⬜ create |
-| 77 | 💍 Srisayana Matrimony \| శ్రీసాయన వివాహాలు | @manavivaha_srisayana | 4 | ⬜ create |
-| 78 | 💍 St Others Matrimony \| ST ఇతరులు వివాహాలు | @manavivaha_st_others | 4 | ⬜ create |
-| 79 | 💍 Uppara Matrimony \| ఉప్పర వివాహాలు | @manavivaha_uppara | 4 | ⬜ create |
-| 80 | 💍 Vadabalija Matrimony \| వడబలిజ వివాహాలు | @manavivaha_vadabalija | 4 | ⬜ create |
-| 81 | 💍 Vaddera Matrimony \| వడ్డెర వివాహాలు | @manavivaha_vaddera | 4 | ⬜ create |
-| 82 | ❤️ Love & Register Marriage \| ప్రేమ + రిజిస్టర్ పెళ్లి | @manavivaha_love | 4 | ⬜ create |
-| 83 | 👩‍🏫 Teachers Matrimony \| ఉపాధ్యాయులు | @manavivaha_teachers | 4 | ⬜ create |
+| 6 | ✝️ AP Christian Brides \| ఆంధ్రా క్రైస్తవ వధువులు | @manavivaha_christian_ap_bride | 1 | ⬜ create |
+| 7 | ✝️ AP Christian Grooms \| ఆంధ్రా క్రైస్తవ వరులు | @manavivaha_christian_ap_groom | 1 | ⬜ create |
+| 8 | ✝️ Telangana Christian Brides \| తెలంగాణ క్రైస్తవ వధువులు | @manavivaha_christian_ts_bride | 1 | ⬜ create |
+| 9 | ✝️ Telangana Christian Grooms \| తెలంగాణ క్రైస్తవ వరులు | @manavivaha_christian_ts_groom | 1 | ⬜ create |
+| 10 | 🕉️ Hindu Matrimony \| హిందూ వివాహాలు | @manavivaha_hindu | 1 | ⬜ create |
+| 11 | 👰 Kamma Brides \| కమ్మ వధువులు | @manavivaha_kamma_bride | 1 | ⬜ create |
+| 12 | 🤵 Kamma Grooms \| కమ్మ వరులు | @manavivaha_kamma_groom | 1 | ⬜ create |
+| 13 | 👰 Kapu • Balija • Telaga Brides \| కాపు • బలిజ • తెలగ వధువులు | @manavivaha_kapu_bride | 1 | ⬜ create |
+| 14 | 🤵 Kapu • Balija • Telaga Grooms \| కాపు • బలిజ • తెలగ వరులు | @manavivaha_kapu_groom | 1 | ⬜ create |
+| 15 | ☪️ AP Muslim Brides \| ఆంధ్రా ముస్లిం వధువులు | @manavivaha_muslim_ap_bride | 1 | ⬜ create |
+| 16 | ☪️ AP Muslim Grooms \| ఆంధ్రా ముస్లిం వరులు | @manavivaha_muslim_ap_groom | 1 | ⬜ create |
+| 17 | ☪️ Telangana Muslim Brides \| తెలంగాణ ముస్లిం వధువులు | @manavivaha_muslim_ts_bride | 1 | ⬜ create |
+| 18 | ☪️ Telangana Muslim Grooms \| తెలంగాణ ముస్లిం వరులు | @manavivaha_muslim_ts_groom | 1 | ⬜ create |
+| 19 | 👰 Reddy Brides \| రెడ్డి వధువులు | @manavivaha_reddy_bride | 1 | ⬜ create |
+| 20 | 🤵 Reddy Grooms \| రెడ్డి వరులు | @manavivaha_reddy_groom | 1 | ⬜ create |
+| 21 | 👰 Brahmin Brides \| బ్రాహ్మణ వధువులు | @manavivaha_brahmin_bride | 2 | ⬜ create |
+| 22 | 🤵 Brahmin Grooms \| బ్రాహ్మణ వరులు | @manavivaha_brahmin_groom | 2 | ⬜ create |
+| 23 | 👰 Madiga Brides \| మాదిగ వధువులు | @manavivaha_madiga_bride | 2 | ⬜ create |
+| 24 | 🤵 Madiga Grooms \| మాదిగ వరులు | @manavivaha_madiga_groom | 2 | ⬜ create |
+| 25 | 👰 Mala Brides \| మాల వధువులు | @manavivaha_mala_bride | 2 | ⬜ create |
+| 26 | 🤵 Mala Grooms \| మాల వరులు | @manavivaha_mala_groom | 2 | ⬜ create |
+| 27 | 💍 Munnuru Kapu Matrimony \| మున్నూరు కాపు — వధువులు + వరులు | @manavivaha_munnuru_kapu | 2 | ⬜ create |
+| 28 | 🌍 NRI Telugu Matrimony \| విదేశీ సంబంధాలు | @manavivaha_nri | 2 | ⬜ create |
+| 29 | 🕊️ Other Religions \| ఇతర మత వివాహాలు | @manavivaha_other_religions | 2 | ⬜ create |
+| 30 | 💍 Second Marriage \| రెండో పెళ్లి | @manavivaha_second | 2 | ⬜ create |
+| 31 | 👰 Velama Brides \| వెలమ వధువులు | @manavivaha_velama_bride | 2 | ⬜ create |
+| 32 | 🤵 Velama Grooms \| వెలమ వరులు | @manavivaha_velama_groom | 2 | ⬜ create |
+| 33 | 💍 Viswabrahmana (Viswakarma) Matrimony \| విశ్వబ్రాహ్మణ — వధువులు + వరులు | @manavivaha_viswabrahmana | 2 | ⬜ create |
+| 34 | 👰 Arya Vysya • Komati Brides \| వైశ్య • కోమటి వధువులు | @manavivaha_vysya_bride | 2 | ⬜ create |
+| 35 | 🤵 Arya Vysya • Komati Grooms \| వైశ్య • కోమటి వరులు | @manavivaha_vysya_groom | 2 | ⬜ create |
+| 36 | 👰 Yadava • Goud • Golla Brides \| యాదవ • గౌడ • గొల్ల వధువులు | @manavivaha_yadava_goud_bride | 2 | ⬜ create |
+| 37 | 🤵 Yadava • Goud • Golla Grooms \| యాదవ • గౌడ • గొల్ల వరులు | @manavivaha_yadava_goud_groom | 2 | ⬜ create |
+| 38 | ♿ Differently-Abled \| ప్రత్యేక సామర్థ్యం | @manavivaha_able | 3 | ⬜ create |
+| 39 | 🚨 Fraud Alerts \| మోసం జాగ్రత్త | @manavivaha_alerts | 3 | ⬜ create |
+| 40 | 🤝 Bureau / Broker Network \| బ్రోకర్ల నెట్‌వర్క్ | @manavivaha_bureau | 3 | ⬜ create |
+| 41 | 🏛️ Govt Jobs Matrimony \| ప్రభుత్వ ఉద్యోగులు | @manavivaha_govt | 3 | ⬜ create |
+| 42 | 💞 Inter-Faith & Love \| ప్రేమ వివాహాలు | @manavivaha_interfaith | 3 | ⬜ create |
+| 43 | 💍 Lambada • Banjara (ST) Matrimony \| లంబాడ • బంజార — వధువులు + వరులు | @manavivaha_lambada_banjara | 3 | ⬜ create |
+| 44 | 💍 Mudiraj • Tenugollu Matrimony \| ముదిరాజ • తెనుగొల్ల — వధువులు + వరులు | @manavivaha_mudiraj | 3 | ⬜ create |
+| 45 | 💍 Other BC Communities Matrimony \| ఇతర BC కులాలు — వధువులు + వరులు | @manavivaha_others_bc | 3 | ⬜ create |
+| 46 | 💍 Other SC Communities Matrimony \| ఇతర SC కులాలు — వధువులు + వరులు | @manavivaha_others_sc | 3 | ⬜ create |
+| 47 | 💍 Other ST Communities Matrimony \| ఇతర ST కులాలు — వధువులు + వరులు | @manavivaha_others_st | 3 | ⬜ create |
+| 48 | 💍 Padmashali • Devanga (Weavers) Matrimony \| పద్మశాలి • దేవాంగ — వధువులు + వరులు | @manavivaha_padmashali_weavers | 3 | ⬜ create |
+| 49 | 🩺 Doctors & Teachers Matrimony \| వైద్యులు + ఉపాధ్యాయులు | @manavivaha_professionals | 3 | ⬜ create |
+| 50 | 💍 Raju • Kshatriya Matrimony \| రాజు • క్షత్రియ — వధువులు + వరులు | @manavivaha_raju_kshatriya | 3 | ⬜ create |
+| 51 | 💻 Software Matrimony \| సాఫ్ట్‌వేర్ ఉద్యోగులు | @manavivaha_software | 3 | ⬜ create |
+| 52 | 🏆 Success Stories \| విజయ గాథలు | @manavivaha_success | 3 | ⬜ create |
 
-📄 **Ivi kooda chudandi:** `CHANNEL-CREATE-LIST-TELUGU.md` (phone lo copy-paste list) · `CHANNELS-SETUP-CHECKLIST.md` (full plan) · `channel-kits/<key>.md` (prathi channel ki description + pinned welcome ready).
-
----
+📄 **Ivi kooda chudandi:** `CHANNEL-CREATE-LIST-TELUGU.md` (phone lo copy-paste list) · `CHANNELS-SMART-STRUCTURE-TELUGU.md` (smart structure explanation + names) · `CHANNELS-SETUP-CHECKLIST.md` · `channel-kits/<key>.md` (prathi channel ki description + pinned welcome ready).
 
 ## 5️⃣ ONE-BY-ONE TO-DO (ee order lo cheyyandi)
 
@@ -226,8 +195,8 @@ curl -X POST localhost:8000/api/wa/dead/requeue   # bridge fix ayyaka malli pamp
 |---|---|---|---|
 | Telegram bots | 3 | **₹0** (free) | 10 min |
 | WhatsApp numbers | 3 | SIM charges (₹0–₹200/నెల) | 30 min (QR scan) |
-| Channels | 83 | **₹0** | Wave-1 17 → ~1 గంట (phone lo) |
+| Channels | 52 | **₹0** | Wave-1 20 → ~2 గంటలు (phone lo) |
 | Bot API rate limit | — | — | 30 msg/sec/bot, ~20 msg/min/channel |
 | WhatsApp safety | — | — | 60/day/number, 120–170 sec gap, target cap 8 |
 
-✅ **Bottom line:** 3 bots + 3 numbers + 83 channels = okka post kooda miss avvadu, ban risk chala thakkuva, mari ekkuva profiles ki reach.
+✅ **Bottom line:** 3 bots + 3 numbers + 52 channels = okka post kooda miss avvadu, ban risk chala thakkuva, mari ekkuva profiles ki reach.
