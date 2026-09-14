@@ -99,6 +99,8 @@ nginx.conf                ← host nginx config (manavivaha.in, /api proxy, SSL 
 | [WAVE5-MATCH-SCORE-TRUST-PWA.md](WAVE5-MATCH-SCORE-TRUST-PWA.md) | 🧠 Match Score 2.0 (11 weights, explainable, mutual) • 🛡️ Trust & Safety (report/block/verify/moderation) • 💍 porutham report • 🖼️ OG preview images • 📲 PWA |
 | [PLAN-ADVANCED-STRATEGY.md](PLAN-ADVANCED-STRATEGY.md) | 👑 Pricing ladder (₹99→5, ₹199→12, ₹299→25, ₹499→50 VIP), revenue math, 30-day plan, strategies, KPIs |
 | [CHANNELS-PERFECT-SETUP-TELUGU.md](CHANNELS-PERFECT-SETUP-TELUGU.md) | 📢 83 channels — 4 main (TS/AP × Bride/Groom), caste prakaram (18 castes × bride/groom), waves, content standards, setup automation, growth playbook |
+| [FAILOVER-BOTS-WHATSAPP-TELUGU.md](FAILOVER-BOTS-WHATSAPP-TELUGU.md) | 🔁 Enni bots (3) + enni WhatsApp numbers (3) kavali, okati fail aithe inkokati ela pampistundi, 83 channel names, one-by-one to-do |
+| [CHANNEL-CREATE-LIST-TELUGU.md](CHANNEL-CREATE-LIST-TELUGU.md) | 📱 Phone lo channel create cheyyadaniki copy-paste list (name + username + fallbacks, wave order lo) |
 | [CHANNELS-SETUP-CHECKLIST.md](CHANNELS-SETUP-CHECKLIST.md) | 📋 auto-generated copy-paste checklist (prathi channel: name/username/desc/📌 pinned post) |
 | [GROWTH-NAMASTE-LEADS-INVENTORY.md](GROWTH-NAMASTE-LEADS-INVENTORY.md) | 📈 Namaste welcome automation • lead capture funnel • 360-profile launch inventory • community networks playbook • pricing audit + parity guard |
 | [ULTIMATE-TSAP-MASTER-PLAN-TELUGU.md](ULTIMATE-TSAP-MASTER-PLAN-TELUGU.md) | Master business plan |

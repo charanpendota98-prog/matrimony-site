@@ -328,7 +328,7 @@ def write_create_list_telugu(path: str | None = None, wave: int | None = None) -
                   "|---|---|---|---|---|"]
         for i, r in enumerate(by_wave[w], 1):
             lines.append("| %d | `%s` | `@%s` | %s | %s |"
-                         % (i, r["name"], r["username"],
+                         % (i, str(r["name"]).replace("|", "\\|"), r["username"],
                             ", ".join("@" + f for f in r["fallbacks"][:2]) or "-",
                             "✅ LIVE" if r["live"] else "⬜ create"))
         lines.append("")
