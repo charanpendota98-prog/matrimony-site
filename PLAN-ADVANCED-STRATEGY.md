@@ -1,6 +1,6 @@
 # 👑 MANA VIVAHA — ADVANCED GROWTH PLAN (best plan + inka strategies)
 
-> Mee model final: **🚫 Chatting ledu • 💌 Request pampu • 🛡️ Anti-ban WhatsApp • ₹99 → 3 profiles, ₹199 → 10, ₹299 → 20**
+> Mee model final: **🚫 Chatting ledu • 💌 Request pampu • 🛡️ Anti-ban WhatsApp • ₹99 → 5, ₹199 → 12, ₹299 → 25, ₹499 → 50 (VIP)**
 > Ee doc lo: **best plan** (enti mundu cheyyali), **revenue math**, **30-day launch plan**, **15 inka advanced strategies**, **KPIs**, **risks**.
 > (Anni numbers *estimates* — mee reach/velocity batti marchu. Reality lo test chesi tune cheyyali.)
 

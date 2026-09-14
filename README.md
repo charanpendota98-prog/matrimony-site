@@ -26,6 +26,16 @@ docker-compose up -d whatsapp-bridge
 # http://localhost:3001/qr → WhatsApp scan → .env: WHATSAPP_MODE=bridge
 ```
 
+**Launch inventory (360 profiles + growth engine):**
+
+```bash
+cd backend
+python seed_launch_db.py --count 360 --out launch_profiles.json     # generate
+python seed_launch_db.py --count 360 --load http://localhost:8000   # API ki load
+# .env: LAUNCH_SEED_COUNT=360 · ADMIN_WHATSAPP_NUMBER=91XXXXXXXXXX · LAUNCH_TARGET_PROFILES=360
+# Dashboard: http://localhost:3000/growth   (visits → leads → profiles + anti-ban status)
+```
+
 ## 🧪 Tests
 
 ```bash
@@ -33,7 +43,11 @@ python3 backend/
   wa_antiban.py           ← 🛡️ WhatsApp anti-ban engine (random 120–170s gap, caps, warmup, typing)
   interest.py             ← 💌 Interest/request engine (chatting LEDU) + credits + WhatsApp texts
   porutham.py             ← 🔮 10-porutham (kundli match) engine — Telugu verdict + dosha alerts
-  test_interest_antiban.py← 83 tests (anti-ban + interest + porutham + views + add-ons)test_channels_router.py     # 57/57 — registry + router
+  test_interest_antiban.py← 83 tests (anti-ban + interest + porutham + views + add-ons)
+  growth.py               ← 📈 Growth engine (namaste welcome, visitor/lead capture, share kit, inventory)
+  test_growth_namaste_leads.py ← 109 tests (namaste + leads + share kit + launch inventory + anti-ban + 💰 pricing parity)
+  seed_launch_db.py       ← 🚀 Launch inventory generator (360 realistic profiles: caste/star/district correct)
+  test_channels_router.py     # 57/57 — registry + router
 python3 backend/publisher.py                # dry-run post preview
 cd frontend && npm run build                # 12/12 pages
 ```
@@ -46,13 +60,14 @@ backend/
   create_channels.py      ← creation CLI (--wave / --key / --check / --mark-live)
   publisher.py            ← Telegram + WhatsApp auto-publisher (retry, queue, dry-run)
   card_pro.py             ← full-detail neat profile card (Pillow + QR + watermark)
-  main.py                 ← FastAPI (register, search, matches, credits, channels, publish)
+  main.py                 ← FastAPI (register, search, matches, credits, channels, publish, otp, leads, growth)
+  growth.py               ← 📈 Namaste welcome + visitor/lead capture + share kit + inventory gauge
   telegram_bot.py         ← aiogram bot (approve → auto-post → deep links)
   gen_frontend_channels.py / gen_master_list.py   ← registry → frontend + docs (auto-gen)
 frontend/
   src/lib/site-config.ts  ← ⭐ CUSTOMIZE IKKADE (brand, prices, features, contacts)
   src/components/         ← SiteHeader, SiteFooter, StickyCTA, Reveal, SectionHeading
-  src/app/                ← home, register (55 fields), channels, matches, requests 💌, castes (SEO), referral, bureau, admin
+  src/app/                ← home, register (5-step smart wizard), channels, matches, requests 💌, castes (SEO), referral, bureau, admin, growth 📈
   src/lib/seo-pages.ts    ← 🔎 289 programmatic SEO pages (caste × role × district)
 whatsapp-bridge/          ← optional Baileys service (groups/newsletter posting)
 docker-compose.yml        ← postgres, redis, backend, frontend, bot, wa-bridge (+nginx profile)
@@ -66,7 +81,8 @@ nginx.conf                ← host nginx config (manavivaha.in, /api proxy, SSL 
 | [WEBSITE-STRATEGY-AND-100-PERCENT-GAPS.md](WEBSITE-STRATEGY-AND-100-PERCENT-GAPS.md) | Custom vs WordPress + auto-post flow + 30 gaps (P0→P3) |
 | [WEBSITE-CUSTOMIZATION-GUIDE.md](WEBSITE-CUSTOMIZATION-GUIDE.md) | Enti ekkada marchali — brand/pricing/features/colors + verify steps |
 | [WHATSAPP-ANTIBAN-AND-REQUESTS.md](WHATSAPP-ANTIBAN-AND-REQUESTS.md) | 🛡️ Anti-ban playbook (120–170s random gap, caps, warmup, recovery) + 💌 requests model + APIs |
-| [PLAN-ADVANCED-STRATEGY.md](PLAN-ADVANCED-STRATEGY.md) | 👑 Pricing ladder (₹99→3, ₹199→10, ₹299→20), revenue math, 30-day plan, 15 advanced strategies, KPIs |
+| [PLAN-ADVANCED-STRATEGY.md](PLAN-ADVANCED-STRATEGY.md) | 👑 Pricing ladder (₹99→5, ₹199→12, ₹299→25, ₹499→50 VIP), revenue math, 30-day plan, strategies, KPIs |
+| [GROWTH-NAMASTE-LEADS-INVENTORY.md](GROWTH-NAMASTE-LEADS-INVENTORY.md) | 📈 Namaste welcome automation • lead capture funnel • 360-profile launch inventory • community networks playbook • pricing audit + parity guard |
 | [ULTIMATE-TSAP-MASTER-PLAN-TELUGU.md](ULTIMATE-TSAP-MASTER-PLAN-TELUGU.md) | Master business plan |
 | [REFERRAL-SHORT-CODE-BUREAU-OFFER.md](REFERRAL-SHORT-CODE-BUREAU-OFFER.md) | Referral ₹50 + bureau B2B |
 
@@ -80,6 +96,24 @@ GET  /api/publish/status        → Telegram/WhatsApp readiness + dry-run
 GET  /api/publish/log           → publish audit log
 POST /api/publish/now/{id}      → manual re-post (admin)
 GET  /api/search/{id}           → ID search (always open)
+POST /api/otp/send|verify       → phone verification (10 min, max 5 tries)
+POST /api/photo/upload          → photo upload (real file, 5MB cap, phone lo compress)
+GET  /api/search                → advanced filters (gender/caste/district/age/salary/porutham sort)
+POST /api/interest/send         → 💌 request (1 credit → mana WhatsApp nunchi profile share)
+GET  /api/interest/inbox|sent   → request dashboard (accept/decline)
+POST /api/interest/respond      → accept (numbers exchange) / decline (credit refund)
+GET  /api/porutham              → 10-porutham kundli match (Telugu verdict)
+POST /api/view · GET /api/views/{id}    → who-viewed-me (₹49 unlock)
+POST /api/save · GET /api/saved/{id}    → shortlist ❤️
+GET  /api/share/kit/{id}        → card + caption + hashtags (reach engine)
+POST /api/track                 → visitor beacon (whole-site tracking)
+POST /api/leads/quick           → 📱 phone-first lead (30-sec entry) + WhatsApp follow-up
+GET  /api/leads · /api/leads/stats      → lead queue + traffic/conversion dashboard
+POST /api/leads/followup/{id}   → follow-up WhatsApp pampu
+GET  /api/inventory             → 300–400 profiles launch gauge
+POST /api/admin/bulk-profiles   → launch inventory load ({generate: 360})
+GET  /api/digest/preview        → daily digest text (9 AM post ki)
+GET  /api/wa/status|pause|resume|reset_day → 🛡️ anti-ban control
 ```
 
 ## ⚠️ Safety

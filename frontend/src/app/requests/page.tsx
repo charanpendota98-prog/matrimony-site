@@ -6,7 +6,7 @@
  * • Interest pampu (1 credit; modati 3 FREE) → owner ki WhatsApp lo mee profile
  * • Inbox: vachina requests → ✅ Accept / ❌ Decline (decline = credit refund)
  * • Sent: pampina requests + status + accept ayyaka contact
- * • Plans: ₹99 → 3 profiles | ₹199 → 10 | ₹299 → 20
+ * • Plans: ₹99 → 5 profiles | ₹199 → 12 | ₹299 → 25 | ₹499 → 50 (VIP)  — add-ons + renewal tho
  * • Anti-ban WhatsApp status (queue + random gap) chupisthundi
  */
 import { useCallback, useEffect, useState } from "react";
@@ -24,9 +24,10 @@ type Req = {
 };
 
 const PLANS_FALLBACK: Plan[] = [
-  { code: "S_99", price: 99, profiles: 3, label: "Sambandham", telugu: "₹99 → 3 profiles", badge: "Starter", per_profile: 33 },
-  { code: "S_199", price: 199, profiles: 10, label: "Family", telugu: "₹199 → 10 profiles", badge: "Best for families", per_profile: 20 },
-  { code: "S_299", price: 299, profiles: 20, label: "Premium", telugu: "₹299 → 20 profiles", badge: "₹15/profile — best", per_profile: 15 },
+  { code: "S_99", price: 99, profiles: 5, label: "Sambandham", telugu: "₹99 → 5 profiles", badge: "Entry • ₹19.8/profile", per_profile: 20 },
+  { code: "S_199", price: 199, profiles: 12, label: "Family", telugu: "₹199 → 12 profiles", badge: "Most popular • ₹16.6/profile", per_profile: 17 },
+  { code: "S_299", price: 299, profiles: 25, label: "Premium", telugu: "₹299 → 25 profiles", badge: "Best value • ₹12/profile", per_profile: 12 },
+  { code: "S_499", price: 499, profiles: 50, label: "Vivaha VIP", telugu: "₹499 → 50 profiles", badge: "VIP • ₹10/profile", per_profile: 10 },
 ];
 
 const STATUS_STYLE: Record<string, string> = {

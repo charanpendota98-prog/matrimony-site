@@ -258,7 +258,8 @@ class WhatsAppAntiban:
         c = self.cfg()
         gap = float(self.state.get("next_gap") or 0)
         floor = c["min_gap_interest"] if priority <= 0 else c["min_gap"]
-        gap = max(gap, floor)
+        if not c["test_fast"]:          # test mode lo floor clamp vaddu (lekapothe tests 120s wait avutayi)
+            gap = max(gap, floor)
         if self.state.get("next_gap") is None:      # state migrate/old file
             self.state["next_gap"] = round(self._current_gap(priority), 1)
         return max(0.0, gap - elapsed)

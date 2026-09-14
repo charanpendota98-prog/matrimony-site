@@ -3,7 +3,7 @@ TSAP Matrimony — DB Models + Pydantic Schemas
 Pin-to-Pin Perfect Advanced
 """
 from pydantic import BaseModel, Field
-from typing import Optional, List
+from typing import Dict, Any, Optional, List
 from datetime import datetime
 from enum import Enum
 
@@ -173,6 +173,9 @@ class RegisterResponse(BaseModel):
     # Auto-publish (Telegram + WhatsApp) — register avvagane
     publish_queued: bool = False
     publish_targets: List[str] = []
+    namaste_queued: bool = False
+    welcome_status: Optional[Dict[str, Any]] = None
+    share_kit: Optional[Dict[str, Any]] = None
     share_text: str = ""
 
 class SearchResponse(BaseModel):

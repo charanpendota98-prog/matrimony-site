@@ -149,7 +149,7 @@ def test_interest():
         drained = c.post("/api/interest/send", json={"from_id": groom, "to_id": brides[0]})
         check("Credits 0 → 402 + plans", drained.status_code in (402, 400))
         buy = c.post("/api/credits/buy", json={"tsap_id": groom, "plan": "S_299"}).json()
-        check("Buy ₹299 → 20 credits", buy["order"].get("credits_added") == 20 or buy["credits_now"] >= 20,
+        check("Buy ₹299 → 25 credits", buy["order"].get("credits_added") == 25 or buy["credits_now"] >= 25,
               json.dumps(buy.get("order", {}))[:80])
 
         # status tracker

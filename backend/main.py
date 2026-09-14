@@ -2,10 +2,10 @@
 TSAP Matrimony — FastAPI Backend — Pin-to-Pin Perfect Advanced
 All endpoints: Register, ID Search, Matches, Credits, Referral, Bureau, Admin, Payment, Channels auto-post
 """
-from fastapi import FastAPI, HTTPException, UploadFile, File, Form
+from fastapi import FastAPI, HTTPException, Request, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 import os, random, json
 from datetime import datetime, timedelta
 
@@ -29,6 +29,9 @@ except Exception:  # fonts/PIL lekapoyina server padipodu
     def has_telugu_font():
         return False
 
+import growth
+from growth import (namaste_text, admin_new_profile_text, lead_followup_text,
+                      track_visit, save_lead, lead_stats, leads_list, share_kit, inventory_status)
 from publisher import (
     enqueue, publish_profile, publish_status, read_log, start_worker, worker_running,
     build_whatsapp_text, build_share_text, config as publish_config,
@@ -69,13 +72,64 @@ async def _startup_publisher():
           f"| whatsapp={st['whatsapp']['mode']} | live_channels={st['telegram']['live_channels']}")
     print(f"[WHATSAPP-ANTIBAN] telegram mundu → whatsapp tarvata | gap={wa['random_gap']} | "
           f"cap={wa['daily_cap']}/day (today {wa['warmup_cap_today']}) | hour {wa['active_hours_ist'][0]}–{wa['active_hours_ist'][1]} IST")
-    # demo profiles: empty DB aithe (dev/preview lo) ventane 4 profiles — interest flow test cheyyadaniki
+    # demo/launch inventory: empty DB aithe (dev/preview lo) ventane profiles — site khali ga kanipinchadu
     if str(os.getenv("DEMO_SEED_ENABLED", "true")).lower() in ("1", "true", "yes", "on") and not DB_USERS:
         try:
             res = demo_seed()
-            print(f"[DEMO] {len(res['created'])} profiles ready: " + ", ".join(x['tsap_id'] for x in res['created']))
+            print("[DEMO] %d profiles ready: %s" % (len(res["created"]), ", ".join(x["tsap_id"] for x in res["created"])))
         except Exception as e:
             print("[DEMO] seed skip:", str(e)[:100])
+        # launch inventory (360 profiles) — LAUNCH_SEED_COUNT env tho control (0 = bandh)
+        try:
+            n = int(os.getenv("LAUNCH_SEED_COUNT", "60"))
+        except Exception:
+            n = 60
+        if n > 0:
+            try:
+                import seed_launch_db
+                added = 0
+                for sd in seed_launch_db.build_profiles(n):
+                    phone = str(sd.get("phone", ""))
+                    if phone and any(u.get("phone") == phone for u in DB_USERS):
+                        continue
+                    u = dict(sd)
+                    u.setdefault("is_approved", True)
+                    u.setdefault("photo_urls", [])
+                    u.setdefault("referral_stats", {"total": 0, "earned": 0})
+                    u.setdefault("credit_history", [])
+                    u["card_url"] = "/cards/" + u["tsap_id"] + ".png"
+                    u["phone_encrypted"] = encrypt_phone(phone) if phone else ""
+                    DB_USERS.append(u)
+                    added += 1
+                print("[LAUNCH-DB] %d inventory profiles load ayyayi (total %d) — inventory_status=%.0f%%"
+                      % (added, len(DB_USERS), inventory_status(len(DB_USERS))["percent"]))
+            except Exception as e:
+                print("[LAUNCH-DB] seed skip:", str(e)[:140])
+
+# ---------------------------------------------------------------------------
+# VISIT TRACKING MIDDLEWARE — "site ki vachina vallu antha DB lo save avvali"
+#    (page + API calls anni anonymous ga log: path, referrer, device, channel)
+# ---------------------------------------------------------------------------
+_SKIP_TRACK = ("/_next", "/static", "/favicon", "/cards/", "/photos/", "/health", "/robots", "/sitemap")
+
+
+@app.middleware("http")
+async def _track_visits_middleware(request: Request, call_next):
+    try:
+        path = request.url.path
+        is_trackable = (request.method == "GET" and path not in ("", "/")
+                        and not any(path.startswith(x) for x in _SKIP_TRACK))
+        if is_trackable:
+            fwd = request.headers.get("x-forwarded-for", "")
+            ip = (fwd.split(",")[0].strip() if fwd else (request.client.host if request.client else ""))
+            ua = request.headers.get("user-agent", "")
+            ref = request.headers.get("referer", "")
+            utm = request.url.query if "utm_" in str(request.url.query) else ""
+            track_visit(ip, ua, path, ref, utm)
+    except Exception:
+        pass  # tracking eppudu main request ni aapakudadu
+    return await call_next(request)
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -91,6 +145,8 @@ DB_INTERESTS = []
 DB_VIEWS = []          # {"tsap_id": who got viewed, "viewer_id": who viewed, "at": iso}
 DB_SAVES = []          # shortlist: {"tsap_id": owner, "saved_id": saved profile, "at": iso}
 DB_DIGEST = []         # daily digest log
+DB_OTPS = {}           # {"98480xxxxx": {"code": "1234", "expires": iso, "tries": n}}
+VERIFIED_PHONES = set()  # OTP verify ayyina numbers
 DB_PAYMENTS = []
 DB_POSTS = []
 DB_REFERRALS = []
@@ -207,6 +263,7 @@ async def register(
     pincode: str = Form(""),
     photo_url: str = Form(""),        # uploaded photo ka URL (S3/static)
     upload_token: str = Form(""),
+    phone_verified: bool = Form(False),
 ):
     """
     Pin-to-Pin Register Flow:
@@ -224,7 +281,9 @@ async def register(
 
     # 2. ID Gen
     tsap_id = unique_tsap_id(gender, 2025)
-    my_ref_code = f"TSAP-REF-{seq}"
+    # referral code — TSAP ID nunchi derive (unique, deterministic) [FIX: mundu undefined `seq` tho crash avutundi]
+    _ref_seq = "".join(ch for ch in tsap_id if ch.isdigit())[-5:] or str(random.randint(10000, 99999))
+    my_ref_code = f"TSAP-REF-{_ref_seq}"
 
     # 3. Save DB - Advanced Full
     user = {
@@ -284,9 +343,10 @@ async def register(
         "phone": phone,
         "referral_code": my_ref_code,
         "referred_by": referral_code,
-        "photo_urls": ([photo_url] if photo_url else [f"/photos/{tsap_id}_1.jpg"]),
+        "photo_urls": ([photo_url] if photo_url else []),   # FIX: fake path valla photo_only filter ellappudu match ayyedi
         "card_url": f"/cards/{tsap_id}.png",   # web URL (card files static mount lo undi)
         "is_verified": False,
+        "phone_verified": bool(phone_verified) or (phone in VERIFIED_PHONES),
         "is_approved": False,
         "privacy_mode": "private" if photo_private else "public",
         "credits": 3,
@@ -344,12 +404,46 @@ async def register(
                       photo_path=card_path if user.get("card_generated") else None)
         user["publish_targets"] = pub["targets"]
 
+    # 6c. NAMASTE WELCOME AUTOMATION — MANA WhatsApp nunchi user ki card + full details
+    #     (register avvagane pothundi — user ki "profile vellinda?" ani doubt undadu)
+    welcome = {"queued": False, "admin_alert": False}
+    try:
+        cfg_wa = publish_config()
+        if cfg_wa["wa_mode"] != "off" and phone:
+            w1 = enqueue_whatsapp([phone], namaste_text(user, tsap_id), image_path=card_path,
+                                  priority=0, kind="namaste_welcome")
+            welcome["queued"] = bool(w1.get("queued"))
+            welcome["wa_result"] = w1
+            admin_no = os.getenv("ADMIN_WHATSAPP_NUMBER", "").strip()
+            if admin_no:
+                w2 = enqueue_whatsapp([admin_no], admin_new_profile_text(user, tsap_id, source="website"),
+                                      image_path=card_path, priority=1, kind="admin_new_profile")
+                welcome["admin_alert"] = bool(w2.get("queued"))
+        elif phone:
+            welcome["manual_text"] = namaste_text(user, tsap_id)
+            welcome["note"] = "WHATSAPP_MODE=bridge chesi bridge connect cheyyandi — automatic ga veltundi"
+        user["welcome_status"] = welcome
+    except Exception as e:
+        welcome["error"] = str(e)[:140]
+
+    # 6d. VISITOR -> LEAD conversion (register chesinappudu lead ni close cheyyali)
+    try:
+        ok_lead, _kind, _lead = save_lead(user.get("full_name", ""), phone, gender=gender,
+                                          district=district, caste=caste, age=str(age),
+                                          source="register")
+        if ok_lead and _lead:
+            _lead["status"] = "converted"
+            _lead["tsap_id"] = tsap_id
+            user["lead_id"] = _lead["id"]
+    except Exception:
+        pass
+
     # 7. Top 3 matches (from existing DB)
     opposite = "Bride" if gender=="Groom" else "Groom"
     candidates = [u for u in DB_USERS if u["gender"]==opposite and u["tsap_id"]!=tsap_id]
     top_matches = []
     for cand in candidates[:20]:
-        score = calculate_match_score(user, cand, wants_same_caste=True)
+        score = calculate_match_score(user, cand, user_wants_same_caste=True)
         if score>=70:
             reasons = generate_personalized_reasons(user, cand, score)
             top_matches.append(MatchResult(matched_user_id=cand["tsap_id"], score=score, reasons=reasons))
@@ -365,6 +459,9 @@ async def register(
         top_3_matches=top_matches,
         publish_queued=pub.get("queued", False),
         publish_targets=pub.get("targets", []),
+        namaste_queued=bool(welcome.get("queued") or welcome.get("manual_text")),
+        welcome_status=welcome,
+        share_kit=share_kit(user, tsap_id),
         share_text=build_share_text(user, tsap_id),
     )
 
@@ -632,7 +729,7 @@ def _find_user(tsap_id: str):
 
 @app.get("/api/plans")
 def plans_endpoint():
-    """Pricing ladder: FREE 3 → ₹99=3 → ₹199=10 → ₹299=20 profiles."""
+    """Pricing ladder: FREE 3 → ₹99=5 → ₹199=12 → ₹299=25 → ₹499=50 (VIP) + add-ons."""
     return {
         "currency": "INR",
         "chatting": False,
@@ -934,22 +1031,89 @@ def demo_seed():
     if str(os.getenv("DEMO_SEED_ENABLED", "true")).lower() not in ("1", "true", "yes", "on"):
         raise HTTPException(403, "Demo seed bandh chesaru")
     seeds = [
-        dict(prefer_id="TSAP-F-2025-1042", gender="Bride", full_name="Lakshmi Reddy", age=24, caste="Reddy", sub_caste="Pakanati",
-             education="BTech", education_detail="CSE", job="Software Engineer", company="TCS",
-             salary="8L", height="5'4\"", district="Hyderabad", state="TS", gothram="Bharadwaj",
-             star="Rohini", rasi="Vrishabha", phone="9848011111", family_type="Nuclear"),
-        dict(prefer_id="TSAP-F-2025-2042", gender="Bride", full_name="Sravani Chowdary", age=26, caste="Kamma", sub_caste="",
-             education="MSc", education_detail="Data Science", job="Data Analyst", company="Deloitte",
-             salary="10L", height="5'5\"", district="Vijayawada", state="AP", gothram="Kasyapa",
-             star="Ashwini", rasi="Mesha", phone="9848022222", family_type="Joint"),
-        dict(prefer_id="TSAP-M-2025-1042", gender="Groom", full_name="Kiran Kumar Reddy", age=29, caste="Reddy", sub_caste="Deshathi",
-             education="MBBS", education_detail="MD", job="Doctor", company="Apollo", salary="2L+/mo",
-             height="5'10\"", district="Nalgonda", state="TS", gothram="Vasishta", star="Mrigasira",
-             rasi="Dhanu", phone="9848033333", family_type="Nuclear"),
-        dict(prefer_id="TSAP-M-2025-4042", gender="Groom", full_name="Arjun Chowdary", age=31, caste="Kamma", sub_caste="",
-             education="MS", education_detail="USA", job="Product Manager", company="Amazon",
-             salary="40L", height="5'11\"", district="Guntur", state="AP", gothram="Kaundinya",
-             star="Bharani", rasi="Simha", phone="9848044444", family_type="Nuclear"),
+        # ---- 4 base profiles (fixed IDs — /matches, /search demo IDs tho match avvali) ----
+        dict(prefer_id="TSAP-F-2025-1042", gender="Bride", full_name="Lakshmi Reddy", age=24, caste="Reddy",
+             sub_caste="Pakanati", education="BTech", education_detail="CSE", job="Software Engineer",
+             company="TCS", salary="8L", height="5'4\"", weight="54kg", district="Hyderabad", state="TS",
+             gothram="Bharadwaj", star="Rohini", rasi="Vrishabha", phone="9848011111", family_type="Nuclear",
+             family_status="Middle Class", marital_status="Pelli Kaledu", is_verified=True),
+        dict(prefer_id="TSAP-F-2025-2042", gender="Bride", full_name="Sravani Chowdary", age=26, caste="Kamma",
+             sub_caste="", education="MSc", education_detail="Data Science", job="Data Analyst",
+             company="Deloitte", salary="10L", height="5'5\"", weight="56kg", district="Vijayawada", state="AP",
+             gothram="Kasyapa", star="Ashwini", rasi="Mesha", phone="9848022222", family_type="Joint",
+             family_status="Upper Middle", marital_status="Pelli Kaledu", is_verified=True),
+        dict(prefer_id="TSAP-M-2025-1042", gender="Groom", full_name="Kiran Kumar Reddy", age=29, caste="Reddy",
+             sub_caste="Deshathi", education="MBBS", education_detail="MD", job="Doctor", company="Apollo",
+             salary="2L+/mo", height="5'10\"", weight="74kg", district="Nalgonda", state="TS", gothram="Vasishta",
+             star="Mrigasira", rasi="Dhanu", phone="9848033333", family_type="Nuclear",
+             family_status="Middle Class", marital_status="Pelli Kaledu", is_verified=True),
+        dict(prefer_id="TSAP-M-2025-4042", gender="Groom", full_name="Arjun Chowdary", age=31, caste="Kamma",
+             sub_caste="", education="MS", education_detail="USA", job="Product Manager", company="Amazon",
+             salary="40L", height="5'11\"", weight="78kg", district="Guntur", state="AP", gothram="Kaundinya",
+             star="Bharani", rasi="Simha", phone="9848044444", family_type="Nuclear",
+             family_status="Upper Middle", marital_status="Pelli Kaledu", is_verified=True),
+        # ---- 6 more brides ----
+        dict(gender="Bride", full_name="Divya Kapu", age=23, caste="Kapu", sub_caste="Telaga",
+             education="BCom", education_detail="Computers", job="Bank Employee", company="SBI", salary="5L",
+             height="5'2\"", weight="50kg", district="Visakhapatnam", state="AP", gothram="Kashyapa",
+             star="Hasta", rasi="Kanya", phone="9848055555", family_type="Joint", family_status="Middle Class",
+             marital_status="Pelli Kaledu", is_verified=True),
+        dict(gender="Bride", full_name="Anusha Velama", age=27, caste="Velama", sub_caste="Koppula",
+             education="MCom", education_detail="", job="Lecturer", company="Degree College", salary="6L",
+             height="5'6\"", weight="58kg", district="Warangal", state="TS", gothram="Srivatsa", star="Swati",
+             rasi="Tula", phone="9848066666", family_type="Nuclear", family_status="Middle Class",
+             marital_status="Pelli Kaledu", is_verified=False),
+        dict(gender="Bride", full_name="Meghana Vysya", age=25, caste="Vysya", sub_caste="Arya Vysya",
+             education="BPharm", education_detail="", job="Pharmacist", company="MedPlus", salary="4.5L",
+             height="5'3\"", weight="52kg", district="Hyderabad", state="TS", gothram="Kaushika", star="Chitra",
+             rasi="Kanya", phone="9848077777", family_type="Joint", family_status="Middle Class",
+             marital_status="Pelli Kaledu", is_verified=True),
+        dict(gender="Bride", full_name="Sandhya Mala", age=24, caste="Mala", sub_caste="",
+             education="BSc", education_detail="Nursing", job="Staff Nurse", company="Yashoda", salary="4L",
+             height="5'4\"", weight="55kg", district="Nalgonda", state="TS", gothram="Vasishta", star="Revati",
+             rasi="Meena", phone="9848088888", family_type="Nuclear", family_status="Middle Class",
+             marital_status="Pelli Kaledu", is_verified=True),
+        dict(gender="Bride", full_name="Swathi Madiga", age=28, caste="Madiga", sub_caste="",
+             education="MA", education_detail="Telugu", job="Teacher", company="ZP High School", salary="3.5L",
+             height="5'5\"", weight="57kg", district="Karimnagar", state="TS", gothram="Bharadwaj",
+             star="Anuradha", rasi="Vrishchika", phone="9848099999", family_type="Joint",
+             family_status="Middle Class", marital_status="Pelli Kaledu", is_verified=False),
+        dict(gender="Bride", full_name="Gayatri Brahmin", age=26, caste="Brahmin", sub_caste="Vaidiki",
+             education="MCA", education_detail="", job="Software Engineer", company="Infosys", salary="9L",
+             height="5'4\"", weight="54kg", district="Guntur", state="AP", gothram="Sankhyayana", star="Punarvasu",
+             rasi="Mithuna", phone="9848010101", family_type="Nuclear", family_status="Upper Middle",
+             marital_status="Pelli Kaledu", is_verified=True),
+        # ---- 6 more grooms ----
+        dict(gender="Groom", full_name="Rakesh Yadav", age=30, caste="Yadav", sub_caste="Golla",
+             education="BTech", education_detail="Mech", job="Govt Job", company="TS Genco", salary="9L",
+             height="5'9\"", weight="76kg", district="Hyderabad", state="TS", gothram="Koundinya",
+             star="Uttara", rasi="Simha", phone="9848020202", family_type="Joint", family_status="Middle Class",
+             marital_status="Pelli Kaledu", is_verified=True),
+        dict(gender="Groom", full_name="Naveen Padmashali", age=27, caste="Padmashali", sub_caste="",
+             education="BCom", education_detail="CA Inter", job="Business", company="Own Textiles",
+             salary="12L", height="5'8\"", weight="72kg", district="Warangal", state="TS", gothram="Kashyapa",
+             star="Rohini", rasi="Vrishabha", phone="9848030303", family_type="Joint",
+             family_status="Upper Middle", marital_status="Pelli Kaledu", is_verified=True),
+        dict(gender="Groom", full_name="Suresh Lambada", age=33, caste="Lambada", sub_caste="Banjara",
+             education="MSc", education_detail="Agriculture", job="Agriculture Officer", company="Govt of TS",
+             salary="7L", height="5'7\"", weight="70kg", district="Khammam", state="TS", gothram="Srivatsa",
+             star="Dhanishta", rasi="Makara", phone="9848040404", family_type="Nuclear",
+             family_status="Middle Class", marital_status="Pelli Kaledu", is_verified=False),
+        dict(gender="Groom", full_name="Vijay Goud", age=32, caste="Goud", sub_caste="",
+             education="BBA", education_detail="", job="Business", company="Wine & Retail", salary="15L",
+             height="5'9\"", weight="80kg", district="Hyderabad", state="TS", gothram="Kaundinya",
+             star="Magha", rasi="Simha", phone="9848050505", family_type="Joint", family_status="Rich",
+             marital_status="Pelli Kaledu", is_verified=True),
+        dict(gender="Groom", full_name="Sai Krishna Brahmin", age=28, caste="Brahmin", sub_caste="Niyogi",
+             education="MBA", education_detail="Finance", job="Software Engineer", company="Microsoft",
+             salary="45L", height="5'10\"", weight="75kg", district="Tirupati", state="AP",
+             gothram="Bharadwaj", star="Shravana", rasi="Makara", phone="9848060606", family_type="Nuclear",
+             family_status="Upper Middle", marital_status="Pelli Kaledu", is_verified=True),
+        dict(gender="Groom", full_name="Mahesh SC Others", age=29, caste="SC Others", sub_caste="",
+             education="BTech", education_detail="EEE", job="Private Job", company="L&T", salary="8L",
+             height="5'8\"", weight="73kg", district="Kurnool", state="AP", gothram="Vasishta",
+             star="Ashlesha", rasi="Karkataka", phone="9848070707", family_type="Nuclear",
+             family_status="Middle Class", marital_status="Pelli Kaledu", is_verified=False),
     ]
     created = []
     for sd in seeds:
@@ -962,9 +1126,15 @@ def demo_seed():
         prefer = sd.pop("prefer_id", None)
         tsap_id = prefer if (prefer and not any(u.get("tsap_id") == prefer for u in DB_USERS)) else unique_tsap_id(sd["gender"])
         user = {**sd, "tsap_id": tsap_id, "credits": 3, "plan": "FREE", "wallet": 0,
-                "marital_status": "Pelli Kaledu", "mandal": sd.get("district", ""),
+                "marital_status": sd.get("marital_status", "Pelli Kaledu"),
+                "mandal": sd.get("district", ""), "religion": sd.get("religion", "Hindu"),
+                "mother_tongue": "Telugu", "dosham": "No", "moola_nakshatram": "No",
+                "blood_group": "", "family_values": "Traditional", "phone_verified": sd.get("is_verified", False),
+                "about_myself": f"{sd['full_name']} — {sd.get('job','')} ({sd.get('district','')}). "
+                                f"Simple family, traditional values, sambandham kosam chusthunnam.",
                 "phone_encrypted": encrypt_phone(sd["phone"]), "phone_last4": sd["phone"][-4:],
-                "photo_urls": [], "card_url": f"/cards/{tsap_id}.png", "is_verified": True,
+                "photo_urls": [], "card_url": f"/cards/{tsap_id}.png",
+                "is_verified": bool(sd.get("is_verified", False)),
                 "is_approved": True, "privacy_mode": "public", "referral_code": f"MV{tsap_id[-4:]}",
                 "referral_stats": {"total": 0, "paid_count": 0},
                 "created_at": datetime.utcnow().isoformat(), "completeness": 88, "score": 92,
@@ -1111,6 +1281,190 @@ def saved_list(tsap_id: str):
             "message_telugu": f"❤️ {len(out)} profiles shortlist lo unnayi"}
 
 
+
+
+# ===========================================================================
+# 📱 OTP VERIFY (phone) + 🔎 ADVANCED SEARCH FILTERS
+# ===========================================================================
+@app.post("/api/photo/upload")
+async def photo_upload(file: UploadFile = File(...), tsap_id: str = Form("")):
+    """
+    📸 Real photo upload — phone lo camera/gallery nunchi.
+    Validation: JPG/PNG/WebP, max 5 MB. Storage: /tmp/photos (docker volume) → /photos/{name} URL.
+    (P0 gap fill — mundu photo preview matrame undi, real upload ledu)
+    """
+    ext = (file.filename or "").split(".")[-1].lower()
+    allowed = {"jpg", "jpeg", "png", "webp", "heic", "heif"}
+    if ext not in allowed:
+        raise HTTPException(400, "Photo format JPG/PNG/WebP matrame — malli try cheyyandi")
+    data = await file.read()
+    if len(data) > 5 * 1024 * 1024:
+        raise HTTPException(413, "Photo 5MB kanna peddadi undi — chinna photo pettandi (app lo ne compress avutundi)")
+    if len(data) < 1024:
+        raise HTTPException(400, "Photo khali ga undi — malli upload cheyyandi")
+    os.makedirs("/tmp/photos", exist_ok=True)
+    token = (tsap_id.strip() or "tmp") + "-" + datetime.utcnow().strftime("%y%m%d%H%M%S") + "-" + str(random.randint(100, 999))
+    name = f"{token}.{ 'jpg' if ext in ('heic','heif') else ext }"
+    path = f"/tmp/photos/{name}"
+    try:
+        with open(path, "wb") as f:
+            f.write(data)
+    except Exception as e:
+        raise HTTPException(500, f"Photo save avvaledu: {str(e)[:80]}")
+    return {"success": True, "url": f"/photos/{name}", "bytes": len(data),
+            "kb": round(len(data) / 1024, 1), "path": path,
+            "message_telugu": f"📸 Photo upload ayyindi ({round(len(data)/1024)} KB)"}
+
+
+@app.post("/api/otp/send")
+def otp_send(payload: dict):
+    """
+    Phone OTP — 4 digit. Dev mode (OTP_DEV_MODE=true) lo code response lo vasthundi (SMS provider ledu).
+    Production: SMS provider (MSG91 / Fast2SMS) configure chesi, code ni akkada pampali.
+    """
+    d = payload or {}
+    phone = "".join(ch for ch in str(d.get("phone", "")) if ch.isdigit())
+    if len(phone) != 10:
+        raise HTTPException(400, "10 digit mobile number ivvandi")
+    code = f"{random.randint(1000, 9999)}"
+    DB_OTPS[phone] = {"code": code, "expires": (datetime.utcnow() + timedelta(minutes=10)).isoformat(),
+                      "tries": 0}
+    dev = str(os.getenv("OTP_DEV_MODE", "true")).lower() in ("1", "true", "yes", "on")
+    out = {"success": True, "phone": f"XXXXXX{phone[-4:]}", "expires_in_min": 10,
+           "message_telugu": f"📱 OTP pampinchaam (+91 XXXXXX{phone[-4:]}). 10 nimushalalo enter cheyyandi."}
+    if dev:
+        out["dev_code"] = code
+        out["message_telugu"] += f" [DEV MODE — code: {code}]"
+        out["note"] = "Production lo SMS provider (MSG91/Fast2SMS) configure cheyyandi — appudu ee code response lo raadu."
+    else:
+        out["message_telugu"] += " SMS provider configure cheyyaledu — support ki cheppandi."
+    return out
+
+
+@app.post("/api/otp/verify")
+def otp_verify(payload: dict):
+    d = payload or {}
+    phone = "".join(ch for ch in str(d.get("phone", "")) if ch.isdigit())
+    code = str(d.get("code", "")).strip()
+    rec = DB_OTPS.get(phone)
+    if not rec:
+        raise HTTPException(400, "Mundu OTP pampandi")
+    try:
+        if datetime.fromisoformat(rec["expires"]) < datetime.utcnow():
+            DB_OTPS.pop(phone, None)
+            raise HTTPException(400, "OTP expire ayyindi — malli pampandi")
+    except HTTPException:
+        raise
+    except Exception:
+        pass
+    rec["tries"] = int(rec.get("tries", 0)) + 1
+    if rec["tries"] > 5:
+        DB_OTPS.pop(phone, None)
+        raise HTTPException(429, "Chala sarlu try chesaru — kotha OTP teesukondi")
+    if code != rec["code"]:
+        return JSONResponse(status_code=400, content={"success": False, "message_telugu": "❌ OTP tappu — malli try cheyyandi",
+                                                      "tries_left": max(0, 5 - rec["tries"])})
+    VERIFIED_PHONES.add(phone)
+    DB_OTPS.pop(phone, None)
+    u = next((x for x in DB_USERS if x.get("phone") == phone), None)
+    if u:
+        u["phone_verified"] = True
+    return {"success": True, "phone_verified": True, "message_telugu": "✅ Number verify ayyindi — mee profile ki verified badge vasthundi"}
+
+
+@app.get("/api/search")
+def advanced_search(
+    gender: Optional[str] = None, caste: Optional[str] = None, district: Optional[str] = None,
+    state: Optional[str] = None, job: Optional[str] = None, education: Optional[str] = None,
+    age_min: int = 18, age_max: int = 60, salary_min: int = 0,
+    marital_status: Optional[str] = None, verified_only: bool = False, photo_only: bool = False,
+    religion: Optional[str] = None, q: Optional[str] = None,
+    sort: str = "score", viewer_id: Optional[str] = None, limit: int = 30, offset: int = 0,
+):
+    """
+    🔎 Advanced filters — caste / district / age range / salary / job / verified / photo / search text.
+    Frontend /matches page idi use chestundi (fallback: demo data).
+    """
+    items = [u for u in DB_USERS if u.get("is_approved", True)]
+    if gender:
+        items = [u for u in items if str(u.get("gender", "")).lower() == gender.lower()]
+    if caste:
+        cl = caste.lower()
+        items = [u for u in items if cl in str(u.get("caste", "")).lower() or cl in str(u.get("sub_caste", "")).lower()]
+    if district:
+        dl = district.lower()
+        items = [u for u in items if dl in str(u.get("district", "")).lower() or dl in str(u.get("current_city", "")).lower()]
+    if state:
+        items = [u for u in items if str(u.get("state", "")).upper() == state.upper()]
+    if job:
+        jl = job.lower()
+        items = [u for u in items if jl in str(u.get("job", "")).lower() or jl in str(u.get("work_type", "")).lower()]
+    if education:
+        el = education.lower()
+        items = [u for u in items if el in str(u.get("education", "")).lower()]
+    if marital_status:
+        items = [u for u in items if str(u.get("marital_status", "")).lower() == marital_status.lower()]
+    if religion:
+        items = [u for u in items if str(u.get("religion", "Hindu")).lower() == religion.lower()]
+    if verified_only:
+        items = [u for u in items if u.get("is_verified") or u.get("phone_verified")]
+    if photo_only:
+        items = [u for u in items if u.get("photo_urls")]
+    items = [u for u in items if age_min <= int(u.get("age", 0) or 0) <= age_max]
+    if salary_min:
+        def _sal(u):
+            raw = str(u.get("salary", "")).lower().replace("l", "00000").replace("k", "000")
+            digits = "".join(ch for ch in raw if ch.isdigit())
+            return int(digits) if digits else 0
+        items = [u for u in items if _sal(u) >= salary_min]
+    if q:
+        ql = q.lower()
+        items = [u for u in items
+                 if ql in str(u.get("full_name", "")).lower() or ql in str(u.get("district", "")).lower()
+                 or ql in str(u.get("caste", "")).lower() or ql in str(u.get("job", "")).lower()]
+
+    viewer = _find_user(viewer_id) if viewer_id else None
+    out = []
+    for u in items:
+        row = safe_user(u)
+        row["phone_verified"] = bool(u.get("phone_verified") or u.get("is_verified"))
+        row["has_photo"] = bool(u.get("photo_urls"))
+        row["boosted"] = bool(u.get("boost_until"))
+        row["marital_status"] = u.get("marital_status", "—")
+        row["salary"] = u.get("salary", "—")
+        row["company"] = u.get("company", "")
+        row["sub_caste"] = u.get("sub_caste", "")
+        row["moola_nakshatram"] = u.get("moola_nakshatram", "No")
+        if viewer and viewer.get("gender") != u.get("gender"):
+            row["score"], row["reasons"] = _score_pair(viewer, u)
+            src = compute_porutham(u, viewer) if viewer.get("gender") == "Groom" else compute_porutham(viewer, u)
+            row["porutham"] = {"score": src.get("score"), "max": src.get("max_score"),
+                               "verdict": src.get("verdict")} if src.get("available") else None
+        out.append(row)
+
+    if sort == "score" and viewer:
+        out.sort(key=lambda x: -int(x.get("score", 0) or 0))
+    elif sort == "new":
+        out.sort(key=lambda x: str(x.get("tsap_id", "")), reverse=True)
+    elif sort == "age":
+        out.sort(key=lambda x: int(x.get("age", 99) or 99))
+    elif sort == "porutham":
+        out.sort(key=lambda x: -int(((x.get("porutham") or {}).get("score") or 0)))
+    elif sort == "boosted":
+        out.sort(key=lambda x: (not x.get("boosted"), -int(x.get("score", 0) or 0)))
+
+    return {
+        "total": len(out), "count": len(out[offset:offset + limit]), "offset": offset, "limit": limit,
+        "sort": sort,
+        "filters": {"gender": gender, "caste": caste, "district": district, "state": state, "job": job,
+                    "education": education, "age": [age_min, age_max], "salary_min": salary_min,
+                    "marital_status": marital_status, "verified_only": verified_only, "photo_only": photo_only,
+                    "religion": religion, "q": q},
+        "results": out[offset:offset + limit],
+        "message_telugu": f"🔎 {len(out)} profiles dorikayi (filters: caste={caste or 'Any'}, district={district or 'Any'}, age={age_min}-{age_max})",
+    }
+
+
 @app.get("/api/digest/preview")
 def digest_preview():
     """
@@ -1162,6 +1516,162 @@ async def _send_telegram_public(chat: str, text: str):
         return await _st(chat, text, None, publish_config())
     except Exception as e:
         return {"ok": False, "channel": chat, "error": str(e)[:120]}
+
+
+
+
+
+
+# ============================================================================
+#  VISITOR + LEAD CAPTURE  ("chusina vallu antha DB lo save")
+# ============================================================================
+@app.post("/api/track")
+def api_track(payload: dict):
+    """
+    Frontend beacon — client-side info (screen, time on page, utm) tho visit ni enrich chestundi.
+    Server middleware kooda prathi request ni track chestundi (double safety).
+    """
+    p = payload or {}
+    rec = track_visit(str(p.get("ip", "")), str(p.get("ua", "")), str(p.get("path", "/")),
+                      str(p.get("ref", "")), str(p.get("utm", "")), str(p.get("device", "")),
+                      extra={"screen": p.get("screen", ""), "lang": p.get("lang", ""),
+                             "seconds": p.get("seconds", ""), "visitor_id": p.get("visitor_id", "")})
+    return {"success": True, "visitor_id": rec["vid"], "channel": rec["channel"],
+            "visits_total": len(growth.DB_VISITORS)}
+
+
+@app.post("/api/leads/quick")
+def api_lead_quick(payload: dict):
+    """
+    Phone-first quick start: "number pettu — mana team mee profile complete chestundi" (FREE).
+    3-minute register form ki mundu 30-second entry point (phone lo chala easy).
+    """
+    p = payload or {}
+    ok, kind, lead = save_lead(str(p.get("name", "")), str(p.get("phone", "")),
+                               gender=str(p.get("gender", "")), district=str(p.get("district", "")),
+                               caste=str(p.get("caste", "")), age=str(p.get("age", "")),
+                               source=str(p.get("source", "quick_form")), notes=str(p.get("notes", "")))
+    if not ok:
+        raise HTTPException(400, kind)
+    cfg = publish_config()
+    queued = {"queued": False}
+    if cfg["wa_mode"] != "off" and kind == "new_lead":
+        queued = enqueue_whatsapp([lead["phone"]], lead_followup_text(lead), priority=0, kind="lead_followup")
+    return {"success": True, "lead_id": lead["id"], "kind": kind, "lead_status": lead.get("status"),
+            "followup_queued": bool(queued.get("queued")), "wa_mode": cfg["wa_mode"],
+            "next": "/register?phone=" + lead["phone"],
+            "message_telugu": ("Number save ayyindi! Mana team 10 nimushalalo call chesi mee profile FREE ga "
+                               "complete chestundi. Leda meeru ippude 3 nimushalalo register cheyyochu."),
+            "whatsapp_link": "https://wa.me/91" + lead["phone"]}
+
+
+@app.get("/api/leads")
+def api_leads(status: str = "", limit: int = 100):
+    """Admin — leads list (follow-up ki). Deploy lo ADMIN_TOKEN env tho protect cheyyali."""
+    return leads_list(status, limit)
+
+
+@app.get("/api/leads/stats")
+def api_lead_stats():
+    """Traffic + conversion dashboard: visits, channels, top pages, lead sources, inventory."""
+    st = lead_stats()
+    st["inventory"] = inventory_status(len(DB_USERS))
+    st["whatsapp"] = wa_queue_stats()
+    return st
+
+
+@app.post("/api/leads/followup/{lead_id}")
+def api_lead_followup(lead_id: str):
+    """Lead ki WhatsApp follow-up pampu (mana side nunchi)."""
+    lead = next((l for l in growth.DB_LEADS if l["id"] == lead_id), None)
+    if not lead:
+        raise HTTPException(404, "Lead dorakaledu")
+    cfg = publish_config()
+    res = {"queued": False}
+    if cfg["wa_mode"] != "off":
+        res = enqueue_whatsapp([lead["phone"]], lead_followup_text(lead), priority=0, kind="lead_followup")
+    lead["status"] = "contacted"
+    lead["touches"] = int(lead.get("touches", 1)) + 1
+    lead["contacted_at"] = datetime.utcnow().isoformat()
+    return {"success": True, "lead": lead, "whatsapp": res, "wa_mode": cfg["wa_mode"],
+            "message_telugu": "Follow-up WhatsApp queue lo pettam (anti-ban gap tho pothundi)"}
+
+
+# ============================================================================
+#  SHARE KIT — reach engine ("oka profile chala mandi chudalanukune la")
+# ============================================================================
+@app.get("/api/share/kit/{tsap_id}")
+def api_share_kit(tsap_id: str):
+    u = _find_user(tsap_id) or _find_user(tsap_id.upper())
+    if not u:
+        raise HTTPException(404, "Profile dorakaledu")
+    return share_kit(u, u["tsap_id"], hashtags=u.get("post_hashtags"))
+
+
+@app.get("/api/inventory")
+def api_inventory():
+    """Launch readiness — '300-400 profiles chalu' gauge + ela fill cheyyalo."""
+    inv = inventory_status(len(DB_USERS))
+    brides = len([u for u in DB_USERS if u.get("gender") == "Bride"])
+    return dict(inv, brides=brides, grooms=len(DB_USERS) - brides,
+                castes_covered=len({u.get("caste") for u in DB_USERS if u.get("caste")}),
+                districts_covered=len({u.get("district") for u in DB_USERS if u.get("district")}),
+                verified=len([u for u in DB_USERS if u.get("phone_verified") or u.get("is_verified")]),
+                photos=len([u for u in DB_USERS if u.get("photo_urls")]))
+
+
+# ============================================================================
+#  LAUNCH INVENTORY LOAD (300-400 profiles — channels khali ga kanipinchavu)
+# ============================================================================
+@app.post("/api/admin/bulk-profiles")
+def api_bulk_profiles(payload: dict):
+    """
+    Launch inventory load — realistic profiles (seed_launch_db.py nunchi).
+    body: {"profiles": [ ... ]}  leda  {"generate": 360}
+    """
+    import seed_launch_db
+    profiles = (payload or {}).get("profiles") or []
+    if not profiles:
+        gen = int((payload or {}).get("generate", 0) or 0)
+        if not gen:
+            raise HTTPException(400, "profiles list ivvandi leda {generate: 360} pampandi")
+        profiles = seed_launch_db.build_profiles(gen, int((payload or {}).get("seed", 42)))
+    added, skipped = 0, 0
+    for sd in profiles:
+        phone = str(sd.get("phone", ""))
+        if phone and any(u.get("phone") == phone for u in DB_USERS):
+            skipped += 1
+            continue
+        u = dict(sd)
+        u.setdefault("tsap_id", unique_tsap_id(sd.get("gender", "Bride"), 2025))
+        u.setdefault("religion", "Hindu")
+        u.setdefault("mother_tongue", "Telugu")
+        u.setdefault("gothram", "-")
+        u.setdefault("credit_history", [])
+        u.setdefault("referral_stats", {"total": 0, "earned": 0})
+        u.setdefault("is_approved", True)
+        u.setdefault("photo_urls", [])
+        u.setdefault("card_url", "/cards/" + u["tsap_id"] + ".png")
+        u["credits"] = int(u.get("credits", 3) or 3)
+        u["plan"] = u.get("plan", "FREE")
+        if phone:
+            u["phone_last4"] = phone[-4:]
+            u["phone_encrypted"] = encrypt_phone(phone)
+        DB_USERS.append(u)
+        added += 1
+    return {"success": True, "added": added, "skipped": skipped, "total_users": len(DB_USERS),
+            "inventory": inventory_status(len(DB_USERS)),
+            "message_telugu": "%d profiles load ayyayi (total %d) — channels ippudu rich ga kanipistayi"
+                              % (added, len(DB_USERS))}
+
+
+@app.post("/api/admin/seed-launch")
+def api_seed_launch(payload: dict = None):
+    """Shortcut: demo profiles ventane load (dev/preview ki). DEMO_SEED_ENABLED=false chesthe bandh."""
+    if str(os.getenv("DEMO_SEED_ENABLED", "true")).lower() not in ("1", "true", "yes", "on"):
+        raise HTTPException(403, "Demo seed bandh (DEMO_SEED_ENABLED=false)")
+    return api_bulk_profiles({"generate": int((payload or {}).get("count", 60)),
+                              "seed": int((payload or {}).get("seed", 42))})
 
 
 if __name__=="__main__":

@@ -14,11 +14,13 @@ Enduku chatting ledu (mee decision — correct):
   • Request + consent = consent-led, safe, report-friendly — Bharat Matrimony "Express Interest" la
   • Chalu: accept ayithe direct WhatsApp/phone — anthe, manam middle lo undakkarledu
 
-Credits (mee pricing final):
+Credits (final ladder — ₹/profile prati tier lo thaggutundi):
   FREE  → 3 requests   (modati 3 FREE — register cheyagane)
-  ₹99   → 3 profiles
-  ₹199  → 10 profiles
-  ₹299  → 20 profiles   (₹15/profile — best value, "Most Popular")
+  ₹99   → 5 profiles        (₹19.8/profile)
+  ₹199  → 12 profiles       (₹16.6/profile, "Most popular")
+  ₹299  → 25 profiles       (₹12/profile, "Best value")
+  ₹499  → 50 profiles       (₹10/profile, VIP + matchmaker)
+  Add-ons: ⚡ Boost ₹49 • 👀 Who-viewed ₹49 • 🔮 Porutham ₹99 • ✅ Verify ₹199
   Referral ₹50 → friend pay chesinappudu (referral.py lo already undi)
 
 Rules (anti-spam + trust):

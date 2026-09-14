@@ -322,7 +322,7 @@ export default function Home() {
             {/* LEFT: 4 steps */}
             <div className="space-y-3">
               {[
-                { i: "💌", t: "1. Interest pampu (1 credit)", d: "Profile chusi \"Interest Pampu\" press chey — modati 3 requests FREE, tarvata ₹99 → 3 profiles." },
+                { i: "💌", t: "1. Interest pampu (1 credit)", d: "Profile chusi \"Interest Pampu\" press chey — modati 3 requests FREE, tarvata ₹99 → 5 profiles." },
                 { i: "📲", t: "2. Waallaki WhatsApp lo mee profile", d: "Mana WhatsApp nunchi vaallaki mee profile card + details veltundi — \"oka person mee profile chusi interesting ga unnaru\"." },
                 { i: "✅", t: "3. Accept aithe numbers exchange", d: "Vaallu accept chesthe — rendu numbers automatic ga WhatsApp lo. Direct ga call/chat chesukovachu, manam middle lo undamu." },
                 { i: "↩️", t: "4. Decline aithe credit refund", d: "Ee sari kudaraledu ante polite message + mee credit tirigi vasthundi. Ante evaru money waste cheyyaru." },
@@ -766,7 +766,7 @@ export default function Home() {
                 </h2>
                 <p className="mt-2 text-[13px] opacity-90 telugu max-w-xl">
                   Register FREE → profile card ready → {CHANNEL_STATS.total} channels network lo auto-post →
-                  modati 3 interest requests FREE. Tarvata ₹99 → 3 profiles, ₹199 → 10, ₹299 → 20.
+                  modati 3 interest requests FREE. Tarvata ₹99 → 5 profiles, ₹199 → 12, ₹299 → 25, ₹499 → 50 (VIP).
                 </p>
                 <div className="mt-4 flex flex-wrap gap-3">
                   <Link
