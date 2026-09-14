@@ -15,6 +15,10 @@ from matching_engine import calculate_match_score, generate_personalized_reasons
 from card_generator import generate_id, create_profile_card
 from credits import PLANS, can_view_number, deduct_credit, add_credits, can_search_id
 from referral import generate_referral_code, process_referral_payment, get_leaderboard, parse_referral_type
+from channels_config import (
+    CHANNELS, channel_stats, channels_by_tier, route_profile, build_caption,
+    build_hashtags, live_channels, pending_channels, all_channels, resolve_caste_key,
+)
 
 app = FastAPI(title="TSAP Matrimony API — Ultra Advanced", version="2.0")
 
@@ -39,7 +43,7 @@ def encrypt_phone(phone: str) -> str:
 
 @app.get("/")
 def root():
-    return {"message": "TSAP Matrimony API — Ultra Advanced, Deep, Never Before 🔥", "status": "LIVE", "version": "2.0", "endpoints": ["/register","/search/{id}","/matches/{id}","/payment/webhook","/admin/approve","/referral/leaderboard","/channels"]}
+    return {"message": "TSAP Matrimony API — Ultra Advanced, Deep, Never Before 🔥", "status": "LIVE", "version": "2.0", "endpoints": ["/api/register","/api/search/{id}","/api/matches/{id}","/api/payment/webhook","/api/admin/approve/{id}","/api/referral/leaderboard","/api/channels","/api/channels/route","/api/channels/live"]}
 
 @app.post("/api/register", response_model=RegisterResponse)
 async def register(
@@ -171,20 +175,16 @@ async def register(
             if u["referral_code"]==referral_code or u["phone"]==referral_code:
                 u["referral_stats"]["total"] += 1
 
-    # 6. Auto-post queue
-    auto_queue = []
-    # Main
-    main_ch = f"@{state.lower()}_{'brides' if gender=='Bride' else 'grooms'}"
-    auto_queue.append(main_ch)
-    # Caste
-    auto_queue.append(f"@tsap_{caste.lower()}")
-    # Special
-    if marital_status in ["Vidakuulu","Widow/Widower"]:
-        auto_queue.append("@tsap_second")
-    if marital_status=="Handicapped":
-        auto_queue.append("@tsap_handicapped")
-    if job=="Govt Job":
-        auto_queue.append("@tsap_govt")
+    # 6. Auto-post queue — ADVANCED ROUTER (region + religion + caste + specials)
+    route = route_profile({
+        "gender": gender, "state": state, "caste": caste, "age": age,
+        "marital_status": marital_status, "job": job, "education": education,
+        "district": district, "photo_private": photo_private,
+    })
+    auto_queue = route["usernames"]
+    user["auto_post_channels"] = auto_queue
+    user["auto_post_reasons"] = route["reasons"]
+    user["post_hashtags"] = route["hashtags"]
 
     # 7. Top 3 matches (from existing DB)
     opposite = "Bride" if gender=="Groom" else "Groom"
@@ -331,18 +331,22 @@ def admin_approve(tsap_id: str):
     user["is_approved"] = True
     user["is_verified"] = True
 
-    # Auto-post queue
-    queue = []
-    queue.append(f"@{user['state'].lower()}_{'brides' if user['gender']=='Bride' else 'grooms'}")
-    queue.append(f"@tsap_{user['caste'].lower()}")
-    if user["marital_status"]!="Pelli Kaledu":
-        queue.append("@tsap_second" if "Handicapped" not in user["marital_status"] else "@tsap_handicapped")
+    # Auto-post queue — ADVANCED ROUTER (same logic as register)
+    route = route_profile(user)
+    queue = route["usernames"]
+    user["posted_channels"] = queue
+    user["post_hashtags"] = route["hashtags"]
+    caption = build_caption(user, tsap_id, 92)
 
     # Save post log
     for ch in queue:
-        DB_POSTS.append({"user_id": tsap_id, "channel": ch, "posted_at": datetime.utcnow().isoformat()})
+        DB_POSTS.append({"user_id": tsap_id, "channel": ch, "hashtags": route["hashtags"],
+                         "posted_at": datetime.utcnow().isoformat()})
 
-    return {"success": True, "tsap_id": tsap_id, "posted_to": queue, "message": f"Approved + posted to {len(queue)} channels"}
+    return {"success": True, "tsap_id": tsap_id, "posted_to": queue,
+            "count": len(queue), "hashtags": route["hashtags"],
+            "caption_preview": caption,
+            "message": f"Approved + posted to {len(queue)} channels"}
 
 @app.post("/api/admin/make_premium/{tsap_id}")
 def admin_make_premium(tsap_id: str, gift_credits: int = 10):
@@ -353,26 +357,76 @@ def admin_make_premium(tsap_id: str, gift_credits: int = 10):
     user["plan"] = "PREMIUM_299"
     return {"success": True, "tsap_id": tsap_id, "new_credits": user["credits"], "message_telugu": f"💎 Admin gift! {gift_credits} credits FREE + Premium!"}
 
-@app.get("/api/channels")
-def channels():
+def _channel_public(key: str, ch: dict) -> dict:
+    """Registry channel → website-friendly JSON (join link, status, deep link, hashtags)."""
+    user = ch["username"]
     return {
-        "live_main": [
-            {"name": "TS Brides", "username": "@TSBRIDE", "link": "https://t.me/TSBRIDE", "status": "LIVE ✅ Bot Admin", "members": "Live"},
-            {"name": "TS Grooms", "username": "@TSGROOM1", "link": "https://t.me/TSGROOM1", "status": "LIVE ✅ Bot Admin", "members": "Live"},
-        ],
-        "upcoming": [
-            {"name": "AP Brides", "username": "@APBRIDE", "status": "Soon"},
-            {"name": "AP Grooms", "username": "@APGROOM1", "status": "Soon"},
-            {"name": "Official", "username": "@TSAP_MATRIMONY", "status": "Soon"},
-        ],
-        "caste_20": [f"@tsap_{c.lower()} (4.2k)" for c in ["Reddy","Kamma","Kapu","Velama","Vysya","Brahmin","Goud","Yadav"]],
-        "special": ["@tsap_second (1.2k) — 2nd Marriage", "@tsap_handicapped (450)", "@tsap_govt (2.8k)", "@tsap_nri (1.5k)"],
-        "total_live": 2,
-        "total_planned": 25,
-        "bot": "@telugumatrimony1_bot",
-        "deep_links": ["t.me/telugumatrimony1_bot?start=ch_tsbride", "t.me/telugumatrimony1_bot?start=ch_tsgroom1"],
-        "launch_waves": {"Wave-1 Day-1": "2 LIVE now (TSBRIDE, TSGROOM1) + Official soon, min 20 profiles each", "Wave-2": "AP channels + Caste", "Wave-3": "Total 25"}
+        "key": key,
+        "tier": ch.get("tier"),
+        "name": ch.get("name"),
+        "username": "@" + user,
+        "link": f"https://t.me/{user}",
+        "deep_link": f"https://t.me/telugumatrimony1_bot?start=ch_{user.lower()}",
+        "desc": ch.get("desc"),
+        "hashtags": ch.get("hashtags", []),
+        "wave": ch.get("wave"),
+        "live": bool(ch.get("live")),
+        "status": "LIVE ✅ Bot Admin" if ch.get("live") else f"Create — Wave-{ch.get('wave')}",
+        "fallbacks": ch.get("fallbacks", []),
     }
+
+@app.get("/api/channels")
+def channels(tier: Optional[str] = None):
+    """FULL master registry — 65 channels (L0 Official → L4 Special)."""
+    tiers = channels_by_tier()
+    out_tiers = {
+        t: [_channel_public(c["key"], c) for c in items]
+        for t, items in tiers.items()
+    }
+    if tier:
+        items = out_tiers.get(tier, [])
+        return {"tier": tier, "channels": items, "count": len(items), "stats": channel_stats()}
+    return {
+        "brand": "Mana Vivaha | TSAP Matrimony",
+        "site": "https://manavivaha.in",
+        "bot": "@telugumatrimony1_bot",
+        "stats": channel_stats(),
+        "tiers": {
+            "L0_OFFICIAL": "Brand hub — daily Top-3, success stories, safety alerts",
+            "L1_REGION": "State + gender flagship — TS/AP Bride & Groom, NRI",
+            "L2_RELIGION": "Hindu, Muslim, Christian, Other, Inter-faith",
+            "L3_CASTE": "Hindu caste-wise — ONE channel per caste (43)",
+            "L4_SPECIAL": "2nd marriage, differently-abled, govt job, IT, doctors, 35+, bureau",
+        },
+        "channels_by_tier": out_tiers,
+        "live": [_channel_public(c["key"], c) for c in live_channels()],
+        "to_create": [_channel_public(c["key"], c) for c in pending_channels()],
+        "total_live": channel_stats()["live"],
+        "total_planned": channel_stats()["total"],
+    }
+
+@app.post("/api/channels/route")
+def channels_route(payload: dict):
+    """
+    Profile → ee channels lo post avutundi (preview). Bot + website iddariki same logic.
+    Body: {"gender":"Bride","state":"TS","caste":"Reddy","age":24,"job":"Software Engineer", ...}
+    """
+    r = route_profile(payload)
+    return {
+        "success": True,
+        "channels": r["usernames"],
+        "keys": r["keys"],
+        "reasons": r["reasons"],
+        "hashtags": r["hashtags"],
+        "count": r["count"],
+        "notes": r["notes"],
+        "preview_caption": build_caption(payload, payload.get("tsap_id", "TSAP-F-2025-XXXX"), int(payload.get("score", 92))),
+    }
+
+@app.get("/api/channels/live")
+def channels_live():
+    return {"live": [_channel_public(c["key"], c) for c in live_channels()],
+            "count": channel_stats()["live"], "bot": "@telugumatrimony1_bot"}
 
 if __name__=="__main__":
     import uvicorn

@@ -1,34 +1,16 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
+import { ALL_CHANNELS, CHANNEL_STATS, Channel } from "@/lib/channels";
 
 export default function Home() {
   const [searchId, setSearchId] = useState("");
 
-  const mainChannels = [
-    { name: "TS Brides 👰", id: "TS Brides", members: "LIVE", color: "maroon", username: "@TSBRIDE", link: "https://t.me/TSBRIDE" },
-    { name: "TS Grooms 🤵", id: "TS Grooms", members: "LIVE", color: "navy", username: "@TSGROOM1", link: "https://t.me/TSGROOM1" },
-    { name: "AP Brides 👰", id: "AP Brides", members: "Soon", color: "maroon", username: "@APBRIDE", link: "#" },
-    { name: "AP Grooms 🤵", id: "AP Grooms", members: "Soon", color: "navy", username: "@APGROOM1", link: "#" },
-  ];
-
-  const casteChannels = [
-    { name: "Reddy", members: "4.2k", hot: true },
-    { name: "Kamma", members: "3.8k", hot: true },
-    { name: "Kapu", members: "3.1k", hot: false },
-    { name: "Velama", members: "2.5k", hot: true },
-    { name: "Vysya", members: "1.9k", hot: false },
-    { name: "Brahmin", members: "1.5k", hot: false },
-    { name: "Goud", members: "2.2k", hot: false },
-    { name: "Yadav", members: "1.8k", hot: false },
-  ];
-
-  const special = [
-    { name: "💔 2nd Marriage", desc: "Divorced/Widow — respectful", count: "1.2k" },
-    { name: "♿ Handicapped", desc: "Special needs — separate care", count: "450" },
-    { name: "👮 Govt Jobs", desc: "Govt job only — hot", count: "2.8k" },
-    { name: "🌍 NRI", desc: "USA, Gulf, Abroad", count: "1.5k" },
-  ];
+  // Registry nunchi (backend/channels_config.py → auto-generate) — mock numbers ledu
+  const regionChannels: Channel[] = ALL_CHANNELS.filter(c => c.tier === "L1_REGION");
+  const religionChannels: Channel[] = ALL_CHANNELS.filter(c => c.tier === "L2_RELIGION");
+  const casteChannels: Channel[] = ALL_CHANNELS.filter(c => c.tier === "L3_CASTE");
+  const specialChannels: Channel[] = ALL_CHANNELS.filter(c => c.tier === "L4_SPECIAL");
 
   const leaderboard = [
     { name: "Raju Broker", refers: 42, earned: "₹1260" },
@@ -118,20 +100,21 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Main 4 Channels */}
+      {/* Channels — Region + Religion */}
       <section className="max-w-7xl mx-auto px-4 py-6">
-        <h2 className="text-xl font-bold text-[#7A0C2E]">📢 Main 4 Channels — Live Members tho</h2>
-        <p className="text-xs text-gray-500 telugu">Main channels lo anni castes — daily 10+ kotha profiles</p>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3">
-          {mainChannels.map(ch=>(
-            <div key={ch.id} className={`rounded-2xl p-4 text-white card-shadow ${ch.color==='maroon'?'maroon-gradient':'navy-gradient'}`}>
-              <div className="text-sm font-bold">{ch.name}</div>
-              <div className="text-xs opacity-80 mt-1">{ch.members} members • 20+ today</div>
-              <div className="mt-3 flex gap-2">
+        <h2 className="text-xl font-bold text-[#7A0C2E]">📢 {CHANNEL_STATS.total} Channels Network — Region + Religion</h2>
+        <p className="text-xs text-gray-500 telugu">TS/AP • Muslim • Christian • NRI — anni communities okkate platform lo</p>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mt-3">
+          {[...regionChannels, ...religionChannels].slice(0, 10).map((ch: Channel) => (
+            <a key={ch.key} href={ch.live ? ch.link : "/channels"} target={ch.live ? "_blank" : undefined} rel="noreferrer"
+              className={`rounded-2xl p-3 text-white card-shadow block ${ch.key.startsWith("ts") ? "maroon-gradient" : "navy-gradient"}`}>
+              <div className="text-[13px] font-bold leading-tight">{ch.name}</div>
+              <div className="text-[11px] opacity-80 mt-1">{ch.status}</div>
+              <div className="mt-2 flex gap-1 flex-wrap">
                 <span className="text-[10px] bg-white/20 px-2 py-1 rounded-full">{ch.username}</span>
-                <span className="text-[10px] bg-[#D4AF37] text-[#7A0C2E] px-2 py-1 rounded-full font-bold">Join</span>
+                <span className="text-[10px] bg-[#D4AF37] text-[#7A0C2E] px-2 py-1 rounded-full font-bold">{ch.live ? "Join" : `W${ch.wave}`}</span>
               </div>
-            </div>
+            </a>
           ))}
         </div>
       </section>
@@ -139,34 +122,35 @@ export default function Home() {
       {/* Caste + Special */}
       <section className="max-w-7xl mx-auto px-4 py-6 grid md:grid-cols-3 gap-6">
         <div className="md:col-span-2">
-          <h2 className="text-xl font-bold text-[#7A0C2E]">💍 Caste-Wise Channels — 1 Caste = 1 Channel</h2>
-          <p className="text-xs text-gray-500 telugu">Mee caste channel lo join avvandi — same caste profiles easy ga</p>
+          <h2 className="text-xl font-bold text-[#7A0C2E]">💍 Caste-Wise Channels — {casteChannels.length} Castes, 1 Caste = 1 Channel</h2>
+          <p className="text-xs text-gray-500 telugu">Reddy nunchi Madiga, Lambada, Boya varaku — anni kulasthulu okkate platform</p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3">
-            {casteChannels.map(c=>(
-              <div key={c.name} className="bg-white rounded-2xl p-3 card-shadow border border-[#D4AF37]/20 hover:scale-105 transition cursor-pointer">
+            {casteChannels.slice(0, 16).map((c: Channel) => (
+              <a key={c.key} href="/channels"
+                className="bg-white rounded-2xl p-3 card-shadow border border-[#D4AF37]/20 hover:scale-105 transition cursor-pointer block">
                 <div className="flex items-center justify-between">
-                  <div className="font-bold text-sm text-[#7A0C2E]">{c.name}</div>
-                  {c.hot && <span className="text-[9px] bg-red-100 text-red-600 px-2 py-0.5 rounded-full">🔥 HOT</span>}
+                  <div className="font-bold text-sm text-[#7A0C2E]">{c.name.replace(/^💍 | \| TS-AP$/g, "").replace(" Matrimony", "")}</div>
+                  {c.wave === 1 && <span className="text-[9px] bg-red-100 text-red-600 px-2 py-0.5 rounded-full">🔥 W1</span>}
                 </div>
-                <div className="text-xs text-gray-500 mt-1">{c.members} • Today 5 new</div>
-                <div className="mt-2 text-[10px] text-[#D4AF37] font-semibold">@tsap_{c.name.toLowerCase()}</div>
-              </div>
+                <div className="text-xs text-gray-500 mt-1">{c.live ? "LIVE ✅" : `Wave-${c.wave}`}</div>
+                <div className="mt-2 text-[10px] text-[#D4AF37] font-semibold">{c.username}</div>
+              </a>
             ))}
           </div>
-          <Link href="/channels" className="inline-block mt-3 text-xs text-[#7A0C2E] font-bold border border-[#7A0C2E] px-4 py-2 rounded-full">📂 Anni 20 Caste Channels Chudu →</Link>
+          <Link href="/channels" className="inline-block mt-3 text-xs text-[#7A0C2E] font-bold border border-[#7A0C2E] px-4 py-2 rounded-full">📂 Anni {CHANNEL_STATS.total} Channels Chudu →</Link>
         </div>
         <div>
-          <h2 className="text-lg font-bold text-[#7A0C2E]">✨ Special Categories</h2>
+          <h2 className="text-lg font-bold text-[#7A0C2E]">✨ Special Categories ({specialChannels.length})</h2>
           <div className="space-y-3 mt-3">
-            {special.map(s=>(
-              <div key={s.name} className="bg-white rounded-2xl p-3 card-shadow flex items-center gap-3">
-                <div className="w-10 h-10 bg-[#FFF8E7] rounded-xl flex items-center justify-center text-lg">{s.name.split(' ')[0]}</div>
-                <div className="flex-1">
-                  <div className="font-bold text-sm">{s.name}</div>
-                  <div className="text-[11px] text-gray-500">{s.desc}</div>
+            {specialChannels.map((sp: Channel) => (
+              <a key={sp.key} href="/channels" className="bg-white rounded-2xl p-3 card-shadow flex items-center gap-3 block">
+                <div className="w-10 h-10 bg-[#FFF8E7] rounded-xl flex items-center justify-center text-lg">{sp.name.split(' ')[0]}</div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-bold text-sm truncate">{sp.name.replace(/^[^\s]+\s/, "")}</div>
+                  <div className="text-[11px] text-gray-500 truncate">{sp.desc}</div>
                 </div>
-                <div className="text-[11px] bg-[#7A0C2E] text-white px-2 py-1 rounded-full">{s.count}</div>
-              </div>
+                <div className="text-[11px] bg-[#7A0C2E] text-white px-2 py-1 rounded-full whitespace-nowrap">{sp.live ? "LIVE" : `W${sp.wave}`}</div>
+              </a>
             ))}
           </div>
         </div>
@@ -249,7 +233,7 @@ export default function Home() {
           <div>
             <div className="font-bold text-[#D4AF37]">TSAP Matrimony</div>
             <div className="text-xs opacity-70 mt-2 telugu">TS + AP No.1 — Bot + Website + Channels — ₹99 ke sambandham — First 3 FREE — Telugu lo</div>
-            <div className="mt-3 text-xs">📱 Telegram: @tsap_bot<br/>📢 Channels: 25<br/>🏢 Bureau: 10 joined</div>
+            <div className="mt-3 text-xs">📱 Telegram: @telugumatrimony1_bot<br/>📢 Channels: {CHANNEL_STATS.total} (Regions + Religions + {CHANNEL_STATS.by_tier.L3_CASTE} Castes + Special)<br/>🏢 Bureau: 10 joined</div>
           </div>
           <div>
             <div className="font-bold">Main Links</div>

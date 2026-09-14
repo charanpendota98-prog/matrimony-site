@@ -1,9 +1,10 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { CASTE_OPTIONS } from "@/lib/channels";
 
-export default function RegisterPageAdvanced() {
+function RegisterContent() {
   const searchParams = useSearchParams();
   const refFromUrl = searchParams.get('ref');
 
@@ -117,7 +118,8 @@ export default function RegisterPageAdvanced() {
 
   const districtsTS = ["Adilabad", "Bhadradri", "Hanumakonda", "Hyderabad", "Jagtial", "Jangaon", "Jayashankar", "Jogulamba", "Kamareddy", "Karimnagar", "Khammam", "Kumuram Bheem", "Mahabubabad", "Mahabubnagar", "Mancherial", "Medak", "Medchal", "Mulugu", "Nagarkurnool", "Nalgonda", "Narayanpet", "Nirmal", "Nizamabad", "Peddapalli", "Rajanna Sircilla", "Rangareddy", "Sangareddy", "Siddipet", "Suryapet", "Vikarabad", "Wanaparthy", "Warangal", "Yadadri"];
   const districtsAP = ["Alluri", "Anakapalli", "Ananthapur", "Annamayya", "Bapatla", "Chittoor", "East Godavari", "Eluru", "Guntur", "YSR Kadapa", "Kakinada", "Konaseema", "Krishna", "Kurnool", "Nandyal", "Nellore", "NTR", "Palnadu", "Parvathipuram", "Prakasam", "Srikakulam", "Sri Sathya Sai", "Tirupati", "Visakhapatnam", "Vizianagaram", "West Godavari"];
-  const castes = ["Reddy", "Kamma", "Kapu", "Velama", "Vysya", "Brahmin", "Goud", "Yadav", "Mudiraj", "Padmashali", "Raju", "SC-Mala", "SC-Madiga", "ST-Lambadi", "Muslim", "Christian", "Open"];
+  // 43 caste channels + Muslim/Christian/Open — registry nunchi auto (backend/channels_config.py)
+  const castes = CASTE_OPTIONS;
   const educations = ["10th", "Inter", "Degree", "BTech", "MTech", "MBBS", "BDS", "MBA", "MCA", "PhD", "CA", "IAS", "LLB", "BEd", "Others"];
   const jobs = ["Govt Job", "Private Job", "Software", "Business", "Agriculture", "Abroad-NRI", "No Job", "Doctor", "Engineer", "Teacher", "Police", "Bank", "Army"];
 
@@ -818,5 +820,21 @@ export default function RegisterPageAdvanced() {
         )}
       </div>
     </div>
+  );
+}
+
+// Next.js 14: useSearchParams() ki Suspense boundary MUST — lekapothe production build fail
+export default function RegisterPageAdvanced() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-[#FFF8E7]">
+        <div className="text-center">
+          <div className="text-3xl">💍</div>
+          <div className="font-bold text-[#7A0C2E] mt-2">Mana Vivaha — Register form load avuthundi...</div>
+        </div>
+      </div>
+    }>
+      <RegisterContent />
+    </Suspense>
   );
 }
