@@ -5,6 +5,10 @@
 
 ---
 
+> 🔁 **Bots + WhatsApp numbers failover (enni kavali, ela set cheyyali):** **FAILOVER-BOTS-WHATSAPP-TELUGU.md**
+
+---
+
 ## 1) Architecture — enduku idi best 🏆
 
 ```

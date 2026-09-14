@@ -31,6 +31,9 @@ services:
       - DATABASE_URL=postgresql://tsap:tsap123@postgres:5432/tsap_matrimony
       - REDIS_URL=redis://redis:6379
       - BOT_TOKEN=${BOT_TOKEN}
+      - WA_MAX_ATTEMPTS=${WA_MAX_ATTEMPTS}
+      - BOT_TOKEN_ALERT=${BOT_TOKEN_ALERT}
+      - BOT_TOKEN_BACKUP=${BOT_TOKEN_BACKUP}
       - RAZORPAY_KEY=${RAZORPAY_KEY}
       - RAZORPAY_SECRET=${RAZORPAY_SECRET}
       - ADMIN_CHAT_ID=${ADMIN_CHAT_ID}
@@ -117,6 +120,37 @@ services:
     environment:
       - PORT=3001
       - SESSION_DIR=/app/session
+      - BRIDGE_NAME=wa1
+      - BRIDGE_TOKEN=${WA1_BRIDGE_TOKEN:-}
+    restart: unless-stopped
+
+  # OPTIONAL — 2nd WhatsApp number (failover + load split). Start: docker-compose up -d whatsapp-bridge2
+  # QR: http://<server>:3002/qr  → .env WA_INSTANCES lo http://whatsapp-bridge2:3000 add chey
+  whatsapp-bridge2:
+    build: ./whatsapp-bridge
+    ports:
+      - "3002:3001"
+    volumes:
+      - ./whatsapp-bridge/session2:/app/session
+    environment:
+      - PORT=3001
+      - SESSION_DIR=/app/session
+      - BRIDGE_NAME=wa2
+      - BRIDGE_TOKEN=${WA2_BRIDGE_TOKEN:-}
+    restart: unless-stopped
+
+  # OPTIONAL — 3rd WhatsApp number (requests lane + backup). QR: http://<server>:3003/qr
+  whatsapp-bridge3:
+    build: ./whatsapp-bridge
+    ports:
+      - "3003:3001"
+    volumes:
+      - ./whatsapp-bridge/session3:/app/session
+    environment:
+      - PORT=3001
+      - SESSION_DIR=/app/session
+      - BRIDGE_NAME=wa3
+      - BRIDGE_TOKEN=${WA3_BRIDGE_TOKEN:-}
     restart: unless-stopped
 
   # OPTIONAL — docker nginx. Host nginx (certbot) unte idi vaddu (port conflict).

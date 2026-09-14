@@ -33,10 +33,10 @@ except Exception:  # fonts/PIL lekapoyina server padipodu
 import growth
 from growth import (namaste_text, admin_new_profile_text, lead_followup_text,
                       track_visit, save_lead, lead_stats, leads_list, share_kit, inventory_status)
-from publisher import (
+from publisher import (dead_letters, requeue_dead,
     enqueue, publish_profile, publish_status, read_log, start_worker, worker_running,
     build_whatsapp_text, build_share_text, config as publish_config,
-    enqueue_whatsapp, wa_queue_stats, start_wa_worker, whatsapp_link, WA_QUEUE,
+    enqueue_whatsapp, wa_queue_stats, start_wa_worker, whatsapp_link, WA_QUEUE, WA_DEAD,
 )
 from wa_antiban import ENGINE as WA_ENGINE
 from interest import (
@@ -48,7 +48,7 @@ from interest import (
 )
 from card_generator import generate_id as _gen_id
 from porutham import compute_porutham, porutham_line, norm_nakshatra, norm_rasi
-import topmatch, safety, preview
+import topmatch, safety, preview, bot_pool, wa_pool
 from interest import ADDONS, RENEWALS, is_addon, get_addon, get_renewal, plan_list_with_free, addon_list, renewal_offer
 from channels_config import post_targets
 
@@ -1063,8 +1063,56 @@ def interest_status(request_id: str):
 # ---------------------------------------------------------------- WhatsApp control
 @app.get("/api/wa/status")
 def wa_status():
-    """Anti-ban live status: gap, caps, queue, quiet hours, cooldown."""
-    return {"ok": True, **wa_queue_stats()}
+    """Anti-ban live status: gap, caps, queue, quiet hours, cooldown + per-number instances."""
+    return {"ok": True, **wa_queue_stats(),
+            "instances": wa_pool.wa_health(),
+            "per_number": {i["name"]: {"sent_today": i["sent_today"], "cap": i["daily_cap"],
+                                       "status": i["status"], "available": i["available"]}
+                           for i in wa_pool.wa_health()["instances"]}}
+
+
+@app.get("/api/system/health")
+def system_health():
+    """
+    🩺 FULL SYSTEM HEALTH — bots (failover order) + WhatsApp numbers + queue + dead-letters.
+    Dashboard lo idi chudandi: okati down ayithe pakkadi automatic ga pani chestundi.
+    """
+    bt = bot_pool.bot_health()
+    wa = wa_pool.wa_health()
+    dead = dead_letters(5)
+    problems = []
+    if bt["configured"] == 0:
+        problems.append("Telegram bots configure cheyyaledu (BOT_TOKEN)")
+    elif bt["available"] == 0:
+        problems.append("Anni Telegram bots cooldown/dead lo unnayi")
+    if wa["configured"] == 0:
+        problems.append("WhatsApp instances ledu (WA_INSTANCES / WHATSAPP_BRIDGE_URL)")
+    elif wa["available"] == 0:
+        problems.append("Anni WhatsApp numbers unavailable (QR/caps/cooldown)")
+    return {"ok": not problems, "problems": problems,
+            "bots": bt, "whatsapp": wa,
+            "queue": {"pending": len(WA_QUEUE), "dead": len(WA_DEAD)},
+            "dead_letters_preview": dead["items"],
+            "message_telugu": ("Anni healthy ✅ — okati fail aina pakkadi ventane pampistundi"
+                               if not problems else " ⚠️ ".join(problems))}
+
+
+@app.get("/api/wa/dead")
+def wa_dead(limit: int = 50):
+    """💀 Dead-letter list — 3 tries ayyaka kooda deliver kaani messages (bridge problem)."""
+    return dead_letters(limit)
+
+
+@app.post("/api/wa/dead/requeue")
+def wa_dead_requeue(limit: int = 20):
+    """Bridge fix ayyaka dead-letters ni malli queue lo vey."""
+    return requeue_dead(limit)
+
+
+@app.get("/api/bots/health")
+def bots_health():
+    """🤖 Telegram bots health + failover order (primary → backup → alert)."""
+    return {"ok": True, **bot_pool.bot_health()}
 
 
 @app.post("/api/wa/pause")

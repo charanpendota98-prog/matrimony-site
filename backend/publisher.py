@@ -46,6 +46,8 @@ try:
 except Exception:  # pragma: no cover
     httpx = None
 
+import bot_pool
+import wa_pool
 from channels_config import (
     CHANNELS, post_targets, build_caption, route_profile, channel_stats, SITE, BOT_USERNAME,
 )
@@ -62,7 +64,9 @@ _WORKER_TASK: Optional[asyncio.Task] = None
 # ---- WhatsApp anti-ban queue (priority 0 = interest/request, 1 = channel post) ----
 WA_QUEUE: List[Dict] = []
 _WA_TASK: Optional[asyncio.Task] = None
-WA_STATS = {"sent": 0, "failed": 0, "skipped": 0, "last": []}
+WA_STATS = {"sent": 0, "failed": 0, "skipped": 0, "dead": 0, "last": []}
+WA_DEAD: List[Dict] = []            # 3 tries ayyaka kooda fail ayina messages (dead-letter)
+WA_MAX_ATTEMPTS = int(os.getenv("WA_MAX_ATTEMPTS", "3"))
 
 
 def wa_queue_stats() -> Dict:
@@ -121,7 +125,10 @@ def publish_status() -> Dict:
         "dry_run": c["dry_run"],
         "auto_post_on_register": c["auto_post_on_register"],
         "whatsapp_queue": wa_queue_stats(),
-        "order": "telegram → whatsapp (random gap)",
+        "bots": bot_pool.bot_health(),
+        "whatsapp_instances": wa_pool.wa_health(),
+        "dead_letters": len(WA_DEAD),
+        "order": "telegram → whatsapp (random gap) · okati fail aithe pakka bot/number ki failover",
         "queued": len(PUBLISH_QUEUE),
         "published_total": len([x for x in PUBLISH_LOG if x.get("ok")]),
         "registry": {"total": st["total"], "live": st["live"], "to_create": st["to_create"]},
@@ -173,39 +180,14 @@ def build_share_text(profile: Dict, tsap_id: str) -> str:
 # LOW-LEVEL SENDERS
 # ---------------------------------------------------------------------------
 async def _send_telegram(chat: str, caption: str, photo_path: Optional[str], cfg: Dict) -> Dict:
-    """Bot API sendPhoto/sendMessage — retry + rate-limit tho."""
-    if cfg["dry_run"] or not cfg["bot_token"] or httpx is None:
+    """
+    Bot API sendPhoto/sendMessage — **bot pool failover** tho.
+    Primary fail/rate-limit aithe backup bot (same channels lo admin) ventane post chestundi.
+    """
+    if cfg["dry_run"]:
         return {"ok": True, "dry_run": True, "detail": f"would post to {chat}"}
-    url_base = f"https://api.telegram.org/bot{cfg['bot_token']}"
-    last_err = ""
-    for attempt in range(1, cfg["retries"] + 1):
-        try:
-            async with httpx.AsyncClient(timeout=30) as client:
-                if photo_path and os.path.exists(photo_path):
-                    with open(photo_path, "rb") as f:
-                        resp = await client.post(
-                            f"{url_base}/sendPhoto",
-                            data={"chat_id": chat, "caption": caption[:1024], "parse_mode": "HTML"},
-                            files={"photo": f},
-                        )
-                else:
-                    resp = await client.post(
-                        f"{url_base}/sendMessage",
-                        data={"chat_id": chat, "text": caption[:4096], "disable_web_page_preview": True},
-                    )
-            data = resp.json()
-            if data.get("ok"):
-                return {"ok": True, "message_id": data["result"].get("message_id")}
-            last_err = str(data)[:200]
-            # 429 → retry_after wait
-            retry_after = (data.get("parameters") or {}).get("retry_after")
-            if retry_after:
-                await asyncio.sleep(float(retry_after) + 1)
-                continue
-        except Exception as e:  # network / timeout
-            last_err = f"{type(e).__name__}: {e}"[:200]
-        await asyncio.sleep(1.5 * attempt)
-    return {"ok": False, "error": last_err}
+    return await bot_pool.get_pool().post(chat, caption, photo_path=photo_path,
+                                          role="post", parse_mode="HTML")
 
 
 async def _send_whatsapp_cloud(text: str, cfg: Dict) -> List[Dict]:
@@ -275,25 +257,27 @@ def whatsapp_link(phone: str, text: str) -> str:
     return f"https://wa.me/{digits}?text=" + urllib.parse.quote(text[:1500])
 
 
-async def _wa_deliver(item: Dict, cfg: Dict) -> Dict:
-    """Oka WhatsApp message ni deliver chey (cloud_api leda bridge)."""
+async def _wa_send_via_instance(inst, item: Dict, cfg: Dict) -> Dict:
+    """Oka WhatsApp instance (bridge number) ki message pampu — image + text fallback tho."""
     target = item["target"]
     text = wa_variantize(item["text"], SITE, BOT_USERNAME)
+    base = (inst.url or "").rstrip("/")
+    for suffix in ("/send-image", "/send", "/status"):
+        if base.endswith(suffix):
+            base = base[: -len(suffix)]
+    if not base:
+        return {"ok": False, "error": "instance url ledu (%s)" % getattr(inst, "name", "?")}
     if cfg["dry_run"] or httpx is None:
         return {"ok": True, "dry_run": True, "target": target, "kind": item.get("kind", "post"),
-                "text_preview": text[:80]}
-    if cfg["wa_mode"] == "cloud_api":
-        res = await _send_whatsapp_cloud(text, dict(cfg, wa_to=[target]))
-        return (res[0] if res else {"ok": False, "target": target, "error": "cloud_api empty"})
-    base = _bridge_base(cfg)
-    if not base:
-        return {"ok": False, "target": target, "error": "WHATSAPP_BRIDGE_URL set cheyyaledu"}
+                "instance": getattr(inst, "name", "?"), "text_preview": text[:80]}
+    headers = {"X-Bridge-Token": inst.token} if getattr(inst, "token", "") else {}
     typing_ms = WA_ENGINE.typing_ms()
     async with httpx.AsyncClient(timeout=60) as client:
         img_url = item.get("image_url") or (_public_base() + "/cards/" + item["image_id"] + ".png"
                                             if item.get("image_id") else "")
         img_path = item.get("image_path")
         has_img = bool(img_url or (img_path and os.path.exists(img_path)))
+        err = ""
         try:
             if has_img:
                 payload = {"target": target, "caption": text[:1000], "typingMs": typing_ms}
@@ -301,16 +285,14 @@ async def _wa_deliver(item: Dict, cfg: Dict) -> Dict:
                     payload["imagePath"] = img_path
                 else:
                     payload["imageUrl"] = img_url
-                resp = await client.post(f"{base}/send-image", json=payload)
+                resp = await client.post(f"{base}/send-image", json=payload, headers=headers)
                 if resp.status_code < 300:
                     return {"ok": True, "target": target, "status": resp.status_code,
-                            "kind": item.get("kind", "post"), "with_image": True}
-                # image fail aithe text-only fallback
+                            "kind": item.get("kind", "post"), "with_image": True,
+                            "instance": getattr(inst, "name", "?")}
                 err = resp.text[:150]
-            else:
-                err = ""
             resp = await client.post(f"{base}/send", json={"target": target, "text": text,
-                                                          "typingMs": typing_ms})
+                                                          "typingMs": typing_ms}, headers=headers)
             body = {}
             try:
                 body = resp.json()
@@ -318,9 +300,76 @@ async def _wa_deliver(item: Dict, cfg: Dict) -> Dict:
                 body = {}
             return {"ok": resp.status_code < 300, "target": target, "status": resp.status_code,
                     "kind": item.get("kind", "post"), "with_image": False,
+                    "instance": getattr(inst, "name", "?"),
                     "error": "" if resp.status_code < 300 else (str(body.get("error") or resp.text)[:150] or err)}
         except Exception as e:
-            return {"ok": False, "target": target, "error": f"{type(e).__name__}: {e}"[:150]}
+            return {"ok": False, "network_error": True, "target": target, "instance": getattr(inst, "name", "?"),
+                    "error": f"{type(e).__name__}: {e}"[:150]}
+
+
+def _wa_lane(item: Dict) -> str:
+    """priority 0 = interest/request (fast lane) → requests lane; migilinavi post lane."""
+    return "requests" if int(item.get("priority", 1)) == 0 else "post"
+
+
+def _wa_pick_instance(item: Dict):
+    """Per-number anti-ban: ee kshanam lo e instance pampochu (gap/cap ok) — adi mundu istham."""
+    lane = _wa_lane(item)
+    for inst in wa_pool.get_pool().order(lane):
+        try:
+            ok, _reason, _wait = wa_pool.engine_for(inst.name).check(item.get("target"), item.get("priority", 1))
+        except Exception:
+            ok = True
+        if ok:
+            return inst
+    return None
+
+
+async def _wa_deliver(item: Dict, cfg: Dict) -> Dict:
+    """
+    Oka WhatsApp message ni deliver chey — **multi-number failover** tho.
+    Instance 1 fail aithe ventane 2 → 3. Antha fail aithe `ok: False` (worker retry + dead-letter).
+    """
+    if cfg["wa_mode"] == "cloud_api":
+        text = wa_variantize(item["text"], SITE, BOT_USERNAME)
+        if cfg["dry_run"] or httpx is None:
+            return {"ok": True, "dry_run": True, "target": item["target"]}
+        res = await _send_whatsapp_cloud(text, dict(cfg, wa_to=[item["target"]]))
+        return (res[0] if res else {"ok": False, "target": item["target"], "error": "cloud_api empty"})
+    lane = _wa_lane(item)
+    pool = wa_pool.get_pool()
+    preferred = _wa_pick_instance(item)
+    res = await pool.deliver(item, lane=lane, deliverer=lambda inst, it: _wa_send_via_instance(inst, it, cfg),
+                             preferred=getattr(preferred, "name", None))
+    if res.get("instance"):
+        try:
+            wa_pool.engine_for(res["instance"]).record_send(item.get("target"), ok=True,
+                                                            detail=res.get("kind", ""),
+                                                            priority=item.get("priority", 1))
+        except Exception:
+            pass
+    return res
+
+
+def dead_letters(limit: int = 50) -> Dict:
+    """Dead-letter list — 3 tries ayyaka kooda deliver kaani messages."""
+    return {"count": len(WA_DEAD), "items": WA_DEAD[-limit:],
+            "message_telugu": "Ivi 3 tries ayyaka kooda vellaledu — bridge/number problem. "
+                              "QR malli scan chesi /api/wa/dead/requeue tho pampandi."}
+
+
+def requeue_dead(limit: int = 20) -> Dict:
+    """Dead-letters ni queue lo malli vey (bridge fix ayyaka)."""
+    moved = 0
+    while WA_DEAD and moved < limit:
+        rec = WA_DEAD.pop(0)
+        WA_QUEUE.append({"target": rec.get("target"), "text": rec.get("text", ""),
+                         "image_id": rec.get("image_id", ""), "image_path": rec.get("image_path"),
+                         "priority": rec.get("priority", 1), "kind": rec.get("kind", "post"),
+                         "queued_at": datetime.utcnow().isoformat(), "attempts": 0,
+                         "requeued_from_dead": True})
+        moved += 1
+    return {"requeued": moved, "queue": len(WA_QUEUE), "dead_left": len(WA_DEAD)}
 
 
 def enqueue_whatsapp(targets: List[str], text: str, image_id: str = "", image_path: Optional[str] = None,
@@ -393,10 +442,27 @@ async def _wa_worker_loop():
                 WA_STATS["sent"] += 1
             else:
                 WA_STATS["failed"] += 1
-            if not ok and int(item.get("attempts", 0)) < 1:
-                item["attempts"] = int(item.get("attempts", 0)) + 1
-                item["queued_at"] = datetime.utcnow().isoformat()
-                WA_QUEUE.append(item)   # okasari retry (network flake) — tarvata drop
+            if not ok:
+                attempts = int(item.get("attempts", 0)) + 1
+                item["attempts"] = attempts
+                item["last_error"] = res.get("error", "")
+                if attempts < WA_MAX_ATTEMPTS:
+                    # ♻️ retry — 3 attempts varaku (instances failover tho paatu)
+                    item["queued_at"] = datetime.utcnow().isoformat()
+                    WA_QUEUE.append(item)
+                else:
+                    # 💀 dead-letter — anni numbers fail + 3 tries ayyayi → admin alert (manual retry)
+                    dead = wa_pool.get_pool().dead_letter(item, res.get("attempts", []))
+                    WA_DEAD.append(dead)
+                    WA_STATS["dead"] += 1
+                    try:
+                        await bot_pool.get_pool().send_alert(
+                            "🚨 *WhatsApp delivery fail*\nTarget: %s\nKind: %s\nAttempts: %s\nReason: %s\n\n"
+                            "Bridge QR check cheyyandi → /api/wa/dead/requeue tho malli pampochu."
+                            % (item.get("target"), item.get("kind"), attempts,
+                               str(res.get("error"))[:200]), parse_mode="Markdown")
+                    except Exception:
+                        pass
             WA_STATS["last"].append({"at": datetime.utcnow().isoformat(), "target": item["target"],
                                      "ok": ok, "kind": item.get("kind"), "detail": res.get("error", "")})
             WA_STATS["last"] = WA_STATS["last"][-20:]

@@ -20,3 +20,8 @@ backend/wa_state.json
 backend/channel_setup_state.json
 backend/channel_setup_report.json
 backend/channel_check_report.json
+
+# Failover runtime state (bot/WA pool) — production lo generate avutundi
+backend/wa_pool_state.json
+backend/wa_state_*.json
+backend/wa_state/ 

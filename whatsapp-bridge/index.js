@@ -33,10 +33,20 @@ const {
 } = require("@whiskeysockets/baileys");
 
 const PORT = process.env.PORT || 3001;
+const BRIDGE_TOKEN = (process.env.BRIDGE_TOKEN || "").trim();   // optional — multi-number lo okkokati
+const BRIDGE_NAME = (process.env.BRIDGE_NAME || "wa1").trim();  // logs/status lo kanipisthundi
+
+// Failover pool: mana backend X-Bridge-Token pampisthundi (set cheyyakapote open)
+function authOk(req) {
+  if (!BRIDGE_TOKEN) return true;
+  return (req.headers["x-bridge-token"] || "") === BRIDGE_TOKEN;
+}
+const requireAuth = (req, res, next) => (authOk(req) ? next() : res.status(401).json({ ok: false, error: "bridge token tappu" }));
 const SESSION_DIR = process.env.SESSION_DIR || path.join(__dirname, "session");
 
 const app = express();
 app.use(express.json({ limit: "2mb" }));
+app.use(requireAuth);   // X-Bridge-Token (set cheyyakapote open)
 
 let sock = null;
 let connected = false;
@@ -169,7 +179,9 @@ app.post("/send-image", async (req, res) => {
   }
 });
 
+app.get("/health", (req, res) => res.json({ ok: true, name: BRIDGE_NAME, connected }));
 app.get("/status", (req, res) => res.json({
+  name: BRIDGE_NAME,
   connected,
   groups: groups.length,
   groupList: groups.slice(0, 50),

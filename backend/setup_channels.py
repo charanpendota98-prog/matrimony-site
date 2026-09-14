@@ -298,6 +298,56 @@ def write_kits(keys: list | None = None, wave: int | None = None) -> list:
     return written
 
 
+
+def write_create_list_telugu(path: str | None = None, wave: int | None = None) -> str:
+    """📱 Phone lo channel create cheyyadaniki SIMPLE copy-paste list (Telugu)."""
+    rows = plan_rows(wave)
+    path = path or os.path.join(ROOT, "CHANNEL-CREATE-LIST-TELUGU.md")
+    by_wave: Dict[int, list] = {}
+    for r in rows:
+        by_wave.setdefault(r["wave"], []).append(r)
+    telugu_wave = {1: "మొదటి దశ (వెంటనే చేయండి)", 2: "రెండో దశ", 3: "మూడో దశ", 4: "నాలుగో దశ"}
+    lines = [
+        "# 📱 CHANNEL CREATE LIST — ఇది చూసి ఒక్కొక్కటి create చేయండి",
+        "",
+        f"**మొత్తం {len(rows)} channels** — కానీ ఒకేసారి అన్నీ వద్దు. **దశ (wave) ప్రకారం** చేయండి.",
+        "ప్రతి channel ki: **Name copy → Username copy → Description paste → @telugumatrimony1_bot ni admin**",
+        "",
+        "## ⚡ ఒక్కో channel ki 4 నిమిషాలు (phone lo)",
+        "1. Telegram → ☰ → **New Channel** → Name (క్రింద టేబుల్ నుంచి copy) → **Public** → Username (copy)",
+        "2. Description paste (kit file లో ఉంది — `channel-kits/<key>.md`) → Create",
+        "3. Channel → **Administrators** → Add Admin → `@telugumatrimony1_bot` → Change Info + Post + Edit + Pin ✅",
+        "4. `python setup_channels.py --apply --key <key>` → title/desc/DP/📌 pinned అన్నీ ఆటో సెట్",
+        "",
+        "**Username already taken అయితే?** → పక్కన fallback username వాడండి (అదే పని చేస్తుంది).",
+        "",
+    ]
+    for w in sorted(by_wave):
+        lines += [f"## 🌊 Wave {w} — {telugu_wave.get(w, '')} ({len(by_wave[w])} channels)", "",
+                  "| # | Name (copy) | Username (copy) | Fallback | Status |",
+                  "|---|---|---|---|---|"]
+        for i, r in enumerate(by_wave[w], 1):
+            lines.append("| %d | `%s` | `@%s` | %s | %s |"
+                         % (i, r["name"], r["username"],
+                            ", ".join("@" + f for f in r["fallbacks"][:2]) or "-",
+                            "✅ LIVE" if r["live"] else "⬜ create"))
+        lines.append("")
+        if w == 1:
+            lines += ["### ✅ Wave-1 ayyaka ee command run cheyyandi", "",
+                      "```bash", "export BOT_TOKEN=xxxx",
+                      "python setup_channels.py --apply --wave 1 --mark-live",
+                      "python setup_channels.py --check          # anni perfect ఉన్నాయా చూడండి", "```", ""]
+    lines += ["## 🎯 ముఖ్యమైన సూచనలు", "",
+              "- **Wave-1 = 17 channels** (Official + 4 main + 6 castes × bride/groom) — ఇవి ముందు చేయండి",
+              "- ఒకేసారి 20+ channels create చేయకండి (Telegram 'Too Many Attempts' ఇస్తుంది) → 10 చేసి 1 గంట ఆగండి",
+              "- **@TSBRIDE / @TSGROOM1** ఇప్పటికే ఉన్నాయి — వాటికి bot admin ఉందో ఒకసారి check చేయండి",
+              "- AP channels: `@APBRIDE`, `@APGROOM1` (India motham lo ఎవరూ తీసుకోకుండా ముందే పెట్టేయండి)",
+              "- Caste channels: top 6 castes → Reddy, Kamma, Kapu, Velama, Vysya, Brahmin (bride + groom separate)",
+              ""]
+    open(path, "w").write("\n".join(lines))
+    return path
+
+
 # ===========================================================================
 # CHECK / APPLY (token kavali)
 # ===========================================================================
@@ -626,6 +676,7 @@ def main() -> int:
     ap = argparse.ArgumentParser(description="Mana Vivaha channel setup automation")
     ap.add_argument("--plan", action="store_true", help="creation plan print + CHANNELS-SETUP-CHECKLIST.md")
     ap.add_argument("--kit", action="store_true", help="prathi channel ki kit file (channel-kits/)")
+    ap.add_argument("--create-list", action="store_true", help="📱 Telugu copy-paste create list (phone ki)")
     ap.add_argument("--photos", action="store_true", help="channel DP images generate")
     ap.add_argument("--check", action="store_true", help="Telegram lo status check")
     ap.add_argument("--apply", action="store_true", help="title/desc/DP/pinned auto set")
@@ -644,7 +695,11 @@ def main() -> int:
         out = generate_all_photos(args.wave, args.key)
         print("🖼️  %d channel DP images → %s" % (len(out), ASSET_DIR))
         return 0
-    if args.plan or not any([args.kit, args.check, args.apply, args.photos]):
+    if args.create_list:
+        p = write_create_list_telugu(None, args.wave)
+        print("📱 create list (Telugu): %s" % p)
+        return 0
+    if args.plan or not any([args.kit, args.check, args.apply, args.photos, args.create_list]):
         print_plan(args.wave)
         print("\n📄 checklist: %s" % write_plan_md(None, args.wave))
         print("🧾 caste coverage: %s" % caste_split_report())
