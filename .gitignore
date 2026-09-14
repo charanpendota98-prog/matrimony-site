@@ -7,3 +7,10 @@ frontend/.env.local
 # python
 __pycache__/
 *.pyc
+
+# runtime
+backend/publish_log.jsonl
+publish_logs/*.jsonl
+whatsapp-bridge/session/
+cards/TSAP-*.png
+photos/
