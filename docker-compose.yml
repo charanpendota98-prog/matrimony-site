@@ -23,6 +23,8 @@ services:
       - ./backend:/app
       - ./cards:/tmp/cards
       - ./photos:/tmp/photos
+      - ./cards:/app/cards
+      - ./publish_logs:/app/publish_logs
     ports:
       - "8000:8000"
     environment:
@@ -31,6 +33,20 @@ services:
       - BOT_TOKEN=${BOT_TOKEN}
       - RAZORPAY_KEY=${RAZORPAY_KEY}
       - RAZORPAY_SECRET=${RAZORPAY_SECRET}
+      - ADMIN_CHAT_ID=${ADMIN_CHAT_ID}
+      - SITE_URL=${SITE_URL:-https://manavivaha.in}
+      # Auto-publish (Telegram + WhatsApp)
+      - AUTO_POST_ON_REGISTER=${AUTO_POST_ON_REGISTER:-true}
+      - PUBLISH_DRY_RUN=${PUBLISH_DRY_RUN:-false}
+      - PUBLISH_RETRIES=${PUBLISH_RETRIES:-3}
+      - PUBLISH_RATE_LIMIT=${PUBLISH_RATE_LIMIT:-1.2}
+      # WhatsApp: off | cloud_api | bridge
+      - WHATSAPP_MODE=${WHATSAPP_MODE:-off}
+      - WHATSAPP_TOKEN=${WHATSAPP_TOKEN}
+      - WHATSAPP_PHONE_ID=${WHATSAPP_PHONE_ID}
+      - WHATSAPP_TO=${WHATSAPP_TO}
+      - WHATSAPP_BRIDGE_URL=${WHATSAPP_BRIDGE_URL}
+      - WHATSAPP_BRIDGE_TARGETS=${WHATSAPP_BRIDGE_TARGETS}
     depends_on:
       - postgres
       - redis
@@ -38,6 +54,9 @@ services:
   frontend:
     build: ./frontend
     command: npm run dev -- -H 0.0.0.0 -p 3000
+    environment:
+      # /api/* rewrite → backend (browser lo localhost reference undadu)
+      - BACKEND_URL=http://backend:8000
     volumes:
       - ./frontend:/app
       - /app/node_modules
@@ -58,7 +77,23 @@ services:
       - backend
       - redis
 
+  # OPTIONAL — WhatsApp bridge (Baileys). Start cheyyali ante: docker-compose up -d whatsapp-bridge
+  # QR scan cheyyali (http://<server>:3001/qr) → taruvata WHATSAPP_MODE=bridge set chey .env lo
+  whatsapp-bridge:
+    build: ./whatsapp-bridge
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./whatsapp-bridge/session:/app/session
+    environment:
+      - PORT=3001
+      - SESSION_DIR=/app/session
+    restart: unless-stopped
+
+  # OPTIONAL — docker nginx. Host nginx (certbot) unte idi vaddu (port conflict).
+  # Start: docker-compose --profile with-nginx up -d nginx
   nginx:
+    profiles: ["with-nginx"]
     image: nginx:alpine
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf

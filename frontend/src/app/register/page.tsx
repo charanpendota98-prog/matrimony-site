@@ -14,6 +14,8 @@ function RegisterContent() {
   const [errors, setErrors] = useState<string[]>([]);
   const [generated, setGenerated] = useState<any>(null);
   const [photoPreview, setPhotoPreview] = useState<string>("");
+  const [backend, setBackend] = useState<any>(null);
+  const [publishPreview, setPublishPreview] = useState<any>(null);
 
   // FULL ADVANCED FORM STATE - All matrimony typical fields
   const [form, setForm] = useState({
@@ -218,8 +220,38 @@ function RegisterContent() {
       fd.append("referral_code", form.referral);
       fd.append("photo_private", String(form.photoPrivate));
       fd.append("expectations", JSON.stringify({ ageMin: form.expAgeMin, ageMax: form.expAgeMax, caste: form.expCaste, job: form.expJob }));
-      // @ts-ignore - backend URL
-      fetch("http://localhost:8000/api/register", { method: "POST", body: fd }).then(r => r.json()).then(d => console.log("Backend:", d)).catch(() => { });
+      fd.append("blood_group", form.bloodGroup);
+      fd.append("father_name", form.fatherName);
+      fd.append("mother_name", form.motherName);
+      fd.append("about_myself", form.aboutMyself);
+      fd.append("native_place", form.nativePlace);
+      fd.append("dob", form.dob);
+      fd.append("dob_correct", String(form.dobCorrect));
+      fd.append("photo_private", String(form.photoPrivate));
+
+      // Same-origin API (manavivaha.in/api) → nginx backend ki proxy chestundi.
+      // Direct IP:port hardcode ledu — domain tho pani chestundi, CORS issue ledu.
+      const res = await fetch("/api/register", { method: "POST", body: fd });
+      if (res.ok) {
+        const d = await res.json();
+        setBackend(d);
+        if (d.tsap_id) setGenerated((g: any) => ({ ...g, id: d.tsap_id, backendId: d.tsap_id }));
+      }
+    } catch { }
+
+    // Auto-publish preview — ee profile YE channels ki veltundo (backend router, real)
+    try {
+      const pv = await fetch("/api/publish/preview", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          full_name: form.fullName, gender: form.gender, state: form.state, caste: form.caste,
+          age: form.age, job: form.job, education: form.education, district: form.district,
+          marital_status: form.maritalStatus, gothram: form.gothram, star: form.star,
+          blood_group: form.bloodGroup, photo_private: form.photoPrivate, score: 92,
+          tsap_id: id, salary: form.salary, work_location: form.workLocation,
+        }),
+      });
+      if (pv.ok) setPublishPreview(await pv.json());
     } catch { }
   };
 
@@ -772,8 +804,17 @@ function RegisterContent() {
 
               <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
                 <div className="bg-green-50 border border-green-200 rounded-xl p-3">
-                  <div className="font-bold text-green-700">✅ Auto-Post Queue - Website Automate</div>
-                  <div className="mt-1 text-gray-600">• @{generated.state === 'TS' ? 'TSBRIDE' : 'APBRIDE'} & @TSGROOM1 (Live 2)<br />• @tsap_{generated.caste.toLowerCase()}<br />• {generated.maritalStatus !== 'Pelli Kaledu' ? `@tsap_${generated.maritalStatus.includes('Handicapped') ? 'handicapped' : 'second'}` : 'Main only'}<br />• Official digest (top score aithe)</div>
+                  <div className="font-bold text-green-700">✅ Auto-Post Queue — real router (65 channels registry)</div>
+                  {publishPreview ? (
+                    <div className="mt-1 text-gray-700 space-y-1">
+                      <div><b>LIVE lo ippude post:</b> {publishPreview.targets?.ready?.join(", ") || "—"}</div>
+                      <div className="text-gray-500"><b>Wave toka create avvali:</b> {(publishPreview.targets?.pending || []).length} channels</div>
+                      <div className="mt-1 text-[11px] bg-white rounded-lg p-2 font-mono break-all">{publishPreview.targets?.hashtags}</div>
+                      {(publishPreview.targets?.notes || []).map((n: string, i: number) => <div key={i} className="text-[11px] text-gray-500">• {n}</div>)}
+                    </div>
+                  ) : (
+                    <div className="mt-1 text-gray-600">• Region: {generated.state === 'TS' ? '@TSBRIDE / @TSGROOM1' : 'AP channels'}<br />• Caste + Religion + Special channels — backend router decide chestundi<br />• Max 5 channels per profile</div>
+                  )}
                 </div>
                 <div className="bg-blue-50 border border-blue-200 rounded-xl p-3">
                   <div className="font-bold text-blue-700">🤖 Filter System - Manaku Matrame Kanipisthundi</div>

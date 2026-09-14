@@ -170,6 +170,10 @@ class RegisterResponse(BaseModel):
     next_steps: List[str]
     auto_post_queue: List[str]
     top_3_matches: List[MatchResult]
+    # Auto-publish (Telegram + WhatsApp) — register avvagane
+    publish_queued: bool = False
+    publish_targets: List[str] = []
+    share_text: str = ""
 
 class SearchResponse(BaseModel):
     profile: UserDB

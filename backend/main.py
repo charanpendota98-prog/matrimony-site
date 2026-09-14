@@ -19,8 +19,27 @@ from channels_config import (
     CHANNELS, channel_stats, channels_by_tier, route_profile, build_caption,
     build_hashtags, live_channels, pending_channels, all_channels, resolve_caste_key,
 )
+try:
+    from card_pro import create_pro_card, has_telugu_font  # full-detail neat card
+except Exception:  # fonts/PIL lekapoyina server padipodu
+    create_pro_card = None
+    def has_telugu_font():
+        return False
+
+from publisher import (
+    enqueue, publish_profile, publish_status, read_log, start_worker, worker_running,
+    build_whatsapp_text, build_share_text, config as publish_config,
+)
+from channels_config import post_targets
 
 app = FastAPI(title="TSAP Matrimony API — Ultra Advanced", version="2.0")
+
+@app.on_event("startup")
+async def _startup_publisher():
+    ok = start_worker()
+    st = publish_status()
+    print(f"[PUBLISHER] worker={ok} | telegram={'ready' if st['telegram']['configured'] else 'dry-run'} "
+          f"| whatsapp={st['whatsapp']['mode']} | live_channels={st['telegram']['live_channels']}")
 
 app.add_middleware(
     CORSMiddleware,
@@ -165,9 +184,16 @@ async def register(
     }
     DB_USERS.append(user)
 
-    # 4. Card Gen (mock path)
-    # In real: create_profile_card(user, f"/tmp/cards/{tsap_id}.png")
+    # 4. Card Gen — FULL DETAIL NEAT CARD (Pillow). Fail ayithe path matrame istundi.
     card_path = f"/tmp/cards/{tsap_id}.png"
+    try:
+        if create_pro_card:
+            os.makedirs("/tmp/cards", exist_ok=True)
+            create_pro_card(user, card_path)
+            user["card_generated"] = True
+    except Exception as e:
+        user["card_generated"] = False
+        user["card_error"] = str(e)[:160]
 
     # 5. Referral — if referred_by exists, update stats
     if referral_code:
@@ -185,6 +211,13 @@ async def register(
     user["auto_post_channels"] = auto_queue
     user["auto_post_reasons"] = route["reasons"]
     user["post_hashtags"] = route["hashtags"]
+
+    # 6b. AUTO-PUBLISH — Telegram + WhatsApp (queue, register response block avvadu)
+    pub = {"queued": False, "targets": []}
+    if publish_config()["auto_post_on_register"]:
+        pub = enqueue(user, tsap_id, score=92,
+                      photo_path=card_path if user.get("card_generated") else None)
+        user["publish_targets"] = pub["targets"]
 
     # 7. Top 3 matches (from existing DB)
     opposite = "Bride" if gender=="Groom" else "Groom"
@@ -204,7 +237,10 @@ async def register(
         message_telugu=f"🎉 Congratulations! Me ID: {tsap_id}. Me profile admin approve lo undi (2 min). Top 3 FREE matches ready!",
         next_steps=["Admin approve (2 min)", "Top 3 FREE with reason", "₹99 pay → 10 numbers + daily auto", "Referral share → earn ₹30"],
         auto_post_queue=auto_queue,
-        top_3_matches=top_matches
+        top_3_matches=top_matches,
+        publish_queued=pub.get("queued", False),
+        publish_targets=pub.get("targets", []),
+        share_text=build_share_text(user, tsap_id),
     )
 
 @app.get("/api/search/{tsap_id}")
@@ -421,6 +457,39 @@ def channels_route(payload: dict):
         "count": r["count"],
         "notes": r["notes"],
         "preview_caption": build_caption(payload, payload.get("tsap_id", "TSAP-F-2025-XXXX"), int(payload.get("score", 92))),
+    }
+
+@app.get("/api/publish/status")
+def publish_status_endpoint():
+    """Telegram + WhatsApp auto-publish status (dry-run? tokens unnai? enni targets?)"""
+    return {"success": True, **publish_status(), "worker_running": worker_running()}
+
+@app.get("/api/publish/log")
+def publish_log_endpoint(limit: int = 20):
+    """Ee varaku publish ayyina profiles log (audit)."""
+    return {"success": True, "count": limit, "log": read_log(limit)}
+
+@app.post("/api/publish/now/{tsap_id}")
+async def publish_now(tsap_id: str, score: int = 92):
+    """Manual re-post (admin) — already register ayyina profile ni malli channels ki pampu."""
+    user = next((u for u in DB_USERS if u["tsap_id"] == tsap_id), None)
+    if not user:
+        raise HTTPException(404, "Profile not found")
+    res = await publish_profile(user, tsap_id, score)
+    return {"success": True, **res}
+
+@app.post("/api/publish/preview")
+def publish_preview(payload: dict):
+    """Post avvakunda — caption + WhatsApp text + targets chudu."""
+    profile = payload or {}
+    tsap_id = profile.get("tsap_id", "TSAP-F-2025-XXXX")
+    score = int(profile.get("score", 92))
+    return {
+        "success": True,
+        "telegram_caption": build_caption(profile, tsap_id, score),
+        "whatsapp_text": build_whatsapp_text(profile, tsap_id, score),
+        "share_text": build_share_text(profile, tsap_id),
+        "targets": post_targets(profile),
     }
 
 @app.get("/api/channels/live")
