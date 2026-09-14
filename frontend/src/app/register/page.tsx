@@ -177,6 +177,7 @@ function Wizard() {
   const [phoneOk, setPhoneOk] = useState(false);
   const [refLocked, setRefLocked] = useState("");
   const [result, setResult] = useState<any>(null);
+  const [clarity, setClarity] = useState<any>(null);
   const [copied, setCopied] = useState("");
   const topRef = useRef<HTMLDivElement>(null);
   const voiceRef = useRef<any>(null);
@@ -185,6 +186,11 @@ function Wizard() {
     setF((prev) => ({ ...prev, [k]: v }));
     setErrs([]);
   };
+
+  /* ---------- 🆓 FREE vs PAID clarity (numbers rule) — /api/free-plan ---------- */
+  useEffect(() => {
+    fetch("/api/free-plan").then((r) => r.json()).then(setClarity).catch(() => { });
+  }, []);
 
   /* ---------- referral auto-lock (?ref=LAK42) ---------- */
   useEffect(() => {
@@ -490,6 +496,32 @@ function Wizard() {
             </div>
           ) : null}
 
+          <div className="bg-white rounded-2xl p-4 border border-gold/30 card-shadow">
+            <div className="font-bold text-maroon text-[15px]">🎁 Mee account ki enti vachindi</div>
+            <div className="mt-2 grid sm:grid-cols-3 gap-2 text-[12px]">
+              <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-emerald-900">
+                <b>{result.credits ?? 3} requests</b> ready<br /><span className="text-[11px]">(FREE 3 + referral bonus {result.referral?.joined_with?.ok ? "+1" : ""})</span>
+              </div>
+              <div className="bg-cream border border-gold/40 rounded-xl p-3 text-maroon">
+                <b>3 profiles</b> chudochu<br /><span className="text-[11px]">numbers 🔒 locked</span>
+              </div>
+              <div className="bg-navy text-white rounded-xl p-3">
+                <b>Numbers eppudu?</b><br /><span className="text-[11px] opacity-90">interest pampi vaallu accept cheste (leda ₹99 plan tho ekkuva profiles)</span>
+              </div>
+            </div>
+            <div className="mt-2 flex flex-wrap gap-2">
+              <Link href={`/matches?id=${tsap}`} className="maroon-gradient text-white font-bold text-[12px] px-4 py-2.5 rounded-xl">
+                🔎 Mee 3 profiles chudandi (FREE)
+              </Link>
+              <Link href={`/requests?id=${tsap}`} className="border border-maroon/25 text-maroon font-bold text-[12px] px-4 py-2.5 rounded-xl">
+                💌 Interests pampandi
+              </Link>
+              <Link href="/pricing" className="gold-gradient text-maroon font-bold text-[12px] px-4 py-2.5 rounded-xl">
+                💰 ₹99 → 5 profiles + boost
+              </Link>
+            </div>
+          </div>
+
           {result.referral?.my_code ? (
             <div className="bg-gradient-to-br from-maroon to-[#5b1030] text-white rounded-2xl p-4">
               <div className="flex items-center justify-between">
@@ -672,6 +704,36 @@ function Wizard() {
       </div>
 
       <div className="max-w-3xl mx-auto px-4 py-5">
+        {/* 🆓 FREE vs PAID — SCREEN 1 lo ne clear ga (numbers rule kooda) */}
+        <div className="mb-4 bg-white rounded-2xl border border-gold/40 card-shadow p-4">
+          <div className="font-bold text-maroon text-[14px]">🆓 Register 100% FREE — enti vasthundi, enti raadu (clear ga)</div>
+          <div className="mt-2 grid sm:grid-cols-2 gap-3 text-[12px]">
+            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3">
+              <div className="font-bold text-emerald-900">FREE లో ఇచ్చేది</div>
+              <ul className="mt-1 space-y-0.5 text-emerald-900">
+                <li>✅ <b>{(clarity?.free?.profiles ?? 3)} profiles</b> chudochu (full details: caste, education, job, family, porutham)</li>
+                <li>✅ <b>{(clarity?.free?.requests ?? 3)} interests</b> pampochu — vaallaki mana WhatsApp nunchi mee profile veltundi</li>
+                <li>✅ Mee profile card FREE (Telugu, neat) + channels lo auto-post</li>
+                <li>✅ Vaallu <b>accept cheste → numbers exchange</b> (WhatsApp lo, consent tho)</li>
+              </ul>
+            </div>
+            <div className="bg-rose-50 border border-rose-200 rounded-xl p-3">
+              <div className="font-bold text-rose-900">FREE లో ఇవ్వనిది (🔒)</div>
+              <ul className="mt-1 space-y-0.5 text-rose-900">
+                <li>🔒 <b>Phone numbers — ఇవ్వము</b> (98••••••45 ani matrame kanipisthundi)</li>
+                <li>🔒 Photo (privacy mode unna profiles ki blur)</li>
+                <li>🚫 Chatting ledu (manam chat platform kaadu — spam/report తగ్గడానికి)</li>
+              </ul>
+              <div className="mt-1 text-[11px]">3 FREE taruvata: <b>₹99 → 5 profiles + boost</b> · ₹199 → 12 · ₹299 → 25 · ₹499 → 50</div>
+            </div>
+          </div>
+          <div className="mt-2 text-[11px] text-gray-600">
+            🔐 Mee number DB lo encrypt ga untundi. Consent (accept) tho matrame evariki kanipisthundi.
+            {" "}<a href="/pricing" className="underline font-bold text-maroon">Pricing</a> ·
+            {" "}<a href="/safety" className="underline font-bold text-maroon">Safety</a>
+          </div>
+        </div>
+
         {/* draft banner */}
         {draftFound && (
           <div className="mb-4 bg-cream border border-gold/40 rounded-2xl p-4">

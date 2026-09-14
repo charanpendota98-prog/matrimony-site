@@ -82,9 +82,32 @@ export default function PricingPage() {
           ₹99 ke Sambandham — modati 3 requests <span className="text-[#B8860B]">FREE</span>
         </h1>
         <p className="mt-2 text-sm text-gray-600 telugu max-w-3xl mx-auto">
-          Prathi request ki — mee full profile + card, mana {SITE_CONFIG.pricing.freeCredits > 0 ? "52" : ""} channels post,
-          WhatsApp lo direct share. Numbers rendu vaipula oppuka tarvate share avutayi 🤝
+          Register <b>100% FREE</b> → <b>3 profiles</b> chudochu + <b>3 interests</b> pampochu. Kani{" "}
+          <b className="text-[#7A0C2E]">🔒 phone numbers ivvamu</b> — interest pampi vaallu <b>accept</b> cheste matrame
+          rendu vaipula numbers share avutayi (chatting ledu). 3 FREE taruvata ₹99 → 5 profiles + boost.
         </p>
+        {/* 🆓 FREE vs PAID — crystal clear */}
+        <div className="mt-4 grid sm:grid-cols-2 gap-3 text-left max-w-3xl mx-auto">
+          <div className="rounded-2xl bg-emerald-50 border border-emerald-200 p-3 text-xs text-emerald-900">
+            <div className="font-bold">✅ FREE లో (₹0)</div>
+            <ul className="mt-1 space-y-0.5">
+              <li>• 3 profiles full details + card</li>
+              <li>• 3 interests (WhatsApp lo mee profile share)</li>
+              <li>• Accept ayithe numbers exchange</li>
+            </ul>
+          </div>
+          <div className="rounded-2xl bg-rose-50 border border-rose-200 p-3 text-xs text-rose-900">
+            <div className="font-bold">🔒 FREE లో ఇవ్వనిది</div>
+            <ul className="mt-1 space-y-0.5">
+              <li>• Phone numbers (locked — 98••••••45 matrame)</li>
+              <li>• Chatting (ledu — requests matrame)</li>
+              <li>• 3 taruvata: ₹99 → 5 · ₹199 → 12 · ₹299 → 25 · ₹499 → 50</li>
+            </ul>
+          </div>
+        </div>
+        <div className="mt-3 text-[11px] text-gray-500 telugu">
+          🔐 Mee number DB lo encrypt ga untundi · consent tho matrame share · decline ayithe credit refund (loss ledu)
+        </div>
         {live && <div className="mt-2 text-[11px] text-green-700">✅ Live pricing (server nunchi)</div>}
       </div>
 

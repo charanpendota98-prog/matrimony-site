@@ -482,6 +482,11 @@ export default function MatchesAdvanced() {
                   🧮 {row.porutham.score}/{row.porutham.max} — {row.porutham.verdict}
                 </span>
               ) : null}
+              {/* 🔒 Numbers ivvamu — interest pampi accept ayithe matrame exchange */}
+              <span className="bg-rose-50 border border-rose-200 text-rose-800 rounded-full px-2 py-0.5"
+                title="Numbers eppudu public ga kanipinchavu">
+                🔒 Number: {row.phone_masked || "•••••"} (locked)
+              </span>
             </div>
           </div>
         </div>
@@ -659,6 +664,16 @@ export default function MatchesAdvanced() {
           <div className="mt-3 flex items-center justify-between">
             <div className="text-[12px] text-gray-600">{msg || resultsInfo}</div>
             <div className="text-[11px] text-gray-500 md:hidden">credits <b className="text-maroon">{credits}</b></div>
+          </div>
+
+          {/* 🔒 Numbers rule — crystal clear (free lo 3 profiles, numbers ivvamu) */}
+          <div className="mt-2 rounded-2xl bg-white border border-gold/40 px-3 py-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px]">
+            <span className="font-bold text-maroon">🔒 Numbers ivvamu:</span>
+            <span className="text-gray-700">profiles + full details FREE ga chudochu — kani phone numbers lock.</span>
+            <span className="text-gray-700">💌 Interest pampandi → vaallu <b>accept</b> cheste rendu numbers WhatsApp lo exchange.</span>
+            <Link href="/pricing" className="ml-auto font-bold text-maroon underline">
+              ₹99 → 5 profiles + boost
+            </Link>
           </div>
 
           {loading ? (

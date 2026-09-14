@@ -208,8 +208,19 @@ def _id(prefix: str = "REQ") -> str:
     return f"{prefix}-{datetime.utcnow().strftime('%y%m%d')}-{random.randint(1000, 9999)}"
 
 
+def mask_phone(phone: str) -> str:
+    """📱 98•••••45 — free users ki ide kanipisthundi (chivari 2 digits matrame)."""
+    d = "".join(ch for ch in str(phone or "") if ch.isdigit())
+    if len(d) < 4:
+        return "🔒 •••••"
+    return d[:2] + "•" * max(0, len(d) - 4) + d[-2:]
+
+
 def safe_user(u: Optional[Dict]) -> Dict:
-    """Contact details teesesi (privacy first) — accept ayyaka matrame number istham."""
+    """
+    Contact details teesesi (privacy first) — **numbers ivvamu**.
+    Number ravadaniki: (1) interest pampi vaallu accept cheyyali, leda (2) paid plan tho contact unlock.
+    """
     if not u:
         return {}
     return {
@@ -234,6 +245,10 @@ def safe_user(u: Optional[Dict]) -> Dict:
         "family_type": u.get("family_type", ""),
         "photo_url": u.get("photo_url", ""),
         "verified": bool(u.get("verified", False)),
+        # 🔒 CONTACT LOCK — public la kanipinchE prathi profile ki idi untundi
+        "phone_masked": mask_phone(u.get("phone", "")),
+        "contact_locked": True,
+        "contact_note_telugu": "🔒 Number ivvamu — interest pampi vaallu accept cheste (leda plan thisukunte) matrame istham",
     }
 
 

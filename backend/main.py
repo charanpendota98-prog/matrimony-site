@@ -600,6 +600,60 @@ async def register(
         },
     )
 
+@app.get("/api/free-plan")
+def free_plan_clarity():
+    """
+    🆓 FREE vs PAID — crystal clear (Telugu).
+    "3 profiles istham kaani numbers ivvamu — vaallu pay chesaka numbers/contact"
+    """
+    free = plan_by_code("FREE") if "plan_by_code" in dir() else None
+    return {
+        "success": True,
+        "headline_telugu": "Register 100% FREE — 3 profiles chudochu & 3 requests pampochu. **Numbers matram ivvamu** 🙅",
+        "rule_telugu": "Numbers (phone) eppudu direct ga ivvamu. Interest pampinchi vaallu ACCEPT cheste — appudu rendu vaipula numbers WhatsApp lo exchange avutayi. Leda paid plan thisukoni ekkuva requests + priority thisukovachu.",
+        "free": {
+            "price": 0,
+            "profiles": 3,
+            "requests": 3,
+            "numbers": "❌ ivvamu (locked)",
+            "photo": "blur (privacy mode unna profiles)",
+            "chat": "ledu (chatting ledu — requests matrame)",
+            "validity": "365 days",
+            "getting_started": ["Register (2 నిమిషాల form)", "Profile card free ga generate avutundi",
+                                "3 profiles chudochu — 🔒 numbers locked",
+                                "3 interests pampochu (vaallaki mana WhatsApp nunchi mee profile veltundi)",
+                                "Vaallu accept cheste → numbers exchange (WhatsApp lo)"],
+        },
+        "paid": [
+            {"code": "S_29", "price": 29, "profiles": 1, "telugu": "₹29 → 1 profile extra (trial)"},
+            {"code": "S_99", "price": 99, "profiles": 5, "telugu": "₹99 → 5 profiles + boost (modati plan — ivide best seller)"},
+            {"code": "S_199", "price": 199, "profiles": 12, "telugu": "₹199 → 12 profiles + per-profile ₹17"},
+            {"code": "S_299", "price": 299, "profiles": 25, "telugu": "₹299 → 25 profiles + boost"},
+            {"code": "S_499", "price": 499, "profiles": 50, "telugu": "₹499 → 50 profiles (VIP)"},
+        ],
+        "numbers_rule_telugu": [
+            "🔒 Free lo numbers kanipinchavu — 'contact locked' ani matrame kanipisthundi (98••••••45 style)",
+            "💌 Interest pampandi → vaallaki mana WhatsApp nunchi mee profile + photo veltundi",
+            "✅ Vaallu accept cheste → mogudu/pellam vaipula numbers WhatsApp lo exchange (consent tho)",
+            "❌ Chatting ledu — manam chat platform kaadu (spam undadu, complaint undadu)",
+            "🔁 Decline ayithe mee credit refund avutundi (loss ledu)",
+        ],
+        "why_telugu": [
+            "📵 Number public ga unte spam/broker calls vastayi — andukane lock",
+            "🛡️ Rendu vaipula interest unte matrame contact — aa tarvata mee istam",
+            "💯 Mee number DB lo encrypted ga untundi (phone_encrypted)",
+        ],
+        "faq_telugu": [
+            {"q": "3 profiles FREE ante enti?", "a": "Register ayyaka 3 interest requests pampochu — prathi request ki oka profile. Numbers matram lock."},
+            {"q": "Numbers eppudu vastayi?", "a": "Vaallu accept chesina tarvata (rendu vaipula ishtam) — leda paid plan tho ekkuva profiles chusi interest pampandi."},
+            {"q": "₹99 enduku ivvali?", "a": "3 FREE taruvata ekkuva profiles + boost + priority. Decline ayithe credit refund — loss ledu."},
+            {"q": "Mee number evariki telustundi?", "a": "Mee consent tho okka person ki matrame (accept chesina vaallaki). Admin ki audit purpose ki telustundi."},
+        ],
+        "cta": {"register": "/register", "pricing": "/pricing", "requests": "/requests", "demo": "/matches"},
+        "instructions_telugu": "Mee profile lo number ivvakapoyina parvaledu — register FREE. Match ayye vaallaki mana WhatsApp nunchi pampistham.",
+    }
+
+
 @app.get("/api/search/{tsap_id}")
 def search_profile(tsap_id: str, viewer_id: Optional[str] = None):
     """
@@ -635,11 +689,24 @@ def search_profile(tsap_id: str, viewer_id: Optional[str] = None):
     else:
         reasons = ["Nuvvu Hyd kavali annavu → profile kooda Hyd lone", "Software + Reddy perfect"]
 
+    # 🔒 PRIVACY FIX: mundu ikkada FULL user dict (phone + email + encrypted) return ayyedi — leak!
+    #    Ippudu contact details teesesi matrame (numbers ivvamu).
+    pub = dict(safe_user(user))
+    pub["radius"] = user.get("radius", "")
+    pub["about_myself"] = user.get("about_myself", "")
+    pub["family_details"] = user.get("family_details", "")
+    pub["photo_urls"] = user.get("photo_urls", [])
     return {
-        "profile": user,
+        "profile": pub,
         "can_view_profile": True,
-        "can_view_number": search_logic["can_view_number"],
-        "can_view_number_reason": search_logic["message"],
+        "can_view_number": False,          # 🔒 number eppudu direct ga ivvamu
+        "can_view_number_reason": "🔒 Number ivvamu — interest pampandi (vaallu accept cheste matrame contact exchange). "
+                                  "Free lo 3 requests unnayi; paid plan tho ekkuva requests + priority.",
+        "contact_locked": True,
+        "phone_masked": pub.get("phone_masked", ""),
+        "unlock_telugu": ["1️⃣ Interest pampandi (FREE 3 requests) — vaallu accept cheste rendu numbers WhatsApp lo",
+                          "2️⃣ Plan thisukondi (₹99 → 5 requests) — ekkuva profiles + boost",
+                          "3️⃣ Number eppudu public ga kanipinchadu — consent tho matrame exchange"],
         "is_photo_blur": viewer.get("plan","FREE")=="FREE" and user.get("privacy_mode")=="private",
         "reasons": reasons,
         "credits_needed": 1,
@@ -662,7 +729,20 @@ def get_matches(tsap_id: str, min_score: int = 70, limit: int = 20, caste_filter
 
     top = find_top_matches(user, all_profiles, limit=limit, min_score=min_score)
 
-    return {"user_id": tsap_id, "total_found": len(top), "matches": top, "filter": caste_filter or "All", "min_score": min_score}
+    # 🔒 PRIVACY FIX: match dicts lo phone/email poyi (contact lock) — score + reasons matrame
+    safe_top = []
+    for m in top:
+        row = dict(safe_user(m))
+        row["score"] = m.get("score", 0)
+        row["reasons"] = m.get("reasons", [])
+        row["photo_urls"] = m.get("photo_urls", [])
+        row["is_verified"] = bool(m.get("is_verified"))
+        safe_top.append(row)
+
+    return {"user_id": tsap_id, "total_found": len(safe_top), "matches": safe_top,
+            "filter": caste_filter or "All", "min_score": min_score,
+            "contact_locked": True,
+            "contact_note_telugu": "🔒 Numbers ivvamu — interest pampandi (accept ayithe exchange) leda plan thisukondi"}
 
 @app.post("/api/credits/deduct/{tsap_id}")
 def deduct_credit_api(tsap_id: str, target_id: str):
