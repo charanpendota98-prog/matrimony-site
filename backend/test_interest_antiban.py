@@ -42,6 +42,15 @@ def test_antiban():
     check("Daily cap 60 / target cap 8", (c["daily_cap"], c["target_daily_cap"]) == (60, 8))
     check("Fresh session ki wait ledu (ventane first post)", e.wait_seconds(1) == 0.0)
 
+    # 🕐 WALL-CLOCK FLAKINESS FIX: suite raatri (22:00–08:00 IST) run ayithe quiet_hours valla
+    #    cap/pause tests fail avutunnayi (production correct ga pani chestundi — test ku matrame).
+    #    Ee file lo migilina behaviour tests ki active window ni "full day" ga set chestham.
+    os.environ["WA_ACTIVE_START"] = "0"
+    os.environ["WA_ACTIVE_END"] = "24"
+    c = e.cfg()
+    check("Test window override (0–24) applied — quiet_hours nunchi flakiness ledu",
+          (c["active_start"], c["active_end"]) == (0, 24))
+
     # WA_TEST_FAST=true lo gaps chinnavi — kani range logic production values tho verify chestham
     os.environ["WA_TEST_FAST"] = "false"
     e2 = WhatsAppAntiban(tempfile.mktemp(suffix=".json"))

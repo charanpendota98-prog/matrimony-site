@@ -17,7 +17,16 @@ from matching_engine import (
 )
 from card_generator import generate_id, create_profile_card
 from credits import PLANS, can_view_number, deduct_credit, add_credits, can_search_id
-from referral import generate_referral_code, process_referral_payment, get_leaderboard, parse_referral_type
+from referral import (
+    generate_referral_code, process_referral_payment, get_leaderboard, parse_referral_type,
+    ensure_referrer_profile, validate_referral, attach_referral, referral_dashboard,
+    share_kit as referral_share_kit,
+    payout_request, payout_action, payout_queue, track_click, referral_terms_telugu,
+    reverse_referral_payment, load_state as referral_load_state, stats_of as referral_stats_of,
+    referrer_join_text, referrer_commission_text, referee_welcome_text,
+    mask_payout as referral_mask_payout,
+    tier_of as referral_tier_of, MILESTONES as REFERRAL_MILESTONES, TIERS as REFERRAL_TIERS,
+)
 from channels_config import (
     CHANNELS, channel_stats, channels_by_tier, route_profile, build_caption,
     build_hashtags, live_channels, pending_channels, all_channels, resolve_caste_key,
@@ -107,6 +116,40 @@ async def _startup_publisher():
                       % (added, len(DB_USERS), inventory_status(len(DB_USERS))["percent"]))
             except Exception as e:
                 print("[LAUNCH-DB] seed skip:", str(e)[:140])
+
+    # 🤝 REFERRAL 2.0 startup: state file load (payouts/clicks restart lo kooda undali)
+    try:
+        _rl = referral_load_state()
+        print("[REFERRAL] state load: %s (payouts=%s, clicks=%s)"
+              % ("ok" if _rl.get("ok") else "new", _rl.get("payouts", 0), _rl.get("clicks", 0)))
+    except Exception as e:
+        print("[REFERRAL] state load fail:", str(e)[:90])
+    # 🔑 Pranam prathi user ki UNIQUE referral code (seed data lo duplicates unnayi — 1042 shared by 2 users)
+    try:
+        for _u in DB_USERS:
+            try:
+                ensure_referrer_profile(_u, DB_USERS)
+            except Exception:
+                pass
+        _codes = [u.get("referral_code") for u in DB_USERS if u.get("referral_code")]
+        _dup = len(_codes) - len(set(_codes))
+        print("[REFERRAL] %d users ki unique codes ready (duplicates: %d)" % (len(_codes), _dup))
+        if _dup:
+            seen, fixed = set(), 0
+            for _u in DB_USERS:
+                _c = str(_u.get("referral_code", "")).upper()
+                if not _c:
+                    continue
+                if _c in seen:
+                    _u["referral_code"] = ""
+                    _new = ensure_referrer_profile(_u, DB_USERS)["code"]
+                    print("[REFERRAL] duplicate fix: %s → %s" % (_c, _new))
+                    _c = _new
+                    fixed += 1
+                seen.add(_c)
+            print("[REFERRAL] duplicates fixed: %d" % fixed)
+    except Exception as e:
+        print("[REFERRAL] code assign fail:", str(e)[:90])
 
 # ---------------------------------------------------------------------------
 # VISIT TRACKING MIDDLEWARE — "site ki vachina vallu antha DB lo save avvali"
@@ -346,7 +389,8 @@ async def register(
         "phone_last4": phone[-4:],
         "phone": phone,
         "referral_code": my_ref_code,
-        "referred_by": referral_code,
+        "referred_by": "",                    # attach_referral() validate chesi lock chestundi (kinda)
+        "referred_by_raw": referral_code,     # form lo vachina code (audit)
         "photo_urls": ([photo_url] if photo_url else []),   # FIX: fake path valla photo_only filter ellappudu match ayyedi
         "card_url": f"/cards/{tsap_id}.png",   # web URL (card files static mount lo undi)
         "is_verified": False,
@@ -384,11 +428,37 @@ async def register(
         user["card_generated"] = False
         user["card_error"] = str(e)[:160]
 
-    # 5. Referral — if referred_by exists, update stats
+    # 5. 🤝 REFERRAL 2.0 — validate + lock + referee bonus credit (self-referral block kooda)
+    referral_result = {"ok": False, "reason": "no_code"}
     if referral_code:
-        for u in DB_USERS:
-            if u["referral_code"]==referral_code or u["phone"]==referral_code:
-                u["referral_stats"]["total"] += 1
+        try:
+            referral_result = attach_referral(user, referral_code, DB_USERS)
+        except Exception as e:
+            referral_result = {"ok": False, "reason": "error", "error": str(e)[:120]}
+    # ee user ki sontha referral code (share cheyyadaniki)
+    my_referral = ensure_referrer_profile(user, DB_USERS)
+    user["referred_by_final"] = user.get("referred_by") or referral_code
+
+    # 5b. 🔔 Referrer ki instant WhatsApp update — "mee friend join ayyaru" (loop close)
+    referral_notify = {"referrer_notified": False}
+    if referral_result.get("ok"):
+        try:
+            _ref_user = next((u for u in DB_USERS
+                              if str(u.get("referral_code", "")).upper() == str(referral_result.get("referrer_code", "")).upper()
+                              or u.get("tsap_id") == referral_result.get("referrer_id")), None)
+            if _ref_user:
+                _ref_phone = str(_ref_user.get("phone") or "").strip()
+                _txt = referrer_join_text(_ref_user, user)
+                referral_notify["referrer_name"] = _ref_user.get("full_name", "")
+                if _ref_phone and publish_config()["wa_mode"] != "off":
+                    _q = enqueue_whatsapp([_ref_phone], _txt, priority=0, kind="referral_join")
+                    referral_notify["referrer_notified"] = bool(_q.get("queued"))
+                else:
+                    referral_notify["manual_text"] = _txt
+                    referral_notify["note"] = "WhatsApp bridge connect ayyaka automatic ga veltundi"
+            referral_result["notify"] = referral_notify
+        except Exception as e:
+            referral_result["notify_error"] = str(e)[:120]
 
     # 6. Auto-post queue — ADVANCED ROUTER (region + religion + caste + specials)
     route = route_profile({
@@ -414,7 +484,13 @@ async def register(
     try:
         cfg_wa = publish_config()
         if cfg_wa["wa_mode"] != "off" and phone:
-            w1 = enqueue_whatsapp([phone], namaste_text(user, tsap_id), image_path=card_path,
+            _welcome_msg = namaste_text(user, tsap_id)
+            if referral_result.get("ok"):
+                # referral tho vachina user ki extra line (friend peru + mee sontha code)
+                _ref_user2 = next((u for u in DB_USERS if u.get("tsap_id") == referral_result.get("referrer_id")), None)
+                if _ref_user2:
+                    _welcome_msg = _welcome_msg + "\n\n" + referee_welcome_text(user, _ref_user2)
+            w1 = enqueue_whatsapp([phone], _welcome_msg, image_path=card_path,
                                   priority=0, kind="namaste_welcome")
             welcome["queued"] = bool(w1.get("queued"))
             welcome["wa_result"] = w1
@@ -424,7 +500,12 @@ async def register(
                                       image_path=card_path, priority=1, kind="admin_new_profile")
                 welcome["admin_alert"] = bool(w2.get("queued"))
         elif phone:
-            welcome["manual_text"] = namaste_text(user, tsap_id)
+            _mt = namaste_text(user, tsap_id)
+            if referral_result.get("ok"):
+                _ref_user3 = next((u for u in DB_USERS if u.get("tsap_id") == referral_result.get("referrer_id")), None)
+                if _ref_user3:
+                    _mt = _mt + "\n\n" + referee_welcome_text(user, _ref_user3)
+            welcome["manual_text"] = _mt
             welcome["note"] = "WHATSAPP_MODE=bridge chesi bridge connect cheyyandi — automatic ga veltundi"
         user["welcome_status"] = welcome
     except Exception as e:
@@ -453,12 +534,19 @@ async def register(
             top_matches.append(MatchResult(matched_user_id=cand["tsap_id"], score=score, reasons=reasons))
     top_matches = sorted(top_matches, key=lambda x: x.score, reverse=True)[:3]
 
+    _ref_bonus = int(referral_result.get("bonus_credits", 0)) if referral_result.get("ok") else 0
+    _base_credits = 3 if user.get("credits", 3) == 3 else max(3, int(user.get("credits", 3)))
+    _credits = _base_credits + (_ref_bonus if _ref_bonus and user.get("credits", 3) == 3 else 0)
+    user["credits"] = max(int(user.get("credits", 3)), _credits)
     return RegisterResponse(
         tsap_id=tsap_id,
         card_url=user.get("card_url", card_url),
-        credits=3,
-        message_telugu=f"🎉 Congratulations! Me ID: {tsap_id}. Me profile admin approve lo undi (2 min). Top 3 FREE matches ready!",
-        next_steps=["Admin approve (2 min)", "Top 3 FREE with reason", "₹99 pay → 10 numbers + daily auto", "Referral share → earn ₹30"],
+        credits=user.get("credits", 3),
+        message_telugu=("🎉 Congratulations! Me ID: %s. Me profile admin approve lo undi (2 min). Top 3 FREE matches ready!%s"
+                        % (tsap_id, (" Mee friend code tho +%d FREE credit vachindi 🎁" % _ref_bonus) if _ref_bonus else "")),
+        next_steps=["Admin approve (2 min)", "Top 3 FREE with reason",
+                    "₹99 pay → 5 profiles + boost (modati 3 FREE)",
+                    "🤝 Referral: friend pay chesthe meeku ₹50 — /referral lo mee link"],
         auto_post_queue=auto_queue,
         top_3_matches=top_matches,
         publish_queued=pub.get("queued", False),
@@ -467,6 +555,24 @@ async def register(
         welcome_status=welcome,
         share_kit=share_kit(user, tsap_id),
         share_text=build_share_text(user, tsap_id),
+        referral={
+            "my_code": user.get("referral_code", ""),
+            "my_alias": user.get("referral_alias", ""),
+            "my_link": user.get("referral_link", ""),
+            "joined_with": referral_result,
+            "commission_offer": 50,
+            "earn_telugu": "🏆 Mee friend ₹99 pay chesthe meeku ₹50 wallet lo — prathi friend ki (limit ledu)!",
+            "rule_telugu": ["Friend ee link tho register avvali", "Vaallu modati sari ₹99+ pay cheyyal",
+                            "Meeku ventane ₹50 wallet lo + tier perigithe extra %"],
+            "poster_url": "/api/referral/%s/poster.png" % tsap_id,
+            "poster_status_url": "/api/referral/%s/poster.png?style=status" % tsap_id,
+            "share_message": (
+                "🙏 Namaste! Nenu %s — Mana Vivaha (TSAP) matrimony lo profile pettanu.\n"
+                "Mee family/relatives/business circle lo pelli chusukune vaallaki ee link pampandi 👇\n%s\n"
+                "Free registration + 3 matches FREE. Naa code: %s\n— Mana Vivaha · manavivaha.in"
+                % (user.get("full_name") or tsap_id, user.get("referral_link", ""), user.get("referral_code", ""))),
+            "dashboard": "/referral",
+        },
     )
 
 @app.get("/api/search/{tsap_id}")
@@ -573,10 +679,23 @@ def payment_webhook(user_id: str, amount: int, razorpay_payment_id: str = "", re
                         "plan": applied["plan"]["code"], "kind": applied["kind"],
                         "payment_id": razorpay_payment_id, "referral_code": referral_code})
 
-    # 🤝 referral commission (payment vachhina ventane)
+    # 🤝 referral commission (payment vachhina ventane) + referrer ki instant WhatsApp
     referral_result = None
     if user.get("referred_by"):
         referral_result = process_referral_payment(user, user["referred_by"], amount, DB_USERS)
+        if referral_result.get("success"):
+            try:
+                _r = next((u for u in DB_USERS if u.get("tsap_id") == referral_result.get("referrer_id")), None)
+                if _r:
+                    _rtxt = referrer_commission_text(_r, user, referral_result)
+                    _rphone = str(_r.get("phone") or "").strip()
+                    if _rphone and publish_config()["wa_mode"] != "off":
+                        _q = enqueue_whatsapp([_rphone], _rtxt, priority=0, kind="referral_commission")
+                        referral_result["referrer_notified"] = bool(_q.get("queued"))
+                    else:
+                        referral_result["referrer_message"] = _rtxt
+            except Exception as e:
+                referral_result["notify_error"] = str(e)[:120]
 
     return {
         "success": True, "user_id": user_id, "amount": amount,
@@ -589,9 +708,178 @@ def payment_webhook(user_id: str, amount: int, razorpay_payment_id: str = "", re
     }
 
 @app.get("/api/referral/leaderboard")
-def leaderboard():
-    board = get_leaderboard(DB_USERS, limit=10)
-    return {"leaderboard": board, "total_users": len(DB_USERS)}
+def leaderboard(period: str = "all", limit: int = 10):
+    """🏆 Top referrers — period: all | week | month (full_name tho, tier icon tho)."""
+    board = get_leaderboard(DB_USERS, limit=limit, period=period)
+    return {"success": True, "period": period, "leaderboard": board, "total_users": len(DB_USERS),
+            "prize_telugu": "Weekly top-1 ki ₹1000 + Elite badge (mana team WhatsApp lo contact chestundi)"}
+
+
+# ═══════════════════ 🤝 REFERRAL 2.0 — DASHBOARD / SHARE / PAYOUT ═══════════════════
+
+def _user_or_404(tsap_id: str) -> Dict:
+    u = next((x for x in DB_USERS if x["tsap_id"] == tsap_id), None)
+    if not u:
+        raise HTTPException(404, "User not found — ID sari ga chusukondi")
+    return u
+
+
+@app.get("/api/referral/terms")
+def referral_terms():
+    """📜 Referral rules (Telugu) — andariki ₹50, tiers, payout, fraud rules."""
+    return {"success": True, **referral_terms_telugu()}
+
+
+@app.get("/api/referral/{tsap_id}")
+def referral_home(tsap_id: str):
+    """
+    📊 Mee referral dashboard — code, link, clicks, registrations, payments, wallet,
+    tier, next milestone, ledger, payouts. (Tenant-safe: mee ID matrame chudochu.)
+    """
+    user = _user_or_404(tsap_id)
+    d = referral_dashboard(user, DB_USERS)
+    d["share_kit"] = referral_share_kit(user)
+    return d
+
+
+@app.get("/api/referral/{tsap_id}/share-kit")
+def referral_share(tsap_id: str):
+    """📲 5 ready WhatsApp messages + Telegram + SMS + poster text (Telugu)."""
+    user = _user_or_404(tsap_id)
+    kit = referral_share_kit(user)
+    return {"success": True, **kit}
+
+
+@app.get("/api/referral/{tsap_id}/poster.png")
+def referral_poster(tsap_id: str, style: str = "square"):
+    """🖼️ Referral poster (QR tho) — square (1080×1080) leda status (1080×1920)."""
+    user = _user_or_404(tsap_id)
+    ensure_referrer_profile(user, DB_USERS)
+    try:
+        import referral_kit
+        path = referral_kit.poster_card(user, style=("status" if style == "status" else "square"))
+        return FileResponse(path, media_type="image/png",
+                            filename="manavivaha-referral-%s-%s.png" % (user.get("referral_code", "mv"), style))
+    except Exception as e:
+        raise HTTPException(500, "Poster generate avvaledu: %s" % str(e)[:120])
+
+
+@app.post("/api/referral/click/{code}")
+def referral_click(code: str, source: str = "link"):
+    """/r/<code> link click — funnel tracking (clicks → registrations → payments)."""
+    st = track_click(code, source)
+    known = validate_referral(code, DB_USERS)
+    return {"success": True, **st, "valid_code": known.get("ok", False),
+            "referrer_name": known.get("referrer_name", ""),
+            "bonus_credits": known.get("bonus_credits", 0)}
+
+
+@app.get("/api/referral/validate/{code}")
+def referral_validate(code: str):
+    """Register form / landing page — 'ee code pani chestunda?' + bonus info."""
+    return {"success": True, **validate_referral(code, DB_USERS)}
+
+
+@app.post("/api/referral/payout")
+def referral_payout(tsap_id: str, amount: int, method: str = "upi", upi_id: str = "",
+                    account_no: str = "", ifsc: str = "", holder: str = ""):
+    """
+    💸 Payout request — wallet nunchi UPI/bank ki (min ₹100).
+    Admin approve chesi UTR isthadu (3 working days SLA).
+    """
+    user = _user_or_404(tsap_id)
+    bank = {"account_no": account_no, "ifsc": ifsc, "holder": holder} if method == "bank" else None
+    res = payout_request(user, amount, method=method, upi_id=upi_id, bank=bank)
+    if not res.get("ok"):
+        return JSONResponse(status_code=400, content={"success": False, **res})
+    return {"success": True, **res}
+
+
+@app.get("/api/referral/{tsap_id}/payouts")
+def referral_payouts(tsap_id: str):
+    """Mee payout history — request → paid/rejected + UTR."""
+    user = _user_or_404(tsap_id)
+    st = referral_stats_of(user)
+    mine = [p for p in payout_queue("")["items"] if p.get("tsap_id") == tsap_id]
+    return {"success": True, "wallet": st.get("wallet", 0), "pending": st.get("pending_payout", 0),
+            "paid_out": st.get("paid_out", 0), "min_payout": 100, "count": len(mine),
+            "payouts": [referral_mask_payout(p) for p in list(reversed(mine))[:20]],
+            "message_telugu": "💸 Min ₹100 — UPI/bank ki 3 working days lo (UTR tho confirm)"}
+
+
+
+
+# ---------------------------------------------------------------------------
+# 🔐 ADMIN GUARD — payout approve/reject lo MONEY move avutundi, kabatti token
+#    ADMIN_TOKEN env set cheste aa token lekunda evaru kooda cheyyaledu.
+#    (dev/preview lo env lekapote open — kaani response lo warning untundi)
+# ---------------------------------------------------------------------------
+def _admin_guard(token: str = ""):
+    expected = os.getenv("ADMIN_TOKEN", "").strip()
+    if expected and token.strip() != expected:
+        return JSONResponse(status_code=401, content={
+            "success": False, "reason": "unauthorized",
+            "message_telugu": "🔐 Admin token avasaram — ADMIN_TOKEN header/query pampandi"})
+    return None
+
+
+@app.get("/api/admin/payouts")
+def admin_payout_list(status: str = "requested", token: str = ""):
+    """👮 Admin — payout queue (approve/reject). ADMIN_TOKEN set aithe token kavali."""
+    _g = _admin_guard(token)
+    if _g:
+        return _g
+    res = payout_queue(status)
+    res["guard"] = "token_required" if os.getenv("ADMIN_TOKEN", "").strip() else "open_dev_mode"
+    if not os.getenv("ADMIN_TOKEN", "").strip():
+        res["warning_telugu"] = "⚠️ ADMIN_TOKEN env set cheyyandi — appudu admin endpoints lock avutayi"
+    return {"success": True, **res}
+
+
+@app.post("/api/admin/payouts/{request_id}/action")
+def admin_payout_action(request_id: str, action: str, utr: str = "", reason: str = "", token: str = ""):
+    """✅ Approve (UTR required) leda ❌ Reject (wallet ki malli credit)."""
+    _g = _admin_guard(token)
+    if _g:
+        return _g
+    res = payout_action(request_id, action, DB_USERS, utr=utr, reason=reason)
+    if not res.get("ok"):
+        return JSONResponse(status_code=400, content={"success": False, **res})
+    return {"success": True, **res}
+
+
+@app.post("/api/admin/refund/{tsap_id}")
+def admin_refund(tsap_id: str, amount: int = 0, reason: str = "refund", token: str = ""):
+    """
+    ↩️ Refund → referral commission clawback (referrer wallet nunchi theesestham).
+    Customer refund adigithe idi kooda cheyyali — lekapote referrer double profit.
+    """
+    _g = _admin_guard(token)
+    if _g:
+        return _g
+    user = _user_or_404(tsap_id)
+    if not user.get("referred_by"):
+        return {"success": True, "reason": "no_referral", "message_telugu": "Ee user ki referral ledu"}
+    res = reverse_referral_payment(user, amount, DB_USERS, reason=reason)
+    return {"success": bool(res.get("success")), **res}
+
+
+@app.get("/api/referral/{tsap_id}/fraud-check")
+def referral_fraud_check(tsap_id: str):
+    """🕵️ Self-check: mee account lo emanna referral issue unda?"""
+    user = _user_or_404(tsap_id)
+    st = referral_stats_of(user)
+    issues = list(st.get("flags", []))
+    if user.get("referred_by") and str(user.get("referral_code", "")).upper() == str(user.get("referred_by", "")).upper():
+        issues.append("self_referral_locked")
+    return {"success": True, "tsap_id": tsap_id, "issues": issues,
+            "clean": not issues, "paid_count": st.get("paid_count", 0),
+            "wallet": st.get("wallet", 0),
+            "message_telugu": "✅ Clean — mee account lo em problem ledu" if not issues
+            else "⚠️ Issues: %s" % ", ".join(issues)}
+
+
+
 
 @app.post("/api/admin/approve/{tsap_id}")
 def admin_approve(tsap_id: str):
@@ -1252,7 +1540,7 @@ def demo_seed():
                 "phone_encrypted": encrypt_phone(sd["phone"]), "phone_last4": sd["phone"][-4:],
                 "photo_urls": [], "card_url": f"/cards/{tsap_id}.png",
                 "is_verified": bool(sd.get("is_verified", False)),
-                "is_approved": True, "privacy_mode": "public", "referral_code": f"MV{tsap_id[-4:]}",
+                "is_approved": True, "privacy_mode": "public", "referral_code": "",       # ensure_referrer_profile() unique code isthundi (duplicate fix)
                 "referral_stats": {"total": 0, "paid_count": 0},
                 "created_at": datetime.utcnow().isoformat(), "completeness": 88, "score": 92,
                 "profile_note": "TSAP demo profile"}

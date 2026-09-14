@@ -434,6 +434,17 @@ function Wizard() {
       if (!r.ok) throw new Error(d.detail || "Register avvaledu");
       setResult(d);
       localStorage.removeItem(DRAFT_KEY);
+      // 🤝 Referral page + requests lo ide user kanipinchali (demo ID kaadu)
+      try {
+        const newId = d.tsap_id || d.user_id || "";
+        if (newId) {
+          localStorage.setItem("tsap_last_id", newId);
+          const list = JSON.parse(localStorage.getItem("tsap_profiles") || "[]");
+          localStorage.setItem("tsap_profiles", JSON.stringify(
+            [{ id: newId, name: f.full_name, gender: f.gender, at: Date.now() },
+              ...list.filter((p: any) => (p?.id || p?.tsap_id) !== newId)].slice(0, 5)));
+        }
+      } catch { /* private mode lo localStorage block ayithe parvaledu */ }
       scrollTop();
     } catch (e: any) {
       setErrs([e?.message || "Register lo problem — malli try cheyyandi"]);
@@ -476,6 +487,63 @@ function Wizard() {
               <div className="text-[12px] text-emerald-800 mt-1">
                 {result.publish_targets.join(" • ")} + WhatsApp (anti-ban random gap tho)
               </div>
+            </div>
+          ) : null}
+
+          {result.referral?.my_code ? (
+            <div className="bg-gradient-to-br from-maroon to-[#5b1030] text-white rounded-2xl p-4">
+              <div className="flex items-center justify-between">
+                <div className="font-bold text-[15px]">🤝 Mee referral code ready</div>
+                <span className="text-[11px] font-bold gold-gradient text-maroon px-2.5 py-1 rounded-full">
+                  ₹{result.referral.commission_offer || 50}/friend
+                </span>
+              </div>
+              {result.referral.joined_with?.ok ? (
+                <div className="mt-2 bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-[12px]">
+                  🤝 <b>{result.referral.joined_with.referrer_name} garu</b> dwara vacharu — meeku{" "}
+                  <b>+{result.referral.joined_with.bonus_credits} FREE credit</b> vachindi (code {result.referral.joined_with.referrer_code}).
+                  Vaallaki kooda mee first payment tho ₹50 veltundi 🙌
+                </div>
+              ) : result.referral.joined_with?.reason && result.referral.joined_with.reason !== "no_code" ? (
+                <div className="mt-2 bg-amber-400/20 border border-amber-200/40 rounded-xl px-3 py-2 text-[11px]">
+                  ℹ️ {result.referral.joined_with.message_telugu || "Referral code lock avvaledu"} — parvaledu, mee sontha code tho ippudu start cheyyandi.
+                </div>
+              ) : null}
+              <div className="mt-3 bg-white/10 border border-white/20 rounded-xl px-3 py-2 flex items-center gap-2">
+                <span className="font-mono text-base font-bold">{result.referral.my_code}</span>
+                <button onClick={() => copy(String(result.referral.my_code), "refcode")}
+                  className="text-[11px] font-bold gold-gradient text-maroon px-2.5 py-1 rounded-full">
+                  {copied === "refcode" ? "copied ✓" : "code copy"}
+                </button>
+                <button onClick={() => copy(String(result.referral.my_link), "reflink")}
+                  className="text-[11px] font-bold bg-white/15 border border-white/25 px-2.5 py-1 rounded-full">
+                  {copied === "reflink" ? "copied ✓" : "link copy"}
+                </button>
+              </div>
+              <div className="mt-1 text-[11px] opacity-90 break-all font-mono">{result.referral.my_link}</div>
+              <div className="mt-2 text-[12px] opacity-95 telugu">{result.referral.earn_telugu}</div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <a href={`https://wa.me/?text=${encodeURIComponent(String(result.referral.share_message || ""))}`}
+                  target="_blank" rel="noreferrer"
+                  className="bg-green-600 text-white font-bold text-[12px] px-4 py-2.5 rounded-xl">
+                  📲 WhatsApp group ki pampu
+                </a>
+                <a href={result.referral.poster_url} download={`${result.referral.my_code}-manavivaha-referral.png`}
+                  className="gold-gradient text-maroon font-bold text-[12px] px-4 py-2.5 rounded-xl">
+                  ⬇️ Poster (QR tho)
+                </a>
+                <a href={result.referral.poster_status_url} target="_blank" rel="noreferrer"
+                  className="bg-white/10 border border-white/25 text-white font-bold text-[12px] px-4 py-2.5 rounded-xl">
+                  📱 Status poster
+                </a>
+                <Link href={`${result.referral.dashboard || "/referral"}?id=${tsap}`}
+                  className="bg-white/10 border border-white/25 text-white font-bold text-[12px] px-4 py-2.5 rounded-xl">
+                  📊 Referral dashboard
+                </Link>
+              </div>
+              <ul className="mt-2 space-y-0.5 text-[11px] opacity-85 list-disc list-inside">
+                {(result.referral.rule_telugu || []).map((t: string) => <li key={t}>{t}</li>)}
+              </ul>
             </div>
           ) : null}
 

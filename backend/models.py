@@ -177,6 +177,8 @@ class RegisterResponse(BaseModel):
     welcome_status: Optional[Dict[str, Any]] = None
     share_kit: Optional[Dict[str, Any]] = None
     share_text: str = ""
+    # 🤝 Referral 2.0 — mee sontha code/link + friend code nunchi vachina bonus
+    referral: Optional[Dict[str, Any]] = None
 
 class SearchResponse(BaseModel):
     profile: UserDB

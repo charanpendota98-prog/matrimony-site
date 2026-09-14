@@ -25,3 +25,11 @@ backend/channel_check_report.json
 backend/wa_pool_state.json
 backend/wa_state_*.json
 backend/wa_state/ 
+
+# referral 2.0 runtime state (codes/payouts/clicks — machine-specific)
+backend/referral_state.json
+backend/referral_state.json.tmp
+
+# referral posters — runtime lo generate avutayi (repo lo pettakoodadu)
+backend/channel_assets/ref_*.png
+backend/referral_posters/

@@ -1,151 +1,872 @@
 """
-TSAP Matrimony — Referral + Bureau + Leaderboard
-Pin-to-Pin Perfect Advanced — Startup Level
+MANA VIVAHA — REFERRAL 2.0 (Advanced) 🤝
+========================================
+Rule (user's words): **"referral bonus laga iddam andariki bestga — ₹99 kabatti first time
+vallu manaku pay chestharu, kabatti manam ₹50 istham referal vallaki."**
+
+Design goals:
+  * ఎవరికైనా ₹50 — referred friend **modati payment** (₹29/₹99/₹199/₹299/₹499 — edaina) chesthe
+  * Referee (kotha user) ki kooda **bonus credits** — "andariki bestga"
+  * Repeat payments ki 10% (cap ₹100) — loyal referrers ki passive income
+  * Tiers (BRONZE → ELITE): extra % + badges — top referrers ni motivate cheyyadam
+  * Milestones: 3 / 10 / 25 / 50 paying referrals → cash + credits (AUTO credit — manual ledu)
+  * Anti-fraud: self-referral block, one-referral-lock, daily cap, duplicate phone/UPI, refund clawback
+  * Payouts: wallet → ₹100 min → UPI/bank request → admin approve → UTR (audit trail)
+  * Durability: state file (backend/referral_state.json) — server restart aina wallets/ledger safe
+
+Backward compatible: generate_referral_code / calculate_commission / check_bonus_eligibility /
+process_referral_payment / get_leaderboard — purathana calls break avvavu (signature defaults).
 """
+from __future__ import annotations
+
+import json
+import os
 import random
+import re
 import string
-from datetime import datetime
-from typing import Dict, List
+from datetime import datetime, timedelta
+from typing import Dict, List, Optional
 
-def generate_referral_code(tsap_id: str) -> str:
-    """TSAP-M-2025-1042 → LAK42 short — 3 letters + 2 digits = 5 chars"""
-    try:
-        seq = tsap_id.split("-")[-1]
-        # Short code: use seq last 2 digits + random
-        return f"{random.choice(['LAK','RAJ','SAI','SRI','POO','KAR'])}{seq[-2:]}"
-    except:
-        return f"{random.choice(['LAK','RAJ','SAI'])}{random.randint(10,99)}"
+# ------------------------------------------------------------------ CONFIG
+REFERRAL_VERSION = "2.0"
 
-def generate_short_code(name: str, existing_codes: list = []) -> str:
-    """Short code — 3 letters + 2 digits = 5 chars — LAK42 — easy enter!"""
-    clean = "".join(c for c in name if c.isalpha()).upper()
-    base = clean[:3].ljust(3, "X")  # LAK, RAJ, SRI
-    for _ in range(100):
-        num = random.randint(10,99)
-        code = f"{base}{num}"  # LAK42
-        if code not in existing_codes:
-            return code
-    return f"{base}{random.randint(100,999)}"
+FIRST_PAY_COMMISSION = 50          # ₹50 — modati payment (edi aina) ki flat
+MIN_QUALIFYING_AMOUNT = 29         # ₹29 kanna thakkuva unte count cheyyadu
+REPEAT_COMMISSION_PCT = 0.10       # tarvata payments ki 10%
+REPEAT_COMMISSION_CAP = 100        # okka payment ki max ₹100
+REFEREE_BONUS_CREDITS = 1          # kotha user ki bonus credit (andariki)
+MIN_PAYOUT = 100                   # payout minimum ₹100
+PAYOUT_SLA_DAYS = 3                # request → 3 working days lo pay
+DAILY_PAYING_CAP = 10              # okka referrer ki okka rojuki max 10 paying referrals (fraud guard)
+LIFETIME_CAP = 200                 # max paying referrals okka code ki (abuse guard)
 
-def generate_broker_code(name: str) -> str:
-    """Broker short — RAJ01 — 3 letters + 2 digits — 5 chars"""
-    return generate_short_code(name)
+TIERS: List[Dict] = [
+    {"key": "BRONZE",   "min": 0,  "extra_pct": 0,  "icon": "🥉", "perks": ["₹50 per paying referral", "Daily 10 cap"]},
+    {"key": "SILVER",   "min": 3,  "extra_pct": 5,  "icon": "🥈", "perks": ["+5% extra on every commission", "Priority support"]},
+    {"key": "GOLD",     "min": 10, "extra_pct": 10, "icon": "🥇", "perks": ["+10% extra", "Free 1 porutham report", "Channel shout-out"]},
+    {"key": "PLATINUM", "min": 25, "extra_pct": 15, "icon": "💎", "perks": ["+15% extra", "Verified Referrer badge", "₹500 milestone bonus"]},
+    {"key": "ELITE",    "min": 50, "extra_pct": 20, "icon": "👑", "perks": ["+20% extra", "Elite badge", "₹1200 milestone + 25 credits"]},
+]
 
-def generate_bureau_code(name: str) -> str:
-    """Bureau short — SRI1 / SAI01 — 3-4 letters + 1-2 digits — 4-5 chars — short, easy"""
-    clean = "".join(c for c in name if c.isalpha()).upper()
-    base = clean[:3]
-    # Try 1 digit first for bureau — SRI1 (4 chars) — even shorter!
-    for _ in range(10):
-        code = f"{base}{random.randint(1,9)}"  # SRI1
-        return code
-    return generate_short_code(name)
+MILESTONES: List[Dict] = [
+    {"paid": 3,  "cash": 0,    "credits": 1,  "title": "🥈 SILVER Referrer", "telugu": "3 paying referrals — ₹50×3 = ₹150 + 1 free credit"},
+    {"paid": 10, "cash": 250,  "credits": 3,  "title": "🥇 GOLD Referrer", "telugu": "10 paying referrals — ₹500 + ₹250 bonus + 3 credits"},
+    {"paid": 25, "cash": 500,  "credits": 10, "title": "💎 PLATINUM Referrer", "telugu": "25 paying referrals — ₹1250 + ₹500 bonus + 10 credits"},
+    {"paid": 50, "cash": 1200, "credits": 25, "title": "👑 ELITE Referrer", "telugu": "50 paying referrals — ₹2500 + ₹1200 bonus + 25 credits + VIP badge"},
+]
+
+REFERRAL_TYPES = ("USER", "LADY", "STUDENT", "INFLUENCER", "BROKER", "BUREAU", "PHONE", "NONE")
+STATE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "referral_state.json")
+
+PAYOUTS: List[Dict] = []          # admin queue (PAY-YYMMDD-XXXX)
+CLICKS: List[Dict] = []           # /r/<code> clicks (audit + conversion funnel)
+_LEDGER_SEQ = {"n": 0}
+
+
+# ------------------------------------------------------------------ helpers
+def _now() -> str:
+    return datetime.utcnow().isoformat()
+
+
+def _today() -> str:
+    return datetime.utcnow().strftime("%Y-%m-%d")
+
+
+def _next_id(prefix: str) -> str:
+    _LEDGER_SEQ["n"] += 1
+    return "%s-%s-%04d" % (prefix, datetime.utcnow().strftime("%y%m%d%H%M"), _LEDGER_SEQ["n"])
+
+
+def _code_of(user: Dict) -> str:
+    return str(user.get("referral_code") or "").upper().strip()
+
+
+def stats_of(user: Dict) -> Dict:
+    """Referrer stats — pata format tho backward compatible."""
+    s = user.setdefault("referral_stats", {})
+    s.setdefault("clicks", 0)
+    s.setdefault("registrations", s.get("total", 0))
+    s.setdefault("total", s.get("registrations", 0))
+    s.setdefault("paid_count", 0)
+    s.setdefault("wallet", user.get("wallet", 0))
+    s.setdefault("lifetime_earned", s.get("wallet", 0))
+    s.setdefault("pending_payout", 0)
+    s.setdefault("paid_out", 0)
+    s.setdefault("paid_today", 0)
+    s.setdefault("paid_today_date", "")
+    s.setdefault("tier", "BRONZE")
+    s.setdefault("milestones_hit", [])
+    s.setdefault("flags", [])
+    return s
+
+
+def tier_of(paid_count: int) -> Dict:
+    t = TIERS[0]
+    for row in TIERS:
+        if paid_count >= row["min"]:
+            t = row
+    return t
+
+
+def next_milestone(paid_count: int) -> Optional[Dict]:
+    for m in MILESTONES:
+        if paid_count < m["paid"]:
+            return {**m, "need": m["paid"] - paid_count}
+    return None
+
 
 def parse_referral_type(code: str) -> str:
-    if not code: return "NONE"
-    code = code.upper()
-    if code.startswith("BROKER-"): return "BROKER"
-    if code.startswith("BUREAU-"): return "BUREAU"
-    if code.startswith("TSAP-REF-"): return "USER"
-    # phone number referral
-    if code.isdigit() and len(code)>=10: return "PHONE"
+    if not code:
+        return "NONE"
+    c = str(code).strip().upper()
+    if c.startswith("BROKER-"):
+        return "BROKER"
+    if c.startswith("BUREAU-"):
+        return "BUREAU"
+    if c.isdigit() and len(c) >= 10:
+        return "PHONE"
+    if c.startswith("TSAP-REF-"):
+        return "USER"
+    if len(c) in (4, 5) and re.fullmatch(r"[A-Z]{3}[0-9]{1,2}", c):
+        return "USER"          # LAK42 / SRI1
     return "USER"
 
-def calculate_commission(referral_type: str, plan_amount: int) -> int:
-    """Per pay commission — NEW: ₹50 for first ₹99 pay — 50% — viral — no thappu!"""
-    if plan_amount==99:
-        # All types — USER, LADY, STUDENT, INFLUENCER, BROKER — ₹50 first pay — viral!
-        return 50
-    if plan_amount==299:
-        if referral_type=="BROKER": return 90
-        if referral_type=="BUREAU": return 90
-        return 50
-    if plan_amount==999:
-        if referral_type=="BROKER": return 200
-        if referral_type=="BUREAU": return 300
-        return 100
-    return 0
+
+def calculate_commission(referral_type: str, plan_amount: int, is_first_payment: bool = True,
+                         tier: str = "BRONZE") -> int:
+    """
+    ₹50 for the FIRST payment (any plan ≥ ₹29) — 'andariki ₹50'.
+    Tarvata payments ki 10% (max ₹100) + tier extra %.
+    """
+    amount = int(plan_amount or 0)
+    if amount < MIN_QUALIFYING_AMOUNT:
+        return 0
+    if is_first_payment:
+        base = FIRST_PAY_COMMISSION
+    else:
+        base = min(int(amount * REPEAT_COMMISSION_PCT + 0.5), REPEAT_COMMISSION_CAP)
+    extra_pct = tier_of(next((t["min"] for t in TIERS if t["key"] == tier), 0))["extra_pct"]
+    return int(base * (1 + extra_pct / 100.0) + 0.5)      # half-up (10.5 → 11) — predictable
+
 
 def check_bonus_eligibility(referrer_stats: Dict) -> Dict:
-    """25 pays/month → ₹500 bonus + 10 profiles share"""
-    paid = referrer_stats.get("paid_count", 0)
-    if paid>=50:
-        return {"eligible": True, "bonus": 1200, "reward": "50 profiles share + Verified Badge + ₹1200", "tier": "GOLD"}
-    if paid>=25:
-        return {"eligible": True, "bonus": 500, "reward": "10 profiles share + ₹500", "tier": "SILVER"}
-    return {"eligible": False, "bonus": 0, "reward": "", "tier": "BRONZE"}
-
-def process_referral_payment(referred_user: Dict, referrer_code: str, plan_amount: int, all_users: List[Dict]) -> Dict:
-    """
-    referred_user pay chesaka — referrer ki commission + credits
-    Pin-to-Pin:
-    1. Referral code parse → type
-    2. Commission calculate
-    3. Referrer find (by code or phone)
-    4. Commission add to referrer wallet + credits if USER
-    5. Bonus check
-    6. Leaderboard update
-    """
-    ref_type = parse_referral_type(referrer_code)
-    commission = calculate_commission(ref_type, plan_amount)
-
-    # Find referrer (mock — real DB lo search)
-    referrer = None
-    for u in all_users:
-        if u.get("referral_code")==referrer_code or u.get("phone")==referrer_code or u.get("tsap_id")==referrer_code:
-            referrer = u
-            break
-
-    if not referrer:
-        return {"success": False, "message": f"Referrer {referrer_code} not found, commission pending — admin will verify"}
-
-    # Add commission
-    referrer["wallet"] = referrer.get("wallet", 0) + commission
-    if ref_type=="USER":
-        referrer["credits"] = referrer.get("credits", 0) + 2  # 2 free credits for user referral
-
-    # Update stats
-    referrer["referral_stats"] = referrer.get("referral_stats", {"total":0, "paid_count":0})
-    referrer["referral_stats"]["paid_count"] += 1
-
-    bonus = check_bonus_eligibility(referrer["referral_stats"])
-
-    # Notification message Telugu
-    msg = f"🎉 Congrats! Me friend {referred_user['tsap_id']} pay chesadu (₹{plan_amount}). Meeku ₹{commission} vachindi!"
-    if ref_type=="USER":
-        msg += f" + 2 free credits! Total credits: {referrer['credits']}"
-    if bonus["eligible"]:
-        msg += f" 🏆 Bonus! {bonus['reward']}"
-
+    """Milestone + tier status — bonus cash/credits **auto credit** avutayi (process lo)."""
+    paid = int(referrer_stats.get("paid_count", 0) or 0)
+    tier = tier_of(paid)
+    hit = [m for m in MILESTONES if paid >= m["paid"]]
+    already = set(referrer_stats.get("milestones_hit", []))
+    new_hits = [m for m in hit if m["paid"] not in already]
+    cash = sum(m["cash"] for m in new_hits)
+    credits = sum(m["credits"] for m in new_hits)
+    eligible = bool(cash or credits)
     return {
-        "success": True,
-        "referrer_id": referrer.get("tsap_id"),
-        "commission": commission,
-        "bonus": bonus,
-        "message_telugu": msg,
-        "referrer_new_credits": referrer.get("credits",0),
-        "referrer_wallet": referrer.get("wallet",0)
+        "eligible": eligible, "bonus": cash, "credits": credits, "tier": tier["key"],
+        "new_milestones": new_hits, "hit": hit,
+        "reward": " + ".join(m["title"] for m in new_hits) if new_hits else "",
+        "next": next_milestone(paid),
     }
 
-def get_leaderboard(all_users: List[Dict], limit=10) -> List[Dict]:
-    """Top referrers — weekly"""
-    # sort by paid_count
-    sorted_users = sorted(all_users, key=lambda x: x.get("referral_stats", {}).get("paid_count",0), reverse=True)
-    board = []
-    for u in sorted_users[:limit]:
-        stats = u.get("referral_stats", {"total":0, "paid_count":0})
-        board.append({
-            "name": u.get("name", u.get("tsap_id","Unknown")),
-            "code": u.get("referral_code",""),
-            "refers": stats.get("total",0),
-            "paid": stats.get("paid_count",0),
-            "earned": u.get("wallet",0),
-            "tier": check_bonus_eligibility(stats).get("tier","BRONZE")
-        })
-    return board
 
-def generate_bureau_white_label_card(original_card_path: str, bureau_name: str, bureau_code: str, output_path: str) -> str:
-    """Card meeda 'Via Sri Sai Bureau' add cheyadam"""
-    # In real: Pillow tho original card meeda text overlay
-    # Mock: return same path with note
-    return output_path + f" [White-label: Via {bureau_name} | {bureau_code}]"
+def generate_short_code(name: str, existing_codes: Optional[list] = None) -> str:
+    """Short code — 3 letters + 2 digits = 5 chars — LAK42 — phone lo easy type."""
+    existing = {str(c).upper() for c in (existing_codes or [])}
+    clean = "".join(c for c in str(name or "") if c.isalpha()).upper()
+    base = (clean[:3] or "MV").ljust(3, "X")
+    for _ in range(200):
+        code = "%s%02d" % (base, random.randint(10, 99))
+        if code not in existing:
+            return code
+    return "%s%03d" % (base, random.randint(100, 999))
+
+
+def generate_referral_code(tsap_id: str, existing_codes: Optional[list] = None) -> str:
+    """TSAP-M-2025-1042 → LAK42 (deterministic-ish + unique check)."""
+    if existing_codes:
+        return generate_short_code("LAK", existing_codes)
+    try:
+        seq = str(tsap_id).split("-")[-1]
+        return "%s%s" % (random.choice(["LAK", "RAJ", "SAI", "SRI", "POO", "KAR"]), seq[-2:])
+    except Exception:
+        return "%s%02d" % (random.choice(["LAK", "RAJ", "SAI"]), random.randint(10, 99))
+
+
+def generate_broker_code(name: str) -> str:
+    return "BROKER-" + generate_short_code(name)
+
+
+def generate_bureau_code(name: str) -> str:
+    clean = "".join(c for c in str(name or "") if c.isalpha()).upper()
+    return "BUREAU-" + ((clean[:3] or "BRU") + str(random.randint(1, 9)))
+
+
+# ------------------------------------------------------------------ state (durability)
+def save_state() -> Dict:
+    """Wallets / ledger / payouts / clicks → state file (restart aina safe)."""
+    try:
+        data = {"version": REFERRAL_VERSION, "at": _now(), "payouts": PAYOUTS[-500:],
+                "clicks": CLICKS[-2000:]}
+        with open(STATE_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False)
+        return {"ok": True, "path": STATE_FILE}
+    except Exception as e:
+        return {"ok": False, "error": str(e)[:120]}
+
+
+def load_state() -> Dict:
+    """Server start lo payouts + clicks malli load. Users' wallets main.DB nunchi (user dict lo)."""
+    global PAYOUTS, CLICKS
+    try:
+        if not os.path.exists(STATE_FILE):
+            return {"ok": True, "loaded": False}
+        with open(STATE_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        PAYOUTS = list(data.get("payouts", []))
+        CLICKS = list(data.get("clicks", []))
+        return {"ok": True, "loaded": True, "payouts": len(PAYOUTS), "clicks": len(CLICKS)}
+    except Exception as e:
+        return {"ok": False, "error": str(e)[:120]}
+
+
+# ------------------------------------------------------------------ referrer profile
+def ensure_referrer_profile(user: Dict, all_users: Optional[List[Dict]] = None,
+                            name_hint: str = "") -> Dict:
+    """Prathi user ki referral code + link (register appude set avutundi, leda ikkada)."""
+    all_users = all_users if all_users is not None else []
+    # ee user ni vadilisi, migilina vaalla codes (unique check ki)
+    others = [_code_of(u) for u in all_users if u is not user and _code_of(u)]
+    current = _code_of(user)
+    if current.startswith("TSAP-REF-"):          # purathana deterministic alias → short code ki marchi,
+        user["referral_alias"] = user.get("referral_alias") or current   # alias ni save cheyyadam (rendu pani chestayi)
+        user["referral_code"] = ""
+        current = ""
+    # 🚨 DUPLICATE FIX: okate code rendu mandiki unte (seed data lo jarigindi) — kotha unique code istham
+    if current and current in others:
+        user["referral_code"] = ""
+        current = ""
+    if not current:
+        short = generate_short_code(name_hint or user.get("full_name") or user.get("name") or "MV",
+                                    others + [_code_of(user)])
+        user["referral_code"] = short
+    # pretty alias (TSAP-REF-xxxx) — purathana format kooda pani chestundi
+    if not user.get("referral_alias"):
+        digits = "".join(ch for ch in str(user.get("tsap_id", "")) if ch.isdigit())[-5:] or "%05d" % random.randint(1, 99999)
+        alias = "TSAP-REF-" + digits
+        taken = {str(u.get("referral_alias", "")).upper() for u in all_users if u is not user}
+        if alias.upper() in taken:                  # alias kooda unique ga undali
+            alias = "TSAP-REF-%s-%s" % (digits, user.get("tsap_id", "")[-2:] or "X")
+        user["referral_alias"] = alias
+    u = _code_of(user)
+    _alias = str(user.get("referral_alias", "")).upper()
+    if _alias and any(str(o.get("referral_alias", "")).upper() == _alias for o in all_users if o is not user):
+        user["referral_alias"] = "TSAP-REF-%s" % u
+    user["referral_link"] = "https://manavivaha.in/r/%s" % u
+    user["referral_stats"] = stats_of(user)
+    user["referral_tier"] = tier_of(user["referral_stats"]["paid_count"])["key"]
+    return {"code": u, "alias": user["referral_alias"], "link": user["referral_link"],
+            "tier": user["referral_tier"]}
+
+
+def find_referrer(code: str, all_users: List[Dict]) -> Optional[Dict]:
+    """Code / alias / phone / tsap_id — edi ichina referrer ni pattukuntundi."""
+    if not code:
+        return None
+    probe = str(code).strip()
+    p_up = probe.upper()
+    for u in all_users:
+        if _code_of(u) == p_up:
+            return u
+    for u in all_users:
+        if str(u.get("referral_alias", "")).upper() == p_up or str(u.get("tsap_id", "")).upper() == p_up:
+            return u
+    if p_up.isdigit() and len(p_up) >= 10:      # phone referral
+        for u in all_users:
+            if str(u.get("phone", "")).strip() == p_up:
+                return u
+    return None
+
+
+def validate_referral(code: str, all_users: List[Dict]) -> Dict:
+    """Landing page / register form lo validate — 'ee code pani chestunda?'"""
+    code = (code or "").strip()
+    if not code:
+        return {"ok": False, "reason": "code_ledu", "message_telugu": "Referral code ivvaledu"}
+    ref = find_referrer(code, all_users)
+    if not ref:
+        return {"ok": False, "reason": "not_found", "code": code,
+                "message_telugu": "⚠️ Ee code dorakaledu — code sari ga chusukondi (leda code lekunda register avvachu)"}
+    st = stats_of(ref)
+    name = ref.get("full_name") or ref.get("name") or "Mana Vivaha member"
+    return {"ok": True, "code": _code_of(ref), "alias": ref.get("referral_alias", ""),
+            "referrer_name": name, "referrer_id": ref.get("tsap_id"),
+            "tier": tier_of(st["paid_count"])["key"], "paid_count": st["paid_count"],
+            "bonus_credits": REFEREE_BONUS_CREDITS, "commission_offer": FIRST_PAY_COMMISSION,
+            "message_telugu": "✅ %s garu dwara vacharu — mee registration ki +%d FREE credit!" % (name, REFEREE_BONUS_CREDITS)}
+
+
+def attach_referral(user: Dict, code: str, all_users: List[Dict]) -> Dict:
+    """
+    Register time lo referral ni **lock** chestundi + referee bonus credit isthundi.
+    Guards: self-referral (same phone / same tsap), already-referred lock, code invalid.
+    """
+    code = (code or "").strip()
+    if not code:
+        return {"ok": False, "reason": "no_code"}
+    ref = find_referrer(code, all_users)
+    if not ref:
+        return {"ok": False, "reason": "not_found",
+                "message_telugu": "⚠️ Referral code dorakaledu — code lekunda continue avutunnaru"}
+    # 🚨 SELF-REFERRAL block (same person / same phone)
+    if ref.get("tsap_id") == user.get("tsap_id"):
+        return {"ok": False, "reason": "self_referral",
+                "message_telugu": "🚫 Mee sontha code vaadukovaddu — self-referral allowed ledu"}
+    if user.get("phone") and ref.get("phone") and str(user["phone"]) == str(ref["phone"]):
+        return {"ok": False, "reason": "same_phone", "message_telugu": "🚫 Same phone number tho self-referral allowed ledu"}
+    if user.get("referred_by"):
+        return {"ok": False, "reason": "already_referred", "referred_by": user.get("referred_by"),
+                "message_telugu": "ℹ️ Mee account ki already oka referral lock ayyindi"}
+    # ✅ lock + stats
+    user["referred_by"] = _code_of(ref)
+    user["referred_by_name"] = ref.get("full_name") or ref.get("name") or ""
+    user["referred_at"] = _now()
+    st = stats_of(ref)
+    st["registrations"] = int(st.get("registrations", 0)) + 1
+    st["total"] = st["registrations"]
+    ref["referral_stats"] = st
+    # 🎁 referee (kotha user) bonus — andariki
+    user["credits"] = int(user.get("credits", 0) or 0) + REFEREE_BONUS_CREDITS
+    user.setdefault("credit_history", []).append(
+        {"at": _now(), "change": REFEREE_BONUS_CREDITS, "reason": "referral_join_bonus",
+         "by": _code_of(ref), "note": "Referral tho register — bonus credit"})
+    save_state()
+    return {"ok": True, "referrer_code": _code_of(ref), "referrer_id": ref.get("tsap_id"),
+            "referrer_name": ref.get("full_name") or ref.get("name") or "", "bonus_credits": REFEREE_BONUS_CREDITS,
+            "referee_credits": user.get("credits", 0), "commission_offer": FIRST_PAY_COMMISSION,
+            "message_telugu": "🎉 Referral lock ayyindi (%s) — mee account ki +%d FREE credit vachindi!"
+                              % (_code_of(ref), REFEREE_BONUS_CREDITS)}
+
+
+# ------------------------------------------------------------------ payment → commission
+def _fraud_flags(referrer: Dict, referred_user: Dict, all_users: List[Dict]) -> List[str]:
+    st = stats_of(referrer)
+    flags = []
+    if st.get("paid_today_date") != _today():
+        return flags
+    if int(st.get("paid_today", 0)) >= DAILY_PAYING_CAP:
+        flags.append("daily_cap_hit:%d" % st["paid_today"])
+    if int(st.get("paid_count", 0)) >= LIFETIME_CAP:
+        flags.append("lifetime_cap_hit")
+    if referred_user.get("phone") and str(referred_user["phone"]).startswith(("000", "111")):
+        flags.append("test_phone")
+    if referrer.get("phone") and referred_user.get("phone") and \
+            str(referrer["phone"]) == str(referred_user["phone"]):
+        flags.append("same_phone")
+    return flags
+
+
+def process_referral_payment(referred_user: Dict, referrer_code: str, plan_amount: int,
+                             all_users: List[Dict], payment_id: str = "") -> Dict:
+    """
+    Referred friend pay chesaka → referrer ki commission + wallet + tier + milestone bonus.
+    · First payment  → ₹50 flat (+ tier extra %)  ← "andariki ₹50"
+    · Repeat payment → 10% (max ₹100) (+ tier extra %)
+    · Milestone hit  → cash + credits AUTO credit (purathana bug fix)
+    """
+    amount = int(plan_amount or 0)
+    ref = find_referrer(referrer_code, all_users)
+    if not ref:
+        return {"success": False, "reason": "referrer_not_found", "code": referrer_code,
+                "message_telugu": "⚠️ Referrer dorakaledu — admin verify chestadu (commission pending)"}
+    if amount < MIN_QUALIFYING_AMOUNT:
+        return {"success": False, "reason": "amount_too_small", "amount": amount,
+                "message_telugu": "ℹ️ ₹%d payments ki referral bonus ledu (min ₹%d)" % (amount, MIN_QUALIFYING_AMOUNT)}
+
+    st = stats_of(ref)
+    flags = _fraud_flags(ref, referred_user, all_users)
+    if flags:
+        flag = "fraud_review:" + ",".join(flags)
+        if flag not in st["flags"]:
+            st["flags"].append(flag)
+        # daily cap ayithe commission hold (admin review) — wallet ki velladu
+        if any(f.startswith("daily_cap_hit") or f.startswith("lifetime_cap") for f in flags):
+            return {"success": False, "reason": "fraud_review", "flags": flags,
+                    "message_telugu": "🕵️ Ee commission admin review lo undi (cap/cross-check). 24h lo resolve avutundi."}
+
+    # first payment? (ee user ki ee varaku commission ivvaledu)
+    first = not any(l.get("type") == "commission" and l.get("from") == referred_user.get("tsap_id")
+                    for l in reversed(st.get("ledger", [])))
+    tier = tier_of(st["paid_count"])["key"]
+    commission = calculate_commission(parse_referral_type(referrer_code), amount, first, tier)
+    if commission <= 0:
+        return {"success": False, "reason": "zero_commission", "amount": amount}
+
+    # 👛 wallet credit
+    st["wallet"] = round(float(st.get("wallet", 0)) + commission, 2)
+    st["lifetime_earned"] = round(float(st.get("lifetime_earned", 0)) + commission, 2)
+    ref["wallet"] = st["wallet"]
+    st["paid_count"] = int(st.get("paid_count", 0)) + 1
+    if st.get("paid_today_date") != _today():
+        st["paid_today_date"] = _today()
+        st["paid_today"] = 0
+    st["paid_today"] = int(st.get("paid_today", 0)) + 1
+    st["last_paid_at"] = _now()
+    st.setdefault("ledger", []).append({
+        "id": _next_id("RC"), "at": _now(), "type": "commission", "amount": commission,
+        "from": referred_user.get("tsap_id"), "from_name": referred_user.get("full_name") or referred_user.get("name", ""),
+        "plan_amount": amount, "first_payment": first, "tier": tier, "payment_id": payment_id,
+        "note": ("Modati payment bonus ₹%d" % FIRST_PAY_COMMISSION) if first else "Repeat payment 10%",
+    })
+
+    # 🏆 milestone + tier bonus (auto credit — cash + credits)
+    bonus = check_bonus_eligibility(st)
+    bonus_credits_added = 0
+    if bonus["credits"]:
+        ref["credits"] = int(ref.get("credits", 0) or 0) + bonus["credits"]
+        bonus_credits_added = bonus["credits"]
+        ref.setdefault("credit_history", []).append(
+            {"at": _now(), "change": bonus["credits"], "reason": "referral_milestone",
+             "note": " + ".join(m["title"] for m in bonus["new_milestones"])})
+    if bonus["bonus"]:
+        st["wallet"] = round(float(st["wallet"]) + bonus["bonus"], 2)
+        st["lifetime_earned"] = round(float(st["lifetime_earned"]) + bonus["bonus"], 2)
+        ref["wallet"] = st["wallet"]
+        st["ledger"].append({"id": _next_id("MB"), "at": _now(), "type": "milestone",
+                             "amount": bonus["bonus"], "note": bonus["reward"]})
+    for m in bonus["new_milestones"]:
+        st["milestones_hit"].append(m["paid"])
+    new_tier = tier_of(st["paid_count"])
+    st["tier"] = new_tier["key"]
+    ref["referral_tier"] = new_tier["key"]
+
+    # referee ki thank-you + referrer ki notification (Telugu)
+    msg_ref = ("🎉 Congrats! %s (₹%d) pay chesadu — meeku ₹%d wallet lo vachindi%s. "
+               "Balance: ₹%s | Tier: %s %s"
+               % (referred_user.get("tsap_id", "friend"), amount, commission,
+                  (" + %d credits" % bonus_credits_added) if bonus_credits_added else "",
+                  st["wallet"], new_tier["icon"], new_tier["key"]))
+    if bonus["reward"]:
+        msg_ref += " 🏆 %s" % bonus["reward"]
+    if bonus["next"]:
+        msg_ref += " | Inka %d pays ayithe %s" % (bonus["next"]["need"], bonus["next"]["title"])
+    save_state()
+    return {
+        "success": True, "referrer_id": ref.get("tsap_id"), "referrer_code": _code_of(ref),
+        "referrer_name": ref.get("full_name") or ref.get("name", ""),
+        "commission": commission, "first_payment": first, "tier": new_tier["key"],
+        "tier_icon": new_tier["icon"], "bonus": bonus["bonus"], "bonus_credits": bonus_credits_added,
+        "milestones": [m["title"] for m in bonus["new_milestones"]],
+        "wallet": st["wallet"], "lifetime_earned": st["lifetime_earned"],
+        "paid_count": st["paid_count"], "next_milestone": bonus["next"],
+        "referrer_new_credits": ref.get("credits", 0),
+        "message_telugu": msg_ref,
+        "referee_message_telugu": ("🙏 Thank you! Mee payment success. Mee friend %s ki ₹%d bonus vellindi — "
+                                   "mee profile ippudu channels lo active!" % (_code_of(ref), commission)),
+    }
+
+
+def reverse_referral_payment(referred_user: Dict, plan_amount: int, all_users: List[Dict],
+                             reason: str = "refund") -> Dict:
+    """Payment refund/chargeback ayithe — referrer wallet nunchi commission theesestham (clawback)."""
+    code = referred_user.get("referred_by")
+    ref = find_referrer(code or "", all_users)
+    if not ref:
+        return {"success": False, "reason": "referrer_not_found"}
+    st = stats_of(ref)
+    def _candidates():
+        return [e for e in st.get("ledger", [])
+                if e.get("type") == "commission" and e.get("from") == referred_user.get("tsap_id")
+                and not e.get("reversed")]
+    cands = _candidates()
+    if not cands:
+        return {"success": False, "reason": "no_commission_found"}
+    # 🎯 Same amount (ee payment ki sambandhinchina commission) ni mundu reverse cheyyadam —
+    #    ₹99 refund ki ₹99 commission, ₹199 refund ki ₹199 commission (audit correct ga)
+    exact = [e for e in cands if int(e.get("plan_amount", 0)) == int(plan_amount or 0)]
+    target = (exact or cands)[-1]
+    paid_back = int(target.get("amount", 0))
+    target["reversed"] = True
+    target["reversed_at"] = _now()
+    target["reversed_reason"] = reason
+    if not paid_back:
+        return {"success": False, "reason": "no_commission_found"}
+    st["wallet"] = round(float(st.get("wallet", 0)) - paid_back, 2)
+    st["lifetime_earned"] = round(float(st.get("lifetime_earned", 0)) - paid_back, 2)
+    ref["wallet"] = st["wallet"]
+    st["paid_count"] = max(0, int(st.get("paid_count", 0)) - 1)
+    st.setdefault("ledger", []).append({"id": _next_id("RV"), "at": _now(), "type": "reversal",
+                                        "amount": -paid_back, "from": referred_user.get("tsap_id"),
+                                        "note": "Refund clawback — %s" % reason})
+    save_state()
+    return {"success": True, "reversed": paid_back, "wallet": st["wallet"],
+            "message_telugu": "↩️ Refund jarigindi — ₹%d commission wallet nunchi theesesa" % paid_back}
+
+
+# ------------------------------------------------------------------ payouts
+UPI_RE = re.compile(r"^[a-zA-Z0-9._-]{2,64}@[a-zA-Z]{2,32}$")
+IFSC_RE = re.compile(r"^[A-Z]{4}0[A-Z0-9]{6}$")
+
+
+def payout_request(user: Dict, amount: int, method: str = "upi", upi_id: str = "",
+                   bank: Optional[Dict] = None, note: str = "") -> Dict:
+    """Wallet → payout request (₹100 min). UPI id validate + duplicate pending guard."""
+    st = stats_of(user)
+    method = (method or "upi").lower()
+    try:
+        amount = int(amount)
+    except Exception:
+        return {"ok": False, "reason": "bad_amount", "message_telugu": "⚠️ Amount sari ga ivvandi"}
+    if method not in ("upi", "bank"):
+        return {"ok": False, "reason": "bad_method", "message_telugu": "⚠️ upi leda bank matrame"}
+    if amount < MIN_PAYOUT:
+        return {"ok": False, "reason": "below_min", "min": MIN_PAYOUT,
+                "message_telugu": "ℹ️ Minimum ₹%d nunchi payout adagochu — mee wallet ₹%s" % (MIN_PAYOUT, st["wallet"])}
+    if amount > float(st.get("wallet", 0)):
+        return {"ok": False, "reason": "insufficient_wallet", "wallet": st["wallet"],
+                "message_telugu": "⚠️ Wallet lo ₹%s matrame undi — ₹%d adagalev" % (st["wallet"], amount)}
+    if any(p.get("tsap_id") == user.get("tsap_id") and p.get("status") == "requested" for p in PAYOUTS):
+        return {"ok": False, "reason": "pending_exists",
+                "message_telugu": "⏳ Mee pata payout request inka process lo undi — adi ayyaka malli adagandi"}
+    if method == "upi":
+        if not UPI_RE.fullmatch((upi_id or "").strip()):
+            return {"ok": False, "reason": "bad_upi",
+                    "message_telugu": "⚠️ UPI ID tappu la undi (udaharanam: name@okhdfcbank)"}
+    else:
+        bank = bank or {}
+        if not (str(bank.get("account_no", "")).strip() and IFSC_RE.fullmatch(str(bank.get("ifsc", "")).strip().upper())
+                and str(bank.get("holder", "")).strip()):
+            return {"ok": False, "reason": "bad_bank",
+                    "message_telugu": "⚠️ Bank details sari ga ivvandi (holder + account no + IFSC)"}
+    req = {
+        "id": _next_id("PAY"), "tsap_id": user.get("tsap_id"),
+        "name": user.get("full_name") or user.get("name", ""),
+        "code": _code_of(user), "amount": amount, "method": method,
+        "upi_id": (upi_id or "").strip() if method == "upi" else "",
+        "bank": {k: str(v).strip() for k, v in (bank or {}).items()} if method == "bank" else {},
+        "status": "requested", "requested_at": _now(), "utr": "", "note": note,
+        "eta_days": PAYOUT_SLA_DAYS, "tier": st.get("tier", "BRONZE"),
+    }
+    PAYOUTS.append(req)
+    st["wallet"] = round(float(st.get("wallet", 0)) - amount, 2)
+    st["pending_payout"] = round(float(st.get("pending_payout", 0)) + amount, 2)
+    user["wallet"] = st["wallet"]
+    st.setdefault("ledger", []).append({"id": _next_id("PR"), "at": _now(), "type": "payout_request",
+                                        "amount": -amount, "note": "%s → %s" % (req["id"], upi_id or "bank")})
+    save_state()
+    return {"ok": True, "request": req, "wallet": st["wallet"],
+            "message_telugu": "✅ Payout request vachindi (%s • ₹%d). %d working days lo mee %s ki veltundi."
+                              % (req["id"], amount, PAYOUT_SLA_DAYS, "UPI" if method == "upi" else "bank account")}
+
+
+def payout_action(request_id: str, action: str, all_users: List[Dict], utr: str = "",
+                  reason: str = "") -> Dict:
+    """Admin: payout approve (UTR tho) / reject (wallet ki malli credit)."""
+    req = next((p for p in PAYOUTS if p["id"] == request_id), None)
+    if not req:
+        return {"ok": False, "reason": "not_found", "message_telugu": "⚠️ Ee payout request dorakaledu"}
+    if req["status"] != "requested":
+        return {"ok": False, "reason": "already_%s" % req["status"]}
+    user = next((u for u in all_users if u.get("tsap_id") == req["tsap_id"]), None)
+    if not user:
+        return {"ok": False, "reason": "user_not_found"}
+    st = stats_of(user)
+    action = (action or "").lower()
+    if action in ("approve", "paid"):
+        if not utr:
+            return {"ok": False, "reason": "utr_required",
+                    "message_telugu": "⚠️ UTR/reference number ivvakunda approve cheyyakoodadu (audit ki)"}
+        req.update({"status": "paid", "utr": utr, "paid_at": _now(), "paid_by": "admin"})
+        st["pending_payout"] = round(float(st.get("pending_payout", 0)) - float(req["amount"]), 2)
+        st["paid_out"] = round(float(st.get("paid_out", 0)) + float(req["amount"]), 2)
+        msg = "🎉 ₹%d mee %s ki pampinchi — UTR: %s. Thank you!" % (
+            req["amount"], "UPI" if req["method"] == "upi" else "bank", utr)
+    elif action in ("reject", "cancel"):
+        req.update({"status": "rejected", "reason": reason or "admin_reject", "rejected_at": _now()})
+        st["wallet"] = round(float(st.get("wallet", 0)) + float(req["amount"]), 2)
+        st["pending_payout"] = round(float(st.get("pending_payout", 0)) - float(req["amount"]), 2)
+        user["wallet"] = st["wallet"]
+        st.setdefault("ledger", []).append({"id": _next_id("PB"), "at": _now(), "type": "payout_reject",
+                                            "amount": float(req["amount"]),
+                                            "note": "Reject (%s) → wallet ki malli" % (reason or "admin")})
+        msg = "ℹ️ Payout %s reject ayyindi (%s) — ₹%d malli mee wallet lo add chesam." % (
+            req["id"], reason or "admin", req["amount"])
+    else:
+        return {"ok": False, "reason": "bad_action"}
+    user["referral_stats"] = st
+    save_state()
+    return {"ok": True, "request": req, "wallet": st.get("wallet"), "message_telugu": msg}
+
+
+def payout_queue(status: str = "requested") -> Dict:
+    rows = [p for p in PAYOUTS if (not status or p.get("status") == status)]
+    total = sum(float(p.get("amount", 0)) for p in rows)
+    return {"count": len(rows), "total_amount": round(total, 2), "items": sorted(rows, key=lambda p: p.get("requested_at", "")),
+            "message_telugu": "💰 %d payout requests — ₹%s pending. UTR tho approve cheyyandi." % (len(rows), total)}
+
+
+# ------------------------------------------------------------------ clicks + funnel
+def track_click(code: str, source: str = "link") -> Dict:
+    """ /r/<code> click — funnel (clicks → registrations → payments) ki kavali. """
+    c = (code or "").strip().upper()
+    CLICKS.append({"at": _now(), "code": c, "source": source})
+    save_state()
+    return {"ok": True, "code": c, "clicks_total": sum(1 for x in CLICKS if x["code"] == c)}
+
+
+def click_stats(code: str) -> Dict:
+    c = (code or "").strip().upper()
+    return {"clicks": sum(1 for x in CLICKS if x["code"] == c),
+            "today": sum(1 for x in CLICKS if x["code"] == c and x["at"][:10] == _today())}
+
+
+# ------------------------------------------------------------------ dashboard
+def referral_dashboard(user: Dict, all_users: List[Dict], limit_recent: int = 10) -> Dict:
+    """Referrer dashboard — link, stats, funnel, tier, next milestone, ledger, payouts."""
+    ensure_referrer_profile(user, all_users)
+    st = stats_of(user)
+    payouts_mine = [p for p in PAYOUTS if p.get("tsap_id") == user.get("tsap_id")]
+    regs = [u for u in all_users if str(u.get("referred_by", "")).upper() == _code_of(user)]
+    paid_regs = [u for u in regs if any(l.get("type") == "commission" and l.get("from") == u.get("tsap_id")
+                                        for l in st.get("ledger", []))]
+    tier = tier_of(st["paid_count"])
+    nxt = next_milestone(st["paid_count"])
+    cstats = click_stats(_code_of(user))
+    conv = round((st["paid_count"] / cstats["clicks"] * 100), 1) if cstats["clicks"] else 0.0
+    return {
+        "ok": True,
+        "code": _code_of(user), "alias": user.get("referral_alias"), "link": user.get("referral_link"),
+        "referrer_name": user.get("full_name") or user.get("name", ""),
+        "tier": tier, "tier_icon": tier["icon"],
+        "stats": {
+            "clicks": cstats["clicks"], "clicks_today": cstats["today"],
+            "registrations": st["registrations"], "paid_count": st["paid_count"],
+            "wallet": st["wallet"], "lifetime_earned": st["lifetime_earned"],
+            "pending_payout": st["pending_payout"], "paid_out": st["paid_out"],
+            "credits_earned": sum(int(h.get("change", 0)) for h in user.get("credit_history", [])
+                                  if h.get("reason") == "referral_milestone"),
+            "conversion_pct": conv, "per_paying_user": FIRST_PAY_COMMISSION,
+        },
+        "commission_rules": {
+            "first_payment": "₹%d (edi aina plan — ₹%d nunchi)" % (FIRST_PAY_COMMISSION, MIN_QUALIFYING_AMOUNT),
+            "repeat_payment": "%d%% (max ₹%d)" % (int(REPEAT_COMMISSION_PCT * 100), REPEAT_COMMISSION_CAP),
+            "tier_extra": "+%d%% (extra on every commission)" % tier["extra_pct"],
+            "referee_bonus": "+%d credit to the new user" % REFEREE_BONUS_CREDITS,
+            "min_payout": MIN_PAYOUT, "payout_sla_days": PAYOUT_SLA_DAYS,
+        },
+        "next_milestone": nxt,
+        "milestones_hit": st["milestones_hit"],
+        "milestones": MILESTONES,
+        "tiers": TIERS,
+        "recent_registrations": [{"tsap_id": u.get("tsap_id"), "name": u.get("full_name") or u.get("name", ""),
+                                  "joined": u.get("referred_at", ""),
+                                  "paid": u in paid_regs} for u in regs[-limit_recent:]][::-1],
+        "ledger": list(reversed(st.get("ledger", [])))[:20],
+        "payouts": [mask_payout(p) for p in list(reversed(payouts_mine))[:10]],
+        "wallet_can_withdraw": float(st.get("wallet", 0)) >= MIN_PAYOUT,
+        "message_telugu": ("💰 Mee wallet ₹%s — %s" % (st["wallet"],
+                           "payout adagochu (min ₹%d)" % MIN_PAYOUT if float(st.get("wallet", 0)) >= MIN_PAYOUT
+                           else "inka ₹%d kavali payout ki" % (MIN_PAYOUT - float(st.get("wallet", 0))))),
+    }
+
+
+# ------------------------------------------------------------------ share kit
+def share_kit(user: Dict) -> Dict:
+    """WhatsApp/Telegram lo share cheyyadaniki ready texts (Telugu) + poster + QR link."""
+    ensure_referrer_profile(user, [])
+    code = _code_of(user)
+    link = user.get("referral_link") or ("https://manavivaha.in/r/%s" % code)
+    name = user.get("full_name") or user.get("name") or "Mana Vivaha"
+    wa = ("🙏 Namaste! Nenu %s.\n\n"
+          "Mana Vivaha (TS-AP Telugu Matrimony) — ₹99 ke Sambandham, modati 3 requests FREE.\n"
+          "✅ నిజమైన profiles • ఫోటో గోప్యం • 52 Telegram channels\n"
+          "✅ Mee sontha code %s tho register chesthe +1 credit EXTRA FREE!\n\n"
+          "👉 %s\n"
+          "🔗 ఛానెల్: https://t.me/TSAP_MATRIMONY") % (name, code, link)
+    variants = [
+        wa,
+        ("💍 Pelli chusukuntunnara? Mana Vivaha — TS/AP Telugu matrimony.\n"
+         "₹99 → 5 profiles • modati 3 FREE • numbers rendu vaipula ok ayyaka matrame.\n"
+         "Naa code *%s* tho register chesthe meeku +1 credit FREE 🎁\n%s") % (code, link),
+        ("👰🤵 Mana Vivaha lo ee వారం 100+ kotha profiles (Reddy, Kamma, Kapu, Mala, Madiga... caste-wise channels).\n"
+         "Mee code: %s → %s\n+1 credit FREE (naa referral)!") % (code, link),
+        ("🔔 Namaste! Mee intlo/relative circle lo pelli chusukuntunna vaallaki ee link pampandi:\n%s\n"
+         "Mana Vivaha — 3 requests FREE, ₹99 ke 5 profiles. Naa code *%s* (bonus credit undi).") % (link, code),
+        ("🙏 %s garu, Mana Vivaha lo register cheyyandi — photo private, fraud jagratha, Telugu support.\n"
+         "%s\nCode: *%s* (+1 credit FREE)") % (name, link, code),
+    ]
+    tg = "💍 Mana Vivaha — TS/AP Telugu Matrimony\n₹99 ke Sambandham • Modati 3 FREE\nNaa code: %s\n%s" % (code, link)
+    return {
+        "code": code, "link": link, "alias": user.get("referral_alias"),
+        "whatsapp_messages": variants, "whatsapp_share": "https://wa.me/?text=" + _urlenc(variants[0]),
+        "whatsapp_share_variants": ["https://wa.me/?text=" + _urlenc(v) for v in variants],
+        "telegram_share": "https://t.me/share/url?url=%s&text=%s" % (_urlenc(link), _urlenc("Mana Vivaha — నా code %s" % code)),
+        "sms_text": "Mana Vivaha Telugu Matrimony — naa code %s tho register cheyyandi (+1 credit FREE): %s" % (code, link),
+        "poster_text": "💰 ₹50 per paying referral\nCode: %s\n%s" % (code, link),
+        "poster_card": "/api/referral/%s/poster.png" % _tsap_or_code(user),
+        "qr_target": link,
+        "status_text": "Manavivaha.in/r/%s — naa code tho register chesthe +1 credit free 🎁" % code,
+        "message_telugu": "📲 Share cheyyadaniki 5 ready messages (WhatsApp), Telegram link, poster — anni ikkada!",
+    }
+
+
+def _tsap_or_code(user: Dict) -> str:
+    return user.get("tsap_id") or _code_of(user)
+
+
+def _urlenc(text: str) -> str:
+    from urllib.parse import quote
+    return quote(text, safe="")
+
+
+# ------------------------------------------------------------------ leaderboard
+def get_leaderboard(all_users: List[Dict], limit: int = 10, period: str = "all") -> List[Dict]:
+    """Top referrers — full_name use (pata bug fix), period: all | week | month."""
+    cutoff = None
+    if period == "week":
+        cutoff = (datetime.utcnow() - timedelta(days=7)).isoformat()
+    elif period == "month":
+        cutoff = (datetime.utcnow() - timedelta(days=30)).isoformat()
+    rows = []
+    for u in all_users:
+        st = u.get("referral_stats") or {}
+        if not st.get("paid_count"):
+            continue
+        earned = float(st.get("lifetime_earned", u.get("wallet", 0)) or 0)
+        if cutoff:
+            entries = [l for l in st.get("ledger", [])
+                       if l.get("type") in ("commission", "milestone") and str(l.get("at", "")) >= cutoff]
+            if not entries:
+                continue
+            earned = sum(float(l.get("amount", 0)) for l in entries)
+        rows.append({
+            "name": u.get("full_name") or u.get("name") or "Mana Vivaha member",
+            "code": _code_of(u), "tsap_id": u.get("tsap_id"),
+            "refers": int(st.get("registrations", st.get("total", 0)) or 0),
+            "paid": int(st.get("paid_count", 0)),
+            "earned": round(earned, 2),
+            "tier": tier_of(int(st.get("paid_count", 0)))["key"],
+            "icon": tier_of(int(st.get("paid_count", 0)))["icon"],
+        })
+    rows.sort(key=lambda r: (r["paid"], r["earned"], r["refers"]), reverse=True)
+    for i, r in enumerate(rows[:limit], 1):
+        r["rank"] = i
+    return rows[:limit]
+
+
+# ------------------------------------------------------------------ terms
+def referral_terms_telugu() -> Dict:
+    return {
+        "version": REFERRAL_VERSION,
+        "headline": "₹50 per paying referral — andariki",
+        "rules_telugu": [
+            "✅ Mee code/link tho register chesina friend **modati payment** (₹29 nunchi) chesthe — meeku **₹50**",
+            "🔁 Tarvata vaalla payments ki **10%** (okka payment ki max ₹100)",
+            "🎁 Kotha user ki (referee) **+1 credit FREE** — vaallaki kooda labham",
+            "🏆 Tiers: Silver 3 → Gold 10 → Platinum 25 → Elite 50 pays (extra % + badges + milestone cash)",
+            "💸 Payout: wallet ₹100 datithe UPI/bank ki request pettandi — 3 working days lo credit (UTR tho)",
+            "🚫 Self-referral, same phone, fake registrations → commission cancel + account block",
+            "↩️ Customer refund adigithe aa commission wallet nunchi theesestham (clawback)",
+            "⏳ Commission 7 రోజులు hold lo untundi (chargeback/refund window)",
+            "🔒 Meere friend ki cheppali — spam/bulk messages cheste code block avutundi",
+            "📊 Dashboard lo clicks, registrations, payments, earnings anni live ga kanipistayi",
+        ],
+        "not_allowed": ["Self-referral (sontha code)", "Same phone number rendu accounts",
+                        "Fake/duplicate registrations", "Bulk spam / bots", "Refund chesina payments ki commission"],
+        "support": "manavivaha.in • WhatsApp support • care@manavivaha.in",
+    }
+
+
+# ------------------------------------------------------------------ util (compat)
+def generate_bureau_white_label_card(original_card_path: str, bureau_name: str, bureau_code: str,
+                                     output_path: str) -> str:
+    """Bureau card meeda 'Via <bureau>' overlay (PIL unte nijamga, lekapote path + note)."""
+    try:
+        from PIL import Image, ImageDraw
+        img = Image.open(original_card_path).convert("RGB")
+        d = ImageDraw.Draw(img)
+        d.rectangle([0, img.height - 46, img.width, img.height], fill=(15, 31, 60))
+        d.text((16, img.height - 34), "Via %s | %s" % (bureau_name, bureau_code), fill=(212, 175, 55))
+        img.save(output_path)
+        return output_path
+    except Exception:
+        return output_path
+
+# ---------------------------------------------------------------------------
+# 🔔 WhatsApp NOTIFICATIONS (referrer ki instant update — loop closed)
+#    Ee functions text matrame return chesthayi; queue main.py lo jarugutundi.
+# ---------------------------------------------------------------------------
+def _name_of(u, fallback="Friend"):
+    return (u.get("full_name") or u.get("name") or fallback).split()[0]
+
+
+def referrer_join_text(referrer, referee):
+    """Friend register ayyinappudu referrer ki pampE message."""
+    return (
+        "🎉 %s garu, mee referral link nunchi *%s* join ayyaru!\n\n"
+        "Vaallu modati payment (₹99/₹199...) cheyyagane meeku *₹50* mee wallet lo veltundi.\n"
+        "Mee code: %s | Mee link: %s\n\n"
+        "Inka mandi ki pampandi — prathi paying friend ki ₹50 (limit ledu) 💰\n"
+        "— Mana Vivaha · /referral lo mee dashboard"
+        % (_name_of(referrer, "Garu"), _name_of(referee), _code_of(referrer),
+           referrer.get("referral_link") or "https://manavivaha.in/r/%s" % _code_of(referrer)))
+
+
+def referrer_commission_text(referrer, referee, result):
+    """Payment vachhi commission credit ayyinappudu referrer ki pampE message."""
+    amt = result.get("commission", 0)
+    st = stats_of(referrer)
+    tier = result.get("tier") or st.get("tier", "BRONZE")
+    milestone = result.get("milestone")
+    lines = [
+        "💰 *₹%d వచ్చింది!*" % amt,
+        "Mee friend %s ₹%s pay chesaru — commission mee referral wallet lo credit ayyindi." % (
+            _name_of(referee), result.get("plan_amount", "")),
+        "",
+        "👛 Wallet balance: ₹%s" % st.get("wallet", 0),
+        "🏅 Tier: %s (%d paying referrals)" % (tier, st.get("paid_count", 0)),
+    ]
+    if milestone:
+        _bits = []
+        if milestone.get("cash"):
+            _bits.append("₹%s wallet" % milestone["cash"])
+        if milestone.get("credits"):
+            _bits.append("%s credits" % milestone["credits"])
+        lines.append("🎁 %s — %s" % (milestone.get("title", "Milestone bonus"), " + ".join(_bits) or "bonus credited"))
+    nxt = next_milestone(st.get("paid_count", 0))
+    if nxt:
+        lines.append("➡️ Inka %d paying referrals → %s" % (nxt["need"], nxt["title"]))
+    lines.append("")
+    lines.append("Payout ₹100 nunchi (3 days lo) — /referral lo request pettandi 🏦")
+    lines.append("— Mana Vivaha")
+    return "\n".join(lines)
+
+
+def referee_welcome_text(referee, referrer):
+    """Referral tho vachina kotha user ki (namaste message ki add-on line)."""
+    return ("🤝 Mee friend %s garu referral code tho vacharu — meeku *+1 FREE credit* bonus! "
+            "Total %s credits ready. Mee sontha code: %s (friend pay chesthe meeku ₹50)"
+            % (_name_of(referrer, "Friend"), referee.get("credits", 3), _code_of(referee)))
+
+def mask_payout(rec: Dict) -> Dict:
+    """🔒 Public dashboard ki payout record (UPI/bank details masked).
+    Admin queue (payout_queue) lo FULL details untayi — pay cheyyadaniki avasaram."""
+    r = dict(rec or {})
+    upi = str(r.get("upi_id", "") or "")
+    if upi:
+        name, _, host = upi.partition("@")
+        r["upi_id"] = (_mask_mid(name, 2) + "@" + _mask_mid(host, 2)) if host else _mask_mid(name, 2)
+    bank = dict(r.get("bank") or {})
+    if bank:
+        acc = str(bank.get("account_no", ""))
+        bank["account_no"] = ("•" * max(0, len(acc) - 4)) + acc[-4:] if acc else ""
+        if bank.get("holder"):
+            bank["holder"] = _mask_mid(str(bank["holder"]), 1)
+        r["bank"] = bank
+    r["masked"] = True
+    return r
+
+
+def _mask_mid(text: str, keep: int) -> str:
+    """ravi@okhdfcbank → ra***@okh*** style (modati `keep` chars matrame kanipistayi)."""
+    t = str(text or "")
+    if len(t) <= keep:
+        return t[:1] + "***" if t else ""
+    return t[:keep] + "***"

@@ -276,7 +276,7 @@ export default function PricingPage() {
         <div className="text-lg font-extrabold text-[#7A0C2E] telugu">
           Modati 3 requests FREE — ippude start cheyyandi 🙏
         </div>
-        <div className="text-xs text-[#7A0C2E]/80 mtelugu mt-1">Card details avasaram ledu • 3 నిమిషాల్లో register</div>
+        <div className="text-xs text-[#7A0C2E]/80 telugu mt-1">Card details avasaram ledu • 3 నిమిషాల్లో register</div>
         <div className="mt-4 flex flex-wrap gap-3 justify-center">
           <Link href="/register" className="rounded-xl bg-[#7A0C2E] text-white px-5 py-2.5 font-bold text-sm">Register FREE →</Link>
           <Link href="/channels" className="rounded-xl bg-white/70 text-[#7A0C2E] px-5 py-2.5 font-bold text-sm border border-[#7A0C2E]/20">52 Channels chudandi</Link>
