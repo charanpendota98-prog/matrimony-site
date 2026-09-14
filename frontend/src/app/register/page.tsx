@@ -29,6 +29,9 @@ function RegisterContent() {
     height: "5'4\"",
     weight: "",
     bloodGroup: "",
+    religion: "Hindu",
+    experience: "",
+    workType: "Private",
     maritalStatus: "Pelli Kaledu",
     physicalStatus: "Normal",
     motherTongue: "Telugu",
@@ -228,6 +231,31 @@ function RegisterContent() {
       fd.append("dob", form.dob);
       fd.append("dob_correct", String(form.dobCorrect));
       fd.append("photo_private", String(form.photoPrivate));
+      // Advanced fields — card lo anni details kanipinchadaniki (lekapothe blank vasthundi)
+      fd.append("weight", form.weight);
+      fd.append("mother_tongue", form.motherTongue);
+      fd.append("physical_status", form.physicalStatus);
+      fd.append("body_type", form.bodyType);
+      fd.append("complexion", form.complexion);
+      fd.append("family_values", form.familyValues);
+      fd.append("family_status", form.familyStatus);
+      fd.append("brothers", form.brothers);
+      fd.append("brothers_married", form.brothersMarried);
+      fd.append("sisters", form.sisters);
+      fd.append("sisters_married", form.sistersMarried);
+      fd.append("moola_nakshatram", form.moolaNakshatram);
+      fd.append("religion", form.religion ?? "Hindu");
+      fd.append("college", form.college);
+      fd.append("experience", form.experience ?? "");
+      fd.append("work_type", form.workType ?? "");
+      fd.append("pincode", form.pincode);
+      fd.append("rasi", form.rasi);
+      fd.append("dosham", form.dosham);
+      fd.append("birth_time", form.birthTime);
+      fd.append("current_city", form.currentCity);
+      fd.append("family_type", form.familyType);
+      fd.append("company", form.company);
+      fd.append("work_location", form.workLocation);
 
       // Same-origin API (manavivaha.in/api) → nginx backend ki proxy chestundi.
       // Direct IP:port hardcode ledu — domain tho pani chestundi, CORS issue ledu.

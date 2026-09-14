@@ -11,7 +11,10 @@ from datetime import datetime
 
 # Import our modules
 from models import RegisterRequest, RegisterResponse, SearchResponse, MatchResult
-from matching_engine import calculate_match_score, generate_personalized_reasons, find_top_matches
+from matching_engine import (
+    calculate_match_score, generate_personalized_reasons, find_top_matches,
+    generate_profile_highlights,
+)
 from card_generator import generate_id, create_profile_card
 from credits import PLANS, can_view_number, deduct_credit, add_credits, can_search_id
 from referral import generate_referral_code, process_referral_payment, get_leaderboard, parse_referral_type
@@ -33,6 +36,16 @@ from publisher import (
 from channels_config import post_targets
 
 app = FastAPI(title="TSAP Matrimony API — Ultra Advanced", version="2.0")
+
+# Card + photo files static ga serve — /cards/{id}.png browser lo direct open avutundi
+try:
+    from fastapi.staticfiles import StaticFiles
+    os.makedirs("/tmp/cards", exist_ok=True)
+    os.makedirs("/tmp/photos", exist_ok=True)
+    app.mount("/cards", StaticFiles(directory="/tmp/cards"), name="cards")
+    app.mount("/photos", StaticFiles(directory="/tmp/photos"), name="photos")
+except Exception as _e:
+    print("[STATIC] mount skip:", _e)
 
 @app.on_event("startup")
 async def _startup_publisher():
@@ -109,6 +122,27 @@ async def register(
     exp_job: str = Form(""),
     exp_location: str = Form(""),
     exp_caste: str = Form(""),
+    # Advanced optional — form anni fields API ki vellali (lekapothe card lo blank vasthundi)
+    weight: str = Form(""),
+    blood_group: str = Form(""),
+    mother_tongue: str = Form("Telugu"),
+    physical_status: str = Form("Normal"),
+    body_type: str = Form("Average"),
+    complexion: str = Form("Fair"),
+    family_values: str = Form("Traditional"),
+    family_status: str = Form("Middle Class"),
+    brothers: str = Form(""),
+    brothers_married: str = Form(""),
+    sisters: str = Form(""),
+    sisters_married: str = Form(""),
+    moola_nakshatram: str = Form("No"),
+    religion: str = Form("Hindu"),
+    college: str = Form(""),
+    experience: str = Form(""),
+    work_type: str = Form(""),
+    pincode: str = Form(""),
+    photo_url: str = Form(""),        # uploaded photo ka URL (S3/static)
+    upload_token: str = Form(""),
 ):
     """
     Pin-to-Pin Register Flow:
@@ -159,6 +193,24 @@ async def register(
         "mother_occupation": mother_occupation,
         "family_type": family_type,
         "native_place": native_place,
+        "weight": weight,
+        "blood_group": blood_group,
+        "mother_tongue": mother_tongue,
+        "physical_status": physical_status,
+        "body_type": body_type,
+        "complexion": complexion,
+        "family_values": family_values,
+        "family_status": family_status,
+        "brothers": brothers,
+        "brothers_married": brothers_married,
+        "sisters": sisters,
+        "sisters_married": sisters_married,
+        "moola_nakshatram": moola_nakshatram,
+        "religion": religion,
+        "college": college,
+        "experience": experience,
+        "work_type": work_type,
+        "pincode": pincode,
         "state": state,
         "district": district,
         "mandal": mandal,
@@ -169,8 +221,8 @@ async def register(
         "phone": phone,
         "referral_code": my_ref_code,
         "referred_by": referral_code,
-        "photo_urls": [f"/photos/{tsap_id}_1.jpg"],
-        "card_url": f"/cards/{tsap_id}.png",
+        "photo_urls": ([photo_url] if photo_url else [f"/photos/{tsap_id}_1.jpg"]),
+        "card_url": f"/cards/{tsap_id}.png",   # web URL (card files static mount lo undi)
         "is_verified": False,
         "is_approved": False,
         "privacy_mode": "private" if photo_private else "public",
@@ -182,15 +234,25 @@ async def register(
         "expectations": expectations,
         "exp_filters": {"ageMin": exp_age_min, "ageMax": exp_age_max, "job": exp_job, "location": exp_location, "caste": exp_caste},
     }
+    # 3b. Card/caption lo chupinchE personalized highlights + completeness score
+    user["reasons"] = generate_profile_highlights(user)
+    filled = [k for k, v in user.items() if v not in ("", None, [], 0) and not k.startswith("_")]
+    user["completeness"] = min(100, int(len(filled) * 100 / max(1, len(user))))
+    user["score"] = max(70, min(99, 70 + int(user["completeness"] * 0.3)))
     DB_USERS.append(user)
 
     # 4. Card Gen — FULL DETAIL NEAT CARD (Pillow). Fail ayithe path matrame istundi.
-    card_path = f"/tmp/cards/{tsap_id}.png"
+    card_path = f"/tmp/cards/{tsap_id}.png"          # filesystem (internal use)
+    card_url = f"/cards/{tsap_id}.png"               # web URL (browser/Telegram lo open avutundi)
     try:
         if create_pro_card:
             os.makedirs("/tmp/cards", exist_ok=True)
+            # photo upload ayyindi unte card lo real photo (face crop) vestham
+            if photo_url:
+                user["photo_path"] = photo_url if os.path.isabs(photo_url) else photo_url.replace("/photos/", "/tmp/photos/")
             create_pro_card(user, card_path)
             user["card_generated"] = True
+            user["card_url"] = card_url
     except Exception as e:
         user["card_generated"] = False
         user["card_error"] = str(e)[:160]
@@ -215,7 +277,7 @@ async def register(
     # 6b. AUTO-PUBLISH — Telegram + WhatsApp (queue, register response block avvadu)
     pub = {"queued": False, "targets": []}
     if publish_config()["auto_post_on_register"]:
-        pub = enqueue(user, tsap_id, score=92,
+        pub = enqueue(user, tsap_id, score=int(user.get("score", 92)),
                       photo_path=card_path if user.get("card_generated") else None)
         user["publish_targets"] = pub["targets"]
 
@@ -232,7 +294,7 @@ async def register(
 
     return RegisterResponse(
         tsap_id=tsap_id,
-        card_url=card_path,
+        card_url=user.get("card_url", card_url),
         credits=3,
         message_telugu=f"🎉 Congratulations! Me ID: {tsap_id}. Me profile admin approve lo undi (2 min). Top 3 FREE matches ready!",
         next_steps=["Admin approve (2 min)", "Top 3 FREE with reason", "₹99 pay → 10 numbers + daily auto", "Referral share → earn ₹30"],
