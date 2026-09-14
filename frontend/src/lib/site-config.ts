@@ -36,17 +36,26 @@ export const SITE_CONFIG = {
   // ---------- Pricing (home page lo chupisthundi) ----------
   pricing: {                       // 1 credit = 1 profile (interest request)
     currency: "₹",
-    trial: 99,                     // ₹99 → 3 profiles
-    family: 199,                   // ₹199 → 10 profiles
-    premium: 299,                  // ₹299 → 20 profiles
+    trial: 99,                     // ₹99 → 5 profiles
+    family: 199,                   // ₹199 → 12 profiles
+    premium: 299,                  // ₹299 → 25 profiles
+    vip: 499,                      // ₹499 → 50 profiles
     bureauMonthly: 999,
     freeCredits: 3,                // modati 3 interest requests FREE
     referralPerPay: 50,            // referrer ki ₹50
     bundles: [
-      { price: 99, profiles: 3, label: "Sambandham" },
-      { price: 199, profiles: 10, label: "Family" },
-      { price: 299, profiles: 20, label: "Premium" },
+      { price: 99, profiles: 5, label: "Sambandham" },
+      { price: 199, profiles: 12, label: "Family" },
+      { price: 299, profiles: 25, label: "Premium" },
+      { price: 499, profiles: 50, label: "Vivaha VIP" },
     ],
+    addons: [
+      { price: 49, label: "Profile Boost (7 days)" },
+      { price: 49, label: "Who viewed me (30 days)" },
+      { price: 99, label: "10-Porutham report" },
+      { price: 199, label: "Photo verification badge" },
+    ],
+    renewal: { price: 99, profiles: 8, label: "Renewal bonus" },
   },
   model: {
     chatting: false,               // 🚫 chatting ledu — consent-based requests

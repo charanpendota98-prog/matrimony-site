@@ -12,18 +12,44 @@
 Manam: **₹99 nunchi start, chatting ledu, WhatsApp lo direct, caste-wise 43 channels, decline ki refund.**
 Ante: **trust + price + local reach** — ee moodu manaki unna edge.
 
-### Pricing ladder (final)
+### ⚠️ MEE PRICING LO UNNA 2 PROBLEMS (audit) + FIX
+
+**Mundu (mee numbers):** FREE 3 → ₹99 = 3 → ₹199 = 10 → ₹299 = 20
+
+| # | Problem | Enduku problem | Fix |
+|---|---|---|---|
+| 1 | **₹99 = 3 profiles** — FREE kooda 3 istham | First paid step lo **pay cheyyadaniki reason ledu** — conversion killer | ₹99 → **5 profiles** (₹20/profile) |
+| 2 | Ladder weak — ₹199 (₹19.9/profile) vs ₹299 (₹15/profile) | Upsell anchor saripoledu, top tier "cheap" ga kanipisthundi | ₹199 → **12**, ₹299 → **25**, kotha **₹499 → 50** (VIP anchor) |
+
+### Pricing ladder (FIXED — ₹/profile prati tier lo thaggutundi)
 
 | Plan | Price | Profiles | ₹/profile | Why ee price |
 |---|---|---|---|---|
-| FREE | ₹0 | 3 requests | — | Funnel: register chesi **3 requests** — WhatsApp lo mee profile veltundi (viral loop) |
-| **Sambandham** | **₹99** | **3** | ₹33 | "Okka coffee price" — impulse buy. Declines refund aithe risk ledu |
-| **Family** | **₹199** | **10** | ₹20 | **Hero plan** — families idi teesukuntayi (10 requests = serious search) |
-| **Premium** | **₹299** | **20** | **₹15** | "Most popular" badge — ₹/profile best ani chupinchadam |
-| Bureau / Agents | ₹999/mo | 25 + report | ₹40 | B2B recurring — 20 agents = ₹19,980/mo steady |
+| FREE | ₹0 | 3 requests | — | Funnel: register → 3 requests FREE (WhatsApp lo profile veltundi = viral loop) |
+| **Sambandham** | **₹99** | **5** | ₹20 | "Okka coffee price" — impulse buy; FREE kanna **ekkuva** value (fix #1) |
+| **Family** | **₹199** | **12** | ₹16.6 | **Hero plan (Most Popular)** + verified badge + free porutham report |
+| **Premium** | **₹299** | **25** | **₹12** | **Best value** badge + 30-day boost + who-viewed-me |
+| **Vivaha VIP** | **₹499** | **50** | **₹10** | Anchor tier — VIP ga kanipinchadaniki + matchmaker assist |
+| Bureau | ₹999/mo | 25 + report | ₹40 | B2B recurring |
+| Bureau Pro | ₹2,999/mo | 100 + dashboard | ₹30 | Agents/agencies |
 
-**Upsell add-ons (advanced, easy money):**
-- ⭐ Profile Boost ₹49 (7 days top-of-channel) • 📄 Horoscope 10-porutham report ₹99 • ✅ Photo/KYC verify ₹199 • 💍 Wedding vendor listing ₹2,999/mo
+**Reasoning (why ee numbers):**
+- **₹/profile descend avvali** (20 → 16.6 → 12 → 10) — appude "poddaga teesukunte waste, peddadi teesukunte better" ane feeling vastundi (classic anchoring).
+- **₹499 VIP** = "decoy/anchor" tier. Idi konna vallu takkuva, kani ₹299 ni "reasonable" ga chupisthundi (conversions penchutundi).
+- **₹99 ni 5 profiles** cheyyadam valla first payment gelukovadam easy — tarvata upgrade cheyyadam chala easy (sunk cost).
+- Mee original ₹99/₹199/₹299 amounts **as-it-is** unnayi — only value ni correct chesam. Marchali ante **1 file**: `backend/interest.py` → `PLANS` (frontend `site-config.ts` pricing bhi update cheyyali).
+
+### 🎁 ADD-ONS (credits kanna ekkuva margin — per-item revenue)
+
+| Add-on | Price | Enti | Margin |
+|---|---|---|---|
+| ⚡ Profile Boost | ₹49 | 7 days channel top lo | ~100% (compute only) |
+| 👀 Who viewed me | ₹49 | 30 days names tho | ~100% |
+| 🔮 10-Porutham report | ₹99 | Full kundli match (Telugu) | ~100% |
+| ✅ Photo verification badge | ₹199 | Trust + 3x acceptances | ~95% (manual review) |
+| 🔁 Renewal offer | ₹99 → **8** profiles | Pata customer ki ekkuva | Loyalty = repeat revenue |
+
+**Add-on wedge:** okka user ₹99 plan + ₹49 boost + ₹199 verify = **₹347** (ARPU 3.5x!). Add-ons ni interest send screen lo + "who viewed" lo chupinchadam valla natural ga konestharu.
 
 ### Revenue math (realistic ga, monthly)
 
@@ -32,7 +58,9 @@ Ante: **trust + price + local reach** — ee moodu manaki unna edge.
 | Start (slow) | 500 | 8% = 40 | ₹180 | **₹7,200** |
 | Growing | 2,000 | 10% = 200 | ₹190 | **₹38,000** |
 | Established | 6,000 | 12% = 720 | ₹210 | **₹1,51,200** |
+| + Add-ons (20% of paid users × ₹100) | — | — | — | **+₹14,400/mo** |
 | + Bureau (20 agents) | — | — | — | **+₹19,980/mo recurring** |
+| + Wedding vendors (20 × ₹2,999) | — | — | — | **+₹59,980/mo** |
 
 **Costs:** Oracle VM ₹0 (free tier) • Domain ~₹800/yr • Razorpay 2% • WhatsApp Cloud API per-message • **Total fixed < ₹1,000/mo** → almost 100% margin. Ee model lo **break-even first 6 paying customers** ke ayyipothundi.
 
@@ -87,6 +115,18 @@ Referral ₹50 (friend pay chesthe) → 2 new registrations per paid user
 ---
 
 ## 3. 🚀 15 INKA ADVANCED STRATEGIES (idu meeru adigina "inka best strategies")
+
+### 🆕 IPPUDU CODE LO UNNA NEW FEATURES (gaps filled)
+
+| Feature | Enti chestundi | Enduku important |
+|---|---|---|
+| 🔮 **10-Porutham engine** | Rasi, nakshatra, gana, yoni, rajju, vedha, mahendra, stree deergha, vashya, adhipathi — score /10 + Telugu verdict + dosha alerts | Bharat/Shaadi lo ee feature **paid** — manam free ga istham (traditional families ki must) |
+| 👀 **Who viewed me** | Profile views count + paid ga names (₹49 leda ₹299 plan lo free) | Curiosity = best conversion trigger |
+| ❤️ **Shortlist / Save** | Profiles save chesi, porutham score tho chudochu | Top matrimony sites lo standard feature |
+| 🔎 **Programmatic SEO pages** | **289 pages** live: `/castes/reddy-bride-hyderabad` (43 castes × 2 roles × districts) | Google nunchi **free organic traffic** — 6 months lo pedda lead source |
+| 💌 **Requests dashboard** | Interest pampu, inbox accept/decline, sent tracker, credits, plans, add-ons, porutham tool | User ki okka place lo antha |
+| 🛡️ **Anti-ban WhatsApp** | 120–170s random gap + caps + warmup | Ban risk → 0 |
+| 📅 **Daily digest** | 9AM "nedu X kotha profiles" text (Telegram + WhatsApp) | Habit loop → daily active users |
 
 **1. Success-story engine (asalu #1 growth hack)**
 Prathi pelli tarvata: couple photo + 2 lines Telugu quote (**consent tho**) → card la design → channels + homepage + reels. Manam matrimony lo **result** ammutunnam — stories = proof = conversions. Monthly 5 stories = 3x conversion.

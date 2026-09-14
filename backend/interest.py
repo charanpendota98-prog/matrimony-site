@@ -40,18 +40,67 @@ SUPPORT = os.getenv("SUPPORT_WHATSAPP", "+91 98480 12345")
 BOT_USERNAME = os.getenv("BOT_USERNAME", "@telugumatrimony1_bot")
 
 # ------------------------------------------------------------------ PLANS
+# 📊 PRICING LADDER (₹/profile thaggutuu pothundi → ₹299 ki "best value" ga kanipisthundi)
+#    FREE 3  →  ₹99 = 5  →  ₹199 = 12  →  ₹299 = 25  →  ₹499 = 50
+#    Enduku free 3, ₹99 ki 3 kadu? FREE ke 3 istham — ₹99 ki kooda 3 isthe evaru pay cheyyaru.
+#    Enduku 5/12/25/50? Per-profile value 19.8 → 16.6 → 12 → 10 — clear upsell ladder (anchoring).
 PLANS: Dict[str, Dict] = {
-    "FREE":    {"code": "FREE",    "price": 0,   "profiles": 3,  "validity_days": 365, "label": "Free Start",
-                "telugu": "Modati 3 requests FREE", "badge": "", "per_profile": 0},
-    "S_99":    {"code": "S_99",    "price": 99,  "profiles": 3,  "validity_days": 30,  "label": "Sambandham",
-                "telugu": "₹99 → 3 profiles", "badge": "Starter", "per_profile": 33},
-    "S_199":   {"code": "S_199",   "price": 199, "profiles": 10, "validity_days": 45,  "label": "Family",
-                "telugu": "₹199 → 10 profiles", "badge": "Best for families", "per_profile": 20},
-    "S_299":   {"code": "S_299",   "price": 299, "profiles": 20, "validity_days": 60,  "label": "Premium",
-                "telugu": "₹299 → 20 profiles", "badge": "Most Popular • ₹15/profile", "per_profile": 15},
-    "BUREAU_999": {"code": "BUREAU_999", "price": 999, "profiles": 25, "validity_days": 30,
-                   "label": "Bureau Starter", "telugu": "₹999 → 25 profiles (B2B)",
-                   "badge": "Bureau/Agents", "per_profile": 40},
+    "FREE": {
+        "code": "FREE", "price": 0, "profiles": 3, "validity_days": 365,
+        "label": "Free Start", "telugu": "Modati 3 requests FREE", "badge": "No card needed",
+        "per_profile": 0, "perks": ["3 interest requests", "WhatsApp lo mee profile share", "Auto-post 65 channels"],
+    },
+    "S_99": {
+        "code": "S_99", "price": 99, "profiles": 5, "validity_days": 30,
+        "label": "Sambandham", "telugu": "₹99 → 5 profiles", "badge": "Entry • ₹19.8/profile",
+        "per_profile": 20, "perks": ["5 interest requests", "⚡ 7-day profile boost (top of channel)", "Decline aithe refund"],
+    },
+    "S_199": {
+        "code": "S_199", "price": 199, "profiles": 12, "validity_days": 45,
+        "label": "Family", "telugu": "₹199 → 12 profiles", "badge": "Most popular • ₹16.6/profile",
+        "per_profile": 17, "perks": ["12 interest requests", "✅ Photo-verified badge (trust boost)", "⭐ Free 10-porutham report (1)", "Family bureau assist"],
+    },
+    "S_299": {
+        "code": "S_299", "price": 299, "profiles": 25, "validity_days": 60,
+        "label": "Premium", "telugu": "₹299 → 25 profiles", "badge": "Best value • ₹12/profile",
+        "per_profile": 12, "perks": ["25 interest requests", "⚡ 30-day boost (top of channel)", "✅ Photo-verified badge", "👀 Who-viewed-me 60 days", "Telugu support (dedicated)"],
+    },
+    "S_499": {
+        "code": "S_499", "price": 499, "profiles": 50, "validity_days": 90,
+        "label": "Vivaha VIP", "telugu": "₹499 → 50 profiles", "badge": "VIP • ₹10/profile",
+        "per_profile": 10, "perks": ["50 interest requests", "🎯 Matchmaker assist (mana team call chesi matches chupisthundi)",
+                                   "⚡ 90-day boost", "💍 Wedding vendor discounts", "Priority WhatsApp support"],
+    },
+    "BUREAU_999": {
+        "code": "BUREAU_999", "price": 999, "profiles": 25, "validity_days": 30,
+        "label": "Bureau Starter", "telugu": "₹999 → 25 profiles (B2B)", "badge": "Bureau/Agents",
+        "per_profile": 40, "perks": ["25 profiles", "Monthly engaged report", "Bulk register"],
+    },
+    "BUREAU_2999": {
+        "code": "BUREAU_2999", "price": 2999, "profiles": 100, "validity_days": 30,
+        "label": "Bureau Pro", "telugu": "₹2999 → 100 profiles (B2B)", "badge": "Bureau Pro",
+        "per_profile": 30, "perks": ["100 profiles", "Agent dashboard + client management", "Priority channel posting"],
+    },
+}
+
+# 🎁 ADD-ONS (credits kanna — per-item revenue. Ivi "cheap ga" kanipisthayi, margin 100%)
+ADDONS: Dict[str, Dict] = {
+    "BOOST_49": {"code": "BOOST_49", "price": 49, "label": "Profile Boost 7 days",
+                 "telugu": "Mee card 7 days channel top lo", "kind": "boost", "days": 7},
+    "WHOVIEWED_49": {"code": "WHOVIEWED_49", "price": 49, "label": "Who viewed me (30 days)",
+                     "telugu": "Mee profile ni evaru chusaru — names tho", "kind": "whoviewed", "days": 30},
+    "PORUTHAM_99": {"code": "PORUTHAM_99", "price": 99, "label": "10-Porutham report",
+                    "telugu": "Full kundli match report (Telugu)", "kind": "porutham", "days": 365},
+    "VERIFY_199": {"code": "VERIFY_199", "price": 199, "label": "Photo verification badge",
+                   "telugu": "✅ Verified badge — 3x ekkuva acceptances", "kind": "verify", "days": 365},
+}
+
+# 🔁 RENEWAL OFFER — pata customer ki ekkuva value (loyalty + repeat revenue)
+RENEWALS: Dict[str, Dict] = {
+    "RENEW_99": {"code": "RENEW_99", "price": 99, "profiles": 8, "validity_days": 30,
+                 "label": "Renewal Bonus", "telugu": "₹99 → 8 profiles (pata customer special)",
+                 "badge": "Renewal • ₹12.4/profile", "per_profile": 12,
+                 "perks": ["8 interest requests", "⚡ 7-day boost free"]},
 }
 
 MAX_PER_DAY = int(os.getenv("INTEREST_MAX_PER_DAY", "20"))
@@ -61,11 +110,37 @@ AUTO_EXPIRE_CHECK = True
 
 
 def plan_list() -> List[Dict]:
-    return [PLANS["FREE"], PLANS["S_99"], PLANS["S_199"], PLANS["S_299"]]
+    """Purchasable plans (FREE separate ga chupistham)."""
+    return [PLANS["S_99"], PLANS["S_199"], PLANS["S_299"], PLANS["S_499"]]
+
+
+def plan_list_with_free() -> List[Dict]:
+    return [PLANS["FREE"]] + plan_list()
+
+
+def addon_list() -> List[Dict]:
+    return list(ADDONS.values())
+
+
+def renewal_offer() -> Dict:
+    return RENEWALS["RENEW_99"]
 
 
 def get_plan(code: str) -> Dict:
-    return PLANS.get((code or "").upper(), PLANS["FREE"])
+    key = (code or "").upper()
+    return PLANS.get(key) or ADDONS.get(key) or RENEWALS.get(key) or PLANS["FREE"]
+
+
+def get_addon(code: str) -> Optional[Dict]:
+    return ADDONS.get((code or "").upper())
+
+
+def is_addon(code: str) -> bool:
+    return (code or "").upper() in ADDONS
+
+
+def get_renewal(code: str = "RENEW_99") -> Optional[Dict]:
+    return RENEWALS.get((code or "").upper())
 
 
 def plan_by_amount(amount: int) -> Dict:

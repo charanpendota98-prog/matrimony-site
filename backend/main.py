@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from typing import Dict, Optional
 import os, random, json
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # Import our modules
 from models import RegisterRequest, RegisterResponse, SearchResponse, MatchResult
@@ -43,6 +43,8 @@ from interest import (
     MAX_PER_DAY as INTEREST_MAX_PER_DAY, EXPIRY_DAYS as INTEREST_EXPIRY_DAYS,
 )
 from card_generator import generate_id as _gen_id
+from porutham import compute_porutham, porutham_line, norm_nakshatra, norm_rasi
+from interest import ADDONS, RENEWALS, is_addon, get_addon, get_renewal, plan_list_with_free, addon_list, renewal_offer
 from channels_config import post_targets
 
 app = FastAPI(title="TSAP Matrimony API — Ultra Advanced", version="2.0")
@@ -86,6 +88,9 @@ app.add_middleware(
 # In-memory DB (real lo Postgres)
 DB_USERS = []
 DB_INTERESTS = []
+DB_VIEWS = []          # {"tsap_id": who got viewed, "viewer_id": who viewed, "at": iso}
+DB_SAVES = []          # shortlist: {"tsap_id": owner, "saved_id": saved profile, "at": iso}
+DB_DIGEST = []         # daily digest log
 DB_PAYMENTS = []
 DB_POSTS = []
 DB_REFERRALS = []
@@ -633,8 +638,12 @@ def plans_endpoint():
         "chatting": False,
         "model": "Interest request + WhatsApp lo profile share (chatting ledu)",
         "free_first": 3,
-        "plans": plan_list(),
-        "note_telugu": "Request pampinappudu 1 credit. Accept aithe numbers automatic ga WhatsApp lo. Decline aithe credit refund.",
+        "plans": plan_list_with_free(),
+        "addons": addon_list(),
+        "renewal": renewal_offer(),
+        "value_ladder": [f"₹{p['price']} → {p['profiles']} profiles (₹{p['per_profile']}/profile)" for p in plan_list()],
+        "note_telugu": "Request pampinappudu 1 credit. Accept aithe numbers automatic ga WhatsApp lo. Decline aithe credit refund. "
+                       "₹/profile prati tier lo thaggutundi — ₹299 best value, ₹499 VIP.",
     }
 
 
@@ -672,15 +681,41 @@ def credits_buy(payload: dict):
     if not u:
         raise HTTPException(404, "User not found — mundu register cheyyandi")
     plan = get_plan(plan_code)
+    addon = get_addon(plan_code)
     order_id = "ORD-" + datetime.utcnow().strftime("%y%m%d%H%M%S") + str(len(DB_PAYMENTS) + 1).zfill(3)
     order = {"order_id": order_id, "tsap_id": tsap_id, "plan": plan["code"], "amount": plan["price"],
-             "profiles": plan["profiles"], "at": datetime.utcnow().isoformat(), "status": "created"}
+             "profiles": plan.get("profiles", 0), "at": datetime.utcnow().isoformat(), "status": "created",
+             "kind": "addon" if addon else "plan"}
     auto = str(os.getenv("PAYMENT_AUTO_APPROVE", "true")).lower() in ("1", "true", "yes", "on")
     if auto and plan["price"] > 0:
-        u["credits"] = int(u.get("credits", 0)) + plan["profiles"]
+        u["credits"] = int(u.get("credits", 0)) + int(plan.get("profiles", 0) or 0)
         u["plan"] = plan["code"]
         order["status"] = "paid"
-        order["credits_added"] = plan["profiles"]
+        order["credits_added"] = int(plan.get("profiles", 0) or 0)
+        # 🎁 ADD-ON effects (boost / whoviewed / verify / porutham)
+        if addon:
+            days = int(addon.get("days", 30))
+            until = (datetime.utcnow() + timedelta(days=days)).isoformat()
+            if addon["kind"] == "boost":
+                u["boost_until"] = until
+                order["effect"] = f"⚡ Boost {days} days active"
+            elif addon["kind"] == "whoviewed":
+                u["whoviewed_until"] = until
+                order["effect"] = f"👀 Who-viewed-me {days} days unlock"
+            elif addon["kind"] == "verify":
+                u["is_verified"] = True
+                u["verified_until"] = until
+                order["effect"] = "✅ Verified badge ON"
+            elif addon["kind"] == "porutham":
+                u["porutham_unlocked"] = True
+                order["effect"] = "🔮 Full porutham report unlock"
+        elif plan["code"].startswith("S_") or plan["code"].startswith("PREMIUM"):
+            # premium plans lo perks automatic ga
+            if plan["code"] in ("S_199", "S_299", "S_499", "PREMIUM_299", "VIP_999"):
+                u["is_verified"] = True
+            if plan["code"] in ("S_299", "S_499", "VIP_999"):
+                u["boost_until"] = (datetime.utcnow() + timedelta(days=30)).isoformat()
+                u["whoviewed_until"] = (datetime.utcnow() + timedelta(days=60)).isoformat()
         # referral commission (friend pay chesadu → referrer ki ₹50; referral.py logic)
         if u.get("referred_by"):
             try:
@@ -689,14 +724,15 @@ def credits_buy(payload: dict):
                 order["referral"] = {"error": str(e)[:120]}
     DB_PAYMENTS.append(order)
     upi = f"upi://pay?pa=manavivaha@upi&pn=ManaVivaha&am={plan['price']}&cu=INR&tn={order_id}"
+    _rec = _item_note = (f"🎁 {addon['label']} active!" if addon else
+                         f"🎉 ₹{plan['price']} → {plan.get('profiles', 0)} profiles add ayyayi! Total credits: {u.get('credits', 0)}")
     return {
         "success": True,
         "order": order,
         "credits_now": u.get("credits", 0),
         "plan": plan,
         "upi_link": upi if plan["price"] else "",
-        "message_telugu": (f"🎉 ₹{plan['price']} → {plan['profiles']} profiles add ayyayi! "
-                          f"Total credits: {u.get('credits', 0)}") if order["status"] == "paid"
+        "message_telugu": _item_note if order["status"] == "paid"
                           else f"Order {order_id} create ayyindi — ₹{plan['price']} pay cheyyandi (UPI/Razorpay)",
         "note": "Razorpay live ayyaka idhe endpoint auto-verify chestundi (webhook /api/payment/webhook)",
     }
@@ -743,6 +779,16 @@ async def interest_send(payload: dict):
 
     # ── WhatsApp: owner ki requester profile (+ card image) | requester ki confirmation ──
     owner_text = interest_to_owner_text(frm, to, rec)
+    # 🔮 porutham line (star details unte) — owner message + response rendu chotla
+    try:
+        p_line = porutham_line(to, frm) if (frm.get("gender") == "Groom") else porutham_line(frm, to)
+        por = compute_porutham(frm, to) if frm.get("gender") == "Groom" else compute_porutham(to, frm)
+        if por.get("available"):
+            owner_text += f"\n{porutham_line(to, frm) if frm.get('gender')=='Groom' else porutham_line(frm, to)}"
+            rec["porutham_score"] = por["score"]
+            rec["porutham_verdict"] = por["verdict"]
+    except Exception:
+        pass
     notify_text = interest_notify_text(frm, to, rec)
     owner_phone = to.get("phone", "")
     frm_phone = frm.get("phone", "")
@@ -935,6 +981,188 @@ def demo_seed():
         created.append({"tsap_id": tsap_id, "name": sd["full_name"], "role": sd["gender"]})
     return {"success": True, "created": created, "total_users": len(DB_USERS),
             "hint": "Maa ID tho /requests lo interest pampinchu (user adigina flow test)"}
+
+
+
+# ===========================================================================
+# 🔮 10-PORUTHAM (kundli match) + 👀 WHO VIEWED ME + ❤️ SHORTLIST + 🎁 ADD-ONS
+# ===========================================================================
+@app.get("/api/porutham")
+def porutham_by_id(bride: str = "", groom: str = ""):
+    """
+    TSAP IDs tho 10-porutham (kundli match) — score /10 + Telugu verdict + per-item notes.
+    Udaharanam: /api/porutham?bride=TSAP-F-2025-1042&groom=TSAP-M-2025-1042
+    """
+    b = _find_user(bride)
+    g = _find_user(groom)
+    if not b or not g:
+        raise HTTPException(404, "Bride/Groom TSAP ID correct ga ivvandi")
+    res = compute_porutham(b, g)
+    return {"bride": safe_user(b), "groom": safe_user(g), **res}
+
+
+@app.post("/api/porutham")
+def porutham_raw(payload: dict):
+    """Star/rasi direct ga isthe kooda calculate chestundi (register cheyyakunda test ki)."""
+    d = payload or {}
+    b = {"star": d.get("bride_star", ""), "rasi": d.get("bride_rasi", "")}
+    g = {"star": d.get("groom_star", ""), "rasi": d.get("groom_rasi", "")}
+    return {"bride": b, "groom": g, **compute_porutham(b, g)}
+
+
+@app.post("/api/view")
+def record_view(payload: dict):
+    """
+    Profile view record — "evaru chusaru" feature (top matrimony sites lo idi paid).
+    Same viewer 6 గంటల్లో malli chuste duplicate ga count avvadu.
+    """
+    d = payload or {}
+    tsap_id = (d.get("tsap_id") or "").strip()
+    viewer_id = (d.get("viewer_id") or "").strip()
+    if not tsap_id:
+        raise HTTPException(400, "tsap_id kavali")
+    if viewer_id and viewer_id == tsap_id:
+        return {"success": True, "self_view": True, "counted": False}
+    # duplicate debounce (6h)
+    now = datetime.utcnow()
+    for v in reversed(DB_VIEWS[-500:]):
+        if v["tsap_id"] == tsap_id and v.get("viewer_id") == viewer_id:
+            try:
+                if (now - datetime.fromisoformat(v["at"])).total_seconds() < 6 * 3600:
+                    return {"success": True, "counted": False, "note": "6h lo duplicate view skip"}
+            except Exception:
+                pass
+    DB_VIEWS.append({"tsap_id": tsap_id, "viewer_id": viewer_id, "at": now.isoformat()})
+    total = len([v for v in DB_VIEWS if v["tsap_id"] == tsap_id])
+    return {"success": True, "counted": True, "total_views": total}
+
+
+@app.get("/api/views/{tsap_id}")
+def views_for(tsap_id: str):
+    """
+    Views summary. FREE users ki count + city/caste level info;
+    paid (credits/plan) unte **names tho** full list (whoviewed add-on leda ₹299+ plan).
+    """
+    u = _find_user(tsap_id)
+    mine = [v for v in DB_VIEWS if v["tsap_id"] == tsap_id]
+    unique_viewers = []
+    for v in mine:
+        vid = v.get("viewer_id")
+        if vid and vid not in [x["tsap_id"] for x in unique_viewers]:
+            vu = _find_user(vid)
+            if vu:
+                unique_viewers.append(vu)
+    plan = (u or {}).get("plan", "FREE")
+    whoviewed = bool((u or {}).get("whoviewed_until")) or plan in ("S_199", "S_299", "S_499", "PREMIUM_299", "VIP_999")
+    return {
+        "tsap_id": tsap_id,
+        "total_views": len(mine),
+        "unique_viewers": len(unique_viewers),
+        "today": len([v for v in mine if str(v["at"]).startswith(datetime.utcnow().strftime("%Y-%m-%d"))]),
+        "whoviewed_unlocked": whoviewed,
+        "viewers": [safe_user(v) for v in unique_viewers[-20:]] if whoviewed else [],
+        "viewers_masked": [{"caste": v.get("caste", "—"), "district": v.get("district", "—"),
+                            "age": v.get("age", "—")} for v in unique_viewers[-20:]] if not whoviewed else [],
+        "unlock_addon": ADDONS["WHOVIEWED_49"],
+        "message_telugu": (f"👀 Mee profile ni {len(mine)} sarlu chusaru ({len(unique_viewers)} mandi)"
+                           + ("" if whoviewed else " — evaru chusaro telusukovali ante ₹49 (30 days)")),
+    }
+
+
+@app.post("/api/save")
+def toggle_save(payload: dict):
+    """❤️ Shortlist — profile save/remove (top matrimony sites lo idi must feature)."""
+    d = payload or {}
+    tsap_id = (d.get("tsap_id") or "").strip()
+    saved_id = (d.get("saved_id") or "").strip()
+    if not tsap_id or not saved_id:
+        raise HTTPException(400, "tsap_id + saved_id kavali")
+    if tsap_id == saved_id:
+        raise HTTPException(400, "Mee profile ni meeru save cheyyakkarledu 🙂")
+    existing = next((x for x in DB_SAVES if x["tsap_id"] == tsap_id and x["saved_id"] == saved_id), None)
+    if existing:
+        DB_SAVES.remove(existing)
+        return {"success": True, "saved": False, "message_telugu": "Shortlist nunchi teesesaaru",
+                "total_saved": len([x for x in DB_SAVES if x["tsap_id"] == tsap_id])}
+    DB_SAVES.append({"tsap_id": tsap_id, "saved_id": saved_id, "at": datetime.utcnow().isoformat()})
+    return {"success": True, "saved": True, "message_telugu": "❤️ Shortlist lo save ayyindi",
+            "total_saved": len([x for x in DB_SAVES if x["tsap_id"] == tsap_id])}
+
+
+@app.get("/api/saved/{tsap_id}")
+def saved_list(tsap_id: str):
+    rows = [x for x in DB_SAVES if x["tsap_id"] == tsap_id]
+    out = []
+    for r in rows:
+        u = _find_user(r["saved_id"])
+        if u:
+            out.append({"saved_at": r["at"], "profile": safe_user(u),
+                        "porutham": None})
+    # porutham with me (star unte)
+    me = _find_user(tsap_id)
+    if me:
+        for o in out:
+            pu = _find_user(o["profile"]["tsap_id"])
+            r = compute_porutham(me, pu) if (pu and me.get("gender") == "Groom") else (
+                compute_porutham(pu or {}, me) if pu else {"available": False})
+            o["porutham"] = {"score": r.get("score"), "max": r.get("max_score"),
+                             "verdict": r.get("verdict")} if r.get("available") else None
+    return {"tsap_id": tsap_id, "count": len(out), "saved": out[::-1],
+            "message_telugu": f"❤️ {len(out)} profiles shortlist lo unnayi"}
+
+
+@app.get("/api/digest/preview")
+def digest_preview():
+    """
+    📅 Daily 9AM digest — Telegram + WhatsApp ki pampadaniki ready text.
+    (Cron/scheduler ee endpoint ni pilichi post cheyyali — anti-ban queue lo veltundi)
+    """
+    today = datetime.utcnow().strftime("%Y-%m-%d")
+    brides = [u for u in DB_USERS if u.get("gender") == "Bride"]
+    grooms = [u for u in DB_USERS if u.get("gender") == "Groom"]
+    by_caste: Dict[str, int] = {}
+    for u in DB_USERS:
+        c = u.get("caste") or "Other"
+        by_caste[c] = by_caste.get(c, 0) + 1
+    top = sorted(by_caste.items(), key=lambda x: -x[1])[:6]
+    text = (
+        f"🌅 *MANA VIVAHA — Nedu Kotha Profiles* ({today})\n"
+        f"━━━━━━━━━━━━━━━━\n"
+        f"👰 Brides: *{len(brides)}*   🤵 Grooms: *{len(grooms)}*\n"
+        f"🔥 Top castes: " + ", ".join(f"{c} ({n})" for c, n in top) + "\n"
+        f"━━━━━━━━━━━━━━━━\n"
+        f"💌 Interest pampu → WhatsApp lo mee profile share\n"
+        f"🎁 Modati 3 requests FREE • ₹99 → 5 profiles\n"
+        f"📝 FREE register: {os.getenv('SITE_URL', 'https://manavivaha.in')}/register"
+    )
+    entry = {"at": datetime.utcnow().isoformat(), "brides": len(brides), "grooms": len(grooms)}
+    DB_DIGEST.append(entry)
+    return {"success": True, "text": text, "brides": len(brides), "grooms": len(grooms),
+            "top_castes": top,
+            "how_to_post": "POST /api/publish/digest cheyyandi → Telegram + WhatsApp (anti-ban gap tho) veltundi",
+            "history": DB_DIGEST[-7:]}
+
+
+@app.post("/api/publish/digest")
+async def publish_digest():
+    """Digest ni Telegram live channels + WhatsApp queue ki (anti-ban gap tho) pampu."""
+    prev = digest_preview()
+    text = prev["text"].replace("*", "*")  # WhatsApp formatting ki same
+    targets = cfg_live = [c["chat_id"] for c in live_channels() if c.get("chat_id")]
+    res = enqueue_whatsapp(publish_config()["wa_bridge_targets"], text, priority=1, kind="digest")
+    tg = []
+    for chat in targets:
+        tg.append(await _send_telegram_public(chat, text))
+    return {"success": True, "telegram": tg, "whatsapp": res, "text": text}
+
+
+async def _send_telegram_public(chat: str, text: str):
+    try:
+        from publisher import _send_telegram as _st  # type: ignore
+        return await _st(chat, text, None, publish_config())
+    except Exception as e:
+        return {"ok": False, "channel": chat, "error": str(e)[:120]}
+
 
 if __name__=="__main__":
     import uvicorn

@@ -32,7 +32,8 @@ docker-compose up -d whatsapp-bridge
 python3 backend/
   wa_antiban.py           ← 🛡️ WhatsApp anti-ban engine (random 120–170s gap, caps, warmup, typing)
   interest.py             ← 💌 Interest/request engine (chatting LEDU) + credits + WhatsApp texts
-  test_interest_antiban.py← 54 tests (anti-ban + interest flow)test_channels_router.py     # 57/57 — registry + router
+  porutham.py             ← 🔮 10-porutham (kundli match) engine — Telugu verdict + dosha alerts
+  test_interest_antiban.py← 83 tests (anti-ban + interest + porutham + views + add-ons)test_channels_router.py     # 57/57 — registry + router
 python3 backend/publisher.py                # dry-run post preview
 cd frontend && npm run build                # 12/12 pages
 ```
@@ -51,7 +52,8 @@ backend/
 frontend/
   src/lib/site-config.ts  ← ⭐ CUSTOMIZE IKKADE (brand, prices, features, contacts)
   src/components/         ← SiteHeader, SiteFooter, StickyCTA, Reveal, SectionHeading
-  src/app/                ← home, register (55 fields), channels, matches, referral, bureau, admin
+  src/app/                ← home, register (55 fields), channels, matches, requests 💌, castes (SEO), referral, bureau, admin
+  src/lib/seo-pages.ts    ← 🔎 289 programmatic SEO pages (caste × role × district)
 whatsapp-bridge/          ← optional Baileys service (groups/newsletter posting)
 docker-compose.yml        ← postgres, redis, backend, frontend, bot, wa-bridge (+nginx profile)
 nginx.conf                ← host nginx config (manavivaha.in, /api proxy, SSL via certbot)

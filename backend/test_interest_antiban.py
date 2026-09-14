@@ -89,9 +89,10 @@ def test_interest():
         plans = c.get("/api/plans").json()
         pmap = {p["code"]: (p["price"], p["profiles"]) for p in plans["plans"]}
         check("Pricing: FREE 0→3", pmap["FREE"] == (0, 3), str(pmap.get("FREE")))
-        check("Pricing: ₹99 → 3 profiles", pmap["S_99"] == (99, 3), str(pmap.get("S_99")))
-        check("Pricing: ₹199 → 10 profiles", pmap["S_199"] == (199, 10), str(pmap.get("S_199")))
-        check("Pricing: ₹299 → 20 profiles", pmap["S_299"] == (299, 20), str(pmap.get("S_299")))
+        check("Pricing: ₹99 → 5 profiles (free 3 kanna ekkuva)", pmap["S_99"] == (99, 5), str(pmap.get("S_99")))
+        check("Pricing: ₹199 → 12 profiles", pmap["S_199"] == (199, 12), str(pmap.get("S_199")))
+        check("Pricing: ₹299 → 25 profiles", pmap["S_299"] == (299, 25), str(pmap.get("S_299")))
+        check("Pricing: ₹499 VIP → 50 profiles", pmap["S_499"] == (499, 50), str(pmap.get("S_499")))
         check("Chatting OFF (model lo ledu)", plans["chatting"] is False)
 
         seed = c.post("/api/demo/seed").json()
@@ -163,6 +164,83 @@ def test_interest():
         check("Resume API", c.post("/api/wa/resume").json()["paused"] is False)
 
 
+def test_porutham_views_addons():
+    print("\n=== 4. PORUTHAM + VIEWS + SHORTLIST + ADD-ONS + DIGEST ===")
+    from fastapi.testclient import TestClient
+    from porutham import compute_porutham, norm_nakshatra, norm_rasi
+    import main as M
+    c = TestClient(M.app)
+    with c:
+        # parsing
+        check("Nakshatra parse: Rohini", norm_nakshatra("Rohini") == 3)
+        check("Nakshatra parse: Telugu రోహిణి", norm_nakshatra("రోహిణి") == 3)
+        check("Rasi parse: vrushabha", norm_rasi("vrushabha") == 1)
+        # rules
+        good = compute_porutham({"star": "Rohini"}, {"star": "Mrigasira"})
+        check("Porutham: good pair >= 7/10", good["score"] >= 7, str(good["score"]))
+        rajju = compute_porutham({"star": "Ashwini"}, {"star": "Ashwini"})
+        check("Rajju dosham detect (same rajju)", "Rajju Porutham" in rajju["doshas"], str(rajju["doshas"]))
+        vedha = compute_porutham({"star": "Ashwini"}, {"star": "Jyeshtha"})
+        check("Vedha dosham detect", "Vedha Porutham" in vedha["doshas"], str(vedha["doshas"]))
+        nodata = compute_porutham({}, {})
+        check("Star ledu aithe graceful message", nodata["available"] is False and "Star" in nodata["reason"])
+
+        seed = c.post("/api/demo/seed").json()
+        g = next(x["tsap_id"] for x in seed["created"] if x["role"] == "Groom")
+        b = next(x["tsap_id"] for x in seed["created"] if x["role"] == "Bride")
+
+        pr = c.get(f"/api/porutham?bride={b}&groom={g}").json()
+        check("Porutham API (IDs tho) 10 items", len(pr["items"]) == 10, str(len(pr.get("items", []))))
+        check("Porutham verdict Telugu lo", "పొరుత్తం" in pr["verdict"] or "పొరుత్తాలు" in pr["verdict"])
+
+        # views
+        c.post("/api/view", json={"tsap_id": b, "viewer_id": g})
+        v1 = c.get(f"/api/views/{b}").json()
+        check("View record + count", v1["total_views"] >= 1, str(v1["total_views"]))
+        dup = c.post("/api/view", json={"tsap_id": b, "viewer_id": g}).json()
+        check("Same viewer 6h duplicate skip", dup.get("counted") is False)
+        check("FREE ki names masked", v1["whoviewed_unlocked"] is False and "names" not in str(v1["viewers"]))
+        c.post("/api/credits/buy", json={"tsap_id": b, "plan": "WHOVIEWED_49"})
+        v2 = c.get(f"/api/views/{b}").json()
+        check("₹49 add-on → viewers names unlock", v2["whoviewed_unlocked"] is True and len(v2["viewers"]) >= 1)
+
+        # shortlist
+        sv = c.post("/api/save", json={"tsap_id": g, "saved_id": b}).json()
+        check("Shortlist save", sv["saved"] is True)
+        sl = c.get(f"/api/saved/{g}").json()
+        check("Shortlist list + porutham", sl["count"] == 1 and sl["saved"][0]["porutham"] is not None)
+        sv2 = c.post("/api/save", json={"tsap_id": g, "saved_id": b}).json()
+        check("Shortlist toggle remove", sv2["saved"] is False)
+
+        # pricing ladder (fixed)
+        pl = c.get("/api/plans").json()
+        pm = {p["code"]: (p["price"], p["profiles"]) for p in pl["plans"]}
+        check("Ladder FREE 3", pm["FREE"] == (0, 3))
+        check("Ladder ₹99 → 5 (free kanna ekkuva!)", pm["S_99"] == (99, 5), str(pm.get("S_99")))
+        check("Ladder ₹199 → 12", pm["S_199"] == (199, 12))
+        check("Ladder ₹299 → 25", pm["S_299"] == (299, 25))
+        check("Ladder ₹499 VIP → 50", pm["S_499"] == (499, 50))
+        per = [(v[0] / v[1]) for v in pm.values() if v[0] > 0]
+        check("₹/profile prati tier lo thaggutundi", per == sorted(per, reverse=True), str([round(x, 1) for x in per]))
+        check("Add-ons 4 (boost/whoviewed/porutham/verify)", len(pl["addons"]) == 4)
+        check("Renewal offer ₹99 → 8 profiles", pl["renewal"]["profiles"] == 8)
+
+        # add-on effect
+        bo = c.post("/api/credits/buy", json={"tsap_id": g, "plan": "BOOST_49"}).json()
+        check("Boost add-on effect", "Boost" in (bo["order"].get("effect") or ""))
+        vf = c.post("/api/credits/buy", json={"tsap_id": g, "plan": "VERIFY_199"}).json()
+        check("Verify add-on → badge ON", next(u for u in M.DB_USERS if u["tsap_id"] == g).get("is_verified") is True)
+
+        # premium perks
+        c.post("/api/credits/buy", json={"tsap_id": g, "plan": "S_299"})
+        gu = next(u for u in M.DB_USERS if u["tsap_id"] == g)
+        check("₹299 → boost + whoviewed perks", bool(gu.get("boost_until")) and bool(gu.get("whoviewed_until")))
+
+        # digest
+        dg = c.get("/api/digest/preview").json()
+        check("Digest text ready", "MANA VIVAHA" in dg["text"] and dg["brides"] >= 1)
+
+
 def test_publish_order():
     print("\n=== 3. PUBLISH ORDER: TELEGRAM → WHATSAPP ===")
     import publisher as P
@@ -181,6 +259,7 @@ if __name__ == "__main__":
     print("=" * 64)
     test_antiban()
     test_interest()
+    test_porutham_views_addons()
     test_publish_order()
     print("\n" + "=" * 64)
     print(f" RESULT: {len(PASS)} passed, {len(FAIL)} failed")

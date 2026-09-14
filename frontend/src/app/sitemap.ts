@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { allSeoSlugs } from "@/lib/seo-pages";
 
 const SITE = process.env.SITE_URL || "https://manavivaha.in";
 
@@ -15,12 +16,23 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: "/referral", priority: 0.7, freq: "weekly" },
     { path: "/referral/register", priority: 0.6, freq: "monthly" },
     { path: "/bureau", priority: 0.6, freq: "monthly" },
+    { path: "/castes", priority: 0.9, freq: "weekly" },
   ];
 
-  return routes.map((r) => ({
+  const base = routes.map((r) => ({
     url: `${SITE}${r.path}`,
     lastModified: now,
     changeFrequency: r.freq,
     priority: r.priority,
   }));
+
+  // 🔎 Programmatic SEO — caste × role × district landing pages (Google free traffic engine)
+  const seo = allSeoSlugs().map((slug) => ({
+    url: `${SITE}/castes/${slug}`,
+    lastModified: now,
+    changeFrequency: "weekly" as const,
+    priority: 0.7,
+  }));
+
+  return [...base, ...seo];
 }

@@ -14,6 +14,8 @@ export default function SearchPageAdvanced() {
   const [myTsapId, setMyTsapId] = useState("TSAP-M-2025-1042");
   const [interestMsg, setInterestMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [sending, setSending] = useState(false);
+  const [savedNow, setSavedNow] = useState(false);
+  const [viewCount, setViewCount] = useState<number | null>(null);
 
   useEffect(() => {
     if (idFromUrl) handleSearch(idFromUrl);
@@ -23,6 +25,12 @@ export default function SearchPageAdvanced() {
     if (p) setMyPhone(p);
     const my = localStorage.getItem("tsap_id");
     if (my) setMyTsapId(my);
+    if (idFromUrl) {
+      // 👀 view record (who-viewed-me feature) — same viewer 6h lo duplicate avvadu
+      fetch("/api/view", { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tsap_id: idFromUrl, viewer_id: my || "" }) })
+        .then((r) => r.json()).then((d) => { if (d?.total_views) setViewCount(d.total_views); }).catch(() => {});
+    }
   }, [idFromUrl]);
 
   // 💌 Interest pampu — vaallaki mana WhatsApp nunchi mee profile + card (chatting ledu)
@@ -51,6 +59,16 @@ export default function SearchPageAdvanced() {
       setInterestMsg({ ok: false, text: "Network problem — malli try cheyyandi" });
     }
     setSending(false);
+  };
+
+  // ❤️ shortlist toggle
+  const toggleSave = async () => {
+    try {
+      const d = await fetch("/api/save", { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tsap_id: myTsapId, saved_id: searchId }) }).then((r) => r.json());
+      setSavedNow(!!d.saved);
+      setInterestMsg({ ok: true, text: d.message_telugu });
+    } catch { /* ignore */ }
   };
 
   const handleSearch = (id: string) => {
@@ -157,7 +175,11 @@ export default function SearchPageAdvanced() {
             <button onClick={sendInterest} disabled={sending} className="px-4 py-2 maroon-gradient text-white rounded-full text-xs font-bold disabled:opacity-60">
               {sending ? "Pampisthunnam…" : `💌 Interest pampu (${searchId})`}
             </button>
+            <button onClick={toggleSave} className="px-4 py-2 border border-[#7A0C2E]/30 text-[#7A0C2E] rounded-full text-xs font-bold">
+              {savedNow ? "❤️ Saved (shortlist)" : "🤍 Save"}
+            </button>
             <Link href="/requests" className="px-4 py-2 border border-[#7A0C2E]/30 text-[#7A0C2E] rounded-full text-xs font-bold">Requests dashboard →</Link>
+            {viewCount !== null && <span className="text-[11px] text-gray-500">👀 {viewCount} views</span>}
           </div>
           <div className="mt-2 text-[11px] text-gray-500">🚫 Chatting ledu — accept aithe rendu numbers automatic ga WhatsApp lo exchange avutayi.</div>
           {interestMsg && (

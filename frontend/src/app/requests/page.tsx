@@ -14,7 +14,9 @@ import Link from "next/link";
 import Reveal from "@/components/Reveal";
 import SectionHeading from "@/components/SectionHeading";
 
-type Plan = { code: string; price: number; profiles: number; label: string; telugu: string; badge: string; per_profile: number };
+type Plan = { code: string; price: number; profiles: number; label: string; telugu: string; badge: string; per_profile: number; perks?: string[] };
+type Addon = { code: string; price: number; label: string; telugu: string; kind: string };
+type Saved = { saved_at: string; profile: any; porutham?: { score: number; max: number; verdict: string } | null };
 type Req = {
   request_id: string; from_id: string; to_id: string; status: string; score: number;
   note?: string; reasons?: string[]; created_at?: string; credit_refunded?: boolean;
@@ -37,7 +39,7 @@ const STATUS_STYLE: Record<string, string> = {
 
 export default function RequestsPage() {
   const [myId, setMyId] = useState("");
-  const [tab, setTab] = useState<"inbox" | "sent" | "send" | "plans">("inbox");
+  const [tab, setTab] = useState<"inbox" | "sent" | "send" | "plans" | "porutham" | "saved" | "viewers">("inbox");
   const [credits, setCredits] = useState<number | null>(null);
   const [plans, setPlans] = useState<Plan[]>(PLANS_FALLBACK);
   const [inbox, setInbox] = useState<any>({ received: [], pending: 0, accepted: 0, declined: 0 });
@@ -49,6 +51,13 @@ export default function RequestsPage() {
   const [lastSend, setLastSend] = useState<any>(null);
   const [wa, setWa] = useState<any>(null);
   const [showOwnerMsg, setShowOwnerMsg] = useState(false);
+  const [addons, setAddons] = useState<Addon[]>([]);
+  const [renewal, setRenewal] = useState<any>(null);
+  const [saved, setSaved] = useState<{ count: number; saved: Saved[] }>({ count: 0, saved: [] });
+  const [views, setViews] = useState<any>(null);
+  const [por, setPor] = useState<any>(null);
+  const [porA, setPorA] = useState("");
+  const [porB, setPorB] = useState("");
 
   // ---- load my ID (localStorage / ?id=) + plans -------------------------
   useEffect(() => {
@@ -63,7 +72,11 @@ export default function RequestsPage() {
     }
     fetch("/api/plans")
       .then((r) => r.json())
-      .then((d) => d?.plans && setPlans(d.plans.filter((p: Plan) => p.price > 0)))
+      .then((d) => {
+        if (d?.plans) setPlans(d.plans.filter((p: Plan) => p.price > 0));
+        if (d?.addons) setAddons(d.addons);
+        if (d?.renewal) setRenewal(d.renewal);
+      })
       .catch(() => {});
     fetch("/api/wa/status").then((r) => r.json()).then(setWa).catch(() => {});
   }, []);
@@ -72,14 +85,18 @@ export default function RequestsPage() {
     async (id: string) => {
       if (!id) return;
       try {
-        const [c, i, s] = await Promise.all([
+        const [c, i, s, sv, vw] = await Promise.all([
           fetch(`/api/credits/${id}`).then((r) => r.json()),
           fetch(`/api/interest/inbox/${id}`).then((r) => r.json()),
           fetch(`/api/interest/sent/${id}`).then((r) => r.json()),
+          fetch(`/api/saved/${id}`).then((r) => r.json()),
+          fetch(`/api/views/${id}`).then((r) => r.json()),
         ]);
         if (typeof c?.credits === "number") setCredits(c.credits);
         if (i?.received) setInbox(i);
         if (s?.sent) setSent(s);
+        if (sv?.saved) setSaved({ count: sv.count, saved: sv.saved });
+        if (vw?.tsap_id) setViews(vw);
       } catch {
         setToast({ kind: "err", text: "Server tho connect avvaledu — malli try cheyyandi" });
       }
@@ -178,6 +195,25 @@ export default function RequestsPage() {
     setBusy(false);
   };
 
+  const checkPorutham = async () => {
+    if (!porA || !porB) return setToast({ kind: "err", text: "Rendu TSAP ID ivvandi (bride + groom)" });
+    setBusy(true);
+    try {
+      const d = await fetch(`/api/porutham?bride=${porA.trim().toUpperCase()}&groom=${porB.trim().toUpperCase()}`).then((r) => r.json());
+      setPor(d);
+      setToast({ kind: d.available ? "ok" : "info", text: d.available ? `🔮 Porutham ${d.score}/10 — ${d.verdict}` : d.reason });
+    } catch {
+      setToast({ kind: "err", text: "Porutham check fail ayyindi" });
+    }
+    setBusy(false);
+  };
+
+  const removeSaved = async (id: string) => {
+    await fetch("/api/save", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ tsap_id: myId, saved_id: id }) });
+    refresh(myId);
+  };
+
   const chip = (s: string) =>
     `text-[10px] font-bold px-2 py-0.5 rounded-full border ${STATUS_STYLE[s] || "bg-gray-100 text-gray-600 border-gray-300"}`;
 
@@ -244,6 +280,9 @@ export default function RequestsPage() {
             { k: "inbox", l: `📥 Vachina requests${inbox.pending ? ` (${inbox.pending})` : ""}` },
             { k: "sent", l: `📤 Pampina requests${sent.sent?.length ? ` (${sent.sent.length})` : ""}` },
             { k: "send", l: "💌 Interest pampu" },
+            { k: "porutham", l: "🔮 Porutham" },
+            { k: "saved", l: `❤️ Saved${saved.count ? ` (${saved.count})` : ""}` },
+            { k: "viewers", l: `👀 Viewers${views?.total_views ? ` (${views.total_views})` : ""}` },
             { k: "plans", l: "💳 Plans & Credits" },
           ].map((t) => (
             <button
@@ -270,6 +309,9 @@ export default function RequestsPage() {
                     <span className={chip(it.status)}>{it.status.toUpperCase()}</span>
                     <span className="text-[11px] text-gray-500 font-mono">{it.request_id}</span>
                     {it.score > 0 && <span className="text-[11px] font-bold text-maroon">⭐ {it.score}% match</span>}
+                    {(it as any).porutham_score ? (
+                      <span className="text-[11px] font-bold text-amber-700">🔮 Porutham {(it as any).porutham_score}/10</span>
+                    ) : null}
                     <span className="ml-auto text-[11px] text-gray-500">{it.requester_phone}</span>
                   </div>
                   <div className="mt-2 grid md:grid-cols-2 gap-3">
@@ -439,10 +481,152 @@ export default function RequestsPage() {
           </div>
         )}
 
+        {/* PORUTHAM TOOL */}
+        {tab === "porutham" && (
+          <div className="grid md:grid-cols-2 gap-5">
+            <div className="bg-white rounded-2xl p-5 card-shadow border border-gold/20">
+              <SectionHeading eyebrow="Traditional 10 poruthams" title="🔮 Kundli / Porutham check"
+                subtitle="Bride + groom TSAP ID ivvandi — 10 porutham (rasi, nakshatra, gana, yoni, rajju, vedha, mahendra, stree deergha, vashya, adhipathi) calculate chestham." telugu align="left" />
+              <div className="mt-4 space-y-3">
+                <input value={porA} onChange={(e) => setPorA(e.target.value.toUpperCase())} placeholder="Bride TSAP ID — TSAP-F-2025-1042"
+                  className="w-full px-3 py-2.5 rounded-xl border border-gold/40 font-mono text-sm outline-none focus-brand" />
+                <input value={porB} onChange={(e) => setPorB(e.target.value.toUpperCase())} placeholder="Groom TSAP ID — TSAP-M-2025-1042"
+                  className="w-full px-3 py-2.5 rounded-xl border border-gold/40 font-mono text-sm outline-none focus-brand" />
+                <button onClick={checkPorutham} disabled={busy} className="w-full maroon-gradient text-white font-bold py-3 rounded-xl hover-lift disabled:opacity-60">
+                  🔮 Porutham calculate chey
+                </button>
+                <div className="text-[11px] text-gray-500">Idi traditional tables batti software estimate — final ga purohit/panchangam tho confirm cheyyandi.</div>
+              </div>
+            </div>
+            <div className="space-y-3">
+              {por ? (
+                <div className="bg-white rounded-2xl p-5 card-shadow border border-gold/30">
+                  <div className="flex items-center gap-3">
+                    <div className="text-3xl font-bold text-maroon">{por.score}<span className="text-sm text-gray-400">/{por.max_score || 10}</span></div>
+                    <div>
+                      <div className="font-bold text-[14px] text-maroon">{por.verdict}</div>
+                      <div className="text-[11px] text-gray-500">
+                        {por.bride_star || por.bride?.star} ↔ {por.groom_star || por.groom?.star} • {por.bride_rasi} ↔ {por.groom_rasi}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-3 space-y-1.5">
+                    {(por.items || []).map((x: any) => (
+                      <div key={x.no} className="text-[12px] flex gap-2">
+                        <span>{x.pass ? "✅" : "❌"}</span>
+                        <span className="font-bold text-ink w-40 shrink-0">{x.name}</span>
+                        <span className="text-gray-600">{x.note}</span>
+                      </div>
+                    ))}
+                  </div>
+                  {por.doshas?.length ? (
+                    <div className="mt-3 text-[12px] bg-rose-50 border border-rose-200 text-rose-800 rounded-xl px-3 py-2">
+                      ⚠️ Critical: {por.doshas.join(", ")} — peddalu + purohitulu tho discuss cheyyandi
+                    </div>
+                  ) : null}
+                  <div className="mt-3 text-[11px] text-gray-500">{por.advice_telugu}</div>
+                </div>
+              ) : (
+                <div className="bg-cream border border-gold/30 rounded-2xl p-5">
+                  <div className="font-bold text-maroon">10 poruthams enti?</div>
+                  <ol className="mt-2 text-[12px] text-gray-700 space-y-1 list-decimal list-inside">
+                    <li>Rasi porutham (6/8 dosham check)</li>
+                    <li>Nakshatra porutham</li>
+                    <li>Gana porutham (Deva/Manushya/Rakshasa)</li>
+                    <li>Yoni porutham (animal symbols)</li>
+                    <li>Rajju porutham ⚠️ critical</li>
+                    <li>Vedha porutham ⚠️ critical</li>
+                    <li>Mahendra porutham</li>
+                    <li>Stree deergha</li>
+                    <li>Vashya porutham</li>
+                    <li>Rasi adhipathi</li>
+                  </ol>
+                  <div className="mt-3 text-[11px] text-gray-600">Mee profile lo <b>Star (Nakshatram)</b> + <b>Rasi</b> fill chesi unte automatic ga vastundi.</div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* SAVED / SHORTLIST */}
+        {tab === "saved" && (
+          <div className="space-y-3">
+            {saved.count === 0 && <Empty text="Inka emi save cheyyaledu — /matches lo ❤️ button press cheyyandi." />}
+            {saved.saved.map((x: Saved) => (
+              <Reveal key={x.profile.tsap_id}>
+                <div className="bg-white rounded-2xl p-4 card-shadow border border-gold/20 flex flex-wrap items-center gap-3">
+                  <div className="min-w-0 flex-1">
+                    <div className="font-bold text-[14px] text-maroon">
+                      ❤️ {x.profile.full_name} ({x.profile.age}y)
+                      <span className="ml-2 text-[11px] text-gray-500 font-mono">{x.profile.tsap_id}</span>
+                    </div>
+                    <div className="text-[12px] text-gray-600 mt-1">
+                      🎓 {x.profile.education} • 💼 {x.profile.job} • 📍 {x.profile.district}, {x.profile.state} • 💍 {x.profile.caste}
+                    </div>
+                    {x.porutham ? (
+                      <div className="text-[12px] font-bold text-amber-700 mt-1">🔮 Porutham {x.porutham.score}/{x.porutham.max} — {x.porutham.verdict?.split("—")[0]}</div>
+                    ) : null}
+                  </div>
+                  <button onClick={() => { setToId(x.profile.tsap_id); setTab("send"); }} className="text-[12px] font-bold maroon-gradient text-white px-3 py-2 rounded-xl">
+                    💌 Interest pampu
+                  </button>
+                  <Link href={`/search/${x.profile.tsap_id}`} className="text-[12px] font-bold text-maroon underline">Profile →</Link>
+                  <button onClick={() => removeSaved(x.profile.tsap_id)} className="text-[12px] text-gray-500 underline">Remove</button>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        )}
+
+        {/* VIEWERS */}
+        {tab === "viewers" && (
+          <div className="space-y-3">
+            {!views ? <Empty text="Mee TSAP ID load cheyyandi — viewers chudataniki." /> : (
+              <>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {[["👀 Total views", views.total_views], ["🧑 Unique viewers", views.unique_viewers],
+                    ["📅 Today", views.today], ["🔓 Who-viewed", views.whoviewed_unlocked ? "Unlocked ✅" : "Locked 🔒"]].map(([l, v]) => (
+                    <div key={String(l)} className="bg-white rounded-2xl p-4 card-shadow border border-gold/20">
+                      <div className="text-[11px] text-gray-500">{l}</div>
+                      <div className="text-xl font-bold text-maroon">{v as any}</div>
+                    </div>
+                  ))}
+                </div>
+                {!views.whoviewed_unlocked && (
+                  <div className="bg-cream border border-gold/30 rounded-2xl p-4 flex flex-wrap items-center gap-3">
+                    <div className="text-[13px] text-gray-700 flex-1">
+                      🔒 Evaru chusaro names chudali ante <b>₹49</b> (30 days) — leda ₹299+ plan lo free ga vastundi.
+                    </div>
+                    <button onClick={() => buy("WHOVIEWED_49")} className="gold-gradient text-maroon font-bold text-[12px] px-4 py-2 rounded-xl">₹49 unlock</button>
+                  </div>
+                )}
+                <div className="bg-white rounded-2xl p-4 card-shadow border border-gold/20">
+                  {(views.viewers?.length ? views.viewers : views.viewers_masked || []).map((v: any, i: number) => (
+                    <div key={i} className="text-[12px] py-1.5 border-b last:border-0 border-gray-100 flex flex-wrap gap-3">
+                      <span className="font-bold text-maroon">{v.full_name || "🔒 Hidden member"}</span>
+                      <span className="text-gray-600">{v.caste} • {v.district} • {v.age}y</span>
+                      {v.tsap_id ? <Link href={`/search/${v.tsap_id}`} className="text-maroon underline">profile →</Link> : null}
+                    </div>
+                  ))}
+                  {!(views.viewers?.length || views.viewers_masked?.length) && (
+                    <div className="text-[12px] text-gray-500">Inka evaru chudaledu — mee profile ni oka channel lo boost cheyyandi (₹49).</div>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
         {/* PLANS */}
         {tab === "plans" && (
           <div>
-            <SectionHeading eyebrow="Credits" title="Plans — 1 credit = 1 profile" subtitle="Decline aithe credit refund. Razorpay live ayyaka automatic — ippudu UPI link tho." telugu align="left" />
+            <SectionHeading eyebrow="Credits" title="Plans — 1 credit = 1 profile" subtitle="₹/profile prati tier lo thaggutundi (₹20 → ₹10). Decline aithe credit refund. Razorpay live ayyaka automatic — ippudu UPI link tho." telugu align="left" />
+            {renewal && (
+              <div className="mt-3 rounded-2xl bg-cream border border-gold/30 p-3 text-[12px] text-gray-700">
+                🔁 <b>Renewal offer (pata customers):</b> ₹{renewal.price} → <b>{renewal.profiles} profiles</b> — first-time ₹99 → 5 profiles.
+                <button onClick={() => buy(renewal.code)} className="ml-2 text-maroon font-bold underline">renew chey</button>
+              </div>
+            )}
             <div className="mt-4 grid md:grid-cols-3 gap-4">
               {plans.map((p, i) => (
                 <Reveal key={p.code} delay={i * 80}>
@@ -452,10 +636,10 @@ export default function RequestsPage() {
                     <div className="font-bold text-[14px] text-ink">{p.profiles} profiles</div>
                     <div className="text-[11px] text-gray-500">₹{p.per_profile}/profile • {p.label}</div>
                     <ul className="mt-3 text-[12px] text-gray-700 space-y-1">
-                      <li>✅ {p.profiles} interest requests</li>
-                      <li>✅ WhatsApp lo profile share</li>
-                      <li>✅ Accept aithe number exchange</li>
-                      <li>✅ Decline aithe refund</li>
+                      {(p.perks || [`${p.profiles} interest requests`, "WhatsApp lo profile share",
+                                    "Accept aithe number exchange", "Decline aithe refund"]).map((x: string) => (
+                        <li key={x}>✅ {x}</li>
+                      ))}
                     </ul>
                     <button
                       onClick={() => buy(p.code)}
@@ -471,6 +655,24 @@ export default function RequestsPage() {
             <div className="mt-4 text-[12px] text-gray-600 bg-cream border border-gold/30 rounded-2xl p-4">
               💡 <b>Free plan:</b> register cheyagane 3 interest requests FREE. <b>Referral:</b> friend ni pilichi vaallu ₹99 pay chesthe meeku ₹50 +
               vaallaki extra credit. <b>Bureau/agents:</b> ₹999/mo → 25 profiles + monthly report.
+            </div>
+
+            {/* 🎁 ADD-ONS */}
+            <div className="mt-6">
+              <SectionHeading eyebrow="Add-ons" title="🎁 Extra value — credits kanna" subtitle="Ivi per-item: boost, who-viewed, porutham report, verification badge." telugu align="left" />
+              <div className="mt-3 grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                {addons.map((a) => (
+                  <div key={a.code} className="bg-white rounded-2xl p-4 card-shadow border border-gold/25 flex flex-col">
+                    <div className="text-xl font-bold text-maroon">₹{a.price}</div>
+                    <div className="text-[13px] font-bold text-ink">{a.label}</div>
+                    <div className="text-[11px] text-gray-600 flex-1">{a.telugu}</div>
+                    <button onClick={() => buy(a.code)} disabled={busy || !myId}
+                      className="mt-3 gold-gradient text-maroon font-bold text-[12px] py-2 rounded-xl disabled:opacity-50">
+                      ₹{a.price} teesukondi
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         )}

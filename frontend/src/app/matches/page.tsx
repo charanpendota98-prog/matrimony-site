@@ -22,6 +22,7 @@ export default function MatchesAdvanced() {
   const [myTsapId, setMyTsapId] = useState("TSAP-M-2025-1042");
   const [interestMsg, setInterestMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [sendingInterest, setSendingInterest] = useState("");
+  const [savedIds, setSavedIds] = useState<string[]>([]);
 
   useEffect(() => {
     const c = localStorage.getItem("tsap_credits");
@@ -51,6 +52,21 @@ export default function MatchesAdvanced() {
     if (filters.education !== "Any" && m.edu.indexOf(filters.education) === -1) return false;
     return true;
   }).sort((a, b) => b.score - a.score).slice(0, showCount);
+
+  // ❤️ SHORTLIST — save/remove (top matrimony feature)
+  const toggleSave = async (profile: any) => {
+    try {
+      const d = await fetch("/api/save", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tsap_id: myTsapId, saved_id: profile.id }),
+      }).then((r) => r.json());
+      if (d.success) {
+        setSavedIds((prev) => d.saved ? (prev.includes(profile.id) ? prev : [...prev, profile.id])
+                                      : prev.filter((x) => x !== profile.id));
+        setInterestMsg({ ok: true, text: d.message_telugu });
+      }
+    } catch { /* ignore */ }
+  };
 
   // 💌 INTEREST PAMPU — 1 credit → vaallaki WhatsApp lo mee profile (chatting ledu)
   const sendInterest = async (profile: any) => {
@@ -228,10 +244,13 @@ export default function MatchesAdvanced() {
                       {sendingInterest === m.id ? "Pampisthunnam…" : "💌 Interest Pampu (1 credit)"}
                     </button>
                     <button onClick={() => shareWhatsApp(m)} className="flex-1 py-2 bg-green-600 text-white rounded-full text-xs font-bold min-w-[100px]">WhatsApp Share</button>
+                    <button onClick={() => toggleSave(m)} className="py-2 px-3 rounded-full text-xs font-bold border border-[#7A0C2E]/30 text-[#7A0C2E] min-w-[90px]">
+                      {savedIds.includes(m.id) ? "❤️ Saved" : "🤍 Save"}
+                    </button>
                     <button onClick={() => shareTelegram(m)} className="flex-1 py-2 bg-blue-500 text-white rounded-full text-xs font-bold min-w-[100px]">Telegram Share</button>
                   </div>
                   <div className="mt-2 text-[10px] text-gray-400">
-                    Interest pampithe vaallaki mana WhatsApp nunchi mee profile + card veltundi (chatting ledu — accept aithe number exchange)
+                    Interest pampithe vaallaki mana WhatsApp nunchi mee profile + card veltundi (chatting ledu — accept aithe number exchange) • 🤍 Save = shortlist (₹0)
                   </div>
                 </div>
               </div>

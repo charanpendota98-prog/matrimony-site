@@ -11,7 +11,7 @@ const BOT = SITE_CONFIG.botUrl;
 const FAQS = [
   {
     q: "Register cheyyadaniki entha time, entha charge?",
-    a: "5 steps — 3 nimushalu. Register 100% FREE. Modati 3 interest requests kooda FREE. Aa tarvata ₹99 tho 3 profiles, ₹199 tho 10 profiles, ₹299 tho 20 profiles.",
+    a: "5 steps — 3 nimushalu. Register 100% FREE. Modati 3 interest requests kooda FREE. Aa tarvata ₹99 tho 5 profiles, ₹199 tho 12, ₹299 tho 25, ₹499 tho 50 profiles (₹10–20/profile).",
   },
   {
     q: "Chatting unda? Ela matladukovali?",
@@ -45,30 +45,45 @@ const PLANS = [
     price: "₹0",
     tag: "Start ikkade",
     credits: "Modati 3 profiles FREE",
-    features: ["Modati 3 interest requests FREE", "Top matches + reasons", "ID search always open", "Auto-post 65 channel network", "Photo-private mode"],
+    features: ["3 interest requests FREE", "WhatsApp lo mee profile share", "Auto-post 65 channel network", "ID search always open", "Photo-private mode"],
   },
   {
     name: "Sambandham",
     price: "₹99",
-    tag: "3 profiles",
-    credits: "3 profiles • 30 days",
-    features: ["3 interest requests (1 credit = 1)", "WhatsApp lo mee profile share", "Accept aithe number exchange", "Decline aithe credit refund", "Referral tho ₹50 earn"],
+    tag: "Entry • ₹20/profile",
+    credits: "5 profiles • 30 days",
+    features: ["5 interest requests", "⚡ 7-day profile boost (channel top)", "Accept aithe number exchange", "Decline aithe credit refund", "Referral tho ₹50 earn"],
   },
   {
     name: "Family",
     price: "₹199",
-    tag: "10 profiles",
+    tag: "Most popular • ₹17/profile",
     popular: true,
-    credits: "10 profiles • 45 days",
-    features: ["10 interest requests", "Daily fresh matches digest", "WhatsApp + Telegram priority", "Horoscope (porutham) report", "Family bureau assist"],
+    credits: "12 profiles • 45 days",
+    features: ["12 interest requests", "✅ Photo-verified badge", "🔮 Free 10-porutham report (1)", "Daily fresh matches digest", "Family bureau assist"],
   },
   {
     name: "Premium",
     price: "₹299",
-    tag: "20 profiles • ₹15/profile",
-    credits: "20 profiles • 60 days",
-    features: ["20 interest requests", "Top-of-channel posting", "Dedicated support (Telugu)", "Success-story feature option", "Photo verification badge"],
+    tag: "Best value • ₹12/profile",
+    credits: "25 profiles • 60 days",
+    features: ["25 interest requests", "⚡ 30-day boost (top of channel)", "👀 Who-viewed-me 60 days", "✅ Verified badge", "Telugu dedicated support"],
   },
+  {
+    name: "Vivaha VIP",
+    price: "₹499",
+    tag: "VIP • ₹10/profile",
+    credits: "50 profiles • 90 days",
+    features: ["50 interest requests", "🎯 Matchmaker assist (mana team call)", "⚡ 90-day boost", "💍 Wedding vendor discounts", "Priority WhatsApp support"],
+  },
+];
+
+// 🎁 ADD-ONS — credits kanna per-item revenue (margin 100%)
+const ADDONS = [
+  { p: "₹49", t: "Profile Boost", d: "7 days channel top lo" },
+  { p: "₹49", t: "Who viewed me", d: "30 days — names tho" },
+  { p: "₹99", t: "10-Porutham report", d: "Full kundli match (Telugu)" },
+  { p: "₹199", t: "Photo verify badge", d: "3x ekkuva acceptances" },
 ];
 
 const TESTIMONIALS = [
@@ -375,9 +390,9 @@ export default function Home() {
           {/* Pricing strip */}
           <div className="mt-6 grid grid-cols-3 gap-3">
             {[
-              { p: "₹99", n: "3 profiles", s: "Starter" },
-              { p: "₹199", n: "10 profiles", s: "Best for families" },
-              { p: "₹299", n: "20 profiles", s: "₹15/profile — best value" },
+              { p: "₹99", n: "5 profiles", s: "₹20/profile — entry" },
+              { p: "₹199", n: "12 profiles", s: "₹17/profile — popular" },
+              { p: "₹299", n: "25 profiles", s: "₹12/profile — best value" },
             ].map((x, i) => (
               <Reveal key={x.p} delay={i * 70}>
                 <div className="bg-white rounded-2xl p-3 text-center card-shadow border border-gold/25">
@@ -536,12 +551,12 @@ export default function Home() {
           <SectionHeading
             eyebrow="Pricing"
             title="Simple ga — ₹99 ke Sambandham"
-            subtitle="Register FREE. Modati 3 interest requests FREE. Tarvata ₹99 → 3 profiles, ₹199 → 10, ₹299 → 20. Decline aithe credit refund."
+            subtitle="Register FREE. Modati 3 interest requests FREE. Tarvata ₹99 → 5 profiles, ₹199 → 12, ₹299 → 25, ₹499 → 50. Prati tier ki ₹/profile thaggutundi — decline aithe credit refund."
             telugu
             align="center"
           />
         </Reveal>
-        <div className="mt-6 grid md:grid-cols-3 gap-4 max-w-5xl mx-auto">
+        <div className="mt-6 grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
           {PLANS.map((p, i) => (
             <Reveal key={p.name} delay={i * 90}>
               <div
@@ -584,6 +599,32 @@ export default function Home() {
             </Reveal>
           ))}
         </div>
+
+        {/* 🎁 ADD-ONS */}
+        <Reveal delay={120}>
+          <div className="mt-6 rounded-3xl bg-white border border-gold/30 card-shadow p-5">
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="font-bold text-maroon">🎁 Add-ons — credits kanna extra value</div>
+              <span className="text-[10px] font-bold bg-cream border border-gold/40 px-2 py-0.5 rounded-full">per-item • eppudaina</span>
+            </div>
+            <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-3">
+              {ADDONS.map((a) => (
+                <div key={a.t} className="rounded-2xl bg-cream border border-gold/25 p-3">
+                  <div className="text-lg font-bold text-maroon">{a.p}</div>
+                  <div className="text-[12px] font-bold text-ink">{a.t}</div>
+                  <div className="text-[10px] text-gray-600">{a.d}</div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-3 text-[11px] text-gray-600">
+              🔁 <b>Renewal offer:</b> pata customers ki ₹99 → 8 profiles (first-time ₹99 → 5) • 🏢 Bureau: ₹999/mo → 25 profiles + monthly report
+            </div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Link href="/requests" className="text-[12px] font-bold maroon-gradient text-white px-4 py-2 rounded-full">Plans + add-ons konandi →</Link>
+              <Link href="/requests" className="text-[12px] font-bold border border-maroon/30 text-maroon px-4 py-2 rounded-full">👀 Evaru chusaro chudandi</Link>
+            </div>
+          </div>
+        </Reveal>
       </section>
       )}
 
