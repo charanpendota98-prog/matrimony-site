@@ -4,7 +4,7 @@ All endpoints: Register, ID Search, Matches, Credits, Referral, Bureau, Admin, P
 """
 from fastapi import FastAPI, HTTPException, Request, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
 from typing import Any, Dict, Optional
 import os, random, json
 from datetime import datetime, timedelta
@@ -47,6 +47,7 @@ from interest import (
 )
 from card_generator import generate_id as _gen_id
 from porutham import compute_porutham, porutham_line, norm_nakshatra, norm_rasi
+import topmatch, safety, preview
 from interest import ADDONS, RENEWALS, is_addon, get_addon, get_renewal, plan_list_with_free, addon_list, renewal_offer
 from channels_config import post_targets
 
@@ -147,6 +148,8 @@ DB_SAVES = []          # shortlist: {"tsap_id": owner, "saved_id": saved profile
 DB_DIGEST = []         # daily digest log
 DB_OTPS = {}           # {"98480xxxxx": {"code": "1234", "expires": iso, "tries": n}}
 VERIFIED_PHONES = set()  # OTP verify ayyina numbers
+DB_REPORTS = safety.DB_REPORTS      # safety reports (moderation queue)
+DB_BLOCKS = safety.DB_BLOCKS        # block list (search/interest lo respect avutundi)
 DB_PAYMENTS = []
 DB_POSTS = []
 DB_REFERRALS = []
@@ -852,6 +855,11 @@ async def interest_send(payload: dict):
     if not to:
         raise HTTPException(404, f"Profile dorakaledu: {to_id}")
 
+    if safety.is_blocked(from_id, to_id, DB_BLOCKS):
+        raise HTTPException(400, "Ee profile tho contact block ayyindi — vere profiles chudandi")
+    if to.get("is_banned"):
+        raise HTTPException(400, "Ee profile moderation lo teesesaru — interest pampaleeru")
+
     expire_old(DB_INTERESTS)
     ok, reason = can_send_interest(frm, to, DB_INTERESTS)
     if not ok:
@@ -864,7 +872,11 @@ async def interest_send(payload: dict):
         return JSONResponse(status_code=400, content={"success": False, "reason": reason,
                                                       "message_telugu": reason})
 
-    score, reasons = _score_pair(frm, to)
+    try:
+        v2 = topmatch.score_match_v2(frm, to)
+        score, reasons = v2["score"], (v2["strengths"] + [v2["verdict_telugu"]])
+    except Exception:
+        score, reasons = _score_pair(frm, to)
 
     rec = create_interest(frm, to, note=note, score=score, reasons=reasons,
                           channel=d.get("channel", "website"))
@@ -1386,6 +1398,10 @@ def advanced_search(
     Frontend /matches page idi use chestundi (fallback: demo data).
     """
     items = [u for u in DB_USERS if u.get("is_approved", True)]
+    if viewer_id:
+        items = [u for u in items if not safety.is_blocked(viewer_id, u.get("tsap_id", ""), DB_BLOCKS)]
+    else:
+        items = [u for u in items if not u.get("is_banned")]
     if gender:
         items = [u for u in items if str(u.get("gender", "")).lower() == gender.lower()]
     if caste:
@@ -1435,8 +1451,20 @@ def advanced_search(
         row["company"] = u.get("company", "")
         row["sub_caste"] = u.get("sub_caste", "")
         row["moola_nakshatram"] = u.get("moola_nakshatram", "No")
+        badge = safety.verification_badge(u)
+        row["verification"] = badge["level"]
+        row["verification_telugu"] = badge["telugu"]
+        row["trust_score"] = badge["trust_score"]
         if viewer and viewer.get("gender") != u.get("gender"):
-            row["score"], row["reasons"] = _score_pair(viewer, u)
+            try:
+                v2 = topmatch.score_match_v2(viewer, u)          # 🧠 Match Score 2.0 (explainable)
+                row["score"] = v2["score"]
+                row["reasons"] = v2["strengths"] + ([v2["mutual"]["note"]] if v2.get("mutual", {}).get("both_like") else [])
+                row["match_v2"] = {"grade": v2["grade"], "verdict": v2["verdict_telugu"],
+                                   "mutual": v2.get("mutual", {}), "breakdown": v2["breakdown"][:6],
+                                   "weak_points": v2["weak_points"], "how_to_improve": v2["how_to_improve"]}
+            except Exception:
+                row["score"], row["reasons"] = _score_pair(viewer, u)
             src = compute_porutham(u, viewer) if viewer.get("gender") == "Groom" else compute_porutham(viewer, u)
             row["porutham"] = {"score": src.get("score"), "max": src.get("max_score"),
                                "verdict": src.get("verdict")} if src.get("available") else None
@@ -1672,6 +1700,187 @@ def api_seed_launch(payload: dict = None):
         raise HTTPException(403, "Demo seed bandh (DEMO_SEED_ENABLED=false)")
     return api_bulk_profiles({"generate": int((payload or {}).get("count", 60)),
                               "seed": int((payload or {}).get("seed", 42))})
+
+
+
+
+# ============================================================================
+#  MATCH SCORE 2.0 — explainable + mutual (why ee score? Telugu lo cheptham)
+# ============================================================================
+@app.get("/api/match/score")
+def api_match_score(a: str, b: str):
+    me, other = _find_user(a), _find_user(b)
+    if not me or not other:
+        raise HTTPException(404, "Rendu TSAP IDs correct ga ivvandi")
+    if safety.is_blocked(a, b, DB_BLOCKS):
+        raise HTTPException(400, "Ee profile block ayyindi")
+    res = topmatch.score_match_v2(me, other)
+    res["viewer"] = a
+    res["other"] = {"tsap_id": other.get("tsap_id"), "full_name": other.get("full_name"),
+                    "verification": safety.verification_badge(other)}
+    return res
+
+
+@app.post("/api/match/score")
+def api_match_score_raw(payload: dict):
+    """Raw dicts tho score (frontend preview / admin tools ki)."""
+    d = payload or {}
+    a, b = d.get("a") or {}, d.get("b") or {}
+    if not a or not b:
+        raise HTTPException(400, "a + b (profile dicts) kavali")
+    return topmatch.score_match_v2(a, b)
+
+
+@app.get("/api/top-matches/{tsap_id}")
+def api_top_matches(tsap_id: str, limit: int = 10, min_score: int = 65):
+    """Top matches 2.0 — mutual bonus tho rank, blocked/banned profiles teesestham."""
+    me = _find_user(tsap_id)
+    if not me:
+        raise HTTPException(404, "Mee profile dorakaledu")
+    pool = [u for u in DB_USERS if not safety.is_blocked(tsap_id, u.get("tsap_id", ""), DB_BLOCKS)
+            and not u.get("is_banned")]
+    rows = topmatch.find_top_matches_v2(me, pool, limit=limit, min_score=min_score)
+    out = []
+    for r in rows:
+        prof = r.pop("profile")
+        r["full_name"] = prof.get("full_name")
+        r["age"] = prof.get("age")
+        r["caste"] = prof.get("caste")
+        r["district"] = prof.get("district")
+        r["state"] = prof.get("state")
+        r["education"] = prof.get("education")
+        r["job"] = prof.get("job")
+        r["star"] = prof.get("star")
+        r["verification"] = safety.verification_badge(prof)["level"]
+        out.append(r)
+    return {"tsap_id": tsap_id, "count": len(out), "mutual_matches": len([x for x in out if x.get("mutual", {}).get("both_like")]),
+            "results": out,
+            "message_telugu": "%d top matches — mutthu (mutual) matches: %d" % (len(out), len([x for x in out if x.get("mutual", {}).get("both_like")]))}
+
+
+# ============================================================================
+#  TRUST & SAFETY — report / block / verify / moderation
+# ============================================================================
+@app.get("/api/safety/tips")
+def api_safety_tips():
+    return {"tips": safety.safety_tips(),
+            "verify_levels": [{"level": k, "telugu": v} for k, v in safety.VERIFY_TELUGU.items()],
+            "report_categories": [{"key": k, **v} for k, v in safety.REPORT_CATEGORIES.items()],
+            "message_telugu": "Safety first: advance money vaddu, public lo kalthi, video call tho verify 🙏"}
+
+
+@app.post("/api/report")
+def api_report(payload: dict):
+    d = payload or {}
+    ok, kind, rec = safety.submit_report(str(d.get("reporter_id", "")), str(d.get("target_id", "")),
+                                         str(d.get("category", "")), str(d.get("detail", "")),
+                                         reports=DB_REPORTS, users=DB_USERS)
+    if not ok:
+        raise HTTPException(400, kind)
+    return {"success": True, "kind": kind, "report": rec,
+            "auto_hidden": bool(rec.get("auto_flagged")),
+            "ack_telugu": safety.report_ack_text(),
+            "stats": safety.report_stats(DB_REPORTS)}
+
+
+@app.get("/api/moderation/queue")
+def api_moderation_queue(limit: int = 50):
+    return safety.moderation_queue(DB_REPORTS, DB_USERS, limit)
+
+
+@app.post("/api/moderation/resolve/{report_id}")
+def api_moderation_resolve(report_id: str, payload: dict = None):
+    d = payload or {}
+    ok, msg, rec = safety.resolve_report(report_id, str(d.get("action", "")), str(d.get("note", "")),
+                                         reports=DB_REPORTS, users=DB_USERS)
+    if not ok:
+        raise HTTPException(400, msg)
+    return {"success": True, "action": msg, "report": rec, "queue": safety.report_stats(DB_REPORTS)}
+
+
+@app.post("/api/block")
+def api_block(payload: dict):
+    d = payload or {}
+    ok, kind, rec = safety.block_user(str(d.get("owner", "")), str(d.get("blocked", "")),
+                                      str(d.get("reason", "")), DB_BLOCKS)
+    if not ok:
+        raise HTTPException(400, kind)
+    return {"success": True, "kind": kind, "block": rec, "total_blocks": len(safety.block_list(d.get("owner", ""), DB_BLOCKS)),
+            "message_telugu": "🚫 Block chesaru — vaallu mee profile chudalenu, interest kooda pampalenru"}
+
+
+@app.post("/api/unblock")
+def api_unblock(payload: dict):
+    d = payload or {}
+    ok, msg = safety.unblock_user(str(d.get("owner", "")), str(d.get("blocked", "")), DB_BLOCKS)
+    return {"success": ok, "kind": msg,
+            "message_telugu": "Unblock ayyindi" if ok else "Ee user block list lo ledu"}
+
+
+@app.get("/api/blocks/{tsap_id}")
+def api_blocks(tsap_id: str):
+    rows = safety.block_list(tsap_id, DB_BLOCKS)
+    return {"tsap_id": tsap_id, "count": len(rows), "items": rows}
+
+
+@app.post("/api/verify/request")
+def api_verify_request(payload: dict):
+    """Phone / Photo / ID verification level penchadam (photo/ID ki admin approve kavali — dev lo auto)."""
+    d = payload or {}
+    u = _find_user(str(d.get("tsap_id", "")))
+    if not u:
+        raise HTTPException(404, "Profile dorakaledu")
+    kind = str(d.get("kind", "")).lower()
+    ok, msg, _ = safety.set_verification(u, kind)
+    if not ok:
+        raise HTTPException(400, msg)
+    badge = safety.verification_badge(u)
+    return {"success": True, "kind": msg, "verification": badge,
+            "message_telugu": "✅ %s — %s" % (badge["telugu"], badge["next_step_telugu"])}
+
+
+@app.get("/api/verification/{tsap_id}")
+def api_verification(tsap_id: str):
+    u = _find_user(tsap_id)
+    if not u:
+        raise HTTPException(404, "Profile dorakaledu")
+    b = safety.verification_badge(u)
+    return {"tsap_id": tsap_id, **b}
+
+
+# ============================================================================
+#  SOCIAL PREVIEW IMAGES (WhatsApp/Telegram link preview — reach booster)
+# ============================================================================
+@app.get("/api/og/profile/{tsap_id}.png")
+def api_og_profile(tsap_id: str):
+    u = _find_user(tsap_id) or next((x for x in DB_USERS if x["tsap_id"].upper() == tsap_id.upper()), None)
+    if not u:
+        raise HTTPException(404, "Profile dorakaledu")
+    path = preview.og_profile_png(u)
+    if not path or not os.path.exists(path):
+        raise HTTPException(500, "Preview generate avvaledu (Pillow/font check cheyyandi)")
+    return FileResponse(path, media_type="image/png", headers={"Cache-Control": "public, max-age=3600"})
+
+
+@app.get("/api/og/porutham/{bride}/{groom}.png")
+def api_og_porutham(bride: str, groom: str):
+    b, g = _find_user(bride), _find_user(groom)
+    if not b or not g:
+        raise HTTPException(404, "Rendu profiles kavali")
+    res = compute_porutham(b, g)
+    path = preview.og_porutham_png(b, g, res)
+    if not path or not os.path.exists(path):
+        raise HTTPException(500, "Preview generate avvaledu")
+    return FileResponse(path, media_type="image/png", headers={"Cache-Control": "public, max-age=3600"})
+
+
+@app.get("/api/og/site.png")
+def api_og_site(title: str = "Mana Vivaha — Telugu Matrimony", subtitle: str = "65 channels • 43 castes • TS + AP"):
+    path = preview.og_generic_png(title, subtitle, name="site")
+    if not path or not os.path.exists(path):
+        raise HTTPException(500, "Preview generate avvaledu")
+    return FileResponse(path, media_type="image/png", headers={"Cache-Control": "public, max-age=3600"})
+
 
 
 if __name__=="__main__":

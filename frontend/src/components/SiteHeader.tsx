@@ -5,9 +5,11 @@ import { useEffect, useState } from "react";
 import { CHANNEL_STATS } from "@/lib/channels";
 import { SITE_CONFIG } from "@/lib/site-config";
 
-const NAV = [
+const NAV: { href: string; label: string; xl?: boolean }[] = [
   { href: "/", label: "Home" },
   { href: "/channels", label: "Channels" },
+  { href: "/porutham", label: "Porutham 💍", xl: true },
+  { href: "/safety", label: "Safety 🛡️", xl: true },
   { href: "/requests", label: "Requests 💌" },
   { href: "/growth", label: "Growth 📈" },
   { href: "/castes", label: "Castes" },
@@ -62,7 +64,7 @@ export default function SiteHeader() {
             <Link
               key={n.href}
               href={n.href}
-              className={`px-3.5 py-2 rounded-full text-[13px] font-semibold transition ${
+              className={`${n.xl ? "hidden xl:inline-flex" : ""} px-3.5 py-2 rounded-full text-[13px] font-semibold transition ${
                 isActive(n.href)
                   ? "bg-maroon text-white shadow-soft"
                   : "text-ink/75 hover:text-maroon hover:bg-maroon-soft"

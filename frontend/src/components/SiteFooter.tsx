@@ -12,6 +12,8 @@ export default function SiteFooter() {
         { href: "/channels", label: `All ${CHANNEL_STATS.total} Channels` },
         { href: "/matches", label: "Matches & Filters" },
         { href: "/search/TSAP-M-2025-1042", label: "ID Search" },
+        { href: "/porutham", label: "Porutham Report (10)" },
+        { href: "/safety", label: "Trust & Safety Center" },
       ],
     },
     {

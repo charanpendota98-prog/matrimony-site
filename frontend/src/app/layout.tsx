@@ -3,6 +3,7 @@ import "./globals.css";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import StickyCTA from "@/components/StickyCTA";
+import PWA from "@/components/PWA";
 
 const SITE = process.env.SITE_URL || "https://manavivaha.in";
 
@@ -38,6 +39,15 @@ export const metadata: Metadata = {
     description: "₹99 ke Sambandham • Modati 3 FREE • 65 channels • 43 castes",
   },
   robots: { index: true, follow: true },
+  manifest: "/manifest.webmanifest",
+  icons: {
+    icon: [{ url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+           { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" }],
+    apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180" }],
+    shortcut: ["/favicon.png"],
+  },
+  appleWebApp: { capable: true, title: "Mana Vivaha", statusBarStyle: "default" },
+  formatDetection: { telephone: true },
   category: "Matrimony",
 };
 
@@ -59,6 +69,7 @@ export default function RootLayout({
         <main className="flex-1">{children}</main>
         <SiteFooter />
         <StickyCTA />
+        <PWA />
       </body>
     </html>
   );

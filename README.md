@@ -46,6 +46,11 @@ python3 backend/
   test_interest_antiban.py← 83 tests (anti-ban + interest + porutham + views + add-ons)
   growth.py               ← 📈 Growth engine (namaste welcome, visitor/lead capture, share kit, inventory)
   test_growth_namaste_leads.py ← 109 tests (namaste + leads + share kit + launch inventory + anti-ban + 💰 pricing parity)
+  topmatch.py             ← 🧠 Match Score 2.0 (11 weights, explainable breakdown, mutual +8% bonus, Telugu verdict)
+  test_topmatch.py        ← 61 tests (weights, breakdown, mutual, top-matches, APIs, OG images)
+  safety.py               ← 🛡️ Trust & Safety (report → auto-flag, block, verification levels, moderation queue, Telugu tips)
+  preview.py              ← 🖼️ OG/social preview images (profile, porutham report, site) — WhatsApp reach booster
+  test_safety_preview.py  ← 70 tests (reports, auto-hide, moderation, block, verify, tips, OG PNGs, APIs)
   seed_launch_db.py       ← 🚀 Launch inventory generator (360 realistic profiles: caste/star/district correct)
   test_channels_router.py     # 57/57 — registry + router
 python3 backend/publisher.py                # dry-run post preview
@@ -62,12 +67,14 @@ backend/
   card_pro.py             ← full-detail neat profile card (Pillow + QR + watermark)
   main.py                 ← FastAPI (register, search, matches, credits, channels, publish, otp, leads, growth)
   growth.py               ← 📈 Namaste welcome + visitor/lead capture + share kit + inventory gauge
+  topmatch.py / safety.py / preview.py  ← 🧠 Match Score 2.0 • 🛡️ reports/block/verify • 🖼️ OG preview images
   telegram_bot.py         ← aiogram bot (approve → auto-post → deep links)
   gen_frontend_channels.py / gen_master_list.py   ← registry → frontend + docs (auto-gen)
 frontend/
   src/lib/site-config.ts  ← ⭐ CUSTOMIZE IKKADE (brand, prices, features, contacts)
   src/components/         ← SiteHeader, SiteFooter, StickyCTA, Reveal, SectionHeading
-  src/app/                ← home, register (5-step smart wizard), channels, matches, requests 💌, castes (SEO), referral, bureau, admin, growth 📈
+  src/app/                ← home, register (smart wizard), channels, matches (score v2 panel), requests 💌, porutham 💍, safety 🛡️, castes (SEO), referral, bureau, admin, growth 📈, offline
+  public/manifest.webmanifest + sw.js + icons/  ← 📲 PWA (installable, offline shell)
   src/lib/seo-pages.ts    ← 🔎 289 programmatic SEO pages (caste × role × district)
 whatsapp-bridge/          ← optional Baileys service (groups/newsletter posting)
 docker-compose.yml        ← postgres, redis, backend, frontend, bot, wa-bridge (+nginx profile)
@@ -81,6 +88,7 @@ nginx.conf                ← host nginx config (manavivaha.in, /api proxy, SSL 
 | [WEBSITE-STRATEGY-AND-100-PERCENT-GAPS.md](WEBSITE-STRATEGY-AND-100-PERCENT-GAPS.md) | Custom vs WordPress + auto-post flow + 30 gaps (P0→P3) |
 | [WEBSITE-CUSTOMIZATION-GUIDE.md](WEBSITE-CUSTOMIZATION-GUIDE.md) | Enti ekkada marchali — brand/pricing/features/colors + verify steps |
 | [WHATSAPP-ANTIBAN-AND-REQUESTS.md](WHATSAPP-ANTIBAN-AND-REQUESTS.md) | 🛡️ Anti-ban playbook (120–170s random gap, caps, warmup, recovery) + 💌 requests model + APIs |
+| [WAVE5-MATCH-SCORE-TRUST-PWA.md](WAVE5-MATCH-SCORE-TRUST-PWA.md) | 🧠 Match Score 2.0 (11 weights, explainable, mutual) • 🛡️ Trust & Safety (report/block/verify/moderation) • 💍 porutham report • 🖼️ OG preview images • 📲 PWA |
 | [PLAN-ADVANCED-STRATEGY.md](PLAN-ADVANCED-STRATEGY.md) | 👑 Pricing ladder (₹99→5, ₹199→12, ₹299→25, ₹499→50 VIP), revenue math, 30-day plan, strategies, KPIs |
 | [GROWTH-NAMASTE-LEADS-INVENTORY.md](GROWTH-NAMASTE-LEADS-INVENTORY.md) | 📈 Namaste welcome automation • lead capture funnel • 360-profile launch inventory • community networks playbook • pricing audit + parity guard |
 | [ULTIMATE-TSAP-MASTER-PLAN-TELUGU.md](ULTIMATE-TSAP-MASTER-PLAN-TELUGU.md) | Master business plan |
@@ -103,6 +111,13 @@ POST /api/interest/send         → 💌 request (1 credit → mana WhatsApp nun
 GET  /api/interest/inbox|sent   → request dashboard (accept/decline)
 POST /api/interest/respond      → accept (numbers exchange) / decline (credit refund)
 GET  /api/porutham              → 10-porutham kundli match (Telugu verdict)
+GET  /api/match/score?a=&b=     → 🧠 Match Score 2.0 (11 components breakdown + mutual + Telugu verdict)
+GET  /api/top-matches/{id}      → top matches (mutual bonus tho ranked)
+POST /api/report · GET /api/moderation/queue · POST /api/moderation/resolve/{id}  → 🛡️ trust & safety
+POST /api/block · /api/unblock · GET /api/blocks/{id}                          → 🚫 block list
+POST /api/verify/request · GET /api/verification/{id}                          → ✅ phone/photo/ID badge
+GET  /api/og/profile/{id}.png · /api/og/porutham/{b}/{g}.png · /api/og/site.png → 🖼️ WhatsApp preview images
+GET  /api/safety/tips           → 6 Telugu safety tips + categories + verify levels
 POST /api/view · GET /api/views/{id}    → who-viewed-me (₹49 unlock)
 POST /api/save · GET /api/saved/{id}    → shortlist ❤️
 GET  /api/share/kit/{id}        → card + caption + hashtags (reach engine)

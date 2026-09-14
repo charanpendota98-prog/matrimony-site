@@ -40,6 +40,74 @@ const FALLBACK: Row[] = [
   { tsap_id: "TSAP-F-2025-3042", full_name: "Meghana Vysya", age: 25, gender: "Bride", caste: "Vysya", education: "BPharm", job: "Pharmacist", company: "MedPlus", salary: "4.5L", height: "5'3\"", district: "Hyderabad", state: "TS", gothram: "Kaushika", star: "Chitra", marital_status: "Pelli Kaledu", phone_verified: true, has_photo: false, score: 78, reasons: ["Hyderabad same city", "Healthcare field stable", "Age perfect"], porutham: { score: 7, max: 10, verdict: "Manchi porutham" } },
 ];
 
+/* ---------- 🧠 MATCH SCORE 2.0 — "enduku ee score?" expandable panel ---------- */
+function ScoreBreakdown({ v2 }: { v2: any }) {
+  const [open, setOpen] = useState(false);
+  if (!v2) return null;
+  const gradeColor: Record<string, string> = {
+    perfect: "bg-emerald-100 text-emerald-800 border-emerald-300",
+    best: "bg-emerald-50 text-emerald-800 border-emerald-200",
+    good: "bg-amber-50 text-amber-800 border-amber-200",
+    average: "bg-gray-100 text-gray-700 border-gray-300",
+  };
+  const gc = gradeColor[String(v2.grade || "average")] || gradeColor.average;
+  return (
+    <div className="mx-4 mb-3 rounded-2xl border border-maroon/15 bg-white overflow-hidden">
+      <button onClick={() => setOpen(!open)} className="w-full flex items-center gap-2 px-3 py-2.5 text-left">
+        <span className="text-[12px] font-bold text-maroon">🧠 Enduku ee score?</span>
+        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${gc}`}>{v2.grade}</span>
+        {v2?.mutual?.both_like ? (
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-300">
+            💞 mutual (+8%)
+          </span>
+        ) : null}
+        <span className="ml-auto text-[11px] text-gray-500">{open ? "▲ moosu" : "▼ chudu"}</span>
+      </button>
+      {open && (
+        <div className="px-3 pb-3">
+          <div className="text-[11px] text-gray-600 mb-2">{v2.verdict}</div>
+          <div className="space-y-1.5">
+            {(v2.breakdown || []).map((b: any, i: number) => {
+              const got = Number(b.points ?? b.score ?? 0);
+              const max = Math.max(1, Number(b.max || 1));
+              const pct = Math.round((got / max) * 100);
+              return (
+                <div key={i} className="flex items-center gap-2">
+                  <span className="text-[10px] w-[92px] shrink-0 text-gray-700 truncate" title={b.note}>{b.label}</span>
+                  <span className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <span className="block h-2 rounded-full"
+                      style={{ width: `${pct}%`, background: pct >= 80 ? "#0f7a4a" : pct >= 55 ? "#C79A2E" : "#c0405a" }} />
+                  </span>
+                  <span className="text-[10px] font-bold text-gray-700 w-[52px] text-right">{got}/{max}</span>
+                </div>
+              );
+            })}
+          </div>
+          {Array.isArray(v2.weak_points) && v2.weak_points.length > 0 && (
+            <div className="mt-2.5 bg-rose-50 border border-rose-200 rounded-xl p-2.5">
+              <div className="text-[10px] font-bold text-rose-800">⚠️ Jagratha (weak points)</div>
+              {v2.weak_points.map((w: string, i: number) => (
+                <div key={i} className="text-[10px] text-rose-900 telugu">• {w}</div>
+              ))}
+            </div>
+          )}
+          {v2.how_to_improve && (
+            <div className="mt-2 bg-emerald-50 border border-emerald-200 rounded-xl p-2.5">
+              <div className="text-[10px] font-bold text-emerald-800">📈 Score penchadaniki</div>
+              {(Array.isArray(v2.how_to_improve) ? v2.how_to_improve : [v2.how_to_improve]).map((w: string, i: number) => (
+                <div key={i} className="text-[10px] text-emerald-900 telugu">• {w}</div>
+              ))}
+            </div>
+          )}
+          {v2?.mutual?.note && (
+            <div className="mt-2 text-[10px] text-gray-600 telugu">💞 {v2.mutual.note}</div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function FilterSheet({
   open, onClose, filters, setF, reset, onApply, resultsInfo,
 }: {
@@ -377,7 +445,9 @@ export default function MatchesAdvanced() {
               <div className="min-w-0 flex-1">
                 <div className="font-bold text-[15px] text-ink truncate">
                   {row.full_name}
-                  {row.phone_verified ? <span className="ml-1 text-[11px] text-emerald-700">✅</span> : null}
+                  {row.verification === "id" || row.id_verified ? <span className="ml-1 text-[11px]" title="ID verified — full trust">🏅</span>
+                    : row.verification === "photo" || row.photo_verified ? <span className="ml-1 text-[11px]" title="Photo verified">📸✅</span>
+                    : (row.phone_verified || row.verification === "phone") ? <span className="ml-1 text-[11px] text-emerald-700" title="Phone verified">✅</span> : null}
                   {row.boosted ? <span className="ml-1 text-[11px]">⚡</span> : null}
                 </div>
                 <div className="text-[11px] text-gray-500 font-mono">{row.tsap_id}</div>
@@ -402,6 +472,11 @@ export default function MatchesAdvanced() {
               <span className="bg-cream border border-gold/30 rounded-full px-2 py-0.5">⭐ {row.star || "—"} / {row.rasi || "—"}</span>
               <span className="bg-cream border border-gold/30 rounded-full px-2 py-0.5">🕉️ {row.gothram || "—"}</span>
               <span className="bg-cream border border-gold/30 rounded-full px-2 py-0.5">💍 {row.marital_status || "—"}</span>
+              {row.verification_telugu ? (
+                <span className="bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-full px-2 py-0.5">
+                  🛡️ {row.verification_telugu}
+                </span>
+              ) : null}
               {row.porutham?.score ? (
                 <span className="bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-full px-2 py-0.5">
                   🧮 {row.porutham.score}/{row.porutham.max} — {row.porutham.verdict}
@@ -410,6 +485,8 @@ export default function MatchesAdvanced() {
             </div>
           </div>
         </div>
+
+        <ScoreBreakdown v2={row.match_v2} />
 
         {Array.isArray(row.reasons) && row.reasons.length > 0 && (
           <div className="mx-4 mb-3 bg-cream rounded-2xl p-3">
@@ -436,6 +513,8 @@ export default function MatchesAdvanced() {
           </button>
           <button onClick={() => shareWhatsApp(row)} className="py-2.5 px-3 rounded-xl bg-green-600 text-white text-[12px] font-bold">WhatsApp</button>
           <button onClick={() => shareTelegram(row)} className="py-2.5 px-3 rounded-xl bg-blue-500 text-white text-[12px] font-bold">Telegram</button>
+          <Link href={`/safety?target=${row.tsap_id}`} title="Report / Block"
+            className="py-2.5 px-3 rounded-xl border border-rose-300 text-rose-700 text-[12px] font-bold">🚩</Link>
         </div>
       </div>
     );
