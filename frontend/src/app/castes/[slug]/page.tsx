@@ -7,7 +7,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { CASTES, DISTRICTS, buildSlug, parseSlug } from "@/lib/seo-pages";
+import { CASTES, DISTRICTS, buildSlug, parseSlug, channelForCaste } from "@/lib/seo-pages";
 import { CHANNEL_STATS } from "@/lib/channels";
 import { SITE_CONFIG } from "@/lib/site-config";
 
@@ -17,11 +17,12 @@ export function generateMetadata({ params }: Params): Metadata {
   const parsed = parseSlug(params.slug);
   if (!parsed) return { title: "Caste Matrimony Channels" };
   const { caste, role, district } = parsed;
+  const chan = channelForCaste(caste.key, role);
   const where = district ? `${district.name} (${district.state})` : "Telangana & Andhra Pradesh";
   const title = `${caste.name} ${role === "bride" ? "Bride" : "Groom"} ${district ? district.name : "TS/AP"} Matrimony`;
   return {
     title,
-    description: `${caste.name} ${role} profiles ${where} — Mana Vivaha (TSAP Matrimony). ${caste.username} channel lo verified profiles, WhatsApp lo interest pampu, ₹99 → 5 profiles. Modati 3 requests FREE. Chatting ledu — consent based contact.`,
+    description: `${caste.name} ${role} profiles ${where} — Mana Vivaha (TSAP Matrimony). ${chan?.username || "@TSAP_MATRIMONY"} channel lo verified profiles, WhatsApp lo interest pampu, ₹99 → 5 profiles. Modati 3 requests FREE. Chatting ledu — consent based contact.`,
     keywords: [
       `${caste.name.toLowerCase()} matrimony`, `${caste.name.toLowerCase()} bride ${district?.name || "hyderabad"}`,
       `${caste.name.toLowerCase()} groom`, `${caste.name.toLowerCase()} sambandham`,
@@ -35,6 +36,9 @@ export default function CasteLandingPage({ params }: Params) {
   const parsed = parseSlug(params.slug);
   if (!parsed) notFound();
   const { caste, role, district } = parsed;
+  const chan = channelForCaste(caste.key, role);
+  const otherRole = role === "bride" ? "groom" : "bride";
+  const otherChan = channelForCaste(caste.key, otherRole);
   const roleTelugu = role === "bride" ? "పెళ్లి కూతురు (Bride)" : "పెళ్లి కొడుకు (Groom)";
   const where = district ? `${district.name}, ${district.state}` : "Telangana + Andhra Pradesh";
 
@@ -56,14 +60,14 @@ export default function CasteLandingPage({ params }: Params) {
           </h1>
           <p className="mt-2 text-[13px] md:text-sm opacity-90 telugu max-w-3xl">
             {caste.name} {roleTelugu} సంబంధాలు — {where}. 100% verified Telugu profiles, caste-wise Telegram channel
-            (<b>{caste.username}</b>) + WhatsApp lo interest pampu. 🚫 Chatting ledu — accept aithe direct number exchange.
+            (<b>{chan?.username}</b>) + WhatsApp lo interest pampu. 🚫 Chatting ledu — accept aithe direct number exchange.
           </p>
           <div className="mt-5 flex flex-wrap gap-2">
             <Link href="/register" className="gold-gradient text-maroon font-bold text-sm px-5 py-3 rounded-xl hover-lift">
               📝 FREE register — 3 nimushalu
             </Link>
-            <a href={caste.link} target="_blank" rel="noreferrer" className="bg-white/10 border border-white/25 font-bold text-sm px-5 py-3 rounded-xl">
-              📢 {caste.username} channel
+            <a href={chan?.link} target="_blank" rel="noreferrer" className="bg-white/10 border border-white/25 font-bold text-sm px-5 py-3 rounded-xl">
+              📢 {chan?.username} channel
             </a>
             <Link href="/requests" className="bg-white/10 border border-white/25 font-bold text-sm px-5 py-3 rounded-xl">
               💌 Requests dashboard
@@ -84,7 +88,7 @@ export default function CasteLandingPage({ params }: Params) {
             <h2 className="text-lg font-bold text-maroon">{caste.name} {role === "bride" ? "Brides" : "Grooms"} ni ela chudali?</h2>
             <ol className="mt-3 space-y-2 text-[13px] text-gray-700 list-decimal list-inside">
               <li><b>FREE register</b> (3 nimushalu) — personal, family, caste/astro, education, location + photo.</li>
-              <li><b>Auto-post:</b> mee profile card {caste.username} channel lo + WhatsApp group lo (anti-ban safe).</li>
+              <li><b>Auto-post:</b> mee profile card {chan?.username} channel lo + WhatsApp group lo (anti-ban safe).</li>
               <li><b>💌 Interest pampu:</b> nachhina profile ki — vaallaki mana WhatsApp nunchi mee profile card veltundi.</li>
               <li><b>✅ Accept aithe:</b> rendu numbers automatic ga exchange ({role === "bride" ? "groom" : "bride"} side consent tho).</li>
             </ol>
@@ -98,14 +102,24 @@ export default function CasteLandingPage({ params }: Params) {
 
           <section className="bg-white rounded-2xl p-5 card-shadow border border-gold/20">
             <h2 className="text-lg font-bold text-maroon">Enduku caste-wise channel ({caste.name})?</h2>
+            {caste.split ? (
+              <div className="mt-2 bg-white border border-gold/30 rounded-2xl p-3 text-[12px] text-gray-700">
+                ⭐ <b>{caste.name} ki bride + groom channels separate ga unnai</b> (caste prakaram) —{" "}
+                {role === "bride" ? "meeru ippudu chusthunnadi" : "bride page"} <b>{chan?.username}</b>,{" "}
+                {role === "bride" ? "groom" : "mee"} page <b>{otherChan?.username}</b>.{" "}
+                <Link className="underline font-bold text-maroon" href={`/castes/${buildSlug(caste.key, otherRole, district?.slug)}`}>
+                  {otherRole === "bride" ? "Brides" : "Grooms"} page chudu →
+                </Link>
+              </div>
+            ) : null}
             <p className="mt-2 text-[13px] text-gray-700 leading-relaxed">
               Mana <b>{CHANNEL_STATS.by_tier.L3_CASTE} caste channels</b> lo idi okati — {caste.name} families ki
               same community sambandhalu vetukovadam easy avutundi. Region (TS/AP) + religion + job (software, doctor, govt)
               channels kooda kalisi <b>{CHANNEL_STATS.total} channels</b> network lo mee profile anni related chotaki veltundi —
-              okka register tho maximum reach. {caste.desc}
+              okka register tho maximum reach. {chan?.desc}
             </p>
             <div className="mt-3 flex flex-wrap gap-2 text-[11px]">
-              {caste.hashtags.slice(0, 6).map((h) => (
+              {(chan?.hashtags || []).slice(0, 6).map((h) => (
                 <span key={h} className="bg-cream border border-gold/30 px-2 py-0.5 rounded-full text-gray-700">{h}</span>
               ))}
             </div>
@@ -126,10 +140,10 @@ export default function CasteLandingPage({ params }: Params) {
 
         <aside className="space-y-4">
           <div className="bg-navy text-white rounded-2xl p-5">
-            <div className="font-bold">{caste.full}</div>
-            <div className="text-[12px] opacity-85 mt-1">{caste.username}</div>
-            <div className="text-[11px] opacity-70 mt-1">{caste.live ? "🟢 Live" : "🟡 Wave-1 lo open avutundi"} • {caste.hashtags.length} hashtags</div>
-            <a href={caste.deepLink} target="_blank" rel="noreferrer"
+            <div className="font-bold">{chan?.name}</div>
+            <div className="text-[12px] opacity-85 mt-1">{chan?.username}</div>
+            <div className="text-[11px] opacity-70 mt-1">{chan?.live ? "🟢 Live" : `🟡 Wave-${chan?.wave || 1} lo open avutundi`} • {(chan?.hashtags || []).length} hashtags</div>
+            <a href={chan?.deepLink} target="_blank" rel="noreferrer"
               className="mt-3 block text-center gold-gradient text-maroon font-bold text-[12px] py-2.5 rounded-xl">
               🤖 Bot tho join avvandi
             </a>
@@ -181,7 +195,7 @@ export default function CasteLandingPage({ params }: Params) {
             </div>
             <div>
               <div className="font-bold text-ink">Naa profile ekkada post avutundi?</div>
-              <div className="text-gray-600">{caste.username} + mee district/region channel + job/education special channel (max 5 channels) — Telegram + WhatsApp rendu chotla.</div>
+              <div className="text-gray-600">{chan?.username} + mee district/region channel + job/education special channel (max 5 channels) — Telegram + WhatsApp rendu chotla.</div>
             </div>
             <div>
               <div className="font-bold text-ink">{caste.name} porutham check unda?</div>

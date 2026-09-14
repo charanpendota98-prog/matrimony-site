@@ -15,11 +15,26 @@ import { ALL_CHANNELS } from "./channels";
 const stripEmoji = (s: string) =>
   s.replace(/[^A-Za-z0-9\s&|/.,'()-]/g, "").replace(/\s+/g, " ").trim();
 
-export type CasteInfo = {
+export type ChannelRef = {
   key: string;
+  username: string;
+  link: string;
+  deepLink: string;
+  desc: string;
+  live: boolean;
+  name: string;
+  hashtags: string[];
+  wave?: number;
+};
+
+export type CasteInfo = {
+  key: string;         // "reddy" (caste key — channel key kaadu)
   name: string;        // "Reddy"
   full: string;        // "Reddy Matrimony"
-  username: string;
+  split: boolean;      // True = bride + groom channels separate (caste prakaram)
+  bride?: ChannelRef;
+  groom?: ChannelRef;
+  username: string;    // default (bride channel) — purathana code ki
   link: string;
   deepLink: string;
   desc: string;
@@ -27,18 +42,66 @@ export type CasteInfo = {
   hashtags: string[];
 };
 
-export const CASTES: CasteInfo[] = ALL_CHANNELS.filter((c) => c.tier === "L3_CASTE").map((c) => {
-  const clean = stripEmoji(c.name).split("|")[0].trim();
+const CH_BY_KEY: Map<string, any> = new Map(ALL_CHANNELS.map((c: any) => [c.key, c]));
+
+function channelRef(c: any): ChannelRef {
+  return { key: c.key, username: c.username, link: c.link, deepLink: c.deepLink, desc: c.desc,
+           live: !!c.live, name: c.name, hashtags: c.hashtags || [], wave: c.wave };
+}
+
+/** Caste + role ki correct channel — split unte caste×gender, lekapote mixed channel. */
+export function channelForCaste(casteKey: string, role: Role): ChannelRef | null {
+  const split = CH_BY_KEY.get(`c_${casteKey}_${role}`);
+  const mixed = CH_BY_KEY.get(casteKey);
+  const ch = split || mixed;
+  return ch ? channelRef(ch) : null;
+}
+
+export function channelSplit(casteKey: string): boolean {
+  return CH_BY_KEY.has(`c_${casteKey}_bride`) && CH_BY_KEY.has(`c_${casteKey}_groom`);
+}
+
+/** L3 channels nunchi unique caste keys (caste×gender + mixed rendu nunchi) */
+function casteKeysInOrder(): string[] {
+  const order: string[] = [];
+  const seen = new Set<string>();
+  for (const c of ALL_CHANNELS as any[]) {
+    if (c.tier !== "L3_CASTE") continue;
+    let k: string = c.key;
+    if (k.startsWith("c_")) k = k.slice(2).replace(/_(bride|groom)$/, "");
+    if (!seen.has(k)) { seen.add(k); order.push(k); }
+  }
+  return order;
+}
+
+/** Channel title nunchi caste peru — "Reddy Brides" / "Koppula Velama Matrimony" → "Reddy" / "Koppula Velama" */
+function casteDisplayName(key: string, channelName: string): string {
+  const clean = stripEmoji(channelName).split("|")[0].trim();
+  const stripped = clean
+    .replace(/\s*(Brides|Grooms|Matrimony)$/i, "")
+    .trim();
+  if (stripped) return stripped;
+  return key.replace(/_/g, " ").replace(/\b\w/g, (m) => m.toUpperCase());
+}
+
+export const CASTES: CasteInfo[] = casteKeysInOrder().map((key) => {
+  const bride = channelForCaste(key, "bride");
+  const groom = channelForCaste(key, "groom");
+  const base = (bride || groom)!;
+  const name = casteDisplayName(key, base.name);
   return {
-    key: c.key,
-    name: clean.replace(/ Matrimony$/i, "").trim(),
-    full: clean,
-    username: c.username,
-    link: c.link,
-    deepLink: c.deepLink,
-    desc: c.desc,
-    live: c.live,
-    hashtags: c.hashtags || [],
+    key,
+    name,
+    full: `${name} Matrimony`,
+    split: channelSplit(key),
+    bride: bride || undefined,
+    groom: groom || undefined,
+    username: base.username,
+    link: base.link,
+    deepLink: base.deepLink,
+    desc: base.desc,
+    live: base.live,
+    hashtags: base.hashtags,
   };
 });
 

@@ -15,6 +15,7 @@
  *   • 🎤 Voice input (about_myself) — supported browsers lo
  */
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { CHANNEL_STATS } from "@/lib/channels";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import Reveal from "@/components/Reveal";
@@ -544,7 +545,7 @@ function Wizard() {
           <div className="bg-navy text-white rounded-2xl p-4">
             <div className="font-bold text-[14px]">Ippudu em cheyyali? (2 steps)</div>
             <ol className="mt-2 text-[12px] space-y-1 opacity-90 list-decimal list-inside">
-              <li>Mee profile 65 channels lo post avutundi — 30 nimushalalo live</li>
+              <li>Mee profile {CHANNEL_STATS.total} channels lo post avutundi (4 main + caste-wise) — 30 nimushalalo live</li>
               <li>Matches chusi <b>💌 Interest pampu</b> — modati 3 FREE, vaallaki WhatsApp lo mee profile veltundi</li>
             </ol>
             <div className="mt-3 flex flex-wrap gap-2">

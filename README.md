@@ -4,7 +4,7 @@
 Website: https://manavivaha.in • Bot: [@telugumatrimony1_bot](https://t.me/telugumatrimony1_bot)
 
 Custom-built platform (Next.js 14 + FastAPI + Postgres + Redis + aiogram + Docker) —
-**65 Telegram channels**, advanced 5-step register, full-detail profile card, Telegram + WhatsApp auto-post.
+**83 Telegram channels** (4 main + caste × bride/groom), advanced 5-step register, full-detail profile card, Telegram + WhatsApp auto-post.
 
 ---
 
@@ -32,6 +32,9 @@ docker-compose up -d whatsapp-bridge
 cd backend
 python seed_launch_db.py --count 360 --out launch_profiles.json     # generate
 python seed_launch_db.py --count 360 --load http://localhost:8000   # API ki load
+python setup_channels.py --plan           # 📢 83 channels plan + checklist
+python setup_channels.py --kit --wave 1   # wave-1 kits (17 channels) → channel-kits/
+BOT_TOKEN=xxx python setup_channels.py --apply --wave 1   # title/desc/DP/pinned auto set
 # .env: LAUNCH_SEED_COUNT=360 · ADMIN_WHATSAPP_NUMBER=91XXXXXXXXXX · LAUNCH_TARGET_PROFILES=360
 # Dashboard: http://localhost:3000/growth   (visits → leads → profiles + anti-ban status)
 ```
@@ -52,7 +55,10 @@ python3 backend/
   preview.py              ← 🖼️ OG/social preview images (profile, porutham report, site) — WhatsApp reach booster
   test_safety_preview.py  ← 70 tests (reports, auto-hide, moderation, block, verify, tips, OG PNGs, APIs)
   seed_launch_db.py       ← 🚀 Launch inventory generator (360 realistic profiles: caste/star/district correct)
-  test_channels_router.py     # 57/57 — registry + router
+  test_channels_router.py     # 61/61 — registry + router (4 main + caste×bride/groom)
+  setup_channels.py           # 📢 channel setup automation (plan/photos/check/apply/mark-live) — Bot API
+  channel_content.py          # Telugu content engine (perfect title/desc/📌 pinned post/rules/share text)
+  test_channels_setup.py      # 78/78 — caste×gender, content limits, DP images, FakeBot apply flow
 python3 backend/publisher.py                # dry-run post preview
 cd frontend && npm run build                # 12/12 pages
 ```
@@ -67,6 +73,8 @@ backend/
   card_pro.py             ← full-detail neat profile card (Pillow + QR + watermark)
   main.py                 ← FastAPI (register, search, matches, credits, channels, publish, otp, leads, growth)
   growth.py               ← 📈 Namaste welcome + visitor/lead capture + share kit + inventory gauge
+  channel_content.py      ← 📢 Telugu channel content (titles, descriptions, 📌 pinned welcome, rules, share)
+  setup_channels.py       ← ⚡ channel setup automation (plan / photos / check / apply / mark-live)
   topmatch.py / safety.py / preview.py  ← 🧠 Match Score 2.0 • 🛡️ reports/block/verify • 🖼️ OG preview images
   telegram_bot.py         ← aiogram bot (approve → auto-post → deep links)
   gen_frontend_channels.py / gen_master_list.py   ← registry → frontend + docs (auto-gen)
@@ -90,6 +98,8 @@ nginx.conf                ← host nginx config (manavivaha.in, /api proxy, SSL 
 | [WHATSAPP-ANTIBAN-AND-REQUESTS.md](WHATSAPP-ANTIBAN-AND-REQUESTS.md) | 🛡️ Anti-ban playbook (120–170s random gap, caps, warmup, recovery) + 💌 requests model + APIs |
 | [WAVE5-MATCH-SCORE-TRUST-PWA.md](WAVE5-MATCH-SCORE-TRUST-PWA.md) | 🧠 Match Score 2.0 (11 weights, explainable, mutual) • 🛡️ Trust & Safety (report/block/verify/moderation) • 💍 porutham report • 🖼️ OG preview images • 📲 PWA |
 | [PLAN-ADVANCED-STRATEGY.md](PLAN-ADVANCED-STRATEGY.md) | 👑 Pricing ladder (₹99→5, ₹199→12, ₹299→25, ₹499→50 VIP), revenue math, 30-day plan, strategies, KPIs |
+| [CHANNELS-PERFECT-SETUP-TELUGU.md](CHANNELS-PERFECT-SETUP-TELUGU.md) | 📢 83 channels — 4 main (TS/AP × Bride/Groom), caste prakaram (18 castes × bride/groom), waves, content standards, setup automation, growth playbook |
+| [CHANNELS-SETUP-CHECKLIST.md](CHANNELS-SETUP-CHECKLIST.md) | 📋 auto-generated copy-paste checklist (prathi channel: name/username/desc/📌 pinned post) |
 | [GROWTH-NAMASTE-LEADS-INVENTORY.md](GROWTH-NAMASTE-LEADS-INVENTORY.md) | 📈 Namaste welcome automation • lead capture funnel • 360-profile launch inventory • community networks playbook • pricing audit + parity guard |
 | [ULTIMATE-TSAP-MASTER-PLAN-TELUGU.md](ULTIMATE-TSAP-MASTER-PLAN-TELUGU.md) | Master business plan |
 | [REFERRAL-SHORT-CODE-BUREAU-OFFER.md](REFERRAL-SHORT-CODE-BUREAU-OFFER.md) | Referral ₹50 + bureau B2B |
@@ -97,7 +107,10 @@ nginx.conf                ← host nginx config (manavivaha.in, /api proxy, SSL 
 ## 🔑 API (main)
 ```
 POST /api/register              → ID + card + top-3 matches + auto-post queue
-GET  /api/channels              → 65 channels (tiers, live/pending, join + deep links)
+GET  /api/channels              → 83 channels (tiers, live/pending, join + deep links + DP)
+GET  /api/channels/photo/{key}.png      → 🖼️ channel DP (512x512 — Telegram setChatPhoto + website)
+GET  /api/channels/{key}/kit            → desc + 📌 pinned post + rules + WhatsApp share text (copy-paste)
+GET  /api/channels/setup-plan           → wave order plan + caste×gender coverage + config health
 POST /api/channels/route        → profile → ee channels ki post avutundi (preview)
 POST /api/publish/preview       → caption + WhatsApp text + targets (post cheyyakunda)
 GET  /api/publish/status        → Telegram/WhatsApp readiness + dry-run

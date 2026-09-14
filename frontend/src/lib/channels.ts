@@ -16,7 +16,7 @@ export type Channel = {
   fallbacks: string[];
 };
 
-export const CHANNEL_STATS = {"total": 65, "live": 2, "to_create": 63, "by_tier": {"L0_OFFICIAL": 1, "L1_REGION": 5, "L2_RELIGION": 5, "L3_CASTE": 43, "L4_SPECIAL": 11}, "bot": "@telugumatrimony1_bot", "site": "https://manavivaha.in"} as const;
+export const CHANNEL_STATS = {"total": 83, "live": 2, "to_create": 81, "by_tier": {"L0_OFFICIAL": 1, "L1_REGION": 5, "L2_RELIGION": 5, "L3_CASTE": 61, "L4_SPECIAL": 11}, "bot": "@telugumatrimony1_bot", "site": "https://manavivaha.in"} as const;
 
 export const CHANNEL_TIERS = [
   {
@@ -28,9 +28,9 @@ export const CHANNEL_TIERS = [
   },
   {
     "key": "L1_REGION",
-    "label": "State Flagship",
+    "label": "Main 4 Channels",
     "icon": "📍",
-    "hint": "TS / AP Bride & Groom + NRI",
+    "hint": "TS Bride • TS Groom • AP Bride • AP Groom (+ NRI)",
     "count": 5
   },
   {
@@ -44,8 +44,8 @@ export const CHANNEL_TIERS = [
     "key": "L3_CASTE",
     "label": "Caste-wise",
     "icon": "💍",
-    "hint": "ONE channel per caste — 43 castes covered",
-    "count": 43
+    "hint": "Caste prakaram — top 18 castes ki bride/groom separate, migilina 25 castes ki mixed",
+    "count": 61
   },
   {
     "key": "L4_SPECIAL",
@@ -60,11 +60,11 @@ export const ALL_CHANNELS: Channel[] = [
   {
     "key": "official",
     "tier": "L0_OFFICIAL",
-    "name": "📢 Mana Vivaha Official | TS-AP Matrimony",
-    "username": "@manavivaha",
-    "link": "https://t.me/manavivaha",
-    "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha",
-    "desc": "Mana Vivaha — TS & AP No.1 Telugu Matrimony 🇮🇳 ₹99 ke Sambandham • Modati 3 FREE Daily Top-3 matches, success stories, mosam jagratha alerts. Website: manavivaha.in • Bot: @telugumatrimony1_bot",
+    "name": "📢 TSAP Matrimony Official | మన వివాహ — TS-AP",
+    "username": "@TSAP_MATRIMONY",
+    "link": "https://t.me/TSAP_MATRIMONY",
+    "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_tsap_matrimony",
+    "desc": "మన వివాహ — TS/AP నం.1 తెలుగు మ్యాట్రిమోని. రోజూ టాప్-3 సంబంధాలు, విజయ గాథలు, మోసం హెచ్చరికలు. 3 requests FREE, ₹99లో 5. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
     "hashtags": [
       "#ManaVivaha",
       "#TSAPMatrimony",
@@ -74,8 +74,9 @@ export const ALL_CHANNELS: Channel[] = [
     "live": false,
     "status": "Wave-1",
     "fallbacks": [
+      "manavivaha",
       "manavivaha_official",
-      "tsap_matrimony"
+      "manavivaha_hub"
     ]
   },
   {
@@ -85,7 +86,7 @@ export const ALL_CHANNELS: Channel[] = [
     "username": "@TSBRIDE",
     "link": "https://t.me/TSBRIDE",
     "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_tsbride",
-    "desc": "Telangana ammayilu — anni kulasthulu. Daily 10+ kotha profiles • Photo verified • ID search. Register FREE: manavivaha.in/register • Bot: @telugumatrimony1_bot",
+    "desc": "👰 TS Brides — తెలంగాణ వధువులు. అన్ని కులాలు, అన్ని జిల్లాలు, రోజూ కొత్త profiles + పొరుత్తం వివరాలు. 3 FREE requests, ₹99లో 5. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
     "hashtags": [
       "#TSBride",
       "#Telangana",
@@ -95,7 +96,8 @@ export const ALL_CHANNELS: Channel[] = [
     "live": true,
     "status": "LIVE ✅ Bot Admin",
     "fallbacks": [
-      "manavivaha_ts_bride"
+      "manavivaha_ts_bride",
+      "tsbrides"
     ]
   },
   {
@@ -105,7 +107,7 @@ export const ALL_CHANNELS: Channel[] = [
     "username": "@TSGROOM1",
     "link": "https://t.me/TSGROOM1",
     "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_tsgroom1",
-    "desc": "Telangana abbayilu — anni kulasthulu. Daily 10+ kotha profiles • Photo verified • ID search. Register FREE: manavivaha.in/register • Bot: @telugumatrimony1_bot",
+    "desc": "🤵 TS Grooms — తెలంగాణ వరులు. అన్ని కులాలు, అన్ని జిల్లాలు, రోజూ కొత్త profiles + పొరుత్తం వివరాలు. 3 FREE requests, ₹99లో 5. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
     "hashtags": [
       "#TSGroom",
       "#Telangana",
@@ -115,17 +117,18 @@ export const ALL_CHANNELS: Channel[] = [
     "live": true,
     "status": "LIVE ✅ Bot Admin",
     "fallbacks": [
-      "manavivaha_ts_groom"
+      "manavivaha_ts_groom",
+      "tsgroom"
     ]
   },
   {
     "key": "ap_bride",
     "tier": "L1_REGION",
     "name": "👰 AP Brides | ఆంధ్రా వధువులు",
-    "username": "@manavivaha_ap_bride",
-    "link": "https://t.me/manavivaha_ap_bride",
-    "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_ap_bride",
-    "desc": "Andhra Pradesh ammayilu — 26 districts cover. Daily kotha profiles • Register FREE: manavivaha.in/register",
+    "username": "@APBRIDE",
+    "link": "https://t.me/APBRIDE",
+    "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_apbride",
+    "desc": "👰 AP Brides — ఆంధ్రా వధువులు. అన్ని కులాలు, అన్ని జిల్లాలు, రోజూ కొత్త profiles + పొరుత్తం వివరాలు. 3 FREE requests, ₹99లో 5. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
     "hashtags": [
       "#APBride",
       "#AndhraPradesh"
@@ -134,7 +137,8 @@ export const ALL_CHANNELS: Channel[] = [
     "live": false,
     "status": "Wave-1",
     "fallbacks": [
-      "ap_bride",
+      "manavivaha_ap_bride",
+      "apbride1",
       "manavivaha_apbride"
     ]
   },
@@ -142,10 +146,10 @@ export const ALL_CHANNELS: Channel[] = [
     "key": "ap_groom",
     "tier": "L1_REGION",
     "name": "🤵 AP Grooms | ఆంధ్రా వరులు",
-    "username": "@manavivaha_ap_groom",
-    "link": "https://t.me/manavivaha_ap_groom",
-    "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_ap_groom",
-    "desc": "Andhra Pradesh abbayilu — 26 districts cover. Daily kotha profiles • Register FREE: manavivaha.in/register",
+    "username": "@APGROOM1",
+    "link": "https://t.me/APGROOM1",
+    "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_apgroom1",
+    "desc": "🤵 AP Grooms — ఆంధ్రా వరులు. అన్ని కులాలు, అన్ని జిల్లాలు, రోజూ కొత్త profiles + పొరుత్తం వివరాలు. 3 FREE requests, ₹99లో 5. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
     "hashtags": [
       "#APGroom",
       "#AndhraPradesh"
@@ -154,18 +158,19 @@ export const ALL_CHANNELS: Channel[] = [
     "live": false,
     "status": "Wave-1",
     "fallbacks": [
-      "ap_groom",
-      "apgroom1"
+      "manavivaha_ap_groom",
+      "apgroom",
+      "manavivaha_apgroom"
     ]
   },
   {
     "key": "nri_global",
     "tier": "L1_REGION",
-    "name": "🌍 NRI & Other States | విదేశాల తెలుగు",
+    "name": "🌍 NRI Telugu Matrimony | విదేశీ సంబంధాలు",
     "username": "@manavivaha_nri",
     "link": "https://t.me/manavivaha_nri",
     "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_nri",
-    "desc": "USA • UK • Canada • Australia • Gulf • Singapore — Telugu NRI matches. Visa/PR/job status mention cheyyandi. manavivaha.in • @telugumatrimony1_bot",
+    "desc": "🌍 NRI Telugu Matrimony — విదేశీ సంబంధాలు. అన్ని కులాలు, అన్ని జిల్లాలు, రోజూ కొత్త profiles + పొరుత్తం వివరాలు. 3 FREE requests, ₹99లో 5. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
     "hashtags": [
       "#NRI",
       "#TeluguAbroad",
@@ -186,7 +191,7 @@ export const ALL_CHANNELS: Channel[] = [
     "username": "@manavivaha_hindu",
     "link": "https://t.me/manavivaha_hindu",
     "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_hindu",
-    "desc": "Hindu Telugu matches — anni kulasthulu, anni districts. Caste-wise channels kooda undi — profile search: caste filter use cheyyandi. manavivaha.in/register",
+    "desc": "🕉️ Hindu Matrimony — హిందూ వివాహాలు. వధువులు + వరులు, అన్ని జిల్లాలు. 3 FREE requests, ₹99లో 5. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
     "hashtags": [
       "#Hindu",
       "#TeluguMatrimony"
@@ -206,7 +211,7 @@ export const ALL_CHANNELS: Channel[] = [
     "username": "@manavivaha_muslim",
     "link": "https://t.me/manavivaha_muslim",
     "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_muslim",
-    "desc": "Muslim Telugu matches — Sheikh, Syed, Pathan, Momin, Qureshi, Labbai... Bride & Groom rendu — hashtag tho filter: #Bride #Groom #Sheikh #Syed manavivaha.in/register • Bot: @telugumatrimony1_bot",
+    "desc": "☪️ Muslim Matrimony — ముస్లిం వివాహాలు. వధువులు + వరులు, అన్ని జిల్లాలు. 3 FREE requests, ₹99లో 5. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
     "hashtags": [
       "#Muslim",
       "#Nikah",
@@ -227,7 +232,7 @@ export const ALL_CHANNELS: Channel[] = [
     "username": "@manavivaha_christian",
     "link": "https://t.me/manavivaha_christian",
     "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_christian",
-    "desc": "Christian Telugu matches — Catholic, CSI, Baptist, Pentecost, Born Again. Bride & Groom rendu — filter: #Catholic #CSI #Baptist manavivaha.in/register",
+    "desc": "✝️ Christian Matrimony — క్రైస్తవ వివాహాలు. వధువులు + వరులు, అన్ని జిల్లాలు. 3 FREE requests, ₹99లో 5. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
     "hashtags": [
       "#Christian",
       "#TeluguChristian",
@@ -244,11 +249,11 @@ export const ALL_CHANNELS: Channel[] = [
   {
     "key": "other_religion",
     "tier": "L2_RELIGION",
-    "name": "🕊️ Other Religions | ఇతర మతాలు",
+    "name": "🕊️ Other Religions | ఇతర మత వివాహాలు",
     "username": "@manavivaha_other_religions",
     "link": "https://t.me/manavivaha_other_religions",
     "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_other_religions",
-    "desc": "Sikh • Jain • Buddhist • Parsi • Jewish • No-caste/No-religion — Telugu matches. Respectful, private, verified. manavivaha.in/register",
+    "desc": "🕊️ Other Religions — ఇతర మత వివాహాలు. వధువులు + వరులు, అన్ని జిల్లాలు. 3 FREE requests, ₹99లో 5. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
     "hashtags": [
       "#OtherReligions",
       "#Respect"
@@ -264,11 +269,11 @@ export const ALL_CHANNELS: Channel[] = [
   {
     "key": "interfaith",
     "tier": "L2_RELIGION",
-    "name": "💞 Inter-Caste & Inter-Faith | ప్రేమ వివాహం",
+    "name": "💞 Inter-Faith & Love | ప్రేమ వివాహాలు",
     "username": "@manavivaha_interfaith",
     "link": "https://t.me/manavivaha_interfaith",
     "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_interfaith",
-    "desc": "Inter-caste • Inter-religion • Love & Register marriage. No-caste filter • Full privacy • Couple corner. manavivaha.in/register • Height secret maintain chestham 🤝",
+    "desc": "💞 Inter-Faith & Love — ప్రేమ వివాహాలు. వధువులు + వరులు, అన్ని జిల్లాలు. 3 FREE requests, ₹99లో 5. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
     "hashtags": [
       "#Intercaste",
       "#LoveMarriage",
@@ -283,289 +288,13 @@ export const ALL_CHANNELS: Channel[] = [
     ]
   },
   {
-    "key": "reddy",
-    "tier": "L3_CASTE",
-    "name": "💍 Reddy Matrimony | TS-AP",
-    "username": "@manavivaha_reddy",
-    "link": "https://t.me/manavivaha_reddy",
-    "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_reddy",
-    "desc": "Reddy brides & grooms — TS + AP anni districts. #Bride #Groom #Nalgonda #Hyderabad",
-    "hashtags": [
-      "#Reddy"
-    ],
-    "wave": 1,
-    "live": false,
-    "status": "Wave-1",
-    "fallbacks": [
-      "tsap_reddy",
-      "manavivaha_reddys"
-    ]
-  },
-  {
-    "key": "kamma",
-    "tier": "L3_CASTE",
-    "name": "💍 Kamma Matrimony | TS-AP",
-    "username": "@manavivaha_kamma",
-    "link": "https://t.me/manavivaha_kamma",
-    "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_kamma",
-    "desc": "Kamma brides & grooms — Guntur, Krishna, Prakasam, Khammam, Hyderabad.",
-    "hashtags": [
-      "#Kamma"
-    ],
-    "wave": 1,
-    "live": false,
-    "status": "Wave-1",
-    "fallbacks": [
-      "tsap_kamma",
-      "manavivaha_kammas"
-    ]
-  },
-  {
-    "key": "kapu",
-    "tier": "L3_CASTE",
-    "name": "💍 Kapu Matrimony | TS-AP",
-    "username": "@manavivaha_kapu",
-    "link": "https://t.me/manavivaha_kapu",
-    "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_kapu",
-    "desc": "Kapu • Telaga • Balija • Ontari — united Kapu community matches.",
-    "hashtags": [
-      "#Kapu",
-      "#Telaga",
-      "#Balija"
-    ],
-    "wave": 1,
-    "live": false,
-    "status": "Wave-1",
-    "fallbacks": [
-      "tsap_kapu",
-      "manavivaha_kapus"
-    ]
-  },
-  {
-    "key": "velama",
-    "tier": "L3_CASTE",
-    "name": "💍 Velama Matrimony | TS-AP",
-    "username": "@manavivaha_velama",
-    "link": "https://t.me/manavivaha_velama",
-    "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_velama",
-    "desc": "Velama + Koppula Velama + Padma Velama matches — TS + AP.",
-    "hashtags": [
-      "#Velama"
-    ],
-    "wave": 1,
-    "live": false,
-    "status": "Wave-1",
-    "fallbacks": [
-      "tsap_velama"
-    ]
-  },
-  {
-    "key": "vysya",
-    "tier": "L3_CASTE",
-    "name": "💍 Arya Vysya / Komati Matrimony",
-    "username": "@manavivaha_vysya",
-    "link": "https://t.me/manavivaha_vysya",
-    "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_vysya",
-    "desc": "Arya Vysya • Komati • Vaishya • Vysya — business families welcome.",
-    "hashtags": [
-      "#AryaVysya",
-      "#Komati",
-      "#Vysya"
-    ],
-    "wave": 2,
-    "live": false,
-    "status": "Wave-2",
-    "fallbacks": [
-      "tsap_vysya",
-      "manavivaha_aryavysya"
-    ]
-  },
-  {
-    "key": "brahmin",
-    "tier": "L3_CASTE",
-    "name": "💍 Brahmin Matrimony | TS-AP",
-    "username": "@manavivaha_brahmin",
-    "link": "https://t.me/manavivaha_brahmin",
-    "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_brahmin",
-    "desc": "Vaidiki • Niyogi • Sistla • Dravida Brahmin — gothram + sutram matching.",
-    "hashtags": [
-      "#Brahmin",
-      "#Gothram"
-    ],
-    "wave": 2,
-    "live": false,
-    "status": "Wave-2",
-    "fallbacks": [
-      "tsap_brahmin",
-      "manavivaha_brahmins"
-    ]
-  },
-  {
-    "key": "raju",
-    "tier": "L3_CASTE",
-    "name": "💍 Raju / Kshatriya Matrimony",
-    "username": "@manavivaha_raju",
-    "link": "https://t.me/manavivaha_raju",
-    "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_raju",
-    "desc": "Raju • Kshatriya • Vanniyar • Rajulu matches.",
-    "hashtags": [
-      "#Raju",
-      "#Kshatriya"
-    ],
-    "wave": 3,
-    "live": false,
-    "status": "Wave-3",
-    "fallbacks": [
-      "tsap_raju",
-      "manavivaha_kshatriya"
-    ]
-  },
-  {
-    "key": "goud",
-    "tier": "L3_CASTE",
-    "name": "💍 Goud Matrimony | TS-AP",
-    "username": "@manavivaha_goud",
-    "link": "https://t.me/manavivaha_goud",
-    "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_goud",
-    "desc": "Goud • Gouda • Ediga • Gamalla • Idiga • Settibalija — today community.",
-    "hashtags": [
-      "#Goud",
-      "#Ediga",
-      "#Gamalla"
-    ],
-    "wave": 2,
-    "live": false,
-    "status": "Wave-2",
-    "fallbacks": [
-      "tsap_goud",
-      "manavivaha_gouda"
-    ]
-  },
-  {
-    "key": "yadav",
-    "tier": "L3_CASTE",
-    "name": "💍 Yadav / Golla Matrimony",
-    "username": "@manavivaha_yadav",
-    "link": "https://t.me/manavivaha_yadav",
-    "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_yadav",
-    "desc": "Yadav • Golla • Kuruma • Yadava — cattle & farming families.",
-    "hashtags": [
-      "#Yadav",
-      "#Golla",
-      "#Kuruma"
-    ],
-    "wave": 2,
-    "live": false,
-    "status": "Wave-2",
-    "fallbacks": [
-      "tsap_yadav",
-      "manavivaha_golla"
-    ]
-  },
-  {
-    "key": "mudiraj",
-    "tier": "L3_CASTE",
-    "name": "💍 Mudiraj Matrimony | TS-AP",
-    "username": "@manavivaha_mudiraj",
-    "link": "https://t.me/manavivaha_mudiraj",
-    "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_mudiraj",
-    "desc": "Mudiraj • Mudiraju • Mutrasi • Tenugollu matches.",
-    "hashtags": [
-      "#Mudiraj",
-      "#Tenugollu"
-    ],
-    "wave": 3,
-    "live": false,
-    "status": "Wave-3",
-    "fallbacks": [
-      "tsap_mudiraj",
-      "manavivaha_mutrasi"
-    ]
-  },
-  {
-    "key": "padmashali",
-    "tier": "L3_CASTE",
-    "name": "💍 Padmashali / Sali Matrimony",
-    "username": "@manavivaha_padmashali",
-    "link": "https://t.me/manavivaha_padmashali",
-    "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_padmashali",
-    "desc": "Padmashali • Padmasali • Sali • Pattusali • Thogata — weaver community.",
-    "hashtags": [
-      "#Padmashali",
-      "#Sali",
-      "#Thogata"
-    ],
-    "wave": 3,
-    "live": false,
-    "status": "Wave-3",
-    "fallbacks": [
-      "tsap_padmashali",
-      "manavivaha_sali"
-    ]
-  },
-  {
-    "key": "munnuru_kapu",
-    "tier": "L3_CASTE",
-    "name": "💍 Munnuru Kapu Matrimony",
-    "username": "@manavivaha_munnuru_kapu",
-    "link": "https://t.me/manavivaha_munnuru_kapu",
-    "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_munnuru_kapu",
-    "desc": "Munnuru Kapu — Telangana community matches.",
-    "hashtags": [
-      "#MunnuruKapu",
-      "#Telangana"
-    ],
-    "wave": 3,
-    "live": false,
-    "status": "Wave-3",
-    "fallbacks": [
-      "manavivaha_munnurukapu"
-    ]
-  },
-  {
-    "key": "balija",
-    "tier": "L3_CASTE",
-    "name": "💍 Balija Matrimony | TS-AP",
-    "username": "@manavivaha_balija",
-    "link": "https://t.me/manavivaha_balija",
-    "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_balija",
-    "desc": "Balija • Gajula Balija • Setti Balija • Surya Balija matches.",
-    "hashtags": [
-      "#Balija"
-    ],
-    "wave": 3,
-    "live": false,
-    "status": "Wave-3",
-    "fallbacks": [
-      "tsap_balija"
-    ]
-  },
-  {
-    "key": "telaga",
-    "tier": "L3_CASTE",
-    "name": "💍 Telaga Matrimony | TS-AP",
-    "username": "@manavivaha_telaga",
-    "link": "https://t.me/manavivaha_telaga",
-    "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_telaga",
-    "desc": "Telaga community matches — balija/telaga united channel.",
-    "hashtags": [
-      "#Telaga"
-    ],
-    "wave": 3,
-    "live": false,
-    "status": "Wave-3",
-    "fallbacks": [
-      "tsap_telaga"
-    ]
-  },
-  {
     "key": "koppula_velama",
     "tier": "L3_CASTE",
-    "name": "💍 Koppula Velama Matrimony",
+    "name": "💍 Koppula Velama Matrimony | కొప్పుల వెలమ వివాహాలు",
     "username": "@manavivaha_koppula_velama",
     "link": "https://t.me/manavivaha_koppula_velama",
     "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_koppula_velama",
-    "desc": "Koppula Velama — North Andhra + Godavari districts.",
+    "desc": "కొప్పుల వెలమ వివాహాలు — వధువులు + వరులు, TS + AP. #KoppulaVelama Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
     "hashtags": [
       "#KoppulaVelama"
     ],
@@ -579,11 +308,11 @@ export const ALL_CHANNELS: Channel[] = [
   {
     "key": "kalinga",
     "tier": "L3_CASTE",
-    "name": "💍 Kalinga Matrimony | TS-AP",
+    "name": "💍 Kalinga Matrimony | కళింగ వివాహాలు",
     "username": "@manavivaha_kalinga",
     "link": "https://t.me/manavivaha_kalinga",
     "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_kalinga",
-    "desc": "Kinthala • Buragana • Pandiri Kalinga — Srikakulam, Vizianagaram focus.",
+    "desc": "కళింగ వివాహాలు — వధువులు + వరులు, TS + AP. #Kalinga Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
     "hashtags": [
       "#Kalinga"
     ],
@@ -597,11 +326,11 @@ export const ALL_CHANNELS: Channel[] = [
   {
     "key": "boya",
     "tier": "L3_CASTE",
-    "name": "💍 Boya / Valmiki Matrimony",
+    "name": "💍 Boya Matrimony | బోయ వివాహాలు",
     "username": "@manavivaha_boya",
     "link": "https://t.me/manavivaha_boya",
     "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_boya",
-    "desc": "Boya • Valmiki • Boya Bedar • Nishadi • Yellapu — Telangana BC matches.",
+    "desc": "బోయ వివాహాలు — వధువులు + వరులు, TS + AP. #Boya #Valmiki Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
     "hashtags": [
       "#Boya",
       "#Valmiki"
@@ -617,11 +346,11 @@ export const ALL_CHANNELS: Channel[] = [
   {
     "key": "kuruba",
     "tier": "L3_CASTE",
-    "name": "💍 Kuruba / Kuruma Matrimony",
+    "name": "💍 Kuruba Matrimony | కురుబ వివాహాలు",
     "username": "@manavivaha_kuruba",
     "link": "https://t.me/manavivaha_kuruba",
     "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_kuruba",
-    "desc": "Kuruba • Kuruma shepherds — Rayalaseema + Telangana.",
+    "desc": "కురుబ వివాహాలు — వధువులు + వరులు, TS + AP. #Kuruba Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
     "hashtags": [
       "#Kuruba"
     ],
@@ -635,11 +364,11 @@ export const ALL_CHANNELS: Channel[] = [
   {
     "key": "uppara",
     "tier": "L3_CASTE",
-    "name": "💍 Uppara / Sagara Matrimony",
+    "name": "💍 Uppara Matrimony | ఉప్పర వివాహాలు",
     "username": "@manavivaha_uppara",
     "link": "https://t.me/manavivaha_uppara",
     "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_uppara",
-    "desc": "Uppara • Sagara • Uppari — traditional stone/lime work families.",
+    "desc": "ఉప్పర వివాహాలు — వధువులు + వరులు, TS + AP. #Uppara #Sagara Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
     "hashtags": [
       "#Uppara",
       "#Sagara"
@@ -655,11 +384,11 @@ export const ALL_CHANNELS: Channel[] = [
   {
     "key": "vaddera",
     "tier": "L3_CASTE",
-    "name": "💍 Vaddera / Odde Matrimony",
+    "name": "💍 Vaddera Matrimony | వడ్డెర వివాహాలు",
     "username": "@manavivaha_vaddera",
     "link": "https://t.me/manavivaha_vaddera",
     "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_vaddera",
-    "desc": "Vaddera • Vaddelu • Odde • Oddilu • Vadde — building work community.",
+    "desc": "వడ్డెర వివాహాలు — వధువులు + వరులు, TS + AP. #Vaddera #Odde Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
     "hashtags": [
       "#Vaddera",
       "#Odde"
@@ -675,11 +404,11 @@ export const ALL_CHANNELS: Channel[] = [
   {
     "key": "rajaka",
     "tier": "L3_CASTE",
-    "name": "💍 Rajaka / Chakali Matrimony",
+    "name": "💍 Rajaka Matrimony | రజక వివాహాలు",
     "username": "@manavivaha_rajaka",
     "link": "https://t.me/manavivaha_rajaka",
     "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_rajaka",
-    "desc": "Rajaka • Chakali • Vannar • Agnikulakshatriya matches.",
+    "desc": "రజక వివాహాలు — వధువులు + వరులు, TS + AP. #Rajaka #Chakali Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
     "hashtags": [
       "#Rajaka",
       "#Chakali"
@@ -695,11 +424,11 @@ export const ALL_CHANNELS: Channel[] = [
   {
     "key": "mangali",
     "tier": "L3_CASTE",
-    "name": "💍 Mangali / Nayi-Brahmin Matrimony",
+    "name": "💍 Mangali Matrimony | మంగలి వివాహాలు",
     "username": "@manavivaha_mangali",
     "link": "https://t.me/manavivaha_mangali",
     "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_mangali",
-    "desc": "Mangali • Mangala • Nayi-Brahmin • Bhajanthri matches.",
+    "desc": "మంగలి వివాహాలు — వధువులు + వరులు, TS + AP. #Mangali Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
     "hashtags": [
       "#Mangali"
     ],
@@ -712,34 +441,13 @@ export const ALL_CHANNELS: Channel[] = [
     ]
   },
   {
-    "key": "viswakarma",
-    "tier": "L3_CASTE",
-    "name": "💍 Viswabrahmin / Viswakarma Matrimony",
-    "username": "@manavivaha_viswakarma",
-    "link": "https://t.me/manavivaha_viswakarma",
-    "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_viswakarma",
-    "desc": "Viswakarma • Kamsali • Kammari • Kanchari • Vadla • Ausula — 5 sub-castes.",
-    "hashtags": [
-      "#Viswakarma",
-      "#Viswabrahmin",
-      "#Kamsali"
-    ],
-    "wave": 3,
-    "live": false,
-    "status": "Wave-3",
-    "fallbacks": [
-      "manavivaha_viswabrahmin",
-      "tsap_viswakarma"
-    ]
-  },
-  {
     "key": "kummara",
     "tier": "L3_CASTE",
-    "name": "💍 Kummara / Kulala Matrimony",
+    "name": "💍 Kummara Matrimony | కుమ్మరి వివాహాలు",
     "username": "@manavivaha_kummara",
     "link": "https://t.me/manavivaha_kummara",
     "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_kummara",
-    "desc": "Kummara • Kulala • Salivahana — pottery community matches.",
+    "desc": "కుమ్మరి వివాహాలు — వధువులు + వరులు, TS + AP. #Kummara #Kulala Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
     "hashtags": [
       "#Kummara",
       "#Kulala"
@@ -755,11 +463,11 @@ export const ALL_CHANNELS: Channel[] = [
   {
     "key": "gandla",
     "tier": "L3_CASTE",
-    "name": "💍 Gandla / Telikula Matrimony",
+    "name": "💍 Gandla Matrimony | గండ్ల వివాహాలు",
     "username": "@manavivaha_gandla",
     "link": "https://t.me/manavivaha_gandla",
     "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_gandla",
-    "desc": "Gandla • Telikula • Devathilakula — oil presser community.",
+    "desc": "గండ్ల వివాహాలు — వధువులు + వరులు, TS + AP. #Gandla #Telikula Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
     "hashtags": [
       "#Gandla",
       "#Telikula"
@@ -775,11 +483,11 @@ export const ALL_CHANNELS: Channel[] = [
   {
     "key": "devanga",
     "tier": "L3_CASTE",
-    "name": "💍 Devanga Matrimony | TS-AP",
+    "name": "💍 Devanga Matrimony | దేవాంగ వివాహాలు",
     "username": "@manavivaha_devanga",
     "link": "https://t.me/manavivaha_devanga",
     "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_devanga",
-    "desc": "Devanga • Devanga Chettiar — weaver community matches.",
+    "desc": "దేవాంగ వివాహాలు — వధువులు + వరులు, TS + AP. #Devanga Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
     "hashtags": [
       "#Devanga"
     ],
@@ -793,11 +501,11 @@ export const ALL_CHANNELS: Channel[] = [
   {
     "key": "srisayana",
     "tier": "L3_CASTE",
-    "name": "💍 Srisayana / Segidi Matrimony",
+    "name": "💍 Srisayana Matrimony | శ్రీసాయన వివాహాలు",
     "username": "@manavivaha_srisayana",
     "link": "https://t.me/manavivaha_srisayana",
     "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_srisayana",
-    "desc": "Srisayana • Segidi — North Andhra matches.",
+    "desc": "శ్రీసాయన వివాహాలు — వధువులు + వరులు, TS + AP. #Srisayana #Segidi Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
     "hashtags": [
       "#Srisayana",
       "#Segidi"
@@ -813,11 +521,11 @@ export const ALL_CHANNELS: Channel[] = [
   {
     "key": "jangam",
     "tier": "L3_CASTE",
-    "name": "💍 Jangam Matrimony | TS-AP",
+    "name": "💍 Jangam Matrimony | జంగం వివాహాలు",
     "username": "@manavivaha_jangam",
     "link": "https://t.me/manavivaha_jangam",
     "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_jangam",
-    "desc": "Jangam • Jangalu • Beda Jangam community matches.",
+    "desc": "జంగం వివాహాలు — వధువులు + వరులు, TS + AP. #Jangam Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
     "hashtags": [
       "#Jangam"
     ],
@@ -831,11 +539,11 @@ export const ALL_CHANNELS: Channel[] = [
   {
     "key": "jogi",
     "tier": "L3_CASTE",
-    "name": "💍 Jogi Matrimony | TS-AP",
+    "name": "💍 Jogi Matrimony | జోగి వివాహాలు",
     "username": "@manavivaha_jogi",
     "link": "https://t.me/manavivaha_jogi",
     "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_jogi",
-    "desc": "Jogi • Jogula community matches.",
+    "desc": "జోగి వివాహాలు — వధువులు + వరులు, TS + AP. #Jogi Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
     "hashtags": [
       "#Jogi"
     ],
@@ -849,11 +557,11 @@ export const ALL_CHANNELS: Channel[] = [
   {
     "key": "dasari",
     "tier": "L3_CASTE",
-    "name": "💍 Dasari Matrimony | TS-AP",
+    "name": "💍 Dasari Matrimony | దాసరి వివాహాలు",
     "username": "@manavivaha_dasari",
     "link": "https://t.me/manavivaha_dasari",
     "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_dasari",
-    "desc": "Dasari • Dasari community matches — respectful space.",
+    "desc": "దాసరి వివాహాలు — వధువులు + వరులు, TS + AP. #Dasari Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
     "hashtags": [
       "#Dasari"
     ],
@@ -867,11 +575,11 @@ export const ALL_CHANNELS: Channel[] = [
   {
     "key": "bhatraju",
     "tier": "L3_CASTE",
-    "name": "💍 Bhatraju Matrimony | TS-AP",
+    "name": "💍 Bhatraju Matrimony | భట్రాజు వివాహాలు",
     "username": "@manavivaha_bhatraju",
     "link": "https://t.me/manavivaha_bhatraju",
     "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_bhatraju",
-    "desc": "Bhatraju • Bhatrajulu community matches.",
+    "desc": "భట్రాజు వివాహాలు — వధువులు + వరులు, TS + AP. #Bhatraju Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
     "hashtags": [
       "#Bhatraju"
     ],
@@ -885,11 +593,11 @@ export const ALL_CHANNELS: Channel[] = [
   {
     "key": "gavara",
     "tier": "L3_CASTE",
-    "name": "💍 Gavara Matrimony | TS-AP",
+    "name": "💍 Gavara Matrimony | గవర వివాహాలు",
     "username": "@manavivaha_gavara",
     "link": "https://t.me/manavivaha_gavara",
     "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_gavara",
-    "desc": "Gavara community matches — North Andhra + Godavari.",
+    "desc": "గవర వివాహాలు — వధువులు + వరులు, TS + AP. #Gavara Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
     "hashtags": [
       "#Gavara"
     ],
@@ -903,11 +611,11 @@ export const ALL_CHANNELS: Channel[] = [
   {
     "key": "bestha",
     "tier": "L3_CASTE",
-    "name": "💍 Bestha / Gangaputra Matrimony",
+    "name": "💍 Bestha Matrimony | బెస్త వివాహాలు",
     "username": "@manavivaha_bestha",
     "link": "https://t.me/manavivaha_bestha",
     "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_bestha",
-    "desc": "Bestha • Gangaputra • Gangavar — fishing community matches.",
+    "desc": "బెస్త వివాహాలు — వధువులు + వరులు, TS + AP. #Bestha #Gangaputra Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
     "hashtags": [
       "#Bestha",
       "#Gangaputra"
@@ -923,11 +631,11 @@ export const ALL_CHANNELS: Channel[] = [
   {
     "key": "jalari",
     "tier": "L3_CASTE",
-    "name": "💍 Jalari Matrimony | TS-AP",
+    "name": "💍 Jalari Matrimony | జలరి వివాహాలు",
     "username": "@manavivaha_jalari",
     "link": "https://t.me/manavivaha_jalari",
     "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_jalari",
-    "desc": "Jalari fishermen community matches — coastal AP focus.",
+    "desc": "జలరి వివాహాలు — వధువులు + వరులు, TS + AP. #Jalari Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
     "hashtags": [
       "#Jalari"
     ],
@@ -941,11 +649,11 @@ export const ALL_CHANNELS: Channel[] = [
   {
     "key": "vadabalija",
     "tier": "L3_CASTE",
-    "name": "💍 Vadabalija Matrimony",
+    "name": "💍 Vadabalija Matrimony | వడబలిజ వివాహాలు",
     "username": "@manavivaha_vadabalija",
     "link": "https://t.me/manavivaha_vadabalija",
     "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_vadabalija",
-    "desc": "Vadabalija community matches — coastal districts.",
+    "desc": "వడబలిజ వివాహాలు — వధువులు + వరులు, TS + AP. #Vadabalija Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
     "hashtags": [
       "#Vadabalija"
     ],
@@ -957,53 +665,13 @@ export const ALL_CHANNELS: Channel[] = [
     ]
   },
   {
-    "key": "mala",
-    "tier": "L3_CASTE",
-    "name": "💍 Mala Matrimony | TS-AP",
-    "username": "@manavivaha_mala",
-    "link": "https://t.me/manavivaha_mala",
-    "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_mala",
-    "desc": "Mala • Mala Ayawaru • Mala Dasari — SC community, full dignity + privacy.",
-    "hashtags": [
-      "#Mala",
-      "#SC"
-    ],
-    "wave": 2,
-    "live": false,
-    "status": "Wave-2",
-    "fallbacks": [
-      "tsap_mala",
-      "manavivaha_sc_mala"
-    ]
-  },
-  {
-    "key": "madiga",
-    "tier": "L3_CASTE",
-    "name": "💍 Madiga Matrimony | TS-AP",
-    "username": "@manavivaha_madiga",
-    "link": "https://t.me/manavivaha_madiga",
-    "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_madiga",
-    "desc": "Madiga • Madiga Dasu • Mashteen — SC community, full dignity + privacy.",
-    "hashtags": [
-      "#Madiga",
-      "#SC"
-    ],
-    "wave": 2,
-    "live": false,
-    "status": "Wave-2",
-    "fallbacks": [
-      "tsap_madiga",
-      "manavivaha_sc_madiga"
-    ]
-  },
-  {
     "key": "adi_andhra",
     "tier": "L3_CASTE",
-    "name": "💍 Adi Andhra Matrimony",
+    "name": "💍 Adi Andhra Matrimony | ఆది ఆంధ్ర వివాహాలు",
     "username": "@manavivaha_adi_andhra",
     "link": "https://t.me/manavivaha_adi_andhra",
     "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_adi_andhra",
-    "desc": "Adi Andhra • Adi Dravida • Arundhatiya — SC community matches.",
+    "desc": "ఆది ఆంధ్ర వివాహాలు — వధువులు + వరులు, TS + AP. #AdiAndhra #SC Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
     "hashtags": [
       "#AdiAndhra",
       "#SC"
@@ -1019,11 +687,11 @@ export const ALL_CHANNELS: Channel[] = [
   {
     "key": "sc_others",
     "tier": "L3_CASTE",
-    "name": "💍 SC Other Communities Matrimony",
+    "name": "💍 Sc Others Matrimony | SC ఇతరులు వివాహాలు",
     "username": "@manavivaha_sc_others",
     "link": "https://t.me/manavivaha_sc_others",
     "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_sc_others",
-    "desc": "Relli • Mala Dasu • Arwa Mala • Samban • Dandasi — anni SC sub-castes okkate chota.",
+    "desc": "SC ఇతరులు వివాహాలు — వధువులు + వరులు, TS + AP. #SC #TeluguMatrimony Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
     "hashtags": [
       "#SC",
       "#TeluguMatrimony"
@@ -1036,34 +704,13 @@ export const ALL_CHANNELS: Channel[] = [
     ]
   },
   {
-    "key": "lambada",
-    "tier": "L3_CASTE",
-    "name": "💍 Lambada / Banjara Matrimony",
-    "username": "@manavivaha_lambada",
-    "link": "https://t.me/manavivaha_lambada",
-    "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_lambada",
-    "desc": "Lambada • Banjara • Lambani — ST community, traditional + modern matches.",
-    "hashtags": [
-      "#Lambada",
-      "#Banjara",
-      "#ST"
-    ],
-    "wave": 2,
-    "live": false,
-    "status": "Wave-2",
-    "fallbacks": [
-      "manavivaha_banjara",
-      "tsap_lambada"
-    ]
-  },
-  {
     "key": "koya",
     "tier": "L3_CASTE",
-    "name": "💍 Koya Matrimony | Agency Areas",
+    "name": "💍 Koya Matrimony | కోయ వివాహాలు",
     "username": "@manavivaha_koya",
     "link": "https://t.me/manavivaha_koya",
     "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_koya",
-    "desc": "Koya • Koitur • Bhine Koya — Godavari agency area ST matches.",
+    "desc": "కోయ వివాహాలు — వధువులు + వరులు, TS + AP. #Koya #ST Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
     "hashtags": [
       "#Koya",
       "#ST"
@@ -1078,11 +725,11 @@ export const ALL_CHANNELS: Channel[] = [
   {
     "key": "gond",
     "tier": "L3_CASTE",
-    "name": "💍 Gond / Naikpod Matrimony",
+    "name": "💍 Gond Matrimony | గోండ్ వివాహాలు",
     "username": "@manavivaha_gond",
     "link": "https://t.me/manavivaha_gond",
     "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_gond",
-    "desc": "Gond • Rajgond • Naikpod • Koitur — Adilabad + agency ST matches.",
+    "desc": "గోండ్ వివాహాలు — వధువులు + వరులు, TS + AP. #Gond #ST Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
     "hashtags": [
       "#Gond",
       "#ST"
@@ -1098,11 +745,11 @@ export const ALL_CHANNELS: Channel[] = [
   {
     "key": "st_others",
     "tier": "L3_CASTE",
-    "name": "💍 ST Other Communities Matrimony",
+    "name": "💍 St Others Matrimony | ST ఇతరులు వివాహాలు",
     "username": "@manavivaha_st_others",
     "link": "https://t.me/manavivaha_st_others",
     "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_st_others",
-    "desc": "Chenchu • Andh • Bagata • Konda Reddi • Savara — anni ST sub-castes okkate chota.",
+    "desc": "ST ఇతరులు వివాహాలు — వధువులు + వరులు, TS + AP. #ST #Adivasi #TeluguMatrimony Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
     "hashtags": [
       "#ST",
       "#Adivasi",
@@ -1118,11 +765,11 @@ export const ALL_CHANNELS: Channel[] = [
   {
     "key": "second_marriage",
     "tier": "L4_SPECIAL",
-    "name": "💔 2nd Marriage | Divorcee & Widow",
+    "name": "💍 Second Marriage | రెండో పెళ్లి",
     "username": "@manavivaha_second",
     "link": "https://t.me/manavivaha_second",
     "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_second",
-    "desc": "Divorcee • Widow • Widower — 2nd innings ki respect tho platform. 100% privacy • Judge cheyyaru • Serious matches matrame. manavivaha.in/register",
+    "desc": "💍 Second Marriage — రెండో పెళ్లి. ఈ కేటగిరీ ప్రత్యేక profiles matrame — వేరే ఎక్కడా దొరకవు. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
     "hashtags": [
       "#SecondMarriage",
       "#Remarriage",
@@ -1139,11 +786,11 @@ export const ALL_CHANNELS: Channel[] = [
   {
     "key": "differently_abled",
     "tier": "L4_SPECIAL",
-    "name": "♿ Differently Abled Matrimony",
+    "name": "♿ Differently-Abled | ప్రత్యేక సామర్థ్యం",
     "username": "@manavivaha_able",
     "link": "https://t.me/manavivaha_able",
     "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_able",
-    "desc": "Differently abled brides & grooms — special care, special respect. Family support + verified profiles only. manavivaha.in/register",
+    "desc": "♿ Differently-Abled — ప్రత్యేక సామర్థ్యం. ఈ కేటగిరీ ప్రత్యేక profiles matrame — వేరే ఎక్కడా దొరకవు. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
     "hashtags": [
       "#DifferentlyAbled",
       "#SpecialCare"
@@ -1159,11 +806,11 @@ export const ALL_CHANNELS: Channel[] = [
   {
     "key": "govt_jobs",
     "tier": "L4_SPECIAL",
-    "name": "👮 Govt Job Matches | ప్రభుత్వ ఉద్యోగం",
+    "name": "🏛️ Govt Jobs Matrimony | ప్రభుత్వ ఉద్యోగులు",
     "username": "@manavivaha_govt",
     "link": "https://t.me/manavivaha_govt",
     "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_govt",
-    "desc": "Teacher • Police • Bank • Railway • Group-1/2 • SI • Constable • Nurse — govt job profiles.",
+    "desc": "🏛️ Govt Jobs Matrimony — ప్రభుత్వ ఉద్యోగులు. ఈ కేటగిరీ ప్రత్యేక profiles matrame — వేరే ఎక్కడా దొరకవు. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
     "hashtags": [
       "#GovtJob",
       "#SoftwarekaduGovt"
@@ -1179,11 +826,11 @@ export const ALL_CHANNELS: Channel[] = [
   {
     "key": "software_it",
     "tier": "L4_SPECIAL",
-    "name": "💻 Software / IT Matches",
+    "name": "💻 Software Matrimony | సాఫ్ట్‌వేర్ ఉద్యోగులు",
     "username": "@manavivaha_software",
     "link": "https://t.me/manavivaha_software",
     "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_software",
-    "desc": "Software • IT • MNC • Product companies — HYD, BLR, PUNE, USA.",
+    "desc": "💻 Software Matrimony — సాఫ్ట్‌వేర్ ఉద్యోగులు. ఈ కేటగిరీ ప్రత్యేక profiles matrame — వేరే ఎక్కడా దొరకవు. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
     "hashtags": [
       "#Software",
       "#IT",
@@ -1200,11 +847,11 @@ export const ALL_CHANNELS: Channel[] = [
   {
     "key": "doctors",
     "tier": "L4_SPECIAL",
-    "name": "🩺 Doctors & Healthcare Matches",
+    "name": "🩺 Doctors Matrimony | వైద్యులు",
     "username": "@manavivaha_doctors",
     "link": "https://t.me/manavivaha_doctors",
     "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_doctors",
-    "desc": "MBBS • MD • MS • BDS • Nursing • Pharma — medical professional matches.",
+    "desc": "🩺 Doctors Matrimony — వైద్యులు. ఈ కేటగిరీ ప్రత్యేక profiles matrame — వేరే ఎక్కడా దొరకవు. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
     "hashtags": [
       "#Doctors",
       "#Healthcare"
@@ -1220,11 +867,11 @@ export const ALL_CHANNELS: Channel[] = [
   {
     "key": "teachers",
     "tier": "L4_SPECIAL",
-    "name": "🎓 Teachers & Lecturers Matches",
+    "name": "👩‍🏫 Teachers Matrimony | ఉపాధ్యాయులు",
     "username": "@manavivaha_teachers",
     "link": "https://t.me/manavivaha_teachers",
     "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_teachers",
-    "desc": "School Teacher • Lecturer • Professor • Anganwadi — education field matches.",
+    "desc": "👩‍🏫 Teachers Matrimony — ఉపాధ్యాయులు. ఈ కేటగిరీ ప్రత్యేక profiles matrame — వేరే ఎక్కడా దొరకవు. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
     "hashtags": [
       "#Teacher",
       "#Lecturer"
@@ -1240,11 +887,11 @@ export const ALL_CHANNELS: Channel[] = [
   {
     "key": "above_35",
     "tier": "L4_SPECIAL",
-    "name": "🕰️ 35+ Matches | Late Marriage",
+    "name": "🎂 35+ Matrimony | 35 ఏళ్ల పైన",
     "username": "@manavivaha_35plus",
     "link": "https://t.me/manavivaha_35plus",
     "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_35plus",
-    "desc": "35+ brides & grooms — late marriage ki kooda best sambandham untundi. No age shaming • Serious profiles matrame. manavivaha.in/register",
+    "desc": "🎂 35+ Matrimony — 35 ఏళ్ల పైన. ఈ కేటగిరీ ప్రత్యేక profiles matrame — వేరే ఎక్కడా దొరకవు. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
     "hashtags": [
       "#35Plus",
       "#LateMarriage"
@@ -1260,11 +907,11 @@ export const ALL_CHANNELS: Channel[] = [
   {
     "key": "love_register",
     "tier": "L4_SPECIAL",
-    "name": "💞 Love & Register Marriage",
+    "name": "❤️ Love & Register Marriage | ప్రేమ + రిజిస్టర్ పెళ్లి",
     "username": "@manavivaha_love",
     "link": "https://t.me/manavivaha_love",
     "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_love",
-    "desc": "Love marriage • Register marriage • Parents oppuka kosam help.",
+    "desc": "❤️ Love & Register Marriage — ప్రేమ + రిజిస్టర్ పెళ్లి. ఈ కేటగిరీ ప్రత్యేక profiles matrame — వేరే ఎక్కడా దొరకవు. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
     "hashtags": [
       "#LoveMarriage",
       "#RegisterMarriage"
@@ -1279,11 +926,11 @@ export const ALL_CHANNELS: Channel[] = [
   {
     "key": "success_stories",
     "tier": "L4_SPECIAL",
-    "name": "🎉 Success Stories & Reviews",
+    "name": "🏆 Success Stories | విజయ గాథలు",
     "username": "@manavivaha_success",
     "link": "https://t.me/manavivaha_success",
     "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_success",
-    "desc": "Mana Vivaha tho pelli ayyina couples stories + photos (permission tho). Trust = Growth. Me story pampandi: manavivaha.in/success",
+    "desc": "🏆 Success Stories — విజయ గాథలు. ఈ కేటగిరీ ప్రత్యేక profiles matrame — వేరే ఎక్కడా దొరకవు. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
     "hashtags": [
       "#SuccessStory",
       "#ManaVivaha"
@@ -1298,11 +945,11 @@ export const ALL_CHANNELS: Channel[] = [
   {
     "key": "fraud_alerts",
     "tier": "L4_SPECIAL",
-    "name": "⚠️ Fraud Alert & Safety",
+    "name": "🚨 Fraud Alerts | మోసం జాగ్రత్త",
     "username": "@manavivaha_alerts",
     "link": "https://t.me/manavivaha_alerts",
     "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_alerts",
-    "desc": "Mosam jagratha! Fake profiles, advance money scams, photo theft alerts. Report: manavivaha.in/report • 24h lo action. Family safety first.",
+    "desc": "🚨 Fraud Alerts — మోసం జాగ్రత్త. ఈ కేటగిరీ ప్రత్యేక profiles matrame — వేరే ఎక్కడా దొరకవు. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
     "hashtags": [
       "#FraudAlert",
       "#StaySafe"
@@ -1317,11 +964,11 @@ export const ALL_CHANNELS: Channel[] = [
   {
     "key": "bureau_network",
     "tier": "L4_SPECIAL",
-    "name": "🤝 Bureau & Broker Network (B2B)",
+    "name": "🤝 Bureau / Broker Network | బ్రోకర్ల నెట్‌వర్క్",
     "username": "@manavivaha_bureau",
     "link": "https://t.me/manavivaha_bureau",
     "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_bureau",
-    "desc": "Marriage bureaus • Brokers • Influencers — referral ₹50/profile. Bulk upload • Dashboard • Leaderboard. manavivaha.in/bureau",
+    "desc": "🤝 Bureau / Broker Network — బ్రోకర్ల నెట్‌వర్క్. ఈ కేటగిరీ ప్రత్యేక profiles matrame — వేరే ఎక్కడా దొరకవు. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
     "hashtags": [
       "#Bureau",
       "#Referral50"
@@ -1333,25 +980,839 @@ export const ALL_CHANNELS: Channel[] = [
       "tsap_bureau",
       "manavivaha_brokers"
     ]
+  },
+  {
+    "key": "c_reddy_bride",
+    "tier": "L3_CASTE",
+    "name": "👰 Reddy Brides | రెడ్డి వధువులు",
+    "username": "@manavivaha_reddy_bride",
+    "link": "https://t.me/manavivaha_reddy_bride",
+    "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_reddy_bride",
+    "desc": "రెడ్డి వధువులు — TS + AP అన్ని జిల్లాలు. నిజమైన profiles, ఫోటో గోప్యం, 3 requests FREE, ₹99లో 5. #Reddy #Bride #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
+    "hashtags": [
+      "#Reddy",
+      "#Bride",
+      "#TS",
+      "#AP"
+    ],
+    "wave": 1,
+    "live": false,
+    "status": "Wave-1",
+    "fallbacks": [
+      "tsap_reddy_bride",
+      "mv_reddy_brd",
+      "manavivaha_reddy_brd"
+    ]
+  },
+  {
+    "key": "c_reddy_groom",
+    "tier": "L3_CASTE",
+    "name": "🤵 Reddy Grooms | రెడ్డి వరులు",
+    "username": "@manavivaha_reddy_groom",
+    "link": "https://t.me/manavivaha_reddy_groom",
+    "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_reddy_groom",
+    "desc": "రెడ్డి వరులు — TS + AP అన్ని జిల్లాలు. ఉద్యోగం/చదువు/జాతకం వివరాలతో profiles. 3 requests FREE. #Reddy #Groom #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
+    "hashtags": [
+      "#Reddy",
+      "#Groom",
+      "#TS",
+      "#AP"
+    ],
+    "wave": 1,
+    "live": false,
+    "status": "Wave-1",
+    "fallbacks": [
+      "tsap_reddy_groom",
+      "mv_reddy_grm",
+      "manavivaha_reddy_grm"
+    ]
+  },
+  {
+    "key": "c_kamma_bride",
+    "tier": "L3_CASTE",
+    "name": "👰 Kamma Brides | కమ్మ వధువులు",
+    "username": "@manavivaha_kamma_bride",
+    "link": "https://t.me/manavivaha_kamma_bride",
+    "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_kamma_bride",
+    "desc": "కమ్మ వధువులు — TS + AP అన్ని జిల్లాలు. నిజమైన profiles, ఫోటో గోప్యం, 3 requests FREE, ₹99లో 5. #Kamma #Bride #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
+    "hashtags": [
+      "#Kamma",
+      "#Bride",
+      "#TS",
+      "#AP"
+    ],
+    "wave": 1,
+    "live": false,
+    "status": "Wave-1",
+    "fallbacks": [
+      "tsap_kamma_bride",
+      "mv_kamma_brd",
+      "manavivaha_kamma_brd"
+    ]
+  },
+  {
+    "key": "c_kamma_groom",
+    "tier": "L3_CASTE",
+    "name": "🤵 Kamma Grooms | కమ్మ వరులు",
+    "username": "@manavivaha_kamma_groom",
+    "link": "https://t.me/manavivaha_kamma_groom",
+    "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_kamma_groom",
+    "desc": "కమ్మ వరులు — TS + AP అన్ని జిల్లాలు. ఉద్యోగం/చదువు/జాతకం వివరాలతో profiles. 3 requests FREE. #Kamma #Groom #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
+    "hashtags": [
+      "#Kamma",
+      "#Groom",
+      "#TS",
+      "#AP"
+    ],
+    "wave": 1,
+    "live": false,
+    "status": "Wave-1",
+    "fallbacks": [
+      "tsap_kamma_groom",
+      "mv_kamma_grm",
+      "manavivaha_kamma_grm"
+    ]
+  },
+  {
+    "key": "c_kapu_bride",
+    "tier": "L3_CASTE",
+    "name": "👰 Kapu Brides | కాపు వధువులు",
+    "username": "@manavivaha_kapu_bride",
+    "link": "https://t.me/manavivaha_kapu_bride",
+    "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_kapu_bride",
+    "desc": "కాపు వధువులు — TS + AP అన్ని జిల్లాలు. నిజమైన profiles, ఫోటో గోప్యం, 3 requests FREE, ₹99లో 5. #Kapu #Bride #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
+    "hashtags": [
+      "#Kapu",
+      "#Bride",
+      "#TS",
+      "#AP"
+    ],
+    "wave": 1,
+    "live": false,
+    "status": "Wave-1",
+    "fallbacks": [
+      "tsap_kapu_bride",
+      "mv_kapu_brd",
+      "manavivaha_kapu_brd"
+    ]
+  },
+  {
+    "key": "c_kapu_groom",
+    "tier": "L3_CASTE",
+    "name": "🤵 Kapu Grooms | కాపు వరులు",
+    "username": "@manavivaha_kapu_groom",
+    "link": "https://t.me/manavivaha_kapu_groom",
+    "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_kapu_groom",
+    "desc": "కాపు వరులు — TS + AP అన్ని జిల్లాలు. ఉద్యోగం/చదువు/జాతకం వివరాలతో profiles. 3 requests FREE. #Kapu #Groom #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
+    "hashtags": [
+      "#Kapu",
+      "#Groom",
+      "#TS",
+      "#AP"
+    ],
+    "wave": 1,
+    "live": false,
+    "status": "Wave-1",
+    "fallbacks": [
+      "tsap_kapu_groom",
+      "mv_kapu_grm",
+      "manavivaha_kapu_grm"
+    ]
+  },
+  {
+    "key": "c_velama_bride",
+    "tier": "L3_CASTE",
+    "name": "👰 Velama Brides | వెలమ వధువులు",
+    "username": "@manavivaha_velama_bride",
+    "link": "https://t.me/manavivaha_velama_bride",
+    "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_velama_bride",
+    "desc": "వెలమ వధువులు — TS + AP అన్ని జిల్లాలు. నిజమైన profiles, ఫోటో గోప్యం, 3 requests FREE, ₹99లో 5. #Velama #Bride #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
+    "hashtags": [
+      "#Velama",
+      "#Bride",
+      "#TS",
+      "#AP"
+    ],
+    "wave": 1,
+    "live": false,
+    "status": "Wave-1",
+    "fallbacks": [
+      "tsap_velama_bride",
+      "mv_velama_brd",
+      "manavivaha_velama_brd"
+    ]
+  },
+  {
+    "key": "c_velama_groom",
+    "tier": "L3_CASTE",
+    "name": "🤵 Velama Grooms | వెలమ వరులు",
+    "username": "@manavivaha_velama_groom",
+    "link": "https://t.me/manavivaha_velama_groom",
+    "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_velama_groom",
+    "desc": "వెలమ వరులు — TS + AP అన్ని జిల్లాలు. ఉద్యోగం/చదువు/జాతకం వివరాలతో profiles. 3 requests FREE. #Velama #Groom #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
+    "hashtags": [
+      "#Velama",
+      "#Groom",
+      "#TS",
+      "#AP"
+    ],
+    "wave": 1,
+    "live": false,
+    "status": "Wave-1",
+    "fallbacks": [
+      "tsap_velama_groom",
+      "mv_velama_grm",
+      "manavivaha_velama_grm"
+    ]
+  },
+  {
+    "key": "c_vysya_bride",
+    "tier": "L3_CASTE",
+    "name": "👰 Vysya Brides | వైశ్య వధువులు",
+    "username": "@manavivaha_vysya_bride",
+    "link": "https://t.me/manavivaha_vysya_bride",
+    "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_vysya_bride",
+    "desc": "వైశ్య వధువులు — TS + AP అన్ని జిల్లాలు. నిజమైన profiles, ఫోటో గోప్యం, 3 requests FREE, ₹99లో 5. #Vysya #Bride #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
+    "hashtags": [
+      "#Vysya",
+      "#Bride",
+      "#TS",
+      "#AP"
+    ],
+    "wave": 1,
+    "live": false,
+    "status": "Wave-1",
+    "fallbacks": [
+      "tsap_vysya_bride",
+      "mv_vysya_brd",
+      "manavivaha_vysya_brd"
+    ]
+  },
+  {
+    "key": "c_vysya_groom",
+    "tier": "L3_CASTE",
+    "name": "🤵 Vysya Grooms | వైశ్య వరులు",
+    "username": "@manavivaha_vysya_groom",
+    "link": "https://t.me/manavivaha_vysya_groom",
+    "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_vysya_groom",
+    "desc": "వైశ్య వరులు — TS + AP అన్ని జిల్లాలు. ఉద్యోగం/చదువు/జాతకం వివరాలతో profiles. 3 requests FREE. #Vysya #Groom #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
+    "hashtags": [
+      "#Vysya",
+      "#Groom",
+      "#TS",
+      "#AP"
+    ],
+    "wave": 1,
+    "live": false,
+    "status": "Wave-1",
+    "fallbacks": [
+      "tsap_vysya_groom",
+      "mv_vysya_grm",
+      "manavivaha_vysya_grm"
+    ]
+  },
+  {
+    "key": "c_brahmin_bride",
+    "tier": "L3_CASTE",
+    "name": "👰 Brahmin Brides | బ్రాహ్మణ వధువులు",
+    "username": "@manavivaha_brahmin_bride",
+    "link": "https://t.me/manavivaha_brahmin_bride",
+    "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_brahmin_bride",
+    "desc": "బ్రాహ్మణ వధువులు — TS + AP అన్ని జిల్లాలు. నిజమైన profiles, ఫోటో గోప్యం, 3 requests FREE, ₹99లో 5. #Brahmin #Bride #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
+    "hashtags": [
+      "#Brahmin",
+      "#Bride",
+      "#TS",
+      "#AP"
+    ],
+    "wave": 1,
+    "live": false,
+    "status": "Wave-1",
+    "fallbacks": [
+      "tsap_brahmin_bride",
+      "mv_brahmin_brd",
+      "manavivaha_brahmin_brd"
+    ]
+  },
+  {
+    "key": "c_brahmin_groom",
+    "tier": "L3_CASTE",
+    "name": "🤵 Brahmin Grooms | బ్రాహ్మణ వరులు",
+    "username": "@manavivaha_brahmin_groom",
+    "link": "https://t.me/manavivaha_brahmin_groom",
+    "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_brahmin_groom",
+    "desc": "బ్రాహ్మణ వరులు — TS + AP అన్ని జిల్లాలు. ఉద్యోగం/చదువు/జాతకం వివరాలతో profiles. 3 requests FREE. #Brahmin #Groom #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
+    "hashtags": [
+      "#Brahmin",
+      "#Groom",
+      "#TS",
+      "#AP"
+    ],
+    "wave": 1,
+    "live": false,
+    "status": "Wave-1",
+    "fallbacks": [
+      "tsap_brahmin_groom",
+      "mv_brahmin_grm",
+      "manavivaha_brahmin_grm"
+    ]
+  },
+  {
+    "key": "c_goud_bride",
+    "tier": "L3_CASTE",
+    "name": "👰 Goud Brides | గౌడ్ వధువులు",
+    "username": "@manavivaha_goud_bride",
+    "link": "https://t.me/manavivaha_goud_bride",
+    "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_goud_bride",
+    "desc": "గౌడ్ వధువులు — TS + AP అన్ని జిల్లాలు. నిజమైన profiles, ఫోటో గోప్యం, 3 requests FREE, ₹99లో 5. #Goud #Bride #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
+    "hashtags": [
+      "#Goud",
+      "#Bride",
+      "#TS",
+      "#AP"
+    ],
+    "wave": 2,
+    "live": false,
+    "status": "Wave-2",
+    "fallbacks": [
+      "tsap_goud_bride",
+      "mv_goud_brd",
+      "manavivaha_goud_brd"
+    ]
+  },
+  {
+    "key": "c_goud_groom",
+    "tier": "L3_CASTE",
+    "name": "🤵 Goud Grooms | గౌడ్ వరులు",
+    "username": "@manavivaha_goud_groom",
+    "link": "https://t.me/manavivaha_goud_groom",
+    "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_goud_groom",
+    "desc": "గౌడ్ వరులు — TS + AP అన్ని జిల్లాలు. ఉద్యోగం/చదువు/జాతకం వివరాలతో profiles. 3 requests FREE. #Goud #Groom #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
+    "hashtags": [
+      "#Goud",
+      "#Groom",
+      "#TS",
+      "#AP"
+    ],
+    "wave": 2,
+    "live": false,
+    "status": "Wave-2",
+    "fallbacks": [
+      "tsap_goud_groom",
+      "mv_goud_grm",
+      "manavivaha_goud_grm"
+    ]
+  },
+  {
+    "key": "c_yadav_bride",
+    "tier": "L3_CASTE",
+    "name": "👰 Yadav Brides | యాదవ వధువులు",
+    "username": "@manavivaha_yadav_bride",
+    "link": "https://t.me/manavivaha_yadav_bride",
+    "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_yadav_bride",
+    "desc": "యాదవ వధువులు — TS + AP అన్ని జిల్లాలు. నిజమైన profiles, ఫోటో గోప్యం, 3 requests FREE, ₹99లో 5. #Yadav #Bride #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
+    "hashtags": [
+      "#Yadav",
+      "#Bride",
+      "#TS",
+      "#AP"
+    ],
+    "wave": 2,
+    "live": false,
+    "status": "Wave-2",
+    "fallbacks": [
+      "tsap_yadav_bride",
+      "mv_yadav_brd",
+      "manavivaha_yadav_brd"
+    ]
+  },
+  {
+    "key": "c_yadav_groom",
+    "tier": "L3_CASTE",
+    "name": "🤵 Yadav Grooms | యాదవ వరులు",
+    "username": "@manavivaha_yadav_groom",
+    "link": "https://t.me/manavivaha_yadav_groom",
+    "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_yadav_groom",
+    "desc": "యాదవ వరులు — TS + AP అన్ని జిల్లాలు. ఉద్యోగం/చదువు/జాతకం వివరాలతో profiles. 3 requests FREE. #Yadav #Groom #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
+    "hashtags": [
+      "#Yadav",
+      "#Groom",
+      "#TS",
+      "#AP"
+    ],
+    "wave": 2,
+    "live": false,
+    "status": "Wave-2",
+    "fallbacks": [
+      "tsap_yadav_groom",
+      "mv_yadav_grm",
+      "manavivaha_yadav_grm"
+    ]
+  },
+  {
+    "key": "c_mudiraj_bride",
+    "tier": "L3_CASTE",
+    "name": "👰 Mudiraj Brides | ముదిరాజ్ వధువులు",
+    "username": "@manavivaha_mudiraj_bride",
+    "link": "https://t.me/manavivaha_mudiraj_bride",
+    "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_mudiraj_bride",
+    "desc": "ముదిరాజ్ వధువులు — TS + AP అన్ని జిల్లాలు. నిజమైన profiles, ఫోటో గోప్యం, 3 requests FREE, ₹99లో 5. #Mudiraj #Bride #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
+    "hashtags": [
+      "#Mudiraj",
+      "#Bride",
+      "#TS",
+      "#AP"
+    ],
+    "wave": 2,
+    "live": false,
+    "status": "Wave-2",
+    "fallbacks": [
+      "tsap_mudiraj_bride",
+      "mv_mudiraj_brd",
+      "manavivaha_mudiraj_brd"
+    ]
+  },
+  {
+    "key": "c_mudiraj_groom",
+    "tier": "L3_CASTE",
+    "name": "🤵 Mudiraj Grooms | ముదిరాజ్ వరులు",
+    "username": "@manavivaha_mudiraj_groom",
+    "link": "https://t.me/manavivaha_mudiraj_groom",
+    "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_mudiraj_groom",
+    "desc": "ముదిరాజ్ వరులు — TS + AP అన్ని జిల్లాలు. ఉద్యోగం/చదువు/జాతకం వివరాలతో profiles. 3 requests FREE. #Mudiraj #Groom #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
+    "hashtags": [
+      "#Mudiraj",
+      "#Groom",
+      "#TS",
+      "#AP"
+    ],
+    "wave": 2,
+    "live": false,
+    "status": "Wave-2",
+    "fallbacks": [
+      "tsap_mudiraj_groom",
+      "mv_mudiraj_grm",
+      "manavivaha_mudiraj_grm"
+    ]
+  },
+  {
+    "key": "c_padmashali_bride",
+    "tier": "L3_CASTE",
+    "name": "👰 Padmashali Brides | పద్మశాలి వధువులు",
+    "username": "@manavivaha_padmashali_bride",
+    "link": "https://t.me/manavivaha_padmashali_bride",
+    "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_padmashali_bride",
+    "desc": "పద్మశాలి వధువులు — TS + AP అన్ని జిల్లాలు. నిజమైన profiles, ఫోటో గోప్యం, 3 requests FREE, ₹99లో 5. #Padmashali #Bride #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
+    "hashtags": [
+      "#Padmashali",
+      "#Bride",
+      "#TS",
+      "#AP"
+    ],
+    "wave": 2,
+    "live": false,
+    "status": "Wave-2",
+    "fallbacks": [
+      "tsap_padmashali_bride",
+      "mv_padmashali_brd",
+      "manavivaha_padmashali_brd"
+    ]
+  },
+  {
+    "key": "c_padmashali_groom",
+    "tier": "L3_CASTE",
+    "name": "🤵 Padmashali Grooms | పద్మశాలి వరులు",
+    "username": "@manavivaha_padmashali_groom",
+    "link": "https://t.me/manavivaha_padmashali_groom",
+    "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_padmashali_groom",
+    "desc": "పద్మశాలి వరులు — TS + AP అన్ని జిల్లాలు. ఉద్యోగం/చదువు/జాతకం వివరాలతో profiles. 3 requests FREE. #Padmashali #Groom #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
+    "hashtags": [
+      "#Padmashali",
+      "#Groom",
+      "#TS",
+      "#AP"
+    ],
+    "wave": 2,
+    "live": false,
+    "status": "Wave-2",
+    "fallbacks": [
+      "tsap_padmashali_groom",
+      "mv_padmashali_grm",
+      "manavivaha_padmashali_grm"
+    ]
+  },
+  {
+    "key": "c_munnuru_kapu_bride",
+    "tier": "L3_CASTE",
+    "name": "👰 Munnuru Kapu Brides | మున్నూరు కాపు వధువులు",
+    "username": "@manavivaha_munnurukapu_bride",
+    "link": "https://t.me/manavivaha_munnurukapu_bride",
+    "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_munnurukapu_bride",
+    "desc": "మున్నూరు కాపు వధువులు — TS + AP అన్ని జిల్లాలు. నిజమైన profiles, ఫోటో గోప్యం, 3 requests FREE, ₹99లో 5. #Munnurukapu #Bride #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
+    "hashtags": [
+      "#Munnurukapu",
+      "#Bride",
+      "#TS",
+      "#AP"
+    ],
+    "wave": 2,
+    "live": false,
+    "status": "Wave-2",
+    "fallbacks": [
+      "tsap_munnurukapu_bride",
+      "mv_munnurukapu_brd",
+      "manavivaha_munnurukapu_brd"
+    ]
+  },
+  {
+    "key": "c_munnuru_kapu_groom",
+    "tier": "L3_CASTE",
+    "name": "🤵 Munnuru Kapu Grooms | మున్నూరు కాపు వరులు",
+    "username": "@manavivaha_munnurukapu_groom",
+    "link": "https://t.me/manavivaha_munnurukapu_groom",
+    "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_munnurukapu_groom",
+    "desc": "మున్నూరు కాపు వరులు — TS + AP అన్ని జిల్లాలు. ఉద్యోగం/చదువు/జాతకం వివరాలతో profiles. 3 requests FREE. #Munnurukapu #Groom #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
+    "hashtags": [
+      "#Munnurukapu",
+      "#Groom",
+      "#TS",
+      "#AP"
+    ],
+    "wave": 2,
+    "live": false,
+    "status": "Wave-2",
+    "fallbacks": [
+      "tsap_munnurukapu_groom",
+      "mv_munnurukapu_grm",
+      "manavivaha_munnurukapu_grm"
+    ]
+  },
+  {
+    "key": "c_mala_bride",
+    "tier": "L3_CASTE",
+    "name": "👰 Mala Brides | మాల వధువులు",
+    "username": "@manavivaha_mala_bride",
+    "link": "https://t.me/manavivaha_mala_bride",
+    "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_mala_bride",
+    "desc": "మాల వధువులు — TS + AP అన్ని జిల్లాలు. నిజమైన profiles, ఫోటో గోప్యం, 3 requests FREE, ₹99లో 5. #Mala #Bride #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
+    "hashtags": [
+      "#Mala",
+      "#Bride",
+      "#TS",
+      "#AP"
+    ],
+    "wave": 2,
+    "live": false,
+    "status": "Wave-2",
+    "fallbacks": [
+      "tsap_mala_bride",
+      "mv_mala_brd",
+      "manavivaha_mala_brd"
+    ]
+  },
+  {
+    "key": "c_mala_groom",
+    "tier": "L3_CASTE",
+    "name": "🤵 Mala Grooms | మాల వరులు",
+    "username": "@manavivaha_mala_groom",
+    "link": "https://t.me/manavivaha_mala_groom",
+    "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_mala_groom",
+    "desc": "మాల వరులు — TS + AP అన్ని జిల్లాలు. ఉద్యోగం/చదువు/జాతకం వివరాలతో profiles. 3 requests FREE. #Mala #Groom #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
+    "hashtags": [
+      "#Mala",
+      "#Groom",
+      "#TS",
+      "#AP"
+    ],
+    "wave": 2,
+    "live": false,
+    "status": "Wave-2",
+    "fallbacks": [
+      "tsap_mala_groom",
+      "mv_mala_grm",
+      "manavivaha_mala_grm"
+    ]
+  },
+  {
+    "key": "c_madiga_bride",
+    "tier": "L3_CASTE",
+    "name": "👰 Madiga Brides | మాదిగ వధువులు",
+    "username": "@manavivaha_madiga_bride",
+    "link": "https://t.me/manavivaha_madiga_bride",
+    "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_madiga_bride",
+    "desc": "మాదిగ వధువులు — TS + AP అన్ని జిల్లాలు. నిజమైన profiles, ఫోటో గోప్యం, 3 requests FREE, ₹99లో 5. #Madiga #Bride #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
+    "hashtags": [
+      "#Madiga",
+      "#Bride",
+      "#TS",
+      "#AP"
+    ],
+    "wave": 3,
+    "live": false,
+    "status": "Wave-3",
+    "fallbacks": [
+      "tsap_madiga_bride",
+      "mv_madiga_brd",
+      "manavivaha_madiga_brd"
+    ]
+  },
+  {
+    "key": "c_madiga_groom",
+    "tier": "L3_CASTE",
+    "name": "🤵 Madiga Grooms | మాదిగ వరులు",
+    "username": "@manavivaha_madiga_groom",
+    "link": "https://t.me/manavivaha_madiga_groom",
+    "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_madiga_groom",
+    "desc": "మాదిగ వరులు — TS + AP అన్ని జిల్లాలు. ఉద్యోగం/చదువు/జాతకం వివరాలతో profiles. 3 requests FREE. #Madiga #Groom #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
+    "hashtags": [
+      "#Madiga",
+      "#Groom",
+      "#TS",
+      "#AP"
+    ],
+    "wave": 3,
+    "live": false,
+    "status": "Wave-3",
+    "fallbacks": [
+      "tsap_madiga_groom",
+      "mv_madiga_grm",
+      "manavivaha_madiga_grm"
+    ]
+  },
+  {
+    "key": "c_lambada_bride",
+    "tier": "L3_CASTE",
+    "name": "👰 Lambada Brides | లంబాడ వధువులు",
+    "username": "@manavivaha_lambada_bride",
+    "link": "https://t.me/manavivaha_lambada_bride",
+    "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_lambada_bride",
+    "desc": "లంబాడ వధువులు — TS + AP అన్ని జిల్లాలు. నిజమైన profiles, ఫోటో గోప్యం, 3 requests FREE, ₹99లో 5. #Lambada #Bride #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
+    "hashtags": [
+      "#Lambada",
+      "#Bride",
+      "#TS",
+      "#AP"
+    ],
+    "wave": 3,
+    "live": false,
+    "status": "Wave-3",
+    "fallbacks": [
+      "tsap_lambada_bride",
+      "mv_lambada_brd",
+      "manavivaha_lambada_brd"
+    ]
+  },
+  {
+    "key": "c_lambada_groom",
+    "tier": "L3_CASTE",
+    "name": "🤵 Lambada Grooms | లంబాడ వరులు",
+    "username": "@manavivaha_lambada_groom",
+    "link": "https://t.me/manavivaha_lambada_groom",
+    "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_lambada_groom",
+    "desc": "లంబాడ వరులు — TS + AP అన్ని జిల్లాలు. ఉద్యోగం/చదువు/జాతకం వివరాలతో profiles. 3 requests FREE. #Lambada #Groom #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
+    "hashtags": [
+      "#Lambada",
+      "#Groom",
+      "#TS",
+      "#AP"
+    ],
+    "wave": 3,
+    "live": false,
+    "status": "Wave-3",
+    "fallbacks": [
+      "tsap_lambada_groom",
+      "mv_lambada_grm",
+      "manavivaha_lambada_grm"
+    ]
+  },
+  {
+    "key": "c_raju_bride",
+    "tier": "L3_CASTE",
+    "name": "👰 Raju Brides | రాజు వధువులు",
+    "username": "@manavivaha_raju_bride",
+    "link": "https://t.me/manavivaha_raju_bride",
+    "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_raju_bride",
+    "desc": "రాజు వధువులు — TS + AP అన్ని జిల్లాలు. నిజమైన profiles, ఫోటో గోప్యం, 3 requests FREE, ₹99లో 5. #Raju #Bride #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
+    "hashtags": [
+      "#Raju",
+      "#Bride",
+      "#TS",
+      "#AP"
+    ],
+    "wave": 3,
+    "live": false,
+    "status": "Wave-3",
+    "fallbacks": [
+      "tsap_raju_bride",
+      "mv_raju_brd",
+      "manavivaha_raju_brd"
+    ]
+  },
+  {
+    "key": "c_raju_groom",
+    "tier": "L3_CASTE",
+    "name": "🤵 Raju Grooms | రాజు వరులు",
+    "username": "@manavivaha_raju_groom",
+    "link": "https://t.me/manavivaha_raju_groom",
+    "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_raju_groom",
+    "desc": "రాజు వరులు — TS + AP అన్ని జిల్లాలు. ఉద్యోగం/చదువు/జాతకం వివరాలతో profiles. 3 requests FREE. #Raju #Groom #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
+    "hashtags": [
+      "#Raju",
+      "#Groom",
+      "#TS",
+      "#AP"
+    ],
+    "wave": 3,
+    "live": false,
+    "status": "Wave-3",
+    "fallbacks": [
+      "tsap_raju_groom",
+      "mv_raju_grm",
+      "manavivaha_raju_grm"
+    ]
+  },
+  {
+    "key": "c_balija_bride",
+    "tier": "L3_CASTE",
+    "name": "👰 Balija Brides | బలిజ వధువులు",
+    "username": "@manavivaha_balija_bride",
+    "link": "https://t.me/manavivaha_balija_bride",
+    "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_balija_bride",
+    "desc": "బలిజ వధువులు — TS + AP అన్ని జిల్లాలు. నిజమైన profiles, ఫోటో గోప్యం, 3 requests FREE, ₹99లో 5. #Balija #Bride #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
+    "hashtags": [
+      "#Balija",
+      "#Bride",
+      "#TS",
+      "#AP"
+    ],
+    "wave": 3,
+    "live": false,
+    "status": "Wave-3",
+    "fallbacks": [
+      "tsap_balija_bride",
+      "mv_balija_brd",
+      "manavivaha_balija_brd"
+    ]
+  },
+  {
+    "key": "c_balija_groom",
+    "tier": "L3_CASTE",
+    "name": "🤵 Balija Grooms | బలిజ వరులు",
+    "username": "@manavivaha_balija_groom",
+    "link": "https://t.me/manavivaha_balija_groom",
+    "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_balija_groom",
+    "desc": "బలిజ వరులు — TS + AP అన్ని జిల్లాలు. ఉద్యోగం/చదువు/జాతకం వివరాలతో profiles. 3 requests FREE. #Balija #Groom #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
+    "hashtags": [
+      "#Balija",
+      "#Groom",
+      "#TS",
+      "#AP"
+    ],
+    "wave": 3,
+    "live": false,
+    "status": "Wave-3",
+    "fallbacks": [
+      "tsap_balija_groom",
+      "mv_balija_grm",
+      "manavivaha_balija_grm"
+    ]
+  },
+  {
+    "key": "c_telaga_bride",
+    "tier": "L3_CASTE",
+    "name": "👰 Telaga Brides | తెలగ వధువులు",
+    "username": "@manavivaha_telaga_bride",
+    "link": "https://t.me/manavivaha_telaga_bride",
+    "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_telaga_bride",
+    "desc": "తెలగ వధువులు — TS + AP అన్ని జిల్లాలు. నిజమైన profiles, ఫోటో గోప్యం, 3 requests FREE, ₹99లో 5. #Telaga #Bride #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
+    "hashtags": [
+      "#Telaga",
+      "#Bride",
+      "#TS",
+      "#AP"
+    ],
+    "wave": 3,
+    "live": false,
+    "status": "Wave-3",
+    "fallbacks": [
+      "tsap_telaga_bride",
+      "mv_telaga_brd",
+      "manavivaha_telaga_brd"
+    ]
+  },
+  {
+    "key": "c_telaga_groom",
+    "tier": "L3_CASTE",
+    "name": "🤵 Telaga Grooms | తెలగ వరులు",
+    "username": "@manavivaha_telaga_groom",
+    "link": "https://t.me/manavivaha_telaga_groom",
+    "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_telaga_groom",
+    "desc": "తెలగ వరులు — TS + AP అన్ని జిల్లాలు. ఉద్యోగం/చదువు/జాతకం వివరాలతో profiles. 3 requests FREE. #Telaga #Groom #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
+    "hashtags": [
+      "#Telaga",
+      "#Groom",
+      "#TS",
+      "#AP"
+    ],
+    "wave": 3,
+    "live": false,
+    "status": "Wave-3",
+    "fallbacks": [
+      "tsap_telaga_groom",
+      "mv_telaga_grm",
+      "manavivaha_telaga_grm"
+    ]
+  },
+  {
+    "key": "c_viswakarma_bride",
+    "tier": "L3_CASTE",
+    "name": "👰 Viswakarma Brides | విశ్వకర్మ వధువులు",
+    "username": "@manavivaha_viswakarma_bride",
+    "link": "https://t.me/manavivaha_viswakarma_bride",
+    "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_viswakarma_bride",
+    "desc": "విశ్వకర్మ వధువులు — TS + AP అన్ని జిల్లాలు. నిజమైన profiles, ఫోటో గోప్యం, 3 requests FREE, ₹99లో 5. #Viswakarma #Bride #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
+    "hashtags": [
+      "#Viswakarma",
+      "#Bride",
+      "#TS",
+      "#AP"
+    ],
+    "wave": 3,
+    "live": false,
+    "status": "Wave-3",
+    "fallbacks": [
+      "tsap_viswakarma_bride",
+      "mv_viswakarma_brd",
+      "manavivaha_viswakarma_brd"
+    ]
+  },
+  {
+    "key": "c_viswakarma_groom",
+    "tier": "L3_CASTE",
+    "name": "🤵 Viswakarma Grooms | విశ్వకర్మ వరులు",
+    "username": "@manavivaha_viswakarma_groom",
+    "link": "https://t.me/manavivaha_viswakarma_groom",
+    "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_manavivaha_viswakarma_groom",
+    "desc": "విశ్వకర్మ వరులు — TS + AP అన్ని జిల్లాలు. ఉద్యోగం/చదువు/జాతకం వివరాలతో profiles. 3 requests FREE. #Viswakarma #Groom #TS Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
+    "hashtags": [
+      "#Viswakarma",
+      "#Groom",
+      "#TS",
+      "#AP"
+    ],
+    "wave": 3,
+    "live": false,
+    "status": "Wave-3",
+    "fallbacks": [
+      "tsap_viswakarma_groom",
+      "mv_viswakarma_grm",
+      "manavivaha_viswakarma_grm"
+    ]
   }
 ];
 
 // Register form dropdown — registry nunchi (43 castes + Muslim/Christian/Open)
 export const CASTE_OPTIONS: string[] = [
-  "Reddy",
-  "Kamma",
-  "Kapu",
-  "Velama",
-  "Vysya",
-  "Brahmin",
-  "Raju",
-  "Goud",
-  "Yadav",
-  "Mudiraj",
-  "Padmashali",
-  "Munnuru Kapu",
-  "Balija",
-  "Telaga",
   "Koppula Velama",
   "Kalinga",
   "Boya",
@@ -1360,7 +1821,6 @@ export const CASTE_OPTIONS: string[] = [
   "Vaddera",
   "Rajaka",
   "Mangali",
-  "Viswakarma",
   "Kummara",
   "Gandla",
   "Devanga",
@@ -1373,14 +1833,29 @@ export const CASTE_OPTIONS: string[] = [
   "Bestha",
   "Jalari",
   "Vadabalija",
-  "Mala",
-  "Madiga",
   "Adi Andhra",
   "SC-Others",
-  "Lambada",
   "Koya",
   "Gond",
   "ST-Others",
+  "Reddy",
+  "Kamma",
+  "Kapu",
+  "Velama",
+  "Vysya",
+  "Brahmin",
+  "Goud",
+  "Yadav",
+  "Mudiraj",
+  "Padmashali",
+  "Munnuru Kapu",
+  "Mala",
+  "Madiga",
+  "Lambada",
+  "Raju",
+  "Balija",
+  "Telaga",
+  "Viswakarma",
   "Muslim",
   "Christian",
   "Open"

@@ -48,13 +48,15 @@ export default function CastesHub() {
                     {c.live ? "🟢 Live" : "Wave-1"}
                   </span>
                 </div>
-                <div className="text-[11px] text-gray-500 mt-1">{c.username}</div>
+                <div className="text-[11px] text-gray-500 mt-1">
+                  {c.split ? `${c.bride?.username} • ${c.groom?.username}` : c.username}
+                </div>
                 <div className="mt-3 flex flex-wrap gap-2">
                   <Link href={`/castes/${buildSlug(c.key, "bride")}`}
                     className="text-[12px] font-bold maroon-gradient text-white px-3 py-1.5 rounded-full">👰 Brides</Link>
                   <Link href={`/castes/${buildSlug(c.key, "groom")}`}
                     className="text-[12px] font-bold border border-maroon/30 text-maroon px-3 py-1.5 rounded-full">🤵 Grooms</Link>
-                  <a href={c.link} target="_blank" rel="noreferrer" className="text-[12px] font-bold text-gray-600 px-2 py-1.5">
+                  <a href={c.bride?.link || c.link} target="_blank" rel="noreferrer" className="text-[12px] font-bold text-gray-600 px-2 py-1.5">
                     channel →
                   </a>
                 </div>

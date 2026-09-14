@@ -17,12 +17,13 @@ def check(name: str, cond: bool, extra: str = ""):
 def run():
     print("\n=== 1. REGISTRY HEALTH ===")
     stats = C.channel_stats()
-    check("Total channels = 65", stats["total"] == 65, str(stats["total"]))
+    check("Total channels = 83 (4 main + caste×bride/groom + religion + special)",
+          stats["total"] == 83, str(stats["total"]))
     check("Live channels = 2 (TSBRIDE, TSGROOM1)", stats["live"] == 2, str(stats["live"]))
     check("L0 official = 1", stats["by_tier"]["L0_OFFICIAL"] == 1)
     check("L1 region = 5", stats["by_tier"]["L1_REGION"] == 5, str(stats["by_tier"]))
     check("L2 religion = 5", stats["by_tier"]["L2_RELIGION"] == 5)
-    check("L3 caste = 43", stats["by_tier"]["L3_CASTE"] == 43, str(stats["by_tier"]["L3_CASTE"]))
+    check("L3 caste = 61 (36 caste×gender + 25 mixed)", stats["by_tier"]["L3_CASTE"] == 61, str(stats["by_tier"]["L3_CASTE"]))
     check("L4 special = 11", stats["by_tier"]["L4_SPECIAL"] == 11)
 
     usernames = [v["username"].lower() for v in C.CHANNELS.values()]
@@ -60,7 +61,10 @@ def run():
                    "district": "Nalgonda", "gothram": "Bharadwaj"}
     r = C.route_profile(reddy_bride)
     check("Reddy TS Bride → TSBRIDE first", r["usernames"][0] == "@TSBRIDE", str(r["usernames"]))
-    check("Reddy TS Bride → caste channel", "@manavivaha_reddy" in r["usernames"])
+    check("Reddy TS Bride → caste×gender channel (caste prakaram)",
+          "@manavivaha_reddy_bride" in r["usernames"], str(r["usernames"]))
+    check("Reddy TS Bride → mixed caste channel ki duplicate ledu",
+          "@manavivaha_reddy" not in r["usernames"])
     check("Reddy TS Bride → Hindu hub skipped (caste dup avoid)", "@manavivaha_hindu" not in r["usernames"])
     top = C.route_profile({**reddy_bride, "top_match": True})
     check("Top match → Hindu hub included", "@manavivaha_hindu" in top["usernames"], str(top["usernames"]))
@@ -74,15 +78,17 @@ def run():
 
     christian = C.route_profile({"gender": "Bride", "state": "AP", "religion": "Christian", "caste": "CSI", "age": 26})
     check("Christian bride → @manavivaha_christian", "@manavivaha_christian" in christian["usernames"])
-    check("Christian bride → AP Brides", "@manavivaha_ap_bride" in christian["usernames"], str(christian["usernames"]))
+    check("Christian bride → AP Brides (@APBRIDE)", "@APBRIDE" in christian["usernames"], str(christian["usernames"]))
 
     nri = C.route_profile({"gender": "Groom", "state": "USA", "caste": "Kamma", "age": 31, "job": "Software Developer"})
     check("USA groom → NRI channel", "@manavivaha_nri" in nri["usernames"], str(nri["usernames"]))
-    check("USA groom → Kamma caste channel", "@manavivaha_kamma" in nri["usernames"])
+    check("USA groom → Kamma groom channel (caste×gender)", "@manavivaha_kamma_groom" in nri["usernames"],
+          str(nri["usernames"]))
 
     second = C.route_profile({"gender": "Bride", "state": "TS", "caste": "Mala", "age": 36, "marital_status": "Divorcee"})
     check("Divorcee → 2nd marriage channel", "@manavivaha_second" in second["usernames"])
-    check("Divorcee → Mala caste channel", "@manavivaha_mala" in second["usernames"])
+    check("Divorcee → Mala bride channel (caste×gender)", "@manavivaha_mala_bride" in second["usernames"],
+          str(second["usernames"]))
     check("35+ flag captured or capped", ("@manavivaha_35plus" in second["usernames"]) or second["notes"])
 
     abled = C.route_profile({"gender": "Groom", "state": "AP", "caste": "Kapu", "age": 30,
@@ -96,8 +102,20 @@ def run():
     check("Open caste → no caste channel + note", interfaith["notes"] and not any(
         C.CHANNELS[k]["tier"] == "L3_CASTE" for k in interfaith["keys"]))
 
+    # caste × gender verification (bride/groom separate)
+    groom_reddy = C.route_profile({**reddy_bride, "gender": "Groom", "full_name": "Ravi"})
+    check("Reddy Groom → reddy GROOM channel (bride channel ki velladu)",
+          "@manavivaha_reddy_groom" in groom_reddy["usernames"]
+          and "@manavivaha_reddy_bride" not in groom_reddy["usernames"], str(groom_reddy["usernames"]))
+    mixed_only = C.route_profile({"gender": "Bride", "state": "TS", "caste": "Kummara", "age": 25})
+    check("Chinna caste (Kummara) → mixed caste channel + #Bride filter",
+          "@manavivaha_kummara" in mixed_only["usernames"], str(mixed_only["usernames"]))
+
     print("\n=== 4. CAPTION READY ===")
     cap = C.build_caption(reddy_bride, "TSAP-F-2025-5775", 92)
+    check("Wave-1 lo 4 main channels unnai",
+          all(k in [kk for kk, vv in C.CHANNELS.items() if vv.get("wave") == 1]
+              for k in ("ts_bride", "ts_groom", "ap_bride", "ap_groom")))
     check("Caption has ID", "TSAP-F-2025-5775" in cap)
     check("Caption has score", "92%" in cap)
     check("Caption has bot CTA", C.BOT_USERNAME in cap)

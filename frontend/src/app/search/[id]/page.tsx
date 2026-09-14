@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
+import { CHANNEL_STATS } from "@/lib/channels";
 import ProfileView from "./ProfileView";
 
 /**
@@ -47,8 +48,8 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
   const bits = [p?.age ? `${p.age} yrs` : "", p?.caste, p?.education, p?.job, p?.district].filter(Boolean).join(" • ");
   const title = `${name} (${id}) — ${bits || "Profile"} | Mana Vivaha`;
   const description = p
-    ? `${bits}. Porutham, family, horoscope details + interest pampandi. Mana Vivaha — Telugu matrimony (TS + AP), 65 channels, 3 FREE requests.`
-    : "Mana Vivaha — Telugu matrimony. TS + AP, 43 castes, 65 channels, 3 FREE requests. Register FREE.";
+    ? `${bits}. Porutham, family, horoscope details + interest pampandi. Mana Vivaha — Telugu matrimony (TS + AP), ${CHANNEL_STATS.total} channels, 3 FREE requests.`
+    : `Mana Vivaha — Telugu matrimony. TS + AP, 43 castes, ${CHANNEL_STATS.total} channels, 3 FREE requests. Register FREE.`;
   const base = siteBase();
   const ogImage = `${base}/api/og/profile/${encodeURIComponent(id)}.png`;
   return {

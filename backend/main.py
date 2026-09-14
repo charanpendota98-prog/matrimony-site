@@ -21,6 +21,7 @@ from referral import generate_referral_code, process_referral_payment, get_leade
 from channels_config import (
     CHANNELS, channel_stats, channels_by_tier, route_profile, build_caption,
     build_hashtags, live_channels, pending_channels, all_channels, resolve_caste_key,
+    setup_plan as channels_config_setup_plan, caste_split_report, channel_health_report,
 )
 try:
     from card_pro import create_pro_card, has_telugu_font  # full-detail neat card
@@ -619,8 +620,9 @@ def admin_make_premium(tsap_id: str, gift_credits: int = 10):
     return {"success": True, "tsap_id": tsap_id, "new_credits": user["credits"], "message_telugu": f"💎 Admin gift! {gift_credits} credits FREE + Premium!"}
 
 def _channel_public(key: str, ch: dict) -> dict:
-    """Registry channel → website-friendly JSON (join link, status, deep link, hashtags)."""
+    """Registry channel → website-friendly JSON (join link, status, deep link, hashtags, DP)."""
     user = ch["username"]
+    route = ch.get("route") if isinstance(ch.get("route"), dict) else {}
     return {
         "key": key,
         "tier": ch.get("tier"),
@@ -634,11 +636,58 @@ def _channel_public(key: str, ch: dict) -> dict:
         "live": bool(ch.get("live")),
         "status": "LIVE ✅ Bot Admin" if ch.get("live") else f"Create — Wave-{ch.get('wave')}",
         "fallbacks": ch.get("fallbacks", []),
+        "photo": f"/api/channels/photo/{key}.png",
+        "caste": (route or {}).get("caste", ""),
+        "gender": (route or {}).get("gender", ""),
     }
+
+@app.get("/api/channels/photo/{key}.png")
+def channel_photo(key: str):
+    """Channel DP (512x512) — website lo channel card ki + Telegram setChatPhoto ki same file."""
+    import setup_channels as SC
+    path = os.path.join(SC.ASSET_DIR, "%s.png" % key)
+    if not os.path.exists(path):
+        if key not in CHANNELS:
+            raise HTTPException(404, "Channel dorakaledu: %s" % key)
+        path = SC.channel_dp_image(key, CHANNELS.get(key))
+    if not path or not os.path.exists(path):
+        raise HTTPException(500, "DP generate avvaledu")
+    return FileResponse(path, media_type="image/png", headers={"Cache-Control": "public, max-age=86400"})
+
+
+@app.get("/api/channels/{key}/kit")
+def channel_kit(key: str):
+    """Okka channel ki full kit — description + 📌 pinned post + rules + share text (website nunchi copy)."""
+    import channel_content as CC
+    ch = CHANNELS.get(key)
+    if not ch:
+        raise HTTPException(404, "Channel dorakaledu: %s" % key)
+    return {"key": key, "name": CC.perfect_title(key, ch), "desc": CC.perfect_description(key, ch),
+            "pinned_post": CC.pinned_welcome(key, ch), "rules_post": CC.rules_post(key),
+            "share_text": CC.share_text(key, ch), "dp_text": CC.dp_text(key),
+            "hashtags": ch.get("hashtags", []), "username": "@" + ch["username"],
+            "link": "https://t.me/" + ch["username"], "photo": f"/api/channels/photo/{key}.png",
+            "live": bool(ch.get("live")), "wave": ch.get("wave"),
+            "how_to_setup_telugu": [
+                "1) Telegram → New Channel → Name paste → Username paste (taken ayithe fallback)",
+                "2) Channel → Administrators → @telugumatrimony1_bot add → Change Info + Post + Pin ✅",
+                "3) Description paste → 📌 pinned post paste+pin → DP upload (photo link)",
+                "4) Taruvata: python setup_channels.py --apply --key %s" % key,
+            ]}
+
+
+@app.get("/api/channels/setup-plan")
+def channels_setup_plan(wave: Optional[int] = None):
+    """Channel create plan (wave order) + caste×gender coverage + health — launch/growth dashboard ki."""
+    return {"plan": channels_config_setup_plan(wave), "caste_coverage": caste_split_report(),
+            "config_problems": channel_health_report(), "stats": channel_stats(),
+            "message_telugu": "Wave order lo create cheyyandi — wave 1 lo 4 main + top castes (bride/groom) "
+                              "unnayi. Prathi channel ki kit + DP ready (website /channels lo)."}
+
 
 @app.get("/api/channels")
 def channels(tier: Optional[str] = None):
-    """FULL master registry — 65 channels (L0 Official → L4 Special)."""
+    """FULL master registry — 83 channels (L0 Official → L4 Special, caste × bride/groom)."""
     tiers = channels_by_tier()
     out_tiers = {
         t: [_channel_public(c["key"], c) for c in items]
@@ -654,9 +703,9 @@ def channels(tier: Optional[str] = None):
         "stats": channel_stats(),
         "tiers": {
             "L0_OFFICIAL": "Brand hub — daily Top-3, success stories, safety alerts",
-            "L1_REGION": "State + gender flagship — TS/AP Bride & Groom, NRI",
+            "L1_REGION": "Main 4 — TS Bride, TS Groom, AP Bride, AP Groom (+ NRI)",
             "L2_RELIGION": "Hindu, Muslim, Christian, Other, Inter-faith",
-            "L3_CASTE": "Hindu caste-wise — ONE channel per caste (43)",
+            "L3_CASTE": "Caste-wise — top castes ki bride/groom separate (caste prakaram), migilina castes ki mixed",
             "L4_SPECIAL": "2nd marriage, differently-abled, govt job, IT, doctors, 35+, bureau",
         },
         "channels_by_tier": out_tiers,

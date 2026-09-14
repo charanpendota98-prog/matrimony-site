@@ -27,7 +27,7 @@ const FAQS = [
   },
   {
     q: "Naa profile ee channels lo post avutundi?",
-    a: `Mee caste + state + job batti 65 channels nunchi saripoyE vi (max 5) — udaharanaki Reddy TS Bride Software ayithe @TSBRIDE + @manavivaha_reddy + @manavivaha_software. Region/religion/caste/special anni cover.`,
+    a: `Mee caste + state + job batti ${CHANNEL_STATS.total} channels nunchi saripoyE vi (max 5) — udaharanaki Reddy TS Bride Software ayithe @TSBRIDE + @manavivaha_reddy_bride + @manavivaha_software. 4 main + caste prakaram (bride/groom separate) + religion + special anni cover.`,
   },
   {
     q: "WhatsApp lo kooda vasthunda? Anti-ban safe a?",
@@ -45,7 +45,7 @@ const PLANS = [
     price: "₹0",
     tag: "Start ikkade",
     credits: "Modati 3 profiles FREE",
-    features: ["3 interest requests FREE", "WhatsApp lo mee profile share", "Auto-post 65 channel network", "ID search always open", "Photo-private mode"],
+    features: ["3 interest requests FREE", "WhatsApp lo mee profile share", `Auto-post ${CHANNEL_STATS.total} channel network`, "ID search always open", "Photo-private mode"],
   },
   {
     name: "Sambandham",
@@ -290,7 +290,7 @@ export default function Home() {
           {[
             { n: "01", t: "Register — 3 min", d: "Personal, family, caste/astro, education, location + photo. 5 steps, mobile lo easy.", icon: "📝" },
             { n: "02", t: "Card + ID ready", d: "Profile card automatic ga generate avutundi — anni details, QR, watermark tho.", icon: "🎴" },
-            { n: "03", t: "Channels lo auto-post", d: "Mee caste + state + job batti 65 channels nunchi saripoyE vi — Telegram + WhatsApp.", icon: "📢" },
+            { n: "03", t: "Channels lo auto-post", d: `Mee caste + state + job batti ${CHANNEL_STATS.total} channels nunchi saripoyE vi — Telegram + WhatsApp.`, icon: "📢" },
             { n: "04", t: "Interest pampu → number exchange", d: "Nachhina profile ki 💌 Interest pampu (1 credit). Accept aithe rendu numbers WhatsApp lo automatic.", icon: "💌" },
           ].map((s, i) => (
             <Reveal key={s.n} delay={i * 90}>

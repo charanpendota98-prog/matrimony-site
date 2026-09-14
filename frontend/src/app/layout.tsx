@@ -3,6 +3,7 @@ import "./globals.css";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import StickyCTA from "@/components/StickyCTA";
+import { CHANNEL_STATS } from "@/lib/channels";
 import PWA from "@/components/PWA";
 
 const SITE = process.env.SITE_URL || "https://manavivaha.in";
@@ -14,7 +15,7 @@ export const metadata: Metadata = {
     template: "%s | Mana Vivaha (TSAP Matrimony)",
   },
   description:
-    "Telangana + Andhra Pradesh No.1 Telugu Matrimony. 65 channels — Region, Religion, 43 Castes, Special. ₹99 ke Sambandham, modati 3 numbers FREE, photo-private, DOB verified, Telegram + WhatsApp auto-post. 3 min lo register!",
+    `Telangana + Andhra Pradesh No.1 Telugu Matrimony. ${CHANNEL_STATS.total} channels — 4 main (TS/AP × Bride/Groom), caste-wise (bride/groom separate), religion, special. ₹99 ke Sambandham, modati 3 numbers FREE, photo-private, DOB verified, Telegram + WhatsApp auto-post. 3 min lo register!`,
   keywords: [
     "Telugu matrimony", "TS matrimony", "AP matrimony", "Reddy matrimony", "Kamma matrimony",
     "Kapu matrimony", "Madiga matrimony", "Lambada matrimony", "Muslim matrimony Telugu",
@@ -31,12 +32,12 @@ export const metadata: Metadata = {
     siteName: "Mana Vivaha — TSAP Matrimony",
     title: "Mana Vivaha — TS-AP No.1 Telugu Matrimony | ₹99 ke Sambandham",
     description:
-      "65 channels, 43 castes, ₹99 lo 10 numbers, modati 3 FREE. Photo-private + DOB verified. Telugu lo 3 min register.",
+      `${CHANNEL_STATS.total} channels, 43 castes (top castes ki bride/groom separate), ₹99 lo 5 numbers, modati 3 FREE. Photo-private + DOB verified.`,
   },
   twitter: {
     card: "summary_large_image",
     title: "Mana Vivaha — TS-AP Telugu Matrimony",
-    description: "₹99 ke Sambandham • Modati 3 FREE • 65 channels • 43 castes",
+    description: `₹99 ke Sambandham • Modati 3 FREE • ${CHANNEL_STATS.total} channels • caste prakaram`,
   },
   robots: { index: true, follow: true },
   manifest: "/manifest.webmanifest",

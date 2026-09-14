@@ -8,6 +8,9 @@ export default function ChannelsPage() {
   const [wave, setWave] = useState<number | 0>(0);
   const [q, setQ] = useState("");
   const [onlyLive, setOnlyLive] = useState(false);
+  const [gender, setGender] = useState<"all" | "Bride" | "Groom">("all");
+  const [kit, setKit] = useState<{ key: string; data: any } | null>(null);
+  const [copied, setCopied] = useState("");
 
   // ?tier=L3_CASTE / ?wave=1 / ?q=reddy — home page nunchi vachina filters apply chey
   // (Suspense avasaram ledu — build static ga ne untundi)
@@ -30,12 +33,26 @@ export default function ChannelsPage() {
       (tier === "ALL" || c.tier === tier) &&
       (wave === 0 || c.wave === wave) &&
       (!onlyLive || c.live) &&
+      (gender === "all" || (c.name.includes(gender))) &&
       (!needle || c.name.toLowerCase().includes(needle) || c.username.toLowerCase().includes(needle) ||
         c.desc.toLowerCase().includes(needle) || c.hashtags.join(" ").toLowerCase().includes(needle))
     );
-  }, [tier, wave, q, onlyLive]);
+  }, [tier, wave, q, onlyLive, gender]);
 
   const liveCount = ALL_CHANNELS.filter(c => c.live).length;
+
+  // 📋 Channel kit — description + 📌 pinned post + rules + share text (copy-paste to Telegram)
+  const loadKit = async (key: string) => {
+    try {
+      const d = await fetch(`/api/channels/${key}/kit`).then((r) => r.json());
+      setKit({ key, data: d });
+    } catch { setKit({ key, data: { error: "Kit load avvaledu — API check cheyyandi" } }); }
+  };
+  const copy = (label: string, text: string) => {
+    navigator.clipboard?.writeText(text);
+    setCopied(label);
+    setTimeout(() => setCopied(""), 1800);
+  };
 
   return (
     <div className="min-h-screen bg-[#FFF8E7] p-4">
@@ -51,7 +68,7 @@ export default function ChannelsPage() {
         <div className="maroon-gradient rounded-[1.5rem] p-6 text-white">
           <h1 className="font-bold text-xl">📢 Mana Vivaha — Master Channel Network</h1>
           <p className="text-xs mt-1 opacity-90">
-            One profile post → auto ga anni relevant channels lo ki. Region + Religion + Caste + Special — 65 channels.
+            One profile post → auto ga anni relevant channels lo ki. **4 main (TS/AP × Bride/Groom)** + **caste prakaram (bride/groom separate)** + religion + special — {CHANNEL_STATS.total} channels.
           </p>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mt-4">
             {[
@@ -110,6 +127,13 @@ export default function ChannelsPage() {
                 {w === 0 ? "All" : `W${w}`}
               </button>
             ))}
+            <span className="text-[11px] font-bold text-gray-500 ml-2">Type:</span>
+            {(["all", "Bride", "Groom"] as const).map((g) => (
+              <button key={g} onClick={() => setGender(g)}
+                className={`px-3 py-1 rounded-full text-[11px] font-bold border ${gender === g ? "bg-[#7A0C2E] text-white" : "bg-white"}`}>
+                {g === "all" ? "Anni" : g === "Bride" ? "👰 Bride" : "🤵 Groom"}
+              </button>
+            ))}
             <label className="ml-auto flex items-center gap-2 text-[11px] font-bold">
               <input type="checkbox" checked={onlyLive} onChange={e => setOnlyLive(e.target.checked)} />
               LIVE matrame chupinchu
@@ -132,6 +156,55 @@ export default function ChannelsPage() {
           </div>
         </div>
 
+        {/* 📋 KIT PANEL — channel ni perfect ga set cheyyadaniki copy-paste */}
+        {kit && (
+          <div className="mt-4 bg-white rounded-[1.5rem] p-5 card-shadow border-2 border-[#D4AF37]/40">
+            <div className="flex items-center justify-between gap-2">
+              <div className="font-bold text-[#7A0C2E] text-sm">📋 Channel kit — {kit.data?.name || kit.key}</div>
+              <button onClick={() => setKit(null)} className="px-3 py-1 rounded-full border text-[11px] font-bold">✕ moosu</button>
+            </div>
+            {kit.data?.error ? <div className="text-[12px] text-red-600 mt-2">{kit.data.error}</div> : (
+              <div className="space-y-3 mt-3">
+                <div className="flex flex-wrap gap-2 text-[11px]">
+                  <span className="px-2 py-1 bg-[#FFF8E7] rounded-full font-bold">@{kit.data.username}</span>
+                  <a href={kit.data.link} target="_blank" rel="noreferrer" className="px-2 py-1 bg-[#FFF8E7] rounded-full font-bold underline">t.me link</a>
+                  <span className="px-2 py-1 bg-[#FFF8E7] rounded-full font-bold">Wave {kit.data.wave}</span>
+                  <span className={`px-2 py-1 rounded-full font-bold ${kit.data.live ? "bg-green-100 text-green-700" : "bg-gray-100"}`}>
+                    {kit.data.live ? "LIVE ✅" : "create cheyyali"}
+                  </span>
+                </div>
+                <div className="bg-[#FFF8E7] rounded-2xl p-3">
+                  <div className="text-[11px] font-bold text-[#7A0C2E]">ఎలా set చేయాలి (4 steps)</div>
+                  {(kit.data.how_to_setup_telugu || []).map((x: string, i: number) => (
+                    <div key={i} className="text-[11px] text-gray-700 telugu">{x}</div>
+                  ))}
+                </div>
+                {[
+                  ["Description", kit.data.desc],
+                  ["📌 Pinned welcome post", kit.data.pinned_post],
+                  ["Rules post", kit.data.rules_post],
+                  ["WhatsApp share text", kit.data.share_text],
+                ].map(([label, text]: any) => (
+                  <div key={label} className="border rounded-2xl p-3">
+                    <div className="flex items-center justify-between">
+                      <div className="text-[11px] font-bold text-[#7A0C2E]">{label}</div>
+                      <button onClick={() => copy(label, text)}
+                        className="px-3 py-1 rounded-full bg-[#7A0C2E] text-white text-[10px] font-bold">
+                        {copied === label ? "✅ copy ayyindi" : "📋 copy"}
+                      </button>
+                    </div>
+                    <pre className="text-[10px] whitespace-pre-wrap mt-2 text-gray-700 max-h-56 overflow-y-auto telugu">{text}</pre>
+                  </div>
+                ))}
+                <div className="text-[11px] text-gray-500">
+                  🖼️ DP: <a className="underline" href={`/api/channels/photo/${kit.key}.png`} target="_blank" rel="noreferrer">/api/channels/photo/{kit.key}.png</a>
+                  {"  "}• ⚡ Automation: <code>python setup_channels.py --apply --key {kit.key}</code>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Tier sections */}
         {CHANNEL_TIERS.filter(t => tier === "ALL" || tier === t.key).map(t => {
           const items = list.filter(c => c.tier === t.key);
@@ -146,7 +219,11 @@ export default function ChannelsPage() {
                 {items.map((c: Channel) => (
                   <div key={c.key} className={`border rounded-2xl p-3 ${c.live ? "border-green-300 bg-green-50/40" : ""}`}>
                     <div className="flex justify-between items-start gap-2">
-                      <div className="min-w-0">
+                      {/* channel DP (Telegram ki upload cheyyalsina image) */}
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={`/api/channels/photo/${c.key}.png`} alt={c.name}
+                        className="w-12 h-12 rounded-xl border border-[#D4AF37]/50 shrink-0 object-cover" />
+                      <div className="min-w-0 flex-1">
                         <div className="font-bold text-[13px] text-[#7A0C2E] truncate">{c.name}</div>
                         <div className="text-[11px] text-gray-500">{c.username} • {c.status}</div>
                       </div>
@@ -163,6 +240,8 @@ export default function ChannelsPage() {
                             className="px-3 py-1.5 maroon-gradient text-white rounded-full text-[11px] font-bold">Join</a>
                           <a href={c.deepLink} target="_blank" rel="noreferrer"
                             className="px-3 py-1.5 border border-[#7A0C2E] text-[#7A0C2E] rounded-full text-[11px] font-bold">Bot tho join</a>
+                          <button onClick={() => loadKit(c.key)}
+                            className="px-3 py-1.5 bg-[#D4AF37] text-[#7A0C2E] rounded-full text-[11px] font-bold">📋 Kit</button>
                         </>
                       ) : (
                         <>
@@ -170,6 +249,10 @@ export default function ChannelsPage() {
                           <button
                             onClick={() => navigator.clipboard?.writeText(`${c.name}\n@${c.username}\n${c.desc}`)}
                             className="px-3 py-1.5 border rounded-full text-[11px] font-bold">Copy info</button>
+                          <button onClick={() => loadKit(c.key)}
+                            className="px-3 py-1.5 bg-[#D4AF37] text-[#7A0C2E] rounded-full text-[11px] font-bold">📋 Kit</button>
+                          <a href={`/api/channels/photo/${c.key}.png`} download={`${c.key}.png`} target="_blank" rel="noreferrer"
+                            className="px-3 py-1.5 border rounded-full text-[11px] font-bold">DP ⬇️</a>
                         </>
                       )}
                     </div>

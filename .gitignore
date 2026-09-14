@@ -15,3 +15,8 @@ whatsapp-bridge/session/
 cards/TSAP-*.png
 photos/
 backend/wa_state.json
+
+# channel setup runtime (state/reports — machine-specific)
+backend/channel_setup_state.json
+backend/channel_setup_report.json
+backend/channel_check_report.json

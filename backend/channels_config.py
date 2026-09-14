@@ -19,6 +19,8 @@ IMPORTANT RULES:
   * Max 5 channels per profile auto-post (spam taggadaniki) — priority order lo.
 """
 
+from typing import Dict
+
 BOT_USERNAME = "@telugumatrimony1_bot"
 BRAND = "Mana Vivaha"
 LEGAL_BRAND = "TSAP Matrimony"
@@ -43,8 +45,8 @@ CHANNELS = {
     "official": {
         "tier": "L0_OFFICIAL",
         "name": "📢 Mana Vivaha Official | TS-AP Matrimony",
-        "username": "manavivaha",
-        "fallbacks": ["manavivaha_official", "tsap_matrimony"],
+        "username": "TSAP_MATRIMONY",
+        "fallbacks": ["manavivaha", "manavivaha_official", "manavivaha_hub"],
         "desc": ("Mana Vivaha — TS & AP No.1 Telugu Matrimony 🇮🇳\n"
                  "₹99 ke Sambandham • Modati 3 FREE\n"
                  "Daily Top-3 matches, success stories, mosam jagratha alerts.\n"
@@ -60,7 +62,7 @@ CHANNELS = {
         "tier": "L1_REGION",
         "name": "👰 TS Brides | తెలంగాణ వధువులు",
         "username": "TSBRIDE",
-        "fallbacks": ["manavivaha_ts_bride"],
+        "fallbacks": ["manavivaha_ts_bride", "tsbrides"],
         "desc": ("Telangana ammayilu — anni kulasthulu.\n"
                  "Daily 10+ kotha profiles • Photo verified • ID search.\n"
                  "Register FREE: manavivaha.in/register • Bot: @telugumatrimony1_bot"),
@@ -73,7 +75,7 @@ CHANNELS = {
         "tier": "L1_REGION",
         "name": "🤵 TS Grooms | తెలంగాణ వరులు",
         "username": "TSGROOM1",
-        "fallbacks": ["manavivaha_ts_groom"],
+        "fallbacks": ["manavivaha_ts_groom", "tsgroom"],
         "desc": ("Telangana abbayilu — anni kulasthulu.\n"
                  "Daily 10+ kotha profiles • Photo verified • ID search.\n"
                  "Register FREE: manavivaha.in/register • Bot: @telugumatrimony1_bot"),
@@ -85,8 +87,8 @@ CHANNELS = {
     "ap_bride": {
         "tier": "L1_REGION",
         "name": "👰 AP Brides | ఆంధ్రా వధువులు",
-        "username": "manavivaha_ap_bride",
-        "fallbacks": ["ap_bride", "manavivaha_apbride"],
+        "username": "APBRIDE",
+        "fallbacks": ["manavivaha_ap_bride", "apbride1", "manavivaha_apbride"],
         "desc": ("Andhra Pradesh ammayilu — 26 districts cover.\n"
                  "Daily kotha profiles • Register FREE: manavivaha.in/register"),
         "hashtags": ["#APBride", "#AndhraPradesh"],
@@ -97,8 +99,8 @@ CHANNELS = {
     "ap_groom": {
         "tier": "L1_REGION",
         "name": "🤵 AP Grooms | ఆంధ్రా వరులు",
-        "username": "manavivaha_ap_groom",
-        "fallbacks": ["ap_groom", "apgroom1"],
+        "username": "APGROOM1",
+        "fallbacks": ["manavivaha_ap_groom", "apgroom", "manavivaha_apgroom"],
         "desc": ("Andhra Pradesh abbayilu — 26 districts cover.\n"
                  "Daily kotha profiles • Register FREE: manavivaha.in/register"),
         "hashtags": ["#APGroom", "#AndhraPradesh"],
@@ -431,6 +433,62 @@ CHANNELS = {
                        "route": "manual"},
 }
 
+# >>> LIVE_KEYS_EXTRA (setup_channels.py --mark-live idi auto-manage chestundi)
+LIVE_KEYS_EXTRA = [
+]
+# <<< LIVE_KEYS_EXTRA
+
+# ---------------------------------------------------------------------------
+# ⭐ CASTE × GENDER CHANNELS — "caste prakaram" proper ga (bride/groom separate)
+# ---------------------------------------------------------------------------
+# Telugu matrimony lo inti vaallu **tama caste + bride/groom** channel ne follow avutaru.
+# Anduke top castes ki bride/groom separate channels; chinna castes ki okate mixed channel
+# (andulo #Bride/#Groom hashtag filter).
+CASTE_SPLIT: Dict[str, int] = {
+    # wave 1 — highest volume (TS + AP)
+    "reddy": 1, "kamma": 1, "kapu": 1, "velama": 1, "vysya": 1, "brahmin": 1,
+    # wave 2
+    "goud": 2, "yadav": 2, "mudiraj": 2, "padmashali": 2, "munnuru_kapu": 2, "mala": 2,
+    # wave 3
+    "madiga": 3, "lambada": 3, "raju": 3, "balija": 3, "telaga": 3, "viswakarma": 3,
+}
+SPLIT_MAP: Dict[str, Dict[str, str]] = {}      # caste_key -> {"Bride": key, "Groom": key}
+
+for _caste, _wave in CASTE_SPLIT.items():
+    _head = _caste.replace("_", "")
+    _pair = {}
+    for _gender, _suffix, _fb in (("Bride", "bride", "brd"), ("Groom", "groom", "grm")):
+        _key = "c_%s_%s" % (_caste, _suffix)
+        CHANNELS[_key] = {
+            "tier": "L3_CASTE",
+            "name": "",                       # fill avutundi (channel_content nunchi)
+            "username": ("manavivaha_%s_%s" % (_head, _suffix))[:32],
+            "fallbacks": ["tsap_%s_%s" % (_head, _suffix),
+                          "mv_%s_%s" % (_head, _fb),
+                          "manavivaha_%s_%s" % (_head, _fb)],
+            "desc": "",
+            "hashtags": ["#%s" % _caste.replace("_", "").title(), "#%s" % _suffix.title(),
+                         "#TS", "#AP"],
+            "wave": _wave,
+            "live": False,
+            "route": {"caste": _caste.replace("_", " ").title(), "gender": _gender},
+        }
+        _pair[_gender] = _key
+    SPLIT_MAP[_caste] = _pair
+    # split caste ki mixed channel vaddu (duplicate + empty channel avvakunda)
+    CHANNELS.pop(_caste, None)
+
+# ---------------------------------------------------------------------------
+# PERFECT CONTENT — title/description anni channel ki (Telugu-first, search-optimised)
+# ---------------------------------------------------------------------------
+from channel_content import perfect_title as _pt, perfect_description as _pd  # noqa: E402
+
+for _k, _ch in CHANNELS.items():
+    _ch["name"] = _pt(_k, _ch)
+    _ch["desc"] = _pd(_k, _ch)
+    if _k in LIVE_KEYS_EXTRA:          # setup_channels.py --mark-live tho verify ayyavi
+        _ch["live"] = True
+
 # ---------------------------------------------------------------------------
 # CASTE ALIASES — user free-text ni channel key ki map chesthundi
 # ---------------------------------------------------------------------------
@@ -594,6 +652,54 @@ def post_targets(profile: dict, only_live: bool = True) -> list:
             "hashtags": r["hashtags"], "reasons": r["reasons"], "notes": r["notes"]}
 
 
+# ---------------------------------------------------------------------------
+# SETUP PLAN — "e channels create cheyyali, e order lo" (setup_channels.py idi use chestundi)
+# ---------------------------------------------------------------------------
+TIER_PRIORITY = {"L0_OFFICIAL": 0, "L1_REGION": 1, "L3_CASTE": 2, "L2_RELIGION": 3, "L4_SPECIAL": 4}
+
+
+def setup_plan(wave: int | None = None) -> list:
+    """Wave → tier → caste order lo channels (create cheyyadaniki)."""
+    rows = []
+    for key, ch in CHANNELS.items():
+        if wave and ch.get("wave") != wave:
+            continue
+        rows.append({"key": key, "tier": ch.get("tier"), "wave": ch.get("wave"),
+                     "name": ch.get("name"), "username": ch.get("username"),
+                     "fallbacks": ch.get("fallbacks", []), "live": bool(ch.get("live")),
+                     "hashtags": ch.get("hashtags", []), "desc": ch.get("desc")})
+    rows.sort(key=lambda r: (r["wave"], TIER_PRIORITY.get(r["tier"], 9), r["key"]))
+    return rows
+
+
+def caste_split_report() -> dict:
+    """Caste × gender coverage report (enni castes ki bride/groom separate unnai)."""
+    by_wave: Dict[int, list] = {}
+    for caste, wave in sorted(CASTE_SPLIT.items(), key=lambda x: (x[1], x[0])):
+        by_wave.setdefault(wave, []).append({
+            "caste": caste.replace("_", " ").title(),
+            "bride": "@" + CHANNELS[SPLIT_MAP[caste]["Bride"]]["username"],
+            "groom": "@" + CHANNELS[SPLIT_MAP[caste]["Groom"]]["username"],
+        })
+    mixed = [k for k, v in CHANNELS.items() if v.get("tier") == "L3_CASTE" and k not in SPLIT_MAP.values()]
+    mixed_keys = set()
+    for pair in SPLIT_MAP.values():
+        mixed_keys.update(pair.values())
+    mixed = [k for k, v in CHANNELS.items() if v.get("tier") == "L3_CASTE" and k not in mixed_keys]
+    return {"split_castes": len(CASTE_SPLIT), "caste_gender_channels": len(CASTE_SPLIT) * 2,
+            "mixed_caste_channels": len(mixed), "by_wave": by_wave}
+
+
+def channel_health_report() -> list:
+    """Emanna channel config lo problem unda (setup mundu)."""
+    from channel_content import channel_health
+    out = []
+    for key, ch in CHANNELS.items():
+        probs = channel_health(key, ch)
+        if probs:
+            out.append({"key": key, "problems": probs})
+    return out
+
 def channel_stats() -> dict:
     tiers = channels_by_tier()
     return {
@@ -739,7 +845,12 @@ def route_profile(profile: dict, max_posts: int = MAX_POSTS) -> dict:
                 ordered.append(("hindu", "top-match digest"))
             else:
                 notes.append("Caste channel undi → general Hindu hub skip (duplication avoid, slot save)")
-            ordered.append((caste_key, f"caste={profile.get('caste')}"))
+            if caste_key in SPLIT_MAP:
+                # ⭐ CASTE × GENDER channel (bride/groom separate) — exact reach
+                ck = SPLIT_MAP[caste_key].get(gender, caste_key)
+                ordered.append((ck, "caste=%s + %s" % (profile.get("caste"), gender)))
+            else:
+                ordered.append((caste_key, "caste=%s (mixed channel, #%s filter)" % (profile.get("caste"), gender)))
         else:
             ordered.append(("hindu", "religion (caste Open/Others)"))
             notes.append("Caste 'Open/Others' — caste channel skip (hashtag #Open)")

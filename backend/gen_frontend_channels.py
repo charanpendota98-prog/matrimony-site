@@ -14,9 +14,9 @@ OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)),
 
 TIER_LABEL = {
     "L0_OFFICIAL": ("Official Hub", "📢", "Top-3 daily, success stories, safety alerts"),
-    "L1_REGION": ("State Flagship", "📍", "TS / AP Bride & Groom + NRI"),
+    "L1_REGION": ("Main 4 Channels", "📍", "TS Bride • TS Groom • AP Bride • AP Groom (+ NRI)"),
     "L2_RELIGION": ("Religion", "🕊️", "Hindu, Muslim, Christian, Other, Inter-faith"),
-    "L3_CASTE": ("Caste-wise", "💍", "ONE channel per caste — 43 castes covered"),
+    "L3_CASTE": ("Caste-wise", "💍", "Caste prakaram — top 18 castes ki bride/groom separate, migilina 25 castes ki mixed"),
     "L4_SPECIAL": ("Special", "⭐", "2nd marriage, able, govt, IT, doctors, 35+, bureau"),
 }
 TIER_ORDER = ["L0_OFFICIAL", "L1_REGION", "L2_RELIGION", "L3_CASTE", "L4_SPECIAL"]
