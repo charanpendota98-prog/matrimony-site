@@ -14,3 +14,4 @@ publish_logs/*.jsonl
 whatsapp-bridge/session/
 cards/TSAP-*.png
 photos/
+backend/wa_state.json

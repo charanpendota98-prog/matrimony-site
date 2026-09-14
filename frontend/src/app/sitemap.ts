@@ -10,6 +10,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: "/channels", priority: 0.9, freq: "daily" },
     { path: "/channels?tier=L3_CASTE", priority: 0.85, freq: "weekly" },
     { path: "/channels?tier=L4_SPECIAL", priority: 0.8, freq: "weekly" },
+    { path: "/requests", priority: 0.92, freq: "daily" },
     { path: "/matches", priority: 0.75, freq: "weekly" },
     { path: "/referral", priority: 0.7, freq: "weekly" },
     { path: "/referral/register", priority: 0.6, freq: "monthly" },

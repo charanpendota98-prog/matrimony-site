@@ -24,12 +24,19 @@ ENV:
   WHATSAPP_TO               — comma separated: 9198480xxxxx (opt-in users)
   WHATSAPP_BRIDGE_URL       — e.g. http://whatsapp-bridge:3000/send
   WHATSAPP_BRIDGE_TARGETS   — comma separated group/newsletter ids (bridge mode)
+  PUBLIC_BASE_URL           — card image URL base (bridge ki image fetch cheyyadaniki)
+
+ANTI-BAN (chudandi: wa_antiban.py):
+  WhatsApp messages fixed timing lo vellavu — 120–170 sec RANDOM gap, typing simulation,
+  long breaks, day caps, per-target caps, quiet hours, warmup ramp, cooldown, kill switch.
+  Order: TELEGRAM mundu → tarvata WHATSAPP (oka profile ki rendu chotla post).
 """
 from __future__ import annotations
 
 import asyncio
 import json
 import os
+import random
 import time
 from datetime import datetime
 from typing import Dict, List, Optional
@@ -42,6 +49,7 @@ except Exception:  # pragma: no cover
 from channels_config import (
     CHANNELS, post_targets, build_caption, route_profile, channel_stats, SITE, BOT_USERNAME,
 )
+from wa_antiban import ENGINE as WA_ENGINE, variantize as wa_variantize
 
 LOG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "publish_log.jsonl")
 
@@ -50,6 +58,24 @@ PUBLISH_QUEUE: List[Dict] = []
 PUBLISH_LOG: List[Dict] = []
 _SEEN = set()          # (tsap_id, channel) duplicates block
 _WORKER_TASK: Optional[asyncio.Task] = None
+
+# ---- WhatsApp anti-ban queue (priority 0 = interest/request, 1 = channel post) ----
+WA_QUEUE: List[Dict] = []
+_WA_TASK: Optional[asyncio.Task] = None
+WA_STATS = {"sent": 0, "failed": 0, "skipped": 0, "last": []}
+
+
+def wa_queue_stats() -> Dict:
+    return {
+        "queued": len(WA_QUEUE),
+        "queued_interest": len([x for x in WA_QUEUE if x.get("priority") == 0]),
+        "queued_channel": len([x for x in WA_QUEUE if x.get("priority", 1) == 1]),
+        "sent_total": WA_STATS["sent"],
+        "failed_total": WA_STATS["failed"],
+        "last_results": WA_STATS["last"][-5:],
+        "antiban": WA_ENGINE.stats(),
+        "worker_running": wa_worker_running(),
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -94,6 +120,8 @@ def publish_status() -> Dict:
         },
         "dry_run": c["dry_run"],
         "auto_post_on_register": c["auto_post_on_register"],
+        "whatsapp_queue": wa_queue_stats(),
+        "order": "telegram → whatsapp (random gap)",
         "queued": len(PUBLISH_QUEUE),
         "published_total": len([x for x in PUBLISH_LOG if x.get("ok")]),
         "registry": {"total": st["total"], "live": st["live"], "to_create": st["to_create"]},
@@ -219,6 +247,184 @@ async def _send_whatsapp_bridge(text: str, cfg: Dict) -> List[Dict]:
     return results
 
 
+
+# ---------------------------------------------------------------------------
+# WHATSAPP ANTI-BAN SENDER (random gap + typing + caps) — wa_antiban.py engine
+# ---------------------------------------------------------------------------
+def _bridge_base(cfg: Dict) -> str:
+    """Bridge base URL — '/send' suffix unna teesesi base istham."""
+    url = (cfg.get("wa_bridge_url") or "").strip().rstrip("/")
+    for suffix in ("/send-image", "/send", "/status"):
+        if url.endswith(suffix):
+            url = url[: -len(suffix)]
+    return url
+
+
+def _public_base() -> str:
+    return os.getenv("PUBLIC_BASE_URL", SITE).rstrip("/")
+
+
+def whatsapp_link(phone: str, text: str) -> str:
+    """Click-to-chat fallback — WhatsApp configure kakapoyina user ni notify cheyyochu."""
+    import urllib.parse
+    digits = "".join(ch for ch in str(phone or "") if ch.isdigit())
+    if not digits:
+        return ""
+    if len(digits) == 10:
+        digits = "91" + digits
+    return f"https://wa.me/{digits}?text=" + urllib.parse.quote(text[:1500])
+
+
+async def _wa_deliver(item: Dict, cfg: Dict) -> Dict:
+    """Oka WhatsApp message ni deliver chey (cloud_api leda bridge)."""
+    target = item["target"]
+    text = wa_variantize(item["text"], SITE, BOT_USERNAME)
+    if cfg["dry_run"] or httpx is None:
+        return {"ok": True, "dry_run": True, "target": target, "kind": item.get("kind", "post"),
+                "text_preview": text[:80]}
+    if cfg["wa_mode"] == "cloud_api":
+        res = await _send_whatsapp_cloud(text, dict(cfg, wa_to=[target]))
+        return (res[0] if res else {"ok": False, "target": target, "error": "cloud_api empty"})
+    base = _bridge_base(cfg)
+    if not base:
+        return {"ok": False, "target": target, "error": "WHATSAPP_BRIDGE_URL set cheyyaledu"}
+    typing_ms = WA_ENGINE.typing_ms()
+    async with httpx.AsyncClient(timeout=60) as client:
+        img_url = item.get("image_url") or (_public_base() + "/cards/" + item["image_id"] + ".png"
+                                            if item.get("image_id") else "")
+        img_path = item.get("image_path")
+        has_img = bool(img_url or (img_path and os.path.exists(img_path)))
+        try:
+            if has_img:
+                payload = {"target": target, "caption": text[:1000], "typingMs": typing_ms}
+                if img_path and os.path.exists(img_path):
+                    payload["imagePath"] = img_path
+                else:
+                    payload["imageUrl"] = img_url
+                resp = await client.post(f"{base}/send-image", json=payload)
+                if resp.status_code < 300:
+                    return {"ok": True, "target": target, "status": resp.status_code,
+                            "kind": item.get("kind", "post"), "with_image": True}
+                # image fail aithe text-only fallback
+                err = resp.text[:150]
+            else:
+                err = ""
+            resp = await client.post(f"{base}/send", json={"target": target, "text": text,
+                                                          "typingMs": typing_ms})
+            body = {}
+            try:
+                body = resp.json()
+            except Exception:
+                body = {}
+            return {"ok": resp.status_code < 300, "target": target, "status": resp.status_code,
+                    "kind": item.get("kind", "post"), "with_image": False,
+                    "error": "" if resp.status_code < 300 else (str(body.get("error") or resp.text)[:150] or err)}
+        except Exception as e:
+            return {"ok": False, "target": target, "error": f"{type(e).__name__}: {e}"[:150]}
+
+
+def enqueue_whatsapp(targets: List[str], text: str, image_id: str = "", image_path: Optional[str] = None,
+                     priority: int = 1, kind: str = "post") -> Dict:
+    """
+    WhatsApp queue ki add chey. Worker tarvata random gap (120–170s) tho pampisthundi.
+    priority 0 = interest/request (fast lane 60–120s), 1 = channel post.
+    """
+    cfg = config()
+    if cfg["wa_mode"] == "off":
+        return {"queued": False, "reason": "whatsapp_mode_off",
+                "note": "WHATSAPP_MODE=bridge|cloud_api chesi bridge connect cheyyandi"}
+    added = 0
+    for t in [x for x in targets if x]:
+        WA_QUEUE.append({
+            "target": t, "text": text, "image_id": image_id, "image_path": image_path,
+            "priority": priority, "kind": kind, "queued_at": datetime.utcnow().isoformat(),
+            "attempts": 0,
+        })
+        added += 1
+    return {"queued": bool(added), "added": added, "queued_total": len(WA_QUEUE),
+            "targets": targets, "priority": priority, "kind": kind,
+            "gap_plan": WA_ENGINE.cfg()["min_gap"] if priority >= 1 else WA_ENGINE.cfg()["min_gap_interest"]}
+
+
+async def _sleep_checking(seconds: float) -> None:
+    """Chunked sleep — pause/kill-switch ventane pani cheyyali."""
+    remaining = max(0.0, seconds)
+    while remaining > 0:
+        chunk = min(10.0, remaining)
+        await asyncio.sleep(chunk)
+        remaining -= chunk
+        if WA_ENGINE.state.get("paused"):
+            return
+
+
+async def _wa_worker_loop():
+    """WhatsApp queue worker — anti-ban rules tho ne pampisthundi (oka samayam lo okati)."""
+    while True:
+        try:
+            cfg = config()
+            if not WA_QUEUE or cfg["wa_mode"] == "off":
+                await asyncio.sleep(3)
+                continue
+            WA_QUEUE.sort(key=lambda x: (x.get("priority", 1), x.get("queued_at", "")))
+            # item[0] cap/quiet lo block aithe → next ready item try chey (stall avvakudadu)
+            item, reason, wait = None, "empty", 5.0
+            waits = []
+            for cand in list(WA_QUEUE):
+                ok_c, r_c, w_c = WA_ENGINE.check(cand["target"], cand.get("priority", 1))
+                if ok_c:
+                    item = cand
+                    break
+                waits.append((r_c, w_c))
+            if item is None:
+                worst = [w for r, w in waits if r == "gap_wait"]
+                if worst:
+                    await asyncio.sleep(min(15.0, max(2.0, min(worst) / 6)))
+                elif any(r == "quiet_hours" for r, _ in waits):
+                    await asyncio.sleep(300)
+                else:
+                    await asyncio.sleep(30)
+                continue
+            WA_QUEUE.remove(item)
+            res = await _wa_deliver(item, cfg)
+            ok = bool(res.get("ok"))
+            WA_ENGINE.record_send(item["target"], ok=ok, detail=res.get("error", "") or "",
+                                  priority=item.get("priority", 1))
+            if ok:
+                WA_STATS["sent"] += 1
+            else:
+                WA_STATS["failed"] += 1
+            if not ok and int(item.get("attempts", 0)) < 1:
+                item["attempts"] = int(item.get("attempts", 0)) + 1
+                item["queued_at"] = datetime.utcnow().isoformat()
+                WA_QUEUE.append(item)   # okasari retry (network flake) — tarvata drop
+            WA_STATS["last"].append({"at": datetime.utcnow().isoformat(), "target": item["target"],
+                                     "ok": ok, "kind": item.get("kind"), "detail": res.get("error", "")})
+            WA_STATS["last"] = WA_STATS["last"][-20:]
+            _append_log_file({"tsap_id": item.get("image_id") or item.get("kind", "wa"),
+                              "channel": "whatsapp", "at": datetime.utcnow().isoformat(),
+                              "ok": ok, "detail": res, "antiban_gap_s": WA_ENGINE.wait_seconds(1)})
+        except Exception as e:
+            _append_log_file({"tsap_id": "wa-worker", "ok": False, "error": str(e)[:200],
+                              "at": datetime.utcnow().isoformat()})
+            await asyncio.sleep(10)
+
+
+def start_wa_worker() -> bool:
+    global _WA_TASK
+    try:
+        loop = asyncio.get_event_loop()
+        if _WA_TASK is None or _WA_TASK.done():
+            _WA_TASK = loop.create_task(_wa_worker_loop())
+            return True
+    except Exception:
+        pass
+    return False
+
+
+def wa_worker_running() -> bool:
+    return _WA_TASK is not None and not _WA_TASK.done()
+
+
 # ---------------------------------------------------------------------------
 # MAIN PUBLISH
 # ---------------------------------------------------------------------------
@@ -246,11 +452,15 @@ async def publish_profile(profile: Dict, tsap_id: str, score: int = 92,
             _SEEN.add(key)
         await asyncio.sleep(cfg["rate_limit_seconds"])
 
-    wa_results = []
-    if cfg["wa_mode"] == "cloud_api":
-        wa_results = await _send_whatsapp_cloud(wa_text, cfg)
-    elif cfg["wa_mode"] == "bridge":
-        wa_results = await _send_whatsapp_bridge(wa_text, cfg)
+    # ── WHATSAPP: Telegram ayyaka → anti-ban queue (random 120–170s gap) ──
+    wa_plan = {"mode": cfg["wa_mode"], "queued": False}
+    if cfg["wa_mode"] != "off":
+        wa_targets = cfg["wa_to"] if cfg["wa_mode"] == "cloud_api" else cfg["wa_bridge_targets"]
+        if wa_targets:
+            random.shuffle(wa_targets)   # order kuda random (spam pattern kanipinchadu)
+        wa_plan = enqueue_whatsapp(wa_targets, wa_text, image_id=tsap_id,
+                                   image_path=photo_path, priority=1, kind="channel_post")
+    wa_results = [wa_plan]
 
     entry = {
         "tsap_id": tsap_id,
@@ -258,7 +468,10 @@ async def publish_profile(profile: Dict, tsap_id: str, score: int = 92,
         "score": score,
         "at": datetime.utcnow().isoformat(),
         "telegram": tg_results,
-        "whatsapp": {"mode": cfg["wa_mode"], "results": wa_results},
+        "whatsapp": {"mode": cfg["wa_mode"], "results": wa_results,
+                     "antiban": {"gap": f"{int(WA_ENGINE.cfg()['min_gap'])}–{int(WA_ENGINE.cfg()['max_gap'])}s random",
+                                 "sent_today": WA_ENGINE.daily_count(),
+                                 "warmup_cap": WA_ENGINE.warmup_cap()}},
         "pending_channels": targets["pending"],
         "hashtags": targets["hashtags"],
         "ok": all(x.get("ok") for x in tg_results) if tg_results else False,
@@ -317,6 +530,7 @@ def start_worker() -> bool:
         loop = asyncio.get_event_loop()
         if _WORKER_TASK is None or _WORKER_TASK.done():
             _WORKER_TASK = loop.create_task(_worker_loop())
+            start_wa_worker()
             return True
     except Exception:
         pass
@@ -346,5 +560,12 @@ if __name__ == "__main__":
         print(build_whatsapp_text(demo, "TSAP-F-2025-5775", 92))
         print("\n--- PUBLISH (dry-run) ---")
         print(json.dumps(await publish_profile(demo, "TSAP-F-2025-5775", 92), indent=2, ensure_ascii=False))
+        print("\n--- WHATSAPP ANTI-BAN RULES ---")
+        print(json.dumps(WA_ENGINE.stats(), indent=2, ensure_ascii=False))
+        print("\n--- next 6 random gaps (whatsapp) ---")
+        for i in range(6):
+            g = WA_ENGINE._current_gap(1)
+            print(f"   post {i+1}: {g/60:.2f} min ({int(g)}s) — manishi la random")
+            WA_ENGINE.record_send(target="@manavivaha_reddy", ok=True, priority=1)
 
     asyncio.run(_main())

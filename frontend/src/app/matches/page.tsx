@@ -19,10 +19,15 @@ export default function MatchesAdvanced() {
     marital: "Any",
   });
   const [matches, setMatches] = useState<any[]>([]);
+  const [myTsapId, setMyTsapId] = useState("TSAP-M-2025-1042");
+  const [interestMsg, setInterestMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [sendingInterest, setSendingInterest] = useState("");
 
   useEffect(() => {
     const c = localStorage.getItem("tsap_credits");
     if (c) setCredits(parseInt(c));
+    const my = localStorage.getItem("tsap_id");
+    if (my) setMyTsapId(my);
     const all = [
       { id: "TSAP-F-2025-1042", fullName: "Lakshmi Reddy", age: 24, caste: "Reddy", edu: "BTech CSE", job: "Software", company: "TCS", district: "Hyderabad", state: "TS", mandal: "Gachibowli", salary: "60k", marital: "Pelli Kaledu", gothram: "Bharadwaj", star: "Rohini", workLocation: "Hyderabad", score: 92, photo: "https://i.pravatar.cc/300?img=32", reasons: ["Hyderabad + Software perfect", "Reddy + Bharadwaj same caste", "Age gap 3y ideal", "Middle Class Nuclear matching"], phone: "9848012345" },
       { id: "TSAP-M-2025-2042", fullName: "Ramesh Reddy", age: 45, caste: "Reddy", edu: "BTech", job: "Software", company: "Infosys", district: "Hyderabad", state: "TS", mandal: "Madhapur", salary: "1L+", marital: "Pelli Kaledu", gothram: "Kaundinya", star: "Bharani", workLocation: "Hyderabad", score: 88, photo: "https://i.pravatar.cc/300?img=12", reasons: ["Software Hyderabad 45y exact match", "Reddy same Gothram diff allowed", "Salary 1L+ stable", "Madhapur near Gachibowli 5km"], phone: "9848023456" },
@@ -46,6 +51,34 @@ export default function MatchesAdvanced() {
     if (filters.education !== "Any" && m.edu.indexOf(filters.education) === -1) return false;
     return true;
   }).sort((a, b) => b.score - a.score).slice(0, showCount);
+
+  // 💌 INTEREST PAMPU — 1 credit → vaallaki WhatsApp lo mee profile (chatting ledu)
+  const sendInterest = async (profile: any) => {
+    setSendingInterest(profile.id);
+    setInterestMsg(null);
+    try {
+      const r = await fetch("/api/interest/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ from_id: myTsapId, to_id: profile.id, channel: "matches_page" }),
+      });
+      const d = await r.json();
+      if (r.ok) {
+        setInterestMsg({ ok: true, text: d.message_telugu || "Interest pampincharu ✅" });
+        if (typeof d.credits_left === "number") {
+          setCredits(d.credits_left);
+          localStorage.setItem("tsap_credits", String(d.credits_left));
+        }
+      } else if (r.status === 402) {
+        setInterestMsg({ ok: false, text: (d.message_telugu || "Credits ledu") + " → /requests lo ₹99/₹199/₹299 plans" });
+      } else {
+        setInterestMsg({ ok: false, text: d.message_telugu || d.detail || "Interest pampaledu — /requests lo mee ID load cheyyandi" });
+      }
+    } catch {
+      setInterestMsg({ ok: false, text: "Network problem — malli try cheyyandi" });
+    }
+    setSendingInterest("");
+  };
 
   const shareWhatsApp = (profile: any) => {
     const reason = profile.reasons[0] || "";
@@ -75,11 +108,27 @@ export default function MatchesAdvanced() {
         <div className="flex items-center justify-between mb-4">
           <Link href="/" className="text-sm font-bold text-[#7A0C2E]">Home</Link>
           <div className="font-bold text-[#7A0C2E]">Advanced Matches Filters + Share</div>
-          <div className="text-xs bg-white px-3 py-1 rounded-full">Credits {credits} Phone {myPhone}</div>
+          <div className="flex items-center gap-2">
+            <input
+              value={myTsapId}
+              onChange={(e) => { setMyTsapId(e.target.value.toUpperCase()); localStorage.setItem("tsap_id", e.target.value.toUpperCase()); }}
+              className="text-xs bg-white border rounded-full px-3 py-1 w-44 font-mono"
+              title="Mee TSAP ID (interest pampadaniki)"
+            />
+            <div className="text-xs bg-white px-3 py-1 rounded-full">Credits {credits}</div>
+          </div>
         </div>
 
-        <div className="bg-gradient-to-r from-[#7A0C2E] to-[#A0143A] text-white rounded-2xl p-4">
-          <div className="font-bold text-sm">Example: Software Hyderabad 45+ Reddy 5 profiles</div>
+        {interestMsg && (
+          <div className={`mt-4 rounded-2xl px-4 py-3 text-sm border ${interestMsg.ok ? "bg-green-50 border-green-200 text-green-800" : "bg-amber-50 border-amber-200 text-amber-800"}`}>
+            {interestMsg.text} {!interestMsg.ok && <Link href="/requests" className="underline font-bold">Requests page →</Link>}
+          </div>
+        )}
+
+        <div className="mt-4 bg-gradient-to-r from-[#7A0C2E] to-[#A0143A] text-white rounded-2xl p-4">
+          <div className="font-bold text-sm">🚫 Chatting ledu — 💌 Interest pampu, accept aithe WhatsApp lo number exchange</div>
+          <div className="text-xs opacity-90 mt-1">Nachhina profile ki interest pampu (1 credit, modati 3 FREE). Vaallaki mana WhatsApp nunchi mee profile card + details veltundi.</div>
+          <div className="font-bold text-sm mt-2">Example: Software Hyderabad 45+ Reddy 5 profiles</div>
           <div className="text-xs opacity-90 mt-1">Filter Job Software Location Hyderabad AgeMin 45 Caste Reddy Show 5 then best 5 only reason + Share WhatsApp Telegram to registered number</div>
         </div>
 
@@ -169,12 +218,21 @@ export default function MatchesAdvanced() {
                     <div className="font-bold text-[#7A0C2E]">Star {m.score}% BEST Why match</div>
                     {m.reasons.map((r: string, i: number) => <div key={i}>Yes {r}</div>)}
                   </div>
-                  <div className="mt-3 flex gap-2">
-                    <Link href={"/search/" + m.id} className="flex-1 py-2 border rounded-full text-center text-xs font-bold">Open ID</Link>
-                    <button onClick={() => shareWhatsApp(m)} className="flex-1 py-2 bg-green-600 text-white rounded-full text-xs font-bold">WhatsApp Share</button>
-                    <button onClick={() => shareTelegram(m)} className="flex-1 py-2 bg-blue-500 text-white rounded-full text-xs font-bold">Telegram Share</button>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <Link href={"/search/" + m.id} className="flex-1 py-2 border rounded-full text-center text-xs font-bold min-w-[90px]">Open ID</Link>
+                    <button
+                      onClick={() => sendInterest(m)}
+                      disabled={sendingInterest === m.id}
+                      className="flex-1 py-2 bg-[#7A0C2E] text-white rounded-full text-xs font-bold min-w-[120px] disabled:opacity-60"
+                    >
+                      {sendingInterest === m.id ? "Pampisthunnam…" : "💌 Interest Pampu (1 credit)"}
+                    </button>
+                    <button onClick={() => shareWhatsApp(m)} className="flex-1 py-2 bg-green-600 text-white rounded-full text-xs font-bold min-w-[100px]">WhatsApp Share</button>
+                    <button onClick={() => shareTelegram(m)} className="flex-1 py-2 bg-blue-500 text-white rounded-full text-xs font-bold min-w-[100px]">Telegram Share</button>
                   </div>
-                  <div className="mt-2 text-[10px] text-gray-400">Share to registered number {myPhone} forward neat WhatsApp Telegram</div>
+                  <div className="mt-2 text-[10px] text-gray-400">
+                    Interest pampithe vaallaki mana WhatsApp nunchi mee profile + card veltundi (chatting ledu — accept aithe number exchange)
+                  </div>
                 </div>
               </div>
             </div>
@@ -190,13 +248,16 @@ export default function MatchesAdvanced() {
         )}
 
         <div className="mt-6 bg-white rounded-2xl p-4 text-center">
-          <div className="text-sm font-bold">Credits Logic ID Search Always Open</div>
-          <div className="text-xs text-gray-500 mt-1">Limit ayina kuda ID search open profile photos details open numbers lock if no credits malli pay 99 10 credits admin manual premium gift</div>
-          <div className="mt-3 flex justify-center gap-2">
-            <button className="px-6 py-2 gold-gradient rounded-full text-sm font-bold text-[#7A0C2E]">99 10 Credits + Share</button>
-            <button className="px-6 py-2 maroon-gradient text-white rounded-full text-sm font-bold">299 50 Credits + Daily Auto WhatsApp</button>
+          <div className="text-sm font-bold text-[#7A0C2E]">Credits — 1 credit = 1 profile (interest request)</div>
+          <div className="text-xs text-gray-500 mt-1">
+            ID search eppudu open. Interest pampu → vaallaki WhatsApp lo mee profile. Accept aithe number exchange, decline aithe refund.
           </div>
-          <div className="mt-3 text-[11px] text-gray-400">Oracle VM Free Tier Saripodda YES 4 OCPU 24GB free tier 1 VM 1GB RAM 50GB disk chalu profiles text photos compressed 10k profiles less 5GB ekkuva em avvadu free tier more than enough backup Drive daily</div>
+          <div className="mt-3 flex flex-wrap justify-center gap-2">
+            <Link href="/requests" className="px-5 py-2 gold-gradient rounded-full text-sm font-bold text-[#7A0C2E]">💌 ₹99 → 3 profiles</Link>
+            <Link href="/requests" className="px-5 py-2 border border-[#7A0C2E]/30 rounded-full text-sm font-bold text-[#7A0C2E]">₹199 → 10 profiles</Link>
+            <Link href="/requests" className="px-5 py-2 maroon-gradient text-white rounded-full text-sm font-bold">₹299 → 20 profiles</Link>
+          </div>
+          <div className="mt-3 text-[11px] text-gray-400">Modati 3 interest requests FREE • Referral ₹50 • Bureau ₹999/mo</div>
         </div>
       </div>
     </div>

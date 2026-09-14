@@ -5,7 +5,7 @@ All endpoints: Register, ID Search, Matches, Credits, Referral, Bureau, Admin, P
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from typing import Optional
+from typing import Dict, Optional
 import os, random, json
 from datetime import datetime
 
@@ -32,7 +32,17 @@ except Exception:  # fonts/PIL lekapoyina server padipodu
 from publisher import (
     enqueue, publish_profile, publish_status, read_log, start_worker, worker_running,
     build_whatsapp_text, build_share_text, config as publish_config,
+    enqueue_whatsapp, wa_queue_stats, start_wa_worker, whatsapp_link, WA_QUEUE,
 )
+from wa_antiban import ENGINE as WA_ENGINE
+from interest import (
+    PLANS as INTEREST_PLANS, plan_list, get_plan, plan_by_amount,
+    can_send_interest, create_interest, respond_interest, expire_old,
+    interest_to_owner_text, interest_accepted_text, interest_declined_text,
+    interest_notify_text, inbox_for, sent_for, safe_user,
+    MAX_PER_DAY as INTEREST_MAX_PER_DAY, EXPIRY_DAYS as INTEREST_EXPIRY_DAYS,
+)
+from card_generator import generate_id as _gen_id
 from channels_config import post_targets
 
 app = FastAPI(title="TSAP Matrimony API — Ultra Advanced", version="2.0")
@@ -51,8 +61,19 @@ except Exception as _e:
 async def _startup_publisher():
     ok = start_worker()
     st = publish_status()
+    start_wa_worker()
+    wa = st["whatsapp_queue"]["antiban"]
     print(f"[PUBLISHER] worker={ok} | telegram={'ready' if st['telegram']['configured'] else 'dry-run'} "
           f"| whatsapp={st['whatsapp']['mode']} | live_channels={st['telegram']['live_channels']}")
+    print(f"[WHATSAPP-ANTIBAN] telegram mundu → whatsapp tarvata | gap={wa['random_gap']} | "
+          f"cap={wa['daily_cap']}/day (today {wa['warmup_cap_today']}) | hour {wa['active_hours_ist'][0]}–{wa['active_hours_ist'][1]} IST")
+    # demo profiles: empty DB aithe (dev/preview lo) ventane 4 profiles — interest flow test cheyyadaniki
+    if str(os.getenv("DEMO_SEED_ENABLED", "true")).lower() in ("1", "true", "yes", "on") and not DB_USERS:
+        try:
+            res = demo_seed()
+            print(f"[DEMO] {len(res['created'])} profiles ready: " + ", ".join(x['tsap_id'] for x in res['created']))
+        except Exception as e:
+            print("[DEMO] seed skip:", str(e)[:100])
 
 app.add_middleware(
     CORSMiddleware,
@@ -64,18 +85,56 @@ app.add_middleware(
 
 # In-memory DB (real lo Postgres)
 DB_USERS = []
+DB_INTERESTS = []
 DB_PAYMENTS = []
 DB_POSTS = []
 DB_REFERRALS = []
 
-# Helper
+# Helper — unique TSAP ID (same number rendu sarlu raakudadu)
+def unique_tsap_id(gender: str, year: int = 2025) -> str:
+    for _ in range(50):
+        tid = generate_id(gender, year, random.randint(1000, 9999))
+        if not any(u.get("tsap_id") == tid for u in DB_USERS):
+            return tid
+    return generate_id(gender, year, random.randint(10000, 99999))
+
+
+def _score_pair(a: Dict, b: Dict) -> tuple:
+    """Match score + Telugu reasons — missing fields unna safe ga (crash avvadu)."""
+    def norm(u: Dict) -> Dict:
+        d = dict(u or {})
+        d.setdefault("gender", "Bride")
+        d.setdefault("age", 25)
+        d.setdefault("caste", "—")
+        d.setdefault("education", "—")
+        d.setdefault("job", "—")
+        d.setdefault("height", '5\'5"')
+        d.setdefault("star", "")
+        d.setdefault("district", d.get("current_city", "—"))
+        d.setdefault("state", "TS")
+        d.setdefault("mandal", d.get("district", ""))
+        d.setdefault("marital_status", "Pelli Kaledu")
+        return d
+    try:
+        na, nb = norm(a), norm(b)
+        sc = calculate_match_score(na, nb)
+        rs = generate_personalized_reasons(na, nb, sc)
+        return sc, rs
+    except Exception as e:
+        return 0, []
+
+
 def encrypt_phone(phone: str) -> str:
     # Mock encrypt — real lo AES
     return f"enc_{phone[-4:]}"
 
 @app.get("/")
 def root():
-    return {"message": "TSAP Matrimony API — Ultra Advanced, Deep, Never Before 🔥", "status": "LIVE", "version": "2.0", "endpoints": ["/api/register","/api/search/{id}","/api/matches/{id}","/api/payment/webhook","/api/admin/approve/{id}","/api/referral/leaderboard","/api/channels","/api/channels/route","/api/channels/live"]}
+    return {"message": "TSAP Matrimony API — Ultra Advanced, Deep, Never Before 🔥", "status": "LIVE", "version": "2.0", "chatting": False, "model": "Interest request + WhatsApp profile share",
+            "endpoints": ["/api/register","/api/search/{id}","/api/matches/{id}","/api/plans","/api/credits/{id}",
+                          "/api/credits/buy","/api/interest/send","/api/interest/inbox/{id}","/api/interest/sent/{id}",
+                          "/api/interest/respond","/api/interest/status/{id}","/api/wa/status","/api/wa/pause","/api/wa/resume",
+                          "/api/payment/webhook","/api/channels","/api/publish/status","/api/publish/log"]}
 
 @app.post("/api/register", response_model=RegisterResponse)
 async def register(
@@ -159,8 +218,7 @@ async def register(
     if age < 18: raise HTTPException(400, "Age must be 18+ (Bride) / 21+ (Groom)")
 
     # 2. ID Gen
-    seq = random.randint(1000, 9999)
-    tsap_id = generate_id(gender, 2025, seq)
+    tsap_id = unique_tsap_id(gender, 2025)
     my_ref_code = f"TSAP-REF-{seq}"
 
     # 3. Save DB - Advanced Full
@@ -558,6 +616,325 @@ def publish_preview(payload: dict):
 def channels_live():
     return {"live": [_channel_public(c["key"], c) for c in live_channels()],
             "count": channel_stats()["live"], "bot": "@telugumatrimony1_bot"}
+
+
+# ===========================================================================
+# 💌 INTEREST / REQUEST + 💳 CREDITS + 🛡️ WHATSAPP ANTI-BAN CONTROL
+# ===========================================================================
+def _find_user(tsap_id: str):
+    return next((u for u in DB_USERS if u["tsap_id"] == tsap_id), None)
+
+
+@app.get("/api/plans")
+def plans_endpoint():
+    """Pricing ladder: FREE 3 → ₹99=3 → ₹199=10 → ₹299=20 profiles."""
+    return {
+        "currency": "INR",
+        "chatting": False,
+        "model": "Interest request + WhatsApp lo profile share (chatting ledu)",
+        "free_first": 3,
+        "plans": plan_list(),
+        "note_telugu": "Request pampinappudu 1 credit. Accept aithe numbers automatic ga WhatsApp lo. Decline aithe credit refund.",
+    }
+
+
+@app.get("/api/credits/{tsap_id}")
+def credits_endpoint(tsap_id: str):
+    u = _find_user(tsap_id)
+    if not u:
+        raise HTTPException(404, "User not found")
+    sent = [i for i in DB_INTERESTS if i["from_id"] == tsap_id]
+    return {
+        "tsap_id": tsap_id,
+        "credits": u.get("credits", 0),
+        "plan": u.get("plan", "FREE"),
+        "plan_label": get_plan(u.get("plan", "FREE"))["label"],
+        "requests_sent": len(sent),
+        "pending": len([i for i in sent if i["status"] == "pending"]),
+        "accepted": len([i for i in sent if i["status"] == "accepted"]),
+        "refunded": len([i for i in sent if i.get("credit_refunded")]),
+        "plans": plan_list(),
+        "message_telugu": ("✅ Mee daggara %d credits unnayi" % u.get("credits", 0)) if u.get("credits", 0) > 0
+                          else "⚠️ Credits ayipoyayi — ₹99 tho 3 profiles pondandi",
+    }
+
+
+@app.post("/api/credits/buy")
+def credits_buy(payload: dict):
+    """
+    Plan buy — Razorpay live ayyaka ee endpoint webhook tho kalisipothundi.
+    Ippudu: PAYMENT_AUTO_APPROVE=true (dev/demo) ayithe ventane credits add; leda order create chesi
+    UPI/Razorpay link istundi (manual verify).
+    """
+    tsap_id = (payload or {}).get("tsap_id", "")
+    plan_code = (payload or {}).get("plan", "S_99")
+    u = _find_user(tsap_id)
+    if not u:
+        raise HTTPException(404, "User not found — mundu register cheyyandi")
+    plan = get_plan(plan_code)
+    order_id = "ORD-" + datetime.utcnow().strftime("%y%m%d%H%M%S") + str(len(DB_PAYMENTS) + 1).zfill(3)
+    order = {"order_id": order_id, "tsap_id": tsap_id, "plan": plan["code"], "amount": plan["price"],
+             "profiles": plan["profiles"], "at": datetime.utcnow().isoformat(), "status": "created"}
+    auto = str(os.getenv("PAYMENT_AUTO_APPROVE", "true")).lower() in ("1", "true", "yes", "on")
+    if auto and plan["price"] > 0:
+        u["credits"] = int(u.get("credits", 0)) + plan["profiles"]
+        u["plan"] = plan["code"]
+        order["status"] = "paid"
+        order["credits_added"] = plan["profiles"]
+        # referral commission (friend pay chesadu → referrer ki ₹50; referral.py logic)
+        if u.get("referred_by"):
+            try:
+                order["referral"] = process_referral_payment(u, u["referred_by"], plan["price"], DB_USERS)
+            except Exception as e:
+                order["referral"] = {"error": str(e)[:120]}
+    DB_PAYMENTS.append(order)
+    upi = f"upi://pay?pa=manavivaha@upi&pn=ManaVivaha&am={plan['price']}&cu=INR&tn={order_id}"
+    return {
+        "success": True,
+        "order": order,
+        "credits_now": u.get("credits", 0),
+        "plan": plan,
+        "upi_link": upi if plan["price"] else "",
+        "message_telugu": (f"🎉 ₹{plan['price']} → {plan['profiles']} profiles add ayyayi! "
+                          f"Total credits: {u.get('credits', 0)}") if order["status"] == "paid"
+                          else f"Order {order_id} create ayyindi — ₹{plan['price']} pay cheyyandi (UPI/Razorpay)",
+        "note": "Razorpay live ayyaka idhe endpoint auto-verify chestundi (webhook /api/payment/webhook)",
+    }
+
+
+@app.post("/api/interest/send")
+async def interest_send(payload: dict):
+    """
+    💌 Interest pampu — 1 credit. Owner ki WhatsApp lo REQUESTER PROFILE + card veltundi.
+    (idi user adigina core flow: chatting ledu, WhatsApp lo profile share matrame)
+    """
+    d = payload or {}
+    from_id = d.get("from_id", "").strip()
+    to_id = d.get("to_id", "").strip()
+    note = d.get("note", "")
+
+    frm, to = _find_user(from_id), _find_user(to_id)
+    if not frm:
+        raise HTTPException(404, f"Mee TSAP ID dorakaledu: {from_id} — mundu register cheyyandi")
+    if not to:
+        raise HTTPException(404, f"Profile dorakaledu: {to_id}")
+
+    expire_old(DB_INTERESTS)
+    ok, reason = can_send_interest(frm, to, DB_INTERESTS)
+    if not ok:
+        if reason == "credits_ledu":
+            return JSONResponse(status_code=402, content={
+                "success": False, "reason": "credits_ledu", "credits": frm.get("credits", 0),
+                "plans": plan_list(), "pay_url": "/requests#plans",
+                "message_telugu": "⚠️ Credits ayipoyayi — ₹99 tho 3 profiles, ₹199 tho 10, ₹299 tho 20 pondandi",
+            })
+        return JSONResponse(status_code=400, content={"success": False, "reason": reason,
+                                                      "message_telugu": reason})
+
+    score, reasons = _score_pair(frm, to)
+
+    rec = create_interest(frm, to, note=note, score=score, reasons=reasons,
+                          channel=d.get("channel", "website"))
+    deduct = deduct_credit(frm)
+    if not deduct.get("success"):
+        return JSONResponse(status_code=402, content={"success": False, "plans": plan_list(),
+                                                      "message_telugu": deduct.get("message_telugu", "Credits ledu")})
+    DB_INTERESTS.append(rec)
+
+    # ── WhatsApp: owner ki requester profile (+ card image) | requester ki confirmation ──
+    owner_text = interest_to_owner_text(frm, to, rec)
+    notify_text = interest_notify_text(frm, to, rec)
+    owner_phone = to.get("phone", "")
+    frm_phone = frm.get("phone", "")
+    wa_plan = enqueue_whatsapp([owner_phone], owner_text, image_id=from_id, priority=0,
+                               kind="interest_to_owner")
+    wa_plan2 = enqueue_whatsapp([frm_phone], notify_text, image_id=to_id, priority=0,
+                                kind="interest_confirm")
+    if not wa_plan.get("queued"):
+        start_wa_worker()
+
+    return {
+        "success": True,
+        "request_id": rec["request_id"],
+        "status": rec["status"],
+        "expires_in_days": INTEREST_EXPIRY_DAYS,
+        "score": score,
+        "reasons": reasons,
+        "credits_left": frm.get("credits", 0),
+        "sent_to": safe_user(to),
+        "whatsapp": {
+            "mode": publish_config()["wa_mode"],
+            "owner_queued": wa_plan.get("queued", False),
+            "requester_queued": wa_plan2.get("queued", False),
+            "owner_link_manual": whatsapp_link(owner_phone, owner_text) if not wa_plan.get("queued") else "",
+            "anti_ban": f"{int(WA_ENGINE.cfg()['min_gap_interest'])}–{int(WA_ENGINE.cfg()['max_gap_interest'])}s random gap (fast lane)",
+        },
+        "owner_message_preview": owner_text,
+        "message_telugu": (f"💌 Interest pampincharu! {safe_user(to)['full_name']} ki WhatsApp lo "
+                           f"mee profile veltundi. Accept aithe numbers automatic ga exchange avutayi. "
+                           f"Credits migilayi: {frm.get('credits', 0)}"),
+    }
+
+
+@app.get("/api/interest/inbox/{tsap_id}")
+def interest_inbox(tsap_id: str):
+    u = _find_user(tsap_id)
+    if not u:
+        raise HTTPException(404, "User not found")
+    expire_old(DB_INTERESTS)
+    data = inbox_for(u, DB_USERS, DB_INTERESTS)
+    data["credits"] = u.get("credits", 0)
+    data["model"] = "accept → number exchange (chatting ledu)"
+    return data
+
+
+@app.get("/api/interest/sent/{tsap_id}")
+def interest_sent(tsap_id: str):
+    u = _find_user(tsap_id)
+    if not u:
+        raise HTTPException(404, "User not found")
+    expire_old(DB_INTERESTS)
+    data = sent_for(u, DB_USERS, DB_INTERESTS)
+    data["credits"] = u.get("credits", 0)
+    return data
+
+
+@app.post("/api/interest/respond")
+async def interest_respond(payload: dict):
+    """Owner accept/decline. Accept → rendu numbers WhatsApp lo (consent based). Decline → credit refund."""
+    d = payload or {}
+    tsap_id = d.get("tsap_id", "")
+    request_id = d.get("request_id", "")
+    action = (d.get("action", "") or "").lower()
+    owner = _find_user(tsap_id)
+    if not owner:
+        raise HTTPException(404, "User not found")
+    rec = next((i for i in DB_INTERESTS if i["request_id"] == request_id), None)
+    if not rec:
+        raise HTTPException(404, f"Request dorakaledu: {request_id}")
+    if rec["to_id"] != tsap_id:
+        raise HTTPException(403, "Ee request meeku kaadu")
+    requester = _find_user(rec["from_id"])
+    res = respond_interest(rec, owner, requester or {}, action)
+    if not res.get("success"):
+        return JSONResponse(status_code=400, content=res)
+
+    wa = {}
+    if action == "accept" and requester:
+        txt = interest_accepted_text(requester, owner, rec)
+        wa = enqueue_whatsapp([requester.get("phone", "")], txt, image_id=owner["tsap_id"],
+                              priority=0, kind="interest_accepted")
+        enqueue_whatsapp([owner.get("phone", "")], txt, image_id=requester["tsap_id"],
+                         priority=0, kind="interest_accepted_owner")
+        res["contact"] = {"name": requester.get("full_name"), "phone": requester.get("phone", "")}
+    elif action == "decline":
+        if rec.get("credit_refunded"):
+            requester and requester.update({"credits": int(requester.get("credits", 0)) + 1})
+        if requester:
+            txt = interest_declined_text(requester, owner, rec)
+            wa = enqueue_whatsapp([requester.get("phone", "")], txt, priority=0, kind="interest_declined")
+    elif action == "withdraw":
+        rec["credit_refunded"] = True
+        if requester:
+            requester.update({"credits": int(requester.get("credits", 0)) + 1})
+
+    return {"success": True, "request": rec, "whatsapp": wa, "result": res,
+            "message_telugu": res.get("message"), "credits": owner.get("credits", 0)}
+
+
+@app.get("/api/interest/status/{request_id}")
+def interest_status(request_id: str):
+    rec = next((i for i in DB_INTERESTS if i["request_id"] == request_id), None)
+    if not rec:
+        raise HTTPException(404, "Request not found")
+    return {"request": rec,
+            "steps": [
+                {"step": "Request pampincharu", "done": True},
+                {"step": "Owner ki WhatsApp lo mee profile vellindi", "done": True},
+                {"step": "Owner reply (accept/decline)", "done": rec["status"] in ("accepted", "declined")},
+                {"step": "Numbers exchange (WhatsApp)", "done": rec.get("contact_shared", False)},
+            ]}
+
+
+# ---------------------------------------------------------------- WhatsApp control
+@app.get("/api/wa/status")
+def wa_status():
+    """Anti-ban live status: gap, caps, queue, quiet hours, cooldown."""
+    return {"ok": True, **wa_queue_stats()}
+
+
+@app.post("/api/wa/pause")
+def wa_pause(reason: str = "manual"):
+    return {"ok": True, **WA_ENGINE.pause(reason)}
+
+
+@app.post("/api/wa/resume")
+def wa_resume():
+    return {"ok": True, **WA_ENGINE.resume()}
+
+
+@app.post("/api/wa/reset_day")
+def wa_reset_day():
+    """Test tip: ee roju counters reset (caps fresh). Production lo vaddu."""
+    return {"ok": True, **WA_ENGINE.reset_today()}
+
+
+@app.post("/api/demo/seed")
+def demo_seed():
+    """
+    Demo profiles create (frontend test cheyyadaniki) — idempotent, dev convenience.
+    DEMO_SEED_ENABLED=false chesthe bandh.
+    """
+    if str(os.getenv("DEMO_SEED_ENABLED", "true")).lower() not in ("1", "true", "yes", "on"):
+        raise HTTPException(403, "Demo seed bandh chesaru")
+    seeds = [
+        dict(prefer_id="TSAP-F-2025-1042", gender="Bride", full_name="Lakshmi Reddy", age=24, caste="Reddy", sub_caste="Pakanati",
+             education="BTech", education_detail="CSE", job="Software Engineer", company="TCS",
+             salary="8L", height="5'4\"", district="Hyderabad", state="TS", gothram="Bharadwaj",
+             star="Rohini", rasi="Vrishabha", phone="9848011111", family_type="Nuclear"),
+        dict(prefer_id="TSAP-F-2025-2042", gender="Bride", full_name="Sravani Chowdary", age=26, caste="Kamma", sub_caste="",
+             education="MSc", education_detail="Data Science", job="Data Analyst", company="Deloitte",
+             salary="10L", height="5'5\"", district="Vijayawada", state="AP", gothram="Kasyapa",
+             star="Ashwini", rasi="Mesha", phone="9848022222", family_type="Joint"),
+        dict(prefer_id="TSAP-M-2025-1042", gender="Groom", full_name="Kiran Kumar Reddy", age=29, caste="Reddy", sub_caste="Deshathi",
+             education="MBBS", education_detail="MD", job="Doctor", company="Apollo", salary="2L+/mo",
+             height="5'10\"", district="Nalgonda", state="TS", gothram="Vasishta", star="Mrigasira",
+             rasi="Dhanu", phone="9848033333", family_type="Nuclear"),
+        dict(prefer_id="TSAP-M-2025-4042", gender="Groom", full_name="Arjun Chowdary", age=31, caste="Kamma", sub_caste="",
+             education="MS", education_detail="USA", job="Product Manager", company="Amazon",
+             salary="40L", height="5'11\"", district="Guntur", state="AP", gothram="Kaundinya",
+             star="Bharani", rasi="Simha", phone="9848044444", family_type="Nuclear"),
+    ]
+    created = []
+    for sd in seeds:
+        existing = next((u for u in DB_USERS
+                         if u.get("full_name") == sd["full_name"] and u.get("district") == sd["district"]), None)
+        if existing:
+            created.append({"tsap_id": existing["tsap_id"], "name": sd["full_name"],
+                            "role": sd["gender"], "existing": True})
+            continue
+        prefer = sd.pop("prefer_id", None)
+        tsap_id = prefer if (prefer and not any(u.get("tsap_id") == prefer for u in DB_USERS)) else unique_tsap_id(sd["gender"])
+        user = {**sd, "tsap_id": tsap_id, "credits": 3, "plan": "FREE", "wallet": 0,
+                "marital_status": "Pelli Kaledu", "mandal": sd.get("district", ""),
+                "phone_encrypted": encrypt_phone(sd["phone"]), "phone_last4": sd["phone"][-4:],
+                "photo_urls": [], "card_url": f"/cards/{tsap_id}.png", "is_verified": True,
+                "is_approved": True, "privacy_mode": "public", "referral_code": f"MV{tsap_id[-4:]}",
+                "referral_stats": {"total": 0, "paid_count": 0},
+                "created_at": datetime.utcnow().isoformat(), "completeness": 88, "score": 92,
+                "profile_note": "TSAP demo profile"}
+        user["reasons"] = generate_profile_highlights(user)
+        DB_USERS.append(user)
+        # demo card generate (WhatsApp image test ki) — fail aithe skip
+        try:
+            if create_pro_card:
+                os.makedirs("/tmp/cards", exist_ok=True)
+                create_pro_card(user, f"/tmp/cards/{tsap_id}.png")
+        except Exception as _e:
+            print("[DEMO] card skip:", str(_e)[:80])
+        created.append({"tsap_id": tsap_id, "name": sd["full_name"], "role": sd["gender"]})
+    return {"success": True, "created": created, "total_users": len(DB_USERS),
+            "hint": "Maa ID tho /requests lo interest pampinchu (user adigina flow test)"}
 
 if __name__=="__main__":
     import uvicorn

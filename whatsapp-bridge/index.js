@@ -4,10 +4,14 @@
  * Baileys tho WhatsApp Web session — groups / newsletter / community ki post cheyyadaniki.
  *
  * Endpoints:
- *   POST /send   { target: "12036...@g.us" | "9198480xxxxx@s.whatsapp.net", text: "..." }
- *   POST /send-image  { target, imagePath, caption }
- *   GET  /status { connected: true/false, groups: [...] }
- *   GET  /qr     → QR page (login scan cheyyadaniki)
+ *   POST /send        { target, text, typingMs? }   → composing presence + text
+ *   POST /send-image  { target, caption, imagePath | imageUrl, typingMs? }
+ *   POST /presence    { target, state: composing|paused }  → "type chesthunnattu" simulation
+ *   GET  /status      { connected, groups, sent, uptimeSec }
+ *   GET  /qr          → QR page (login scan cheyyadaniki)
+ *
+ * NOTE (anti-ban): delay logic Python side lo undi (backend/wa_antiban.py) — bridge ki
+ * 'typingMs' vaste, aa time antha "composing" presence chupistundi (manishi la kanipistundi).
  *
  * Startup:
  *   docker-compose up -d whatsapp-bridge
@@ -38,6 +42,32 @@ let sock = null;
 let connected = false;
 let lastQR = null;
 let groups = [];
+let sentCount = 0;
+const startedAt = Date.now();
+
+// presence simulate — "type chesthunnattu" (manishi la kanipinchadaniki)
+async function simulateTyping(jid, ms) {
+  const wait = Math.min(Math.max(Number(ms) || 0, 0), 15000);
+  if (!wait) return;
+  try {
+    await sock.presenceSubscribe(jid);
+    await sock.sendPresenceUpdate("composing", jid);
+    await new Promise((r) => setTimeout(r, wait));
+    await sock.sendPresenceUpdate("paused", jid);
+  } catch (e) {
+    console.log("[WA] presence skip:", e.message);
+  }
+}
+
+async function loadImage({ imagePath, imageUrl }) {
+  if (imagePath && fs.existsSync(imagePath)) return fs.readFileSync(imagePath);
+  if (imageUrl) {
+    const res = await fetch(imageUrl);
+    if (!res.ok) throw new Error(`imageUrl fetch failed: ${res.status}`);
+    return Buffer.from(await res.arrayBuffer());
+  }
+  return null;
+}
 
 async function startSock() {
   const { state, saveCreds } = await useMultiFileAuthState(SESSION_DIR);
@@ -95,35 +125,58 @@ function normalizeTarget(target) {
 }
 
 app.post("/send", async (req, res) => {
-  const { target, text } = req.body || {};
+  const { target, text, typingMs } = req.body || {};
   if (!connected) return res.status(503).json({ ok: false, error: "WhatsApp not connected — QR scan chey" });
   if (!target || !text) return res.status(400).json({ ok: false, error: "target + text kavali" });
   try {
-    const r = await sock.sendMessage(normalizeTarget(target), { text });
-    res.json({ ok: true, id: r?.key?.id, target });
+    const jid = normalizeTarget(target);
+    await simulateTyping(jid, typingMs);
+    const r = await sock.sendMessage(jid, { text });
+    sentCount += 1;
+    res.json({ ok: true, id: r?.key?.id, target, sent: sentCount });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+app.post("/presence", async (req, res) => {
+  const { target, state } = req.body || {};
+  if (!connected) return res.status(503).json({ ok: false, error: "not connected" });
+  try {
+    const jid = normalizeTarget(target);
+    await sock.presenceSubscribe(jid);
+    await sock.sendPresenceUpdate(state === "paused" ? "paused" : "composing", jid);
+    res.json({ ok: true, target, state: state || "composing" });
   } catch (e) {
     res.status(500).json({ ok: false, error: e.message });
   }
 });
 
 app.post("/send-image", async (req, res) => {
-  const { target, imagePath, caption } = req.body || {};
+  const { target, imagePath, imageUrl, caption, typingMs } = req.body || {};
   if (!connected) return res.status(503).json({ ok: false, error: "WhatsApp not connected" });
-  if (!target || !imagePath || !fs.existsSync(imagePath)) {
-    return res.status(400).json({ ok: false, error: "target + valid imagePath kavali" });
-  }
+  if (!target) return res.status(400).json({ ok: false, error: "target kavali" });
   try {
-    const r = await sock.sendMessage(normalizeTarget(target), {
-      image: fs.readFileSync(imagePath),
-      caption: caption || "",
-    });
-    res.json({ ok: true, id: r?.key?.id, target });
+    const image = await loadImage({ imagePath, imageUrl });
+    if (!image) return res.status(400).json({ ok: false, error: "imagePath leda imageUrl kavali" });
+    const jid = normalizeTarget(target);
+    await simulateTyping(jid, typingMs);
+    const r = await sock.sendMessage(jid, { image, caption: caption || "" });
+    sentCount += 1;
+    res.json({ ok: true, id: r?.key?.id, target, withImage: true, sent: sentCount });
   } catch (e) {
     res.status(500).json({ ok: false, error: e.message });
   }
 });
 
-app.get("/status", (req, res) => res.json({ connected, groups: groups.length, groupList: groups.slice(0, 50) }));
+app.get("/status", (req, res) => res.json({
+  connected,
+  groups: groups.length,
+  groupList: groups.slice(0, 50),
+  sent: sentCount,
+  uptimeSec: Math.floor((Date.now() - startedAt) / 1000),
+}));
+app.get("/groups", (req, res) => res.json({ connected, count: groups.length, groups }));
 app.get("/qr", (req, res) => {
   const f = path.join(__dirname, "qr.html");
   if (fs.existsSync(f) && !connected) return res.sendFile(f);

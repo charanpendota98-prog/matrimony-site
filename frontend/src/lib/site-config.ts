@@ -13,7 +13,7 @@ export const SITE_CONFIG = {
   legalName: "TSAP Matrimony",
   logoText: "MV",
   tagline: "TS-AP No.1 Telugu Matrimony",
-  taglineTelugu: "₹99 ke Sambandham • Modati 3 FREE",
+  taglineTelugu: "₹99 ke Sambandham • Modati 3 FREE • Chatting ledu",
   domain: "manavivaha.in",
   siteUrl: process.env.SITE_URL || "https://manavivaha.in",
   established: 2025,
@@ -34,13 +34,24 @@ export const SITE_CONFIG = {
   },
 
   // ---------- Pricing (home page lo chupisthundi) ----------
-  pricing: {
+  pricing: {                       // 1 credit = 1 profile (interest request)
     currency: "₹",
-    trial: 99,
-    premium: 299,
+    trial: 99,                     // ₹99 → 3 profiles
+    family: 199,                   // ₹199 → 10 profiles
+    premium: 299,                  // ₹299 → 20 profiles
     bureauMonthly: 999,
-    freeCredits: 3,        // modati 3 numbers FREE
-    referralPerPay: 50,    // referrer ki ₹50
+    freeCredits: 3,                // modati 3 interest requests FREE
+    referralPerPay: 50,            // referrer ki ₹50
+    bundles: [
+      { price: 99, profiles: 3, label: "Sambandham" },
+      { price: 199, profiles: 10, label: "Family" },
+      { price: 299, profiles: 20, label: "Premium" },
+    ],
+  },
+  model: {
+    chatting: false,               // 🚫 chatting ledu — consent-based requests
+    interestCreditCost: 1,
+    refundOnDecline: true,
   },
 
   // ---------- Feature toggles ----------

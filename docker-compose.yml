@@ -47,6 +47,30 @@ services:
       - WHATSAPP_TO=${WHATSAPP_TO}
       - WHATSAPP_BRIDGE_URL=${WHATSAPP_BRIDGE_URL}
       - WHATSAPP_BRIDGE_TARGETS=${WHATSAPP_BRIDGE_TARGETS}
+      - PUBLIC_BASE_URL=${PUBLIC_BASE_URL:-https://manavivaha.in}
+      # 🛡️ WhatsApp anti-ban (random 120–170s gap, caps, quiet hours, warmup)
+      - WA_ENABLED=${WA_ENABLED:-true}
+      - WA_MIN_GAP=${WA_MIN_GAP:-120}
+      - WA_MAX_GAP=${WA_MAX_GAP:-170}
+      - WA_MIN_GAP_INTEREST=${WA_MIN_GAP_INTEREST:-60}
+      - WA_MAX_GAP_INTEREST=${WA_MAX_GAP_INTEREST:-120}
+      - WA_BREAK_EVERY=${WA_BREAK_EVERY:-6}
+      - WA_BREAK_MIN_MIN=${WA_BREAK_MIN_MIN:-8}
+      - WA_BREAK_MAX_MIN=${WA_BREAK_MAX_MIN:-20}
+      - WA_LONG_PAUSE_CHANCE=${WA_LONG_PAUSE_CHANCE:-0.08}
+      - WA_DAILY_CAP=${WA_DAILY_CAP:-60}
+      - WA_TARGET_DAILY_CAP=${WA_TARGET_DAILY_CAP:-8}
+      - WA_ACTIVE_START=${WA_ACTIVE_START:-8}
+      - WA_ACTIVE_END=${WA_ACTIVE_END:-22}
+      - WA_WARMUP_DAYS=${WA_WARMUP_DAYS:-4}
+      - WA_FAIL_COOLDOWN_MIN=${WA_FAIL_COOLDOWN_MIN:-30}
+      - WA_TEST_FAST=${WA_TEST_FAST:-false}
+      # 💌 Interest/request model (chatting ledu) + payments + demo
+      - INTEREST_MAX_PER_DAY=${INTEREST_MAX_PER_DAY:-20}
+      - INTEREST_EXPIRY_DAYS=${INTEREST_EXPIRY_DAYS:-7}
+      - INTEREST_REFUND_ON_DECLINE=${INTEREST_REFUND_ON_DECLINE:-true}
+      - PAYMENT_AUTO_APPROVE=${PAYMENT_AUTO_APPROVE:-true}
+      - DEMO_SEED_ENABLED=${DEMO_SEED_ENABLED:-true}
     depends_on:
       - postgres
       - redis

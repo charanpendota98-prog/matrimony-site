@@ -11,6 +11,9 @@ export default function SearchPageAdvanced() {
   const [credits, setCredits] = useState(3);
   const [showNumber, setShowNumber] = useState(false);
   const [myPhone, setMyPhone] = useState("98480xxxxx");
+  const [myTsapId, setMyTsapId] = useState("TSAP-M-2025-1042");
+  const [interestMsg, setInterestMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [sending, setSending] = useState(false);
 
   useEffect(() => {
     if (idFromUrl) handleSearch(idFromUrl);
@@ -18,7 +21,37 @@ export default function SearchPageAdvanced() {
     if (c) setCredits(parseInt(c));
     const p = localStorage.getItem("tsap_last_phone");
     if (p) setMyPhone(p);
+    const my = localStorage.getItem("tsap_id");
+    if (my) setMyTsapId(my);
   }, [idFromUrl]);
+
+  // 💌 Interest pampu — vaallaki mana WhatsApp nunchi mee profile + card (chatting ledu)
+  const sendInterest = async () => {
+    setSending(true);
+    setInterestMsg(null);
+    try {
+      const r = await fetch("/api/interest/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ from_id: myTsapId, to_id: searchId, channel: "search_page" }),
+      });
+      const d = await r.json();
+      if (r.ok) {
+        setInterestMsg({ ok: true, text: d.message_telugu || "Interest pampincharu ✅" });
+        if (typeof d.credits_left === "number") {
+          setCredits(d.credits_left);
+          localStorage.setItem("tsap_credits", String(d.credits_left));
+        }
+      } else if (r.status === 402) {
+        setInterestMsg({ ok: false, text: (d.message_telugu || "Credits ledu") + " → /requests lo plans chudandi" });
+      } else {
+        setInterestMsg({ ok: false, text: d.message_telugu || d.detail || "Pampaledu — mee TSAP ID correct ga ivvandi" });
+      }
+    } catch {
+      setInterestMsg({ ok: false, text: "Network problem — malli try cheyyandi" });
+    }
+    setSending(false);
+  };
 
   const handleSearch = (id: string) => {
     const profiles = JSON.parse(localStorage.getItem("tsap_profiles") || "[]");
@@ -106,7 +139,33 @@ export default function SearchPageAdvanced() {
           <button onClick={() => handleSearch(searchId)} className="px-5 py-2 maroon-gradient text-white rounded-full text-sm font-bold">Search Code</button>
         </div>
 
-        <div className="mt-2 text-xs text-gray-500">Form fill chesaka separate code vasthundi ah code tho search limit ayina kuda ID search eppudu open profile photos details open numbers lock if no credits malli pay logic 100% no gaps</div>
+        <div className="mt-2 text-xs text-gray-500">ID search eppudu open — profile + photo details chudochu. Number exchange matrame iddaru oppukunnappudu (interest accept).</div>
+
+        {/* 💌 INTEREST PAMPU — chatting ledu, WhatsApp lo profile share + number exchange */}
+        <div className="mt-4 bg-white rounded-2xl p-4 border border-[#D4AF37]/30">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="font-bold text-sm text-[#7A0C2E]">💌 Interest pampu — vaallaki WhatsApp lo mee profile veltundi</div>
+            <span className="text-[10px] font-bold bg-[#FFF8E7] border border-[#D4AF37]/40 px-2 py-0.5 rounded-full">1 credit • modati 3 FREE • decline aithe refund</span>
+          </div>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <span className="text-xs text-gray-500">Mee TSAP ID</span>
+            <input
+              value={myTsapId}
+              onChange={(e) => { setMyTsapId(e.target.value.toUpperCase()); localStorage.setItem("tsap_id", e.target.value.toUpperCase()); }}
+              className="border rounded-full px-3 py-1.5 text-xs w-48 font-mono"
+            />
+            <button onClick={sendInterest} disabled={sending} className="px-4 py-2 maroon-gradient text-white rounded-full text-xs font-bold disabled:opacity-60">
+              {sending ? "Pampisthunnam…" : `💌 Interest pampu (${searchId})`}
+            </button>
+            <Link href="/requests" className="px-4 py-2 border border-[#7A0C2E]/30 text-[#7A0C2E] rounded-full text-xs font-bold">Requests dashboard →</Link>
+          </div>
+          <div className="mt-2 text-[11px] text-gray-500">🚫 Chatting ledu — accept aithe rendu numbers automatic ga WhatsApp lo exchange avutayi.</div>
+          {interestMsg && (
+            <div className={`mt-2 text-xs rounded-xl px-3 py-2 border ${interestMsg.ok ? "bg-green-50 border-green-200 text-green-800" : "bg-amber-50 border-amber-200 text-amber-800"}`}>
+              {interestMsg.text}
+            </div>
+          )}
+        </div>
 
         {profile && (
           <div className="mt-6 space-y-4">

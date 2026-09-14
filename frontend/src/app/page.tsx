@@ -11,27 +11,31 @@ const BOT = SITE_CONFIG.botUrl;
 const FAQS = [
   {
     q: "Register cheyyadaniki entha time, entha charge?",
-    a: "5 steps — 3 nimushalu. Register 100% FREE. Modati 3 matches numbers kooda FREE. Numbers continue chudali ante ₹99 (10 credits) — okkasaari pay, 30 days valid.",
+    a: "5 steps — 3 nimushalu. Register 100% FREE. Modati 3 interest requests kooda FREE. Aa tarvata ₹99 tho 3 profiles, ₹199 tho 10 profiles, ₹299 tho 20 profiles.",
+  },
+  {
+    q: "Chatting unda? Ela matladukovali?",
+    a: "Chatting ledu — anthe. Meeku nachhina profile ki \"💌 Interest Pampu\" (1 credit). Valla profile + mee details WhatsApp lo vallaki veltundi. Vaallu Accept chesthe rendu numbers automatic ga WhatsApp lo exchange avutayi — direct ga matladukovachu. Decline chesthe mee credit refund (mana trust policy).",
   },
   {
     q: "Number eppudu kanipisthundi? Direct ga isthara?",
-    a: "Number ₹99 pay tarvata matrame kanipisthundi (1 credit = 1 number). Direct ga evaru adigina ivvamu — mosam ayyedi akkade. Pay chesina numbers watermark + log tho untayi.",
+    a: "Interest pampinappudu number lock lo untundi. Vaallu Accept chesina tarvata matrame numbers exchange avutayi — iddaru oppukunnappude. Ante spam calls, fake ids, mosam — anni block. Ee consent logic top matrimony sites lo ide, kani manam WhatsApp lo fast ga chestham.",
   },
   {
     q: "Naa photo public lo kanipisthunda?",
-    a: "Photo-Private ON cheste public lo blur ga kanipisthundi — pay chesina vallaki matrame clear. Card ki watermark + ID vestham, screenshot misuse jarigadu. Eppudaina OFF cheyyochu.",
+    a: "Photo-Private ON cheste public lo blur ga kanipisthundi — WhatsApp/Telegram cards lo kooda watermark. Interest accept ayyaka matrame clear photos. Screenshot misuse jarigina watermark + report system tho action teesukuntam.",
   },
   {
     q: "Naa profile ee channels lo post avutundi?",
     a: `Mee caste + state + job batti 65 channels nunchi saripoyE vi (max 5) — udaharanaki Reddy TS Bride Software ayithe @TSBRIDE + @manavivaha_reddy + @manavivaha_software. Region/religion/caste/special anni cover.`,
   },
   {
-    q: "WhatsApp lo kooda vasthunda?",
-    a: "Avunu — Telegram tho paatu WhatsApp (groups + opted-in members) ki kooda post avutundi. Mee number ni evariki share cheyyamu; WhatsApp messages lo kooda number lock untundi.",
+    q: "WhatsApp lo kooda vasthunda? Anti-ban safe a?",
+    a: "Avunu — Telegram post ayyaka WhatsApp channels/groups ki kooda veltundi. Manam manishi la ne post chestham: 120–170 seconds random gap, typing simulation, roju caps, raatri aapitam — WhatsApp ban risk chala thakkuva. Interest vachinappudu kooda WhatsApp lo ne notification + profile card.",
   },
   {
     q: "Mosam/fake profiles unte em chestharu?",
-    a: "DOB + OTP verify, photo watermark, 3 reports → auto hide, @manavivaha_alerts lo fraud alerts. Advance money adigithe ventane report cheyyandi — 24h lo action.",
+    a: "DOB + OTP verify, photo watermark, 3 reports → auto hide, @manavivaha_alerts lo fraud alerts. Advance money adigithe ventane report cheyyandi — 24h lo action. Decline ayyina credit refund istham.",
   },
 ];
 
@@ -40,23 +44,30 @@ const PLANS = [
     name: "FREE",
     price: "₹0",
     tag: "Start ikkade",
-    credits: "Modati 3 numbers FREE",
-    features: ["Top 3 matches + reasons", "ID search always open", "Profile 1 channel network lo", "Photo-private mode"],
+    credits: "Modati 3 profiles FREE",
+    features: ["Modati 3 interest requests FREE", "Top matches + reasons", "ID search always open", "Auto-post 65 channel network", "Photo-private mode"],
   },
   {
     name: "Sambandham",
     price: "₹99",
-    tag: "Popular",
+    tag: "3 profiles",
+    credits: "3 profiles • 30 days",
+    features: ["3 interest requests (1 credit = 1)", "WhatsApp lo mee profile share", "Accept aithe number exchange", "Decline aithe credit refund", "Referral tho ₹50 earn"],
+  },
+  {
+    name: "Family",
+    price: "₹199",
+    tag: "10 profiles",
     popular: true,
-    credits: "10 credits • 30 days",
-    features: ["10 numbers (1 credit = 1)", "Daily 2 fresh matches", "Interest pampu unlimited", "WhatsApp + Telegram share", "Referral tho ₹50 earn"],
+    credits: "10 profiles • 45 days",
+    features: ["10 interest requests", "Daily fresh matches digest", "WhatsApp + Telegram priority", "Horoscope (porutham) report", "Family bureau assist"],
   },
   {
     name: "Premium",
     price: "₹299",
-    tag: "Serious families",
-    credits: "50 credits • 60 days",
-    features: ["50 numbers", "Daily 5 fresh matches", "Priority posting (top of channel)", "Horoscope (10 porutham) report", "Dedicated support"],
+    tag: "20 profiles • ₹15/profile",
+    credits: "20 profiles • 60 days",
+    features: ["20 interest requests", "Top-of-channel posting", "Dedicated support (Telugu)", "Success-story feature option", "Photo verification badge"],
   },
 ];
 
@@ -236,8 +247,8 @@ export default function Home() {
           {[
             { v: CHANNEL_STATS.total, l: "Channels (network)", s: "Region + Religion + Caste + Special" },
             { v: CHANNEL_STATS.by_tier.L3_CASTE, l: "Castes covered", s: "Reddy nunchi SC/ST varaku" },
-            { v: "3 min", l: "Register time", s: "5 steps • mobile friendly" },
-            { v: "₹99", l: "10 numbers", s: "Modati 3 FREE" },
+            { v: "0 chat", l: "Chatting ledu — direct contact", s: "Anti-ban WhatsApp delivery" },
+            { v: "₹99→3", l: "Profiles (₹199→10, ₹299→20)", s: "Modati 3 requests FREE" },
           ].map((s, i) => (
             <Reveal key={s.l} delay={i * 80}>
               <div className="bg-white rounded-2xl p-4 card-shadow border border-gold/20 h-full">
@@ -265,7 +276,7 @@ export default function Home() {
             { n: "01", t: "Register — 3 min", d: "Personal, family, caste/astro, education, location + photo. 5 steps, mobile lo easy.", icon: "📝" },
             { n: "02", t: "Card + ID ready", d: "Profile card automatic ga generate avutundi — anni details, QR, watermark tho.", icon: "🎴" },
             { n: "03", t: "Channels lo auto-post", d: "Mee caste + state + job batti 65 channels nunchi saripoyE vi — Telegram + WhatsApp.", icon: "📢" },
-            { n: "04", t: "Matches + numbers", d: "Top 3 FREE with reasons. Number chudali ante ₹99 (1 credit = 1 number).", icon: "💞" },
+            { n: "04", t: "Interest pampu → number exchange", d: "Nachhina profile ki 💌 Interest pampu (1 credit). Accept aithe rendu numbers WhatsApp lo automatic.", icon: "💌" },
           ].map((s, i) => (
             <Reveal key={s.n} delay={i * 90}>
               <div className="relative bg-white rounded-2xl p-5 card-shadow border border-gold/20 h-full hover-lift">
@@ -276,6 +287,107 @@ export default function Home() {
               </div>
             </Reveal>
           ))}
+        </div>
+      </section>
+
+      {/* ================= REQUEST MODEL (CHATTING LEDU) ================= */}
+      <section className="max-w-7xl mx-auto px-4 py-8">
+        <div className="rounded-3xl cream-gradient border border-gold/30 p-5 md:p-8">
+          <Reveal>
+            <SectionHeading
+              eyebrow="Advanced model — top matrimony sites kanna smart"
+              title="Chatting ledu. Interest pampu → WhatsApp lo number exchange"
+              subtitle="Chat = time waste + fake ids + moderation cost. Manam consent-based request model: evaru accept cheste vaallu matrame matladukuntaru."
+              telugu
+              action={{ href: "/requests", label: "💌 Requests dashboard" }}
+            />
+          </Reveal>
+
+          <div className="mt-6 grid md:grid-cols-2 gap-5 items-start">
+            {/* LEFT: 4 steps */}
+            <div className="space-y-3">
+              {[
+                { i: "💌", t: "1. Interest pampu (1 credit)", d: "Profile chusi \"Interest Pampu\" press chey — modati 3 requests FREE, tarvata ₹99 → 3 profiles." },
+                { i: "📲", t: "2. Waallaki WhatsApp lo mee profile", d: "Mana WhatsApp nunchi vaallaki mee profile card + details veltundi — \"oka person mee profile chusi interesting ga unnaru\"." },
+                { i: "✅", t: "3. Accept aithe numbers exchange", d: "Vaallu accept chesthe — rendu numbers automatic ga WhatsApp lo. Direct ga call/chat chesukovachu, manam middle lo undamu." },
+                { i: "↩️", t: "4. Decline aithe credit refund", d: "Ee sari kudaraledu ante polite message + mee credit tirigi vasthundi. Ante evaru money waste cheyyaru." },
+              ].map((x, i) => (
+                <Reveal key={x.t} delay={i * 80}>
+                  <div className="bg-white rounded-2xl p-4 card-shadow border border-gold/20 flex gap-3 hover-lift">
+                    <div className="text-2xl leading-none" aria-hidden>{x.i}</div>
+                    <div>
+                      <div className="font-bold text-maroon text-[14px]">{x.t}</div>
+                      <div className="text-[12px] text-gray-600 mt-1 leading-relaxed">{x.d}</div>
+                    </div>
+                  </div>
+                </Reveal>
+              ))}
+              <Reveal delay={320}>
+                <div className="flex flex-wrap gap-2 text-[11px] font-bold">
+                  <span className="px-3 py-1 rounded-full bg-maroon text-white">🚫 0 chatting</span>
+                  <span className="px-3 py-1 rounded-full bg-white text-maroon border border-maroon/30">🔒 Consent first</span>
+                  <span className="px-3 py-1 rounded-full bg-white text-maroon border border-maroon/30">↩️ Decline = refund</span>
+                  <span className="px-3 py-1 rounded-full bg-gold text-maroon">🛡️ Anti-ban WhatsApp</span>
+                </div>
+              </Reveal>
+            </div>
+
+            {/* RIGHT: WhatsApp mockup (real message we send) */}
+            <Reveal delay={140}>
+              <div className="rounded-3xl overflow-hidden card-shadow-lg border border-black/10 bg-[#0b141a]">
+                <div className="bg-[#202c33] px-4 py-3 flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full gold-gradient flex items-center justify-center font-bold text-maroon">MV</div>
+                  <div className="min-w-0">
+                    <div className="text-white text-[13px] font-bold truncate">Mana Vivaha Matrimony</div>
+                    <div className="text-[10px] text-emerald-300">🟢 online • verified business</div>
+                  </div>
+                  <span className="ml-auto text-[10px] text-gray-400">🔒 secured</span>
+                </div>
+                <div className="p-3 space-y-2 dotted-bg">
+                  <div className="bg-[#005c4b] text-white text-[12px] rounded-xl rounded-tl-sm p-3 leading-relaxed max-w-[95%]">
+                    <div className="font-bold">💌 MANA VIVAHA — Mee profile ki INTEREST vachhindi!</div>
+                    <div className="opacity-90 mt-1">Oka person mee profile chusi <b>&quot;interesting ga unnaru&quot;</b> ani request pettaru 👇</div>
+                    <div className="mt-2 pl-1 border-l-2 border-white/30">
+                      👤 <b>Kiran Kumar Reddy</b> (29y)<br />
+                      🎓 MBBS MD • 💼 Doctor, Apollo<br />
+                      📍 Nalgonda, TS • 💍 Reddy<br />
+                      ⭐ <b>82% match</b>
+                    </div>
+                    <div className="mt-2 opacity-90">✅ Accept chesthe → valla number meeku WhatsApp lo</div>
+                    <div className="text-[10px] opacity-70 mt-2 text-right">11:42 ✓✓</div>
+                  </div>
+                  <div className="bg-[#202c33] text-white text-[12px] rounded-xl p-3 max-w-[80%]">
+                    Profile card + photo ikkade vasthundi 🎴
+                    <div className="text-[10px] opacity-70 mt-1">attachment: TSAP-M-2025-1042.png</div>
+                  </div>
+                  <div className="flex gap-2 pt-1">
+                    <button className="flex-1 bg-emerald-600 text-white text-[12px] font-bold rounded-xl py-2">✅ Accept</button>
+                    <button className="flex-1 bg-white/10 text-white text-[12px] font-bold rounded-xl py-2">❌ Decline (refund)</button>
+                  </div>
+                  <div className="text-[10px] text-gray-400 text-center pt-1">
+                    🛡️ Mana posts: 120–170s random gap • typing simulation • daily caps
+                  </div>
+                </div>
+              </div>
+            </Reveal>
+          </div>
+
+          {/* Pricing strip */}
+          <div className="mt-6 grid grid-cols-3 gap-3">
+            {[
+              { p: "₹99", n: "3 profiles", s: "Starter" },
+              { p: "₹199", n: "10 profiles", s: "Best for families" },
+              { p: "₹299", n: "20 profiles", s: "₹15/profile — best value" },
+            ].map((x, i) => (
+              <Reveal key={x.p} delay={i * 70}>
+                <div className="bg-white rounded-2xl p-3 text-center card-shadow border border-gold/25">
+                  <div className="text-xl font-bold text-maroon">{x.p}</div>
+                  <div className="text-[12px] font-bold text-ink">{x.n}</div>
+                  <div className="text-[10px] text-gray-500">{x.s}</div>
+                </div>
+              </Reveal>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -424,7 +536,7 @@ export default function Home() {
           <SectionHeading
             eyebrow="Pricing"
             title="Simple ga — ₹99 ke Sambandham"
-            subtitle="Register FREE. Modati 3 numbers FREE. Continue cheyyali ante ₹99."
+            subtitle="Register FREE. Modati 3 interest requests FREE. Tarvata ₹99 → 3 profiles, ₹199 → 10, ₹299 → 20. Decline aithe credit refund."
             telugu
             align="center"
           />
@@ -613,7 +725,7 @@ export default function Home() {
                 </h2>
                 <p className="mt-2 text-[13px] opacity-90 telugu max-w-xl">
                   Register FREE → profile card ready → {CHANNEL_STATS.total} channels network lo auto-post →
-                  modati 3 matches numbers FREE. Migitha numbers ₹99 ke.
+                  modati 3 interest requests FREE. Tarvata ₹99 → 3 profiles, ₹199 → 10, ₹299 → 20.
                 </p>
                 <div className="mt-4 flex flex-wrap gap-3">
                   <Link

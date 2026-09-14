@@ -29,7 +29,10 @@ docker-compose up -d whatsapp-bridge
 ## 🧪 Tests
 
 ```bash
-python3 backend/test_channels_router.py     # 57/57 — registry + router
+python3 backend/
+  wa_antiban.py           ← 🛡️ WhatsApp anti-ban engine (random 120–170s gap, caps, warmup, typing)
+  interest.py             ← 💌 Interest/request engine (chatting LEDU) + credits + WhatsApp texts
+  test_interest_antiban.py← 54 tests (anti-ban + interest flow)test_channels_router.py     # 57/57 — registry + router
 python3 backend/publisher.py                # dry-run post preview
 cd frontend && npm run build                # 12/12 pages
 ```
@@ -60,6 +63,8 @@ nginx.conf                ← host nginx config (manavivaha.in, /api proxy, SSL 
 | [CHANNELS-MASTER-LIST-TELUGU.md](CHANNELS-MASTER-LIST-TELUGU.md) | 65 channels final list + waves + bot router rules |
 | [WEBSITE-STRATEGY-AND-100-PERCENT-GAPS.md](WEBSITE-STRATEGY-AND-100-PERCENT-GAPS.md) | Custom vs WordPress + auto-post flow + 30 gaps (P0→P3) |
 | [WEBSITE-CUSTOMIZATION-GUIDE.md](WEBSITE-CUSTOMIZATION-GUIDE.md) | Enti ekkada marchali — brand/pricing/features/colors + verify steps |
+| [WHATSAPP-ANTIBAN-AND-REQUESTS.md](WHATSAPP-ANTIBAN-AND-REQUESTS.md) | 🛡️ Anti-ban playbook (120–170s random gap, caps, warmup, recovery) + 💌 requests model + APIs |
+| [PLAN-ADVANCED-STRATEGY.md](PLAN-ADVANCED-STRATEGY.md) | 👑 Pricing ladder (₹99→3, ₹199→10, ₹299→20), revenue math, 30-day plan, 15 advanced strategies, KPIs |
 | [ULTIMATE-TSAP-MASTER-PLAN-TELUGU.md](ULTIMATE-TSAP-MASTER-PLAN-TELUGU.md) | Master business plan |
 | [REFERRAL-SHORT-CODE-BUREAU-OFFER.md](REFERRAL-SHORT-CODE-BUREAU-OFFER.md) | Referral ₹50 + bureau B2B |
 

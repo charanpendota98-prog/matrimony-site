@@ -8,6 +8,7 @@ import { SITE_CONFIG } from "@/lib/site-config";
 const NAV = [
   { href: "/", label: "Home" },
   { href: "/channels", label: "Channels" },
+  { href: "/requests", label: "Requests 💌" },
   { href: "/matches", label: "Matches" },
   { href: "/referral", label: "Referral" },
   { href: "/bureau", label: "Bureau" },
