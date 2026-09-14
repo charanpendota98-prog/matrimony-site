@@ -37,8 +37,11 @@ REPEAT_COMMISSION_CAP = 100        # okka payment ki max ₹100
 REFEREE_BONUS_CREDITS = 1          # kotha user ki bonus credit (andariki)
 MIN_PAYOUT = 100                   # payout minimum ₹100
 PAYOUT_SLA_DAYS = 3                # request → 3 working days lo pay
-DAILY_PAYING_CAP = 10              # okka referrer ki okka rojuki max 10 paying referrals (fraud guard)
-LIFETIME_CAP = 200                 # max paying referrals okka code ki (abuse guard)
+# 🚦 SOFT tripwires (BLOCK ledu — "evvaru enni aina refer cheyyochu"):
+#    ee numbers dhaatithe commission AUTO hold avvadu, admin review ki flag matrame vastundi.
+DAILY_PAYING_SOFT_CAP = 50         # okka roju lo ee number paying referrals dhaatithe → review flag
+LIFETIME_SOFT_CAP = 500            # lifetime ee number dhaatithe → review flag
+SAME_PHONE_SOFT_LIMIT = 3          # okate phone number nunchi intha mandi accounts → review flag (block ledu)
 
 TIERS: List[Dict] = [
     {"key": "BRONZE",   "min": 0,  "extra_pct": 0,  "icon": "🥉", "perks": ["₹50 per paying referral", "Daily 10 cap"]},
@@ -319,8 +322,9 @@ def attach_referral(user: Dict, code: str, all_users: List[Dict]) -> Dict:
     if ref.get("tsap_id") == user.get("tsap_id"):
         return {"ok": False, "reason": "self_referral",
                 "message_telugu": "🚫 Mee sontha code vaadukovaddu — self-referral allowed ledu"}
-    if user.get("phone") and ref.get("phone") and str(user["phone"]) == str(ref["phone"]):
-        return {"ok": False, "reason": "same_phone", "message_telugu": "🚫 Same phone number tho self-referral allowed ledu"}
+    # 📞 Same phone => BLOCK LEDU (okka phone lo family members kooda refer cheyyochu).
+    #    Kaani audit ki flag pedatham — 3+ accounts aithe review (+ admin refund possible).
+    _family_same_phone = bool(user.get("phone") and ref.get("phone") and str(user["phone"]) == str(ref["phone"]))
     if user.get("referred_by"):
         return {"ok": False, "reason": "already_referred", "referred_by": user.get("referred_by"),
                 "message_telugu": "ℹ️ Mee account ki already oka referral lock ayyindi"}
@@ -330,6 +334,20 @@ def attach_referral(user: Dict, code: str, all_users: List[Dict]) -> Dict:
     user["referred_at"] = _now()
     st = stats_of(ref)
     st["registrations"] = int(st.get("registrations", 0)) + 1
+    _soft_flags = []
+    if _family_same_phone:
+        st["same_phone_joins"] = int(st.get("same_phone_joins", 0)) + 1
+        _soft_flags.append("same_phone_join:%d" % st["same_phone_joins"])
+        if st["same_phone_joins"] >= SAME_PHONE_SOFT_LIMIT:
+            _soft_flags.append("multi_account_review:%d" % st["same_phone_joins"])
+    for _f in _soft_flags:
+        if _f not in st["flags"]:
+            st["flags"].append(_f)
+    if _family_same_phone:
+        st.setdefault("ledger", []).append(
+            {"id": _next_id("RJ"), "at": _now(), "type": "join_event", "amount": 0,
+             "from": user.get("tsap_id"), "from_name": user.get("full_name") or user.get("name", ""),
+             "note": "same phone nunchi join (family) — flag only, block ledu"})
     st["total"] = st["registrations"]
     ref["referral_stats"] = st
     # 🎁 referee (kotha user) bonus — andariki
@@ -341,6 +359,9 @@ def attach_referral(user: Dict, code: str, all_users: List[Dict]) -> Dict:
     return {"ok": True, "referrer_code": _code_of(ref), "referrer_id": ref.get("tsap_id"),
             "referrer_name": ref.get("full_name") or ref.get("name") or "", "bonus_credits": REFEREE_BONUS_CREDITS,
             "referee_credits": user.get("credits", 0), "commission_offer": FIRST_PAY_COMMISSION,
+            "flags": _soft_flags,
+            "note_telugu": ("ℹ️ Mee code tho okate phone nunchi inka okaru join ayyaru — parvaledu, "
+                            "kaani mana team verify chestundi" if _family_same_phone else ""),
             "message_telugu": "🎉 Referral lock ayyindi (%s) — mee account ki +%d FREE credit vachindi!"
                               % (_code_of(ref), REFEREE_BONUS_CREDITS)}
 
@@ -351,15 +372,15 @@ def _fraud_flags(referrer: Dict, referred_user: Dict, all_users: List[Dict]) -> 
     flags = []
     if st.get("paid_today_date") != _today():
         return flags
-    if int(st.get("paid_today", 0)) >= DAILY_PAYING_CAP:
-        flags.append("daily_cap_hit:%d" % st["paid_today"])
-    if int(st.get("paid_count", 0)) >= LIFETIME_CAP:
-        flags.append("lifetime_cap_hit")
+    if int(st.get("paid_today", 0)) >= DAILY_PAYING_SOFT_CAP:
+        flags.append("daily_soft_cap:%d" % st["paid_today"])
+    if int(st.get("paid_count", 0)) >= LIFETIME_SOFT_CAP:
+        flags.append("lifetime_soft_cap")
     if referred_user.get("phone") and str(referred_user["phone"]).startswith(("000", "111")):
         flags.append("test_phone")
     if referrer.get("phone") and referred_user.get("phone") and \
             str(referrer["phone"]) == str(referred_user["phone"]):
-        flags.append("same_phone")
+        flags.append("same_phone_family")      # block ledu — review flag matrame
     return flags
 
 
@@ -386,10 +407,8 @@ def process_referral_payment(referred_user: Dict, referrer_code: str, plan_amoun
         flag = "fraud_review:" + ",".join(flags)
         if flag not in st["flags"]:
             st["flags"].append(flag)
-        # daily cap ayithe commission hold (admin review) — wallet ki velladu
-        if any(f.startswith("daily_cap_hit") or f.startswith("lifetime_cap") for f in flags):
-            return {"success": False, "reason": "fraud_review", "flags": flags,
-                    "message_telugu": "🕵️ Ee commission admin review lo undi (cap/cross-check). 24h lo resolve avutundi."}
+        # 🚦 SOFT mode: commission ippude wallet lo pothundi (aapemu) — admin review flag matrame.
+        #    Fraud proof ayithe /api/admin/refund tho clawback chestham.
 
     # first payment? (ee user ki ee varaku commission ivvaledu)
     first = not any(l.get("type") == "commission" and l.get("from") == referred_user.get("tsap_id")
@@ -757,19 +776,21 @@ def referral_terms_telugu() -> Dict:
         "version": REFERRAL_VERSION,
         "headline": "₹50 per paying referral — andariki",
         "rules_telugu": [
-            "✅ Mee code/link tho register chesina friend **modati payment** (₹29 nunchi) chesthe — meeku **₹50**",
-            "🔁 Tarvata vaalla payments ki **10%** (okka payment ki max ₹100)",
-            "🎁 Kotha user ki (referee) **+1 credit FREE** — vaallaki kooda labham",
-            "🏆 Tiers: Silver 3 → Gold 10 → Platinum 25 → Elite 50 pays (extra % + badges + milestone cash)",
-            "💸 Payout: wallet ₹100 datithe UPI/bank ki request pettandi — 3 working days lo credit (UTR tho)",
-            "🚫 Self-referral, same phone, fake registrations → commission cancel + account block",
-            "↩️ Customer refund adigithe aa commission wallet nunchi theesestham (clawback)",
-            "⏳ Commission 7 రోజులు hold lo untundi (chargeback/refund window)",
-            "🔒 Meere friend ki cheppali — spam/bulk messages cheste code block avutundi",
-            "📊 Dashboard lo clicks, registrations, payments, earnings anni live ga kanipistayi",
+            "🆓 Register FREE — **3 matches/profiles FREE**. Aa tarvata friend ₹99 (leda ₹29+ edaina plan) pay chesthe —",
+            "💰 **Mee wallet ki ₹50** (edi aina plan, modati payment — andariki okate)",
+            "👥 **Evvaru enni aina refer cheyyochu — limit ledu, conditions ledu** (bride/groom/brother/parents/friend/broker/vendor — evvaraina)",
+            "📞 **Okate phone lo kooda parvaledu** — intlo andaru okate number vaadukuntunna, andaru refer cheyyochu",
+            "🎁 Kotha user ki (referee) **+1 credit FREE** + free 3 profiles — vaallaki kooda labham",
+            "🔁 Friend tarvata malli pay chesthe (renewal/add-on) — **10% (max ₹100)**",
+            "🏆 Tiers: SILVER 3 → GOLD 10 → PLATINUM 25 → ELITE 50 paying referrals — extra % + badges + milestone cash",
+            "💸 Payout: wallet ₹100 datithe UPI/bank ki request pettandi — 3 working days lo credit (UTR confirm)",
+            "✅ Mana team spam/fake patterns (bot registrations, fake payments) ni review chestundi — nijamaina referrals ki em problem ledu",
+            "↩️ Customer refund adigithe aa commission wallet nunchi theesestham (clawback) — double profit ledu",
+            "📊 Dashboard lo clicks, registrations, payments, wallet, tier — anni live ga kanipistayi",
         ],
-        "not_allowed": ["Self-referral (sontha code)", "Same phone number rendu accounts",
-                        "Fake/duplicate registrations", "Bulk spam / bots", "Refund chesina payments ki commission"],
+        "not_allowed": ["Fake/duplicate registrations (bot accounts)", "Fake payments / chargeback fraud",
+                        "Bulk spam / unsolicited bulk messages", "Refund chesina payments ki commission claim", "Fake profiles create cheyyadam"],
+        "no_conditions_telugu": "Evvaru enni aina refer cheyyochu — okate phone, okate family, okate village — anni allowed. Limit ledu.",
         "support": "manavivaha.in • WhatsApp support • care@manavivaha.in",
     }
 

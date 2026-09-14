@@ -54,7 +54,7 @@ def post_form(url, fields: dict, base=API):
 
 print("=== 1. PAGES (website :3000) ===")
 PAGES = ["/", "/pricing", "/terms", "/privacy", "/refund", "/register", "/referral",
-         "/referral/register", "/admin", "/channels", "/casts" if False else "/castes",
+         "/referral/register", "/admin", "/channels", "/castes", "/vendors", "/vendors/register",
          "/matches", "/requests", "/porutham", "/safety", "/sitemap.xml", "/robots.txt"]
 for p in PAGES:
     st, body = get(p, WEB)
@@ -118,6 +118,38 @@ check("fraud-check shape", st == 200 and "clean" in fr and "issues" in fr)
 st, _ = get("/api/referral/TSAP-NOT-EXIST")
 check("unknown id → 404", st == 404, st)
 
+print("=== 3b. VENDOR ADS (🏪 catering/photography/decorations...) ===")
+st, cats = get("/api/vendors/categories")
+check("18 categories (Telugu names tho)", st == 200 and cats.get("count") == 18
+      and all(c.get("te") for c in cats.get("categories", [])), cats.get("count"))
+st, pk = get("/api/vendors/packages")
+check("Packages ₹149 → ₹3999 (6) + addons + slots",
+      st == 200 and len(pk.get("packages", [])) == 6 and pk["packages"][0]["price"] == 149
+      and len(pk.get("addons", [])) == 4 and len(pk.get("slots", [])) == 5, st)
+st, dl = get("/api/vendors?limit=20")
+check("/api/vendors directory (active vendors)", st == 200 and dl.get("total", 0) >= 1, dl.get("total"))
+if dl.get("vendors"):
+    v0 = dl["vendors"][0]
+    check("listing lo WhatsApp CTA + verified flag + price range",
+          v0["whatsapp_link"].startswith("https://wa.me/91") and "verified" in v0, v0.get("id"))
+    st, det = get("/api/vendors/%s" % v0["id"])
+    check("vendor detail + similar options", st == 200 and det.get("vendor") and "similar" in det)
+    st, dashv = get("/api/vendors/%s/dashboard" % v0["id"])
+    check("vendor dashboard (impressions/clicks/leads/days_left)",
+          st == 200 and all(k in dashv.get("stats", {}) for k in ("impressions", "clicks", "leads"))
+          and "days_left" in dashv, st)
+    st, pr = get("/api/vendors/%s/promo" % v0["id"])
+    check("promo post (TG + WA + poster url)", st == 200 and pr.get("telegram_post")
+          and len(pr.get("whatsapp_messages", [])) == 2 and pr["poster_square"].endswith("poster.png?style=square"))
+    st, vpng = get("/api/vendors/%s/poster.png?style=square" % v0["id"])
+    check("vendor poster PNG (QR tho)", st == 200 and isinstance(vpng, bytes) and vpng[:8] == b"\x89PNG\r\n\x1a\n", st)
+    st, pstatus = get("/api/vendors?category=%s" % v0["category"])
+    check("category filter pani chestundi", st == 200 and all(x["category"] == v0["category"] for x in pstatus["vendors"]))
+st, ads = get("/api/vendors/ads?slot=home_mid_strip&limit=4")
+check("ad rotation (home strip)", st == 200 and ads.get("count", 0) >= 1 and "₹149" in ads.get("note_telugu", ""), st)
+st, clkv = get("/api/vendors/%s/click?source=smoke" % (dl["vendors"][0]["id"] if dl.get("vendors") else "MVV-0001"), method="POST")
+check("vendor click track", st == 200 and clkv.get("success"), st)
+
 print("=== 4. LANDING + CLICK FUNNEL (website proxy) ===")
 st, page = get("/r/%s" % dash.get("code"), WEB)
 check("/r/<code> landing 200", st == 200, st)
@@ -159,6 +191,43 @@ if "--flow" in sys.argv:
         # self-referral is only blocked when the referrer phone/code matches; vaallu veru kabatti check skip
         st, dup = post_form("/api/referral/click/%s" % reg["referral"]["my_code"], {})
         check("kotha user sontha code kooda click track avutundi", st == 200 and dup.get("success"))
+
+if "--vendor" in sys.argv:
+    print("=== 6. E2E: vendor register → admin approve → live + lead (--vendor) ===")
+    import random as _r
+    payload = {"business_name": "Smoke Test Decorators", "category": "decorations",
+               "phone": "9%09d" % _r.randint(0, 999999999), "city": "Hyderabad", "district": "Rangareddy",
+               "state": "TS", "package": "V_STANDARD", "about": "Smoke test vendor", "price_range": "Rs.30k-1L"}
+    req = urllib.request.Request(API + "/api/vendors/register", data=json.dumps(payload).encode(),
+                                 headers={"Content-Type": "application/json"}, method="POST")
+    with urllib.request.urlopen(req, timeout=25) as r:
+        reg = json.loads(r.read().decode())
+    check("vendor register (pending)", reg.get("success") is True and reg.get("vendor_id"), reg)
+    vid = reg.get("vendor_id")
+    st, pend = get("/api/vendors?limit=80")
+    check("pending listing public directory lo ledu", all(v["id"] != vid for v in pend["vendors"]))
+    st, appr = get("/api/admin/vendors/%s/action?action=approve&utr=SMOKEUTR" % vid, method="POST")
+    check("admin approve → active + days", st == 200 and appr.get("ok")
+          and appr["vendor"]["status"] == "active" and appr.get("days") == 90, appr.get("reason"))
+    st, post = get("/api/vendors?limit=80")
+    check("approve tarvata directory lo kanipisthundi", any(v["id"] == vid for v in post["vendors"]))
+    st, lead = None, None
+    req = urllib.request.Request(API + "/api/vendors/%s/lead" % vid,
+                                 data=json.dumps({"name": "Smoke Customer", "phone": "9848012345",
+                                                  "district": "Hyderabad", "budget": "Rs.90k",
+                                                  "message": "400 members decoration"}).encode(),
+                                 headers={"Content-Type": "application/json"}, method="POST")
+    with urllib.request.urlopen(req, timeout=25) as r:
+        lead = json.loads(r.read().decode())
+    check("lead → vendor WhatsApp text + more options",
+          lead.get("success") and "NEW ENQUIRY" in lead.get("vendor_whatsapp_text", "")
+          and "more_options" in lead, lead.get("reason"))
+    st, dash2 = get("/api/vendors/%s/dashboard" % vid)
+    check("dashboard lo lead count +1", dash2.get("stats", {}).get("leads", 0) >= 1, dash2.get("stats"))
+    st, rev = get("/api/admin/vendors/revenue/summary")
+    check("revenue summary lo ee vendor amount", st == 200 and rev.get("collected", 0) >= 1499, rev.get("collected"))
+    st, ws = get("/vendors/%s" % vid, WEB)
+    check("vendor page live 200", st == 200, st)
 
 print("\n=== RESULT: %d pass / %d fail ===" % (len(PASS), len(FAIL)))
 if FAIL:

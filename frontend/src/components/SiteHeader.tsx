@@ -9,6 +9,7 @@ const NAV: { href: string; label: string; xl?: boolean }[] = [
   { href: "/", label: "Home" },
   { href: "/channels", label: "Channels" },
   { href: "/pricing", label: "Pricing 💰" },
+  { href: "/vendors", label: "Vendors 🏪" },
   { href: "/porutham", label: "Porutham 💍", xl: true },
   { href: "/safety", label: "Safety 🛡️", xl: true },
   { href: "/requests", label: "Requests 💌" },

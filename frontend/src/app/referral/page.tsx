@@ -87,6 +87,7 @@ export default function ReferralPage() {
               <h1 className="text-2xl md:text-3xl font-extrabold telugu">🤝 Referral Program — <span className="text-[#D4AF37]">₹50 per paying referral</span></h1>
               <p className="text-xs md:text-sm opacity-90 telugu mt-1">
                 Mee friend ₹99 (leda edaina plan) pay chesthe — meeku <b>₹50</b> · vaallaki <b>+1 credit FREE</b> · repeat payments ki 10% (max ₹100) + tier bonus
+                {" "}<span className="text-[#D4AF37] font-bold">Evvaru enni aina refer cheyyochu — limit ledu, okate phone lo kooda conditions levu.</span>
               </p>
             </div>
             <div className="flex gap-2">

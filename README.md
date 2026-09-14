@@ -107,6 +107,7 @@ nginx.conf                ← host nginx config (manavivaha.in, /api proxy, SSL 
 | [GROWTH-NAMASTE-LEADS-INVENTORY.md](GROWTH-NAMASTE-LEADS-INVENTORY.md) | 📈 Namaste welcome automation • lead capture funnel • 360-profile launch inventory • community networks playbook • pricing audit + parity guard |
 | [ULTIMATE-TSAP-MASTER-PLAN-TELUGU.md](ULTIMATE-TSAP-MASTER-PLAN-TELUGU.md) | Master business plan |
 | [REFERRAL-2-TELUGU.md](REFERRAL-2-TELUGU.md) | 🤝 **Referral 2.0 — "ఎవరికైనా ₹50"**: ఏదైనా plan (₹29+) మొదటి payment కి ₹50 flat · repeat 10% (max ₹100) · 5 tiers (+3%→+20%) · auto milestones (3→1cr, 10→₹250+3cr, 25→₹500+10cr, 50→₹1200+25cr) · payout min ₹100 (3 days, UTR) · fraud guards · 5 Telugu messages + QR poster · instant WhatsApp updates |
+| [VENDOR-ADS-TELUGU.md](VENDOR-ADS-TELUGU.md) | 🏪 **Wedding Vendor Ads — "పెళ్లి సంబంధం వాళ్లందరికీ ప్రచారం"**: 18 categories (catering/photography/decorations/hall/pandit/makeup…), packages ₹149→₹3999, vendor dashboard (impressions/clicks/leads), enquiries direct vendor WhatsApp ki, Telugu promo posts + QR posters, admin activate/revenue |
 | [REFERRAL-SHORT-CODE-BUREAU-OFFER.md](REFERRAL-SHORT-CODE-BUREAU-OFFER.md) | Referral ₹50 + bureau B2B |
 
 ## 🔑 API (main)

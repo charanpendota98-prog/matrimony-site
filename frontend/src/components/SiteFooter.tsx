@@ -31,6 +31,8 @@ export default function SiteFooter() {
         { href: "/referral", label: "Referral — ₹50/profile" },
         { href: "/referral/register", label: "Become a Referrer" },
         { href: "/bureau", label: "Bureau / Broker B2B" },
+        { href: "/vendors", label: "Wedding Vendors (18 categories)" },
+        { href: "/vendors/register", label: "Advertise your business — ₹149+" },
         { href: "/admin", label: "Admin Panel" },
       ],
     },

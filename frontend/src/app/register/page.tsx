@@ -686,7 +686,8 @@ function Wizard() {
 
         {refLocked && (
           <div className="mb-4 bg-emerald-50 border border-emerald-200 rounded-2xl px-4 py-3 text-[12px] text-emerald-900">
-            🤝 <b>{refLocked}</b> referral code lock ayyindi — mee friend ki ₹50 + meeku extra free credit (trusted).
+            🤝 <b>{refLocked}</b> referral code lock ayyindi — mee friend ki ₹50 + meeku <b>+1 credit FREE</b>.
+            {" "}Register FREE (3 profiles free) — tarvata mee ₹99 plan thisukunte aa ₹50 mee friend wallet ki veltundi.
           </div>
         )}
 

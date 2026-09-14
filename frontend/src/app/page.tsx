@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ALL_CHANNELS, CHANNEL_STATS, Channel } from "@/lib/channels";
 import Reveal from "@/components/Reveal";
@@ -544,6 +544,9 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ================= 🏪 WEDDING VENDORS (ads) ================= */}
+      <VendorStrip />
+
       {/* ================= PRICING ================= */}
       {SITE_CONFIG.features.showPricing && (
       <section className="max-w-7xl mx-auto px-4 py-8">
@@ -796,5 +799,88 @@ export default function Home() {
         </Reveal>
       </section>
     </div>
+  );
+}
+
+/* ---------------------------------------------------------------------------
+   🏪 VENDOR AD STRIP — catering / photography / decorations / halls...
+   ("pelli sambandham related vaallaki promotions kooda cheyyali bestga")
+   Paid-first rotation (/api/vendors/ads) — house ad tho fill avutundi.
+--------------------------------------------------------------------------- */
+function VendorStrip() {
+  const [ads, setAds] = useState<any[]>([]);
+  const [cats, setCats] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetch("/api/vendors/ads?slot=home_mid_strip&limit=4")
+      .then((r) => r.json()).then((d) => setAds(d.ads || [])).catch(() => { });
+    fetch("/api/vendors/categories")
+      .then((r) => r.json()).then((d) => setCats((d.categories || []).slice(0, 10))).catch(() => { });
+  }, []);
+
+  return (
+    <section className="max-w-7xl mx-auto px-4 py-8">
+      <Reveal>
+        <SectionHeading
+          eyebrow="Wedding Vendors"
+          title="🏪 Pelli ki kavalsina anni — okate chota"
+          subtitle="Catering • Photography • Decorations • Function Hall • Tent House • Pandit • Jewellery • Makeup • DJ • Invitations • Cars • Planner. Verified vendors, direct WhatsApp, best rates."
+          telugu
+          align="center"
+        />
+      </Reveal>
+
+      <div className="mt-5 flex flex-wrap gap-2 justify-center">
+        {cats.map((c) => (
+          <Link key={c.key} href={`/vendors?category=${c.key}`}
+            className="px-3 py-1.5 rounded-full bg-white border border-gold/40 text-[12px] font-semibold text-maroon hover:bg-maroon-soft transition">
+            {c.icon} {c.en}
+          </Link>
+        ))}
+        <Link href="/vendors" className="px-3 py-1.5 rounded-full maroon-gradient text-white text-[12px] font-bold">
+          Anni 18 categories →
+        </Link>
+      </div>
+
+      {ads.length > 0 && (
+        <div className="mt-5 grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {ads.map((a) => (
+            <div key={a.vendor_id} className="bg-white rounded-3xl border border-gold/30 card-shadow p-4 flex flex-col">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <div className="text-lg">{a.icon}</div>
+                  <div className="font-bold text-maroon text-[14px] truncate">{a.business_name}</div>
+                  <div className="text-[11px] text-gray-600">{a.category_te}</div>
+                  <div className="text-[11px] text-gray-500">📍 {a.city}</div>
+                </div>
+                {a.verified && <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2 py-0.5">✅ Verified</span>}
+              </div>
+              {a.price_range && <div className="mt-2 text-[11px] font-semibold text-maroon">💰 {a.price_range}</div>}
+              <div className="mt-auto pt-3 flex gap-2">
+                {a.whatsapp_link && (
+                  <a href={a.whatsapp_link} target="_blank" rel="noreferrer"
+                    className="flex-1 text-center bg-green-600 text-white font-bold text-[11px] px-3 py-2 rounded-xl">💬 WhatsApp</a>
+                )}
+                <Link href={a.detail_url || "/vendors"} className="flex-1 text-center border border-maroon/25 text-maroon font-bold text-[11px] px-3 py-2 rounded-xl">
+                  Details
+                </Link>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="mt-5 bg-navy text-white rounded-3xl p-5 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <div className="font-bold">Mee business kooda promote cheyyali anthena? 🏪</div>
+          <div className="text-[12px] opacity-90 mt-0.5">
+            ₹149 nunchi — 52 channels + WhatsApp lanes + website banner + leads direct mee WhatsApp ki.
+          </div>
+        </div>
+        <Link href="/vendors/register" className="gold-gradient text-maroon font-bold text-[13px] px-4 py-2.5 rounded-xl">
+          Advertise cheyyandi →
+        </Link>
+      </div>
+    </section>
   );
 }

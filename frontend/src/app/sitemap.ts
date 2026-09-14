@@ -17,8 +17,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: "/refund", priority: 0.5, freq: "monthly" },
     { path: "/requests", priority: 0.92, freq: "daily" },
     { path: "/matches", priority: 0.75, freq: "weekly" },
-    { path: "/referral", priority: 0.7, freq: "weekly" },
+    { path: "/referral", priority: 0.85, freq: "weekly" },
     { path: "/referral/register", priority: 0.6, freq: "monthly" },
+    { path: "/vendors", priority: 0.85, freq: "daily" },
+    { path: "/vendors/register", priority: 0.7, freq: "weekly" },
     { path: "/bureau", priority: 0.6, freq: "monthly" },
     { path: "/castes", priority: 0.9, freq: "weekly" },
   ];

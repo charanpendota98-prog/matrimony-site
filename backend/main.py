@@ -2,7 +2,7 @@
 TSAP Matrimony — FastAPI Backend — Pin-to-Pin Perfect Advanced
 All endpoints: Register, ID Search, Matches, Credits, Referral, Bureau, Admin, Payment, Channels auto-post
 """
-from fastapi import FastAPI, HTTPException, Request, UploadFile, File, Form
+from fastapi import FastAPI, HTTPException, Request, UploadFile, File, Form, Body
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from typing import Any, Dict, Optional
@@ -26,6 +26,14 @@ from referral import (
     referrer_join_text, referrer_commission_text, referee_welcome_text,
     mask_payout as referral_mask_payout,
     tier_of as referral_tier_of, MILESTONES as REFERRAL_MILESTONES, TIERS as REFERRAL_TIERS,
+)  # noqa: E402
+from vendors import (                                                        # 🏪 vendor ads + promotions
+    register_vendor, activate_vendor, reject_vendor, expire_due_vendors, vendors_directory,
+    ad_rotation, track_vendor_click, vendor_lead, promo_post, vendor_dashboard,
+    vendor_queue, vendor_revenue, packages_public as vendor_packages_public,
+    vendor_stats, public_vendor, category_label as vendor_category_label,
+    CATEGORIES as VENDOR_CATEGORIES, PACKAGES as VENDOR_PACKAGES, SLOTS as VENDOR_SLOTS,
+    load_state as vendors_load_state, save_state as vendors_save_state,
 )
 from channels_config import (
     CHANNELS, channel_stats, channels_by_tier, route_profile, build_caption,
@@ -116,6 +124,23 @@ async def _startup_publisher():
                       % (added, len(DB_USERS), inventory_status(len(DB_USERS))["percent"]))
             except Exception as e:
                 print("[LAUNCH-DB] seed skip:", str(e)[:140])
+
+    # 🏪 VENDOR ADS startup — state load + kalam ayyina listings expire + demo vendors
+    try:
+        _vl = vendors_load_state()
+        print("[VENDORS] state load: %s (vendors=%s, leads=%s)"
+              % ("ok" if _vl.get("ok") else "new", _vl.get("vendors", 0), _vl.get("leads", 0)))
+        _ex = expire_due_vendors()
+        if _ex.get("expired"):
+            print("[VENDORS] %d listings expire ayyayi" % _ex["expired"])
+        if str(os.getenv("DEMO_SEED_ENABLED", "true")).lower() in ("1", "true", "yes", "on") \
+                and not [v for v in __import__("vendors").VENDORS if v.get("source") != "demo_seed"]:
+            import vendors as _vmod
+            _seed = _vmod.demo_seed()
+            print("[VENDORS] %d demo vendors + %d leads ready (total %d)"
+                  % (len(_seed["created"]), _seed["leads"], _seed["total"]))
+    except Exception as e:
+        print("[VENDORS] state load fail:", str(e)[:90])
 
     # 🤝 REFERRAL 2.0 startup: state file load (payouts/clicks restart lo kooda undali)
     try:
@@ -2274,6 +2299,217 @@ def api_og_site(title: str = "Mana Vivaha — Telugu Matrimony", subtitle: str =
         raise HTTPException(500, "Preview generate avvaledu")
     return FileResponse(path, media_type="image/png", headers={"Cache-Control": "public, max-age=3600"})
 
+
+
+# ---------------------------------------------------------------------------
+# 🏪 VENDOR ADS + PROMOTIONS — catering / photography / decorations / halls...
+#    "Pelli sambandham related vaallaki promotions kooda cheyyali bestga"
+# ---------------------------------------------------------------------------
+@app.get("/api/vendors/categories")
+def vendor_categories():
+    """18 vendor categories (Telugu names tho) + active counts."""
+    return {"success": True, "count": len(VENDOR_CATEGORIES), "categories": VENDOR_CATEGORIES,
+            "headline": "Pelli sambandham related anni services — okate chota"}
+
+
+@app.get("/api/vendors/stats")
+def vendor_stats_api():
+    return {"success": True, **vendor_stats()}
+
+
+@app.get("/api/vendors/packages")
+def vendor_packages():
+    """🏷️ Ad packages (₹149 nunchi ₹3999) + add-ons + slots."""
+    return {"success": True, **vendor_packages_public()}
+
+
+@app.get("/api/vendors/ads")
+def vendor_ads(slot: str = "home_top_banner", limit: int = 2, track: bool = True):
+    """📢 Ad rotation (paid-first weighted). Site home/strips lo vaadutunnam."""
+    return {"success": True, **ad_rotation(slot, limit=min(max(limit, 1), 6), track=track)}
+
+
+@app.get("/api/vendors")
+def vendor_list(category: str = "", district: str = "", city: str = "", q: str = "",
+                limit: int = 60, include_inactive: bool = False):
+    """🏪 Vendor directory — category/district/city/search filters (paid-first order)."""
+    return {"success": True, **vendors_directory(category=category, district=district, city=city,
+                                                 q=q, limit=min(max(limit, 1), 200),
+                                                 include_inactive=include_inactive)}
+
+
+@app.post("/api/vendors/register")
+def vendor_register(payload: Dict[str, Any] = Body(default={})):
+    """
+    🏪 Vendor signup (catering/photography/decoration/hall...) → pending → admin approve.
+    Body: {business_name, category, phone, city, district, state, package, about, price_range...}
+    """
+    res = register_vendor(payload or {})
+    if not res.get("ok"):
+        return JSONResponse(status_code=400, content={"success": False, **res})
+    # Admin ki instant alert (WhatsApp) + vendor ki confirmation text
+    try:
+        admin_no = os.getenv("ADMIN_WHATSAPP_NUMBER", "").strip()
+        v = res["vendor"]
+        _txt = ("🏪 *NEW VENDOR REQUEST*\n%s (%s)\n📍 %s, %s\n📞 %s\n💼 Package: %s = ₹%d\n"
+                "Vendor ID: %s\n\nPayment verify chesi /api/admin/vendors/%s/action?action=approve&utr=... "
+                "tho activate cheyyandi" % (v["business_name"], v["category_te"], v["city"], v["district"],
+                                            v["phone"], res["package"]["name"], res["amount"], v["id"], v["id"]))
+        if admin_no and publish_config()["wa_mode"] != "off":
+            enqueue_whatsapp([admin_no], _txt, priority=0, kind="vendor_request")
+            res["admin_notified"] = True
+        else:
+            res["admin_alert_text"] = _txt
+    except Exception as e:
+        res["notify_error"] = str(e)[:100]
+    return {"success": True, **res}
+
+
+@app.get("/api/vendors/{vendor_id}")
+def vendor_detail(vendor_id: str, track: bool = False):
+    """🏪 Vendor public detail (contact WhatsApp CTA tho)."""
+    v = next((x for x in __import__("vendors").VENDORS if x.get("id") == vendor_id), None)
+    if not v:
+        raise HTTPException(404, "Vendor dorakaledi")
+    if v.get("status") == "pending" and str(v.get("phone")) != (os.getenv("ADMIN_PHONE", "") or "___"):
+        pass  # pending listing public ki kanipinchadu (kaani owner/demo ki chudataniki allow)
+    if track:
+        track_vendor_click(vendor_id, source="detail")
+    same_cat = [x for x in __import__("vendors").VENDORS
+                if x.get("category") == v.get("category") and x.get("status") == "active" and x.get("id") != vendor_id][:4]
+    return {"success": True, "vendor": public_vendor(v), "package": VENDOR_PACKAGES and
+            {p["code"]: p for p in VENDOR_PACKAGES}.get(v.get("package"), {}),
+            "similar": [public_vendor(x) for x in same_cat],
+            "review_note_telugu": "Mee experience share cheyyandi — mana team verify chesi rating update chestundi"}
+
+
+@app.get("/api/vendors/{vendor_id}/dashboard")
+def vendor_dash(vendor_id: str):
+    """📊 Vendor performance: impressions, clicks, enquiries, days left, upsell."""
+    d = vendor_dashboard(vendor_id)
+    if not d.get("ok"):
+        raise HTTPException(404, "Vendor dorakaledi")
+    return {"success": True, **d}
+
+
+@app.get("/api/vendors/{vendor_id}/promo")
+def vendor_promo(vendor_id: str, variant: int = 0):
+    """📝 Telugu promo post (Telegram + WhatsApp ready) + poster text."""
+    v = next((x for x in __import__("vendors").VENDORS if x.get("id") == vendor_id), None)
+    if not v:
+        raise HTTPException(404, "Vendor dorakaledi")
+    return {"success": True, **promo_post(v, variant=variant),
+            "poster_square": "/api/vendors/%s/poster.png?style=square" % vendor_id,
+            "poster_status": "/api/vendors/%s/poster.png?style=status" % vendor_id}
+
+
+@app.get("/api/vendors/{vendor_id}/poster.png")
+def vendor_poster_png(vendor_id: str, style: str = "square"):
+    """🖼️ Vendor promo poster (QR tho) — square / status."""
+    v = next((x for x in __import__("vendors").VENDORS if x.get("id") == vendor_id), None)
+    if not v:
+        raise HTTPException(404, "Vendor dorakaledi")
+    try:
+        import vendor_kit
+        path = vendor_kit.vendor_poster(v, style=("status" if style == "status" else "square"))
+        return FileResponse(path, media_type="image/png",
+                            filename="manavivaha-vendor-%s-%s.png" % (v.get("id"), style))
+    except Exception as e:
+        raise HTTPException(500, "Poster generate avvaledu: %s" % str(e)[:120])
+
+
+@app.post("/api/vendors/{vendor_id}/lead")
+def vendor_lead_api(vendor_id: str, payload: Dict[str, Any] = Body(default={})):
+    """📩 Enquiry → vendor ki instant WhatsApp + admin alert (+ customer ko 3 more options)."""
+    res = vendor_lead(vendor_id, payload or {})
+    if not res.get("ok"):
+        return JSONResponse(status_code=400, content={"success": False, **res})
+    try:
+        v = res["vendor"]
+        _to_vendor = res["vendor_whatsapp_text"]
+        _phone = "".join(ch for ch in str(v.get("whatsapp_link", "")) if ch.isdigit())[2:12]
+        vnum = ""
+        _vend = next((x for x in __import__("vendors").VENDORS if x.get("id") == vendor_id), None)
+        vnum = str((_vend or {}).get("whatsapp") or (_vend or {}).get("phone") or "")
+        if vnum and publish_config()["wa_mode"] != "off":
+            enqueue_whatsapp([vnum], _to_vendor, priority=0, kind="vendor_lead")
+            res["vendor_notified"] = True
+        else:
+            res["vendor_alert_text"] = _to_vendor
+        admin_no = os.getenv("ADMIN_WHATSAPP_NUMBER", "").strip()
+        if admin_no and publish_config()["wa_mode"] != "off":
+            enqueue_whatsapp([admin_no], "📩 Vendor enquiry: %s ← %s (%s)"
+                             % (v.get("business_name"), payload.get("name"), payload.get("phone")),
+                             priority=1, kind="vendor_lead_admin")
+            res["admin_notified"] = True
+    except Exception as e:
+        res["notify_error"] = str(e)[:100]
+    # 🎯 Mana side advantage: category lo inka 3 options (customer ni mana daggarane unchadam)
+    try:
+        import vendors as _vmod
+        _v = next((x for x in _vmod.VENDORS if x.get("id") == vendor_id), None)
+        if _v:
+            _more = [public_vendor(x) for x in _vmod.VENDORS
+                     if x.get("category") == _v.get("category") and x.get("status") == "active"
+                     and x.get("id") != vendor_id][:3]
+            res["more_options"] = _more
+            if _more:
+                res["compare_telugu"] = "Rate compare cheyyandi — %s category lo inka %d vendors unnaru mana side" % (
+                    _v.get("category_te"), len(_more))
+    except Exception:
+        pass
+    return {"success": True, **res}
+
+
+@app.post("/api/vendors/{vendor_id}/click")
+def vendor_click(vendor_id: str, source: str = ""):
+    res = track_vendor_click(vendor_id, source)
+    if not res.get("ok"):
+        raise HTTPException(404, "Vendor dorakaledi")
+    return {"success": True, **res}
+
+
+@app.get("/api/admin/vendors")
+def admin_vendor_list(status: str = "pending", token: str = ""):
+    """👮 Admin — vendor requests queue (approve/reject)."""
+    _g = _admin_guard(token)
+    if _g:
+        return _g
+    return {"success": True, **vendor_queue(status)}
+
+
+@app.post("/api/admin/vendors/{vendor_id}/action")
+def admin_vendor_action(vendor_id: str, action: str, package: str = "", utr: str = "",
+                        reason: str = "", token: str = ""):
+    """✅ approve (package + UTR) · ❌ reject · ⏳ expire."""
+    _g = _admin_guard(token)
+    if _g:
+        return _g
+    if action == "approve":
+        res = activate_vendor(vendor_id, package=package, utr=utr)
+    elif action == "reject":
+        res = reject_vendor(vendor_id, reason)
+    elif action == "expire":
+        v = next((x for x in __import__("vendors").VENDORS if x.get("id") == vendor_id), None)
+        if not v:
+            raise HTTPException(404, "Vendor dorakaledi")
+        v["status"] = "expired"
+        vendors_save_state()
+        res = {"ok": True, "vendor": v, "message_telugu": "⏳ %s listing expire chesam" % v.get("business_name")}
+    else:
+        return JSONResponse(status_code=400, content={"success": False, "reason": "bad_action"})
+    if not res.get("ok"):
+        return JSONResponse(status_code=400, content={"success": False, **res})
+    return {"success": True, **res}
+
+
+@app.get("/api/admin/vendors/revenue/summary")
+def admin_vendor_revenue(token: str = ""):
+    """💰 Vendor revenue: active, pipeline, MRR, leads, renewals due."""
+    _g = _admin_guard(token)
+    if _g:
+        return _g
+    return {"success": True, **vendor_revenue()}
 
 
 if __name__=="__main__":

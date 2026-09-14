@@ -24,6 +24,10 @@ export default function AdminPage() {
   const [search, setSearch] = useState("");
   const [flash, setFlash] = useState("");
   const [board, setBoard] = useState<any[]>([]);
+  const [vQueue, setVQueue] = useState<any>({ items: [], count: 0, total_amount: 0 });
+  const [vStatus, setVStatus] = useState("pending");
+  const [vUtr, setVUtr] = useState<Record<string, string>>({});
+  const [vRevenue, setVRevenue] = useState<any>(null);
   const [stats, setStats] = useState<any>({});
 
   /* ---------- loaders ---------- */
@@ -46,6 +50,36 @@ export default function AdminPage() {
   }, []);
 
   useEffect(() => { loadQueue(status); }, [status, loadQueue]);
+
+  const loadVendors = useCallback((st: string) => {
+    const tk = adminToken();
+    fetch(`/api/admin/vendors?status=${st}${tk ? `&token=${encodeURIComponent(tk)}` : ""}`)
+      .then((r) => r.json())
+      .then((d) => (d.success ? setVQueue(d) : setFlash(d.message_telugu || "⚠️ Admin token check cheyyandi")))
+      .catch(() => { });
+    fetch(`/api/admin/vendors/revenue/summary${tk ? `?token=${encodeURIComponent(tk)}` : ""}`)
+      .then((r) => r.json()).then((d) => d.success && setVRevenue(d)).catch(() => { });
+  }, []);
+
+  useEffect(() => { if (tab === "vendors") loadVendors(vStatus); }, [tab, vStatus, loadVendors]);
+
+  const actVendor = async (id: string, action: string, pkg?: string) => {
+    const q = new URLSearchParams({ action });
+    const tk = adminToken();
+    if (tk) q.set("token", tk);
+    if (action === "approve") {
+      const v = (vUtr[id] || "").trim();
+      if (!v) { setFlash("⚠️ Payment reference (UTR) ivvakunda vendor activate cheyyakoodadu — audit ki. Free/demo ki 'FREE' ani type cheyyandi"); return; }
+      q.set("utr", v);
+      if (pkg) q.set("package", pkg);
+    } else if (action === "reject") {
+      q.set("reason", "admin_reject: payment/details verify avvaledu");
+    }
+    const r = await fetch(`/api/admin/vendors/${id}/action?${q.toString()}`, { method: "POST" });
+    const d = await r.json();
+    setFlash(d.message_telugu || d.reason || "done");
+    loadVendors(vStatus);
+  };
   useEffect(() => {
     fetch("/api/referral/leaderboard?period=all&limit=5").then((r) => r.json()).then((d) => setBoard(d.leaderboard || [])).catch(() => { });
     fetch("/api/leads/stats").then((r) => r.json()).then((d) => setStats((s: any) => ({ ...s, leads: d }))).catch(() => { });
@@ -91,7 +125,8 @@ export default function AdminPage() {
         </div>
 
         <div className="flex flex-wrap gap-2 mb-4">
-          {[["payouts", "💰 Referral Payouts (live)"], ["profiles", "👥 Profiles"], ["analytics", "📊 Analytics"]].map(([k, l]) => (
+          {[["payouts", "💰 Referral Payouts (live)"], ["vendors", "🏪 Vendor Ads (live)"],
+            ["profiles", "👥 Profiles"], ["analytics", "📊 Analytics"]].map(([k, l]) => (
             <button key={k} onClick={() => setTab(k)}
               className={`px-5 py-2 rounded-full text-sm font-bold ${tab === k ? "maroon-gradient text-white" : "bg-white border"}`}>{l}</button>
           ))}
@@ -109,13 +144,21 @@ export default function AdminPage() {
         <div className="bg-white rounded-[1.5rem] p-5 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="font-bold text-[#7A0C2E]">
-              {tab === "payouts" ? "💰 Referral Payout Queue — UTR tho approve (audit trail)" : tab === "profiles" ? "Profiles — Approve → auto-post" : "Analytics"}
+              {tab === "payouts" ? "💰 Referral Payout Queue — UTR tho approve (audit trail)"
+                : tab === "vendors" ? "🏪 Vendor Ads — approve (UTR) → listing live + promo post"
+                : tab === "profiles" ? "Profiles — Approve → auto-post" : "Analytics"}
             </h2>
             <div className="flex gap-2">
               {tab === "payouts" && (
                 <select value={status} onChange={(e) => setStatus(e.target.value)} className="rounded-full border px-3 py-1.5 text-xs">
                   <option value="requested">requested</option><option value="paid">paid</option>
                   <option value="rejected">rejected</option><option value="">anni</option>
+                </select>
+              )}
+              {tab === "vendors" && (
+                <select value={vStatus} onChange={(e) => setVStatus(e.target.value)} className="rounded-full border px-3 py-1.5 text-xs">
+                  <option value="pending">pending</option><option value="active">active</option>
+                  <option value="expired">expired</option><option value="rejected">rejected</option><option value="">anni</option>
                 </select>
               )}
               <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Code / Name / UPI / ID"
@@ -185,6 +228,105 @@ export default function AdminPage() {
                 <div className="mt-1 space-y-0.5 opacity-90">
                   <div>1. Copy UPI → 2. PhonePe deep link (amount auto) → 3. Send → 4. UTR paste → 5. ✅ Paid</div>
                   <div>Reject ayithe → referrer wallet ki auto-credit + message veltundi. Anni entries ledger lo (audit) untayi.</div>
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* ---------------- VENDOR ADS ---------------- */}
+          {tab === "vendors" && (
+            <>
+              <p className="text-xs text-gray-500 mt-2 telugu">
+                Vendor signup (catering/photography/decorations/hall/pandit...) → payment verify → <b>activate</b> chesthe
+                listing + Telugu promo post + poster ready. Enquiries direct vendor WhatsApp ki veltayi.
+              </p>
+              {vRevenue && (
+                <div className="mt-3 grid grid-cols-2 md:grid-cols-5 gap-3 text-center">
+                  {[
+                    { l: "Active vendors", v: vRevenue.active, c: "text-green-600" },
+                    { l: "Pending", v: vRevenue.pending, c: "text-orange-600" },
+                    { l: "Collected (₹)", v: vRevenue.collected, c: "text-[#7A0C2E]" },
+                    { l: "MRR (₹)", v: vRevenue.mrr, c: "text-[#7A0C2E]" },
+                    { l: "Leads (total)", v: vRevenue.leads_total, c: "text-[#0F1F3C]" },
+                  ].map((x) => (
+                    <div key={x.l} className="bg-gray-50 rounded-2xl p-3">
+                      <div className={`text-xl font-bold ${x.c}`}>{x.v}</div>
+                      <div className="text-[11px] text-gray-500">{x.l}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {vRevenue?.renewals_due?.length > 0 && (
+                <div className="mt-3 rounded-xl bg-[#FFF8E7] border border-[#D4AF37]/50 p-3 text-xs text-[#7A0C2E]">
+                  ⏳ <b>{vRevenue.renewals_due.length}</b> listings ee వారంలో expire avutunnayi — renewal call cheyyandi:
+                  {" "}{vRevenue.renewals_due.map((r: any) => r.name).join(", ")}
+                </div>
+              )}
+              <div className="mt-4 overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead><tr className="text-xs text-gray-500 border-b">
+                    <th className="text-left p-2">Vendor</th><th>Category</th><th>Contact</th>
+                    <th>Package</th><th>UTR / Action</th>
+                  </tr></thead>
+                  <tbody>
+                    {(vQueue.items || []).length === 0 && (
+                      <tr><td colSpan={5} className="p-4 text-center text-xs text-gray-500">Ee status lo vendor requests levu 🙂</td></tr>
+                    )}
+                    {(vQueue.items || []).map((v: any) => (
+                      <tr key={v.id} className="border-b align-top">
+                        <td className="p-2 text-xs">
+                          <div className="font-bold">{v.icon} {v.business_name}</div>
+                          <div className="text-[10px] text-gray-500">{v.id} • {v.city}{v.district ? `, ${v.district}` : ""}</div>
+                          <div className={`mt-1 inline-block px-2 py-0.5 rounded-full text-[10px] ${v.status === "active" ? "bg-green-100 text-green-700" : v.status === "rejected" ? "bg-red-100 text-red-700" : v.status === "expired" ? "bg-gray-200 text-gray-700" : "bg-orange-100 text-orange-700"}`}>
+                            {v.status}{v.expires_at ? ` → ${v.expires_at.slice(0, 10)}` : ""}
+                          </div>
+                          {v.about && <div className="text-[10px] text-gray-500 mt-1 max-w-[220px] line-clamp-2">{v.about}</div>}
+                        </td>
+                        <td className="p-2 text-xs">{v.category_te || v.category}<div className="text-[10px] text-gray-500">{v.price_range}</div></td>
+                        <td className="p-2 text-xs">
+                          <a href={`https://wa.me/91${v.whatsapp || v.phone}`} target="_blank" rel="noreferrer" className="font-bold text-green-700 underline">📞 {v.phone}</a>
+                          <div className="text-[10px] text-gray-500">owner: {v.owner_name || "-"} • {v.experience_years || "-"} yrs</div>
+                        </td>
+                        <td className="p-2 text-xs">
+                          <div className="font-bold text-[#7A0C2E]">₹{v.package_price} <span className="text-[10px] text-gray-500">/ {v.package_days}d</span></div>
+                          <div className="text-[10px] text-gray-500">{v.package}</div>
+                        </td>
+                        <td className="p-2">
+                          {v.status === "pending" ? (
+                            <div className="flex flex-col gap-1">
+                              <input value={vUtr[v.id] || ""} onChange={(e) => setVUtr({ ...vUtr, [v.id]: e.target.value })}
+                                placeholder="UTR / payment ref" className="rounded-lg border px-2 py-1 text-xs w-36" />
+                              <div className="flex flex-wrap gap-1">
+                                <button onClick={() => actVendor(v.id, "approve", v.package)} className="px-3 py-1 bg-green-600 text-white rounded-full text-xs">✅ Activate</button>
+                                <button onClick={() => actVendor(v.id, "reject")} className="px-3 py-1 bg-red-500 text-white rounded-full text-xs">❌ Reject</button>
+                                {v.whatsapp_link && (
+                                  <a href={v.whatsapp_link} target="_blank" rel="noreferrer" className="px-3 py-1 bg-[#6739B7] text-white rounded-full text-xs">💬 WA</a>
+                                )}
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex flex-wrap gap-1">
+                              {v.status === "active" && (
+                                <button onClick={() => actVendor(v.id, "expire")} className="px-3 py-1 bg-gray-200 rounded-full text-xs">⏳ Expire</button>
+                              )}
+                              {v.status !== "active" && (
+                                <button onClick={() => actVendor(v.id, "approve", v.package)} className="px-3 py-1 bg-green-600 text-white rounded-full text-xs">♻️ Reactivate</button>
+                              )}
+                              <a href={`/vendors/${v.id}`} className="px-3 py-1 bg-gray-100 rounded-full text-xs">👁️ view</a>
+                              <a href={`/api/vendors/${v.id}/poster.png`} download className="px-3 py-1 bg-gray-100 rounded-full text-xs">⬇️ poster</a>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="mt-4 rounded-xl bg-[#0F1F3C] text-white text-xs p-4">
+                <div className="font-bold text-[#D4AF37]">🏪 Vendor process (30 sec)</div>
+                <div className="mt-1 space-y-0.5 opacity-90">
+                  <div>1. Payment vachhinda check (UPI/phone) → 2. UTR paste → 3. ✅ Activate → 4. Listing + promo post live (+ poster download)</div>
+                  <div>Enquiries anni vendor WhatsApp ki auto-veltayi (lead text lo number, budget, event date untundi).</div>
                 </div>
               </div>
             </>

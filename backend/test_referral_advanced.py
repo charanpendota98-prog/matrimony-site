@@ -5,7 +5,7 @@ Run:  /tmp/venv/bin/python test_referral_advanced.py   (backend/ cwd nunchi)
 
 Cover:
   1. Code engine (short code LAK42, alias, link, uniqueness, tier)
-  2. Attach (validate / self-referral / same-phone / already-referred / referee bonus credit)
+  2. Attach (validate / self-referral block / same-phone ALLOWED+flag / already-referred / referee bonus)
   3. Commission math (₹29/99/199/299/499 → ₹50 first; repeat 10% cap ₹100; tier extra; <₹29 → 0)
   4. Payment processing (wallet, ledger, tier upgrade, milestone AUTO bonus, daily/lifetime caps)
   5. Refund clawback
@@ -70,8 +70,27 @@ check("Second time attach block (already_referred)", R.attach_referral(friend, c
 check("Invalid code reject", R.attach_referral(fresh_users()[1], "ZZZ99", users)["reason"] == "not_found")
 self_try = R.attach_referral({"tsap_id": me["tsap_id"], "phone": me["phone"], "credits": 0}, me["referral_code"], users)
 check("Self-referral block (same tsap_id)", self_try["reason"] == "self_referral", self_try.get("reason"))
-same_phone = R.attach_referral({"tsap_id": "TSAP-F-2025-7777", "phone": me["phone"], "credits": 0}, me["referral_code"], users)
-check("Same phone block", same_phone["reason"] == "same_phone")
+# 📞 "Evvaru enni aina refer cheyyochu — okate phone lo kooda conditions levu"
+_same_phone_user = {"tsap_id": "TSAP-F-2025-7777", "phone": me["phone"], "credits": 3, "full_name": "Family Member"}
+users.append(_same_phone_user)
+_fam = R.attach_referral(_same_phone_user, me["referral_code"], users)
+check("Same phone ALLOWED (block ledu) + review flag", _fam["ok"] is True
+      and any(f.startswith("same_phone_join") for f in _fam.get("flags", [])), _fam)
+check("Same phone family ki kooda +1 credit", _same_phone_user["credits"] == 4)
+check("Same phone note Telugu", "parvaledu" in _fam.get("note_telugu", "") or _fam.get("note_telugu") == "")
+_f2 = {"tsap_id": "TSAP-F-2025-8888", "phone": me["phone"], "credits": 3, "full_name": "Family Two"}
+_f3 = {"tsap_id": "TSAP-F-2025-9999", "phone": me["phone"], "credits": 3, "full_name": "Family Three"}
+users.extend([_f2, _f3])
+R.attach_referral(_f2, me["referral_code"], users)
+_r3 = R.attach_referral(_f3, me["referral_code"], users)
+check("3+ same-phone joins → multi_account_review flag (block ledu)", _r3["ok"] is True
+      and any("multi_account_review" in f for f in R.stats_of(me)["flags"]), R.stats_of(me)["flags"][-3:])
+check("Terms lo 'conditions levu' line", "conditions levu" in R.referral_terms_telugu()["no_conditions_telugu"].lower()
+      or "Evvaru enni aina" in R.referral_terms_telugu()["no_conditions_telugu"])
+check("Terms: okate phone lo kooda allowed ani cheppindi",
+      any("okate phone" in r.lower() or "Okate phone" in r for r in R.referral_terms_telugu()["rules_telugu"]))
+check("Daily/lifetime caps SOFT (block undi kaadu)",
+      R.DAILY_PAYING_SOFT_CAP >= 50 and R.LIFETIME_SOFT_CAP >= 500)
 check("Validate endpoint message lo peru + credit", "Ravi Kumar" in R.validate_referral(me["referral_code"], users)["message_telugu"])
 
 print("=== 2b. NOTIFICATION LOOP (WhatsApp texts) ===")

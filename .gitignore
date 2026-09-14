@@ -33,3 +33,4 @@ backend/referral_state.json.tmp
 # referral posters — runtime lo generate avutayi (repo lo pettakoodadu)
 backend/channel_assets/ref_*.png
 backend/referral_posters/
+backend/vendor_state.json
