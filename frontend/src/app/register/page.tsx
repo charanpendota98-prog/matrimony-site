@@ -14,6 +14,16 @@ function RegisterContent() {
   const [errors, setErrors] = useState<string[]>([]);
   const [generated, setGenerated] = useState<any>(null);
   const [photoPreview, setPhotoPreview] = useState<string>("");
+  const [photoName, setPhotoName] = useState<string>("");
+
+  // Register steps — progress bar + validation iddariki okkate source
+  const stepLabels = [
+    { n: 1, label: "Personal" },
+    { n: 2, label: "Family" },
+    { n: 3, label: "Caste/Astro" },
+    { n: 4, label: "Edu/Job" },
+    { n: 5, label: "Location/Photo" },
+  ];
   const [backend, setBackend] = useState<any>(null);
   const [publishPreview, setPublishPreview] = useState<any>(null);
 
@@ -295,23 +305,42 @@ function RegisterContent() {
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center justify-between mb-4">
           <Link href="/" className="text-sm text-[#7A0C2E] font-bold">← Home</Link>
-          <div className="text-sm font-bold text-[#7A0C2E]">TSAP Matrimony • Advanced Register • 5 Steps</div>
+          <div className="text-sm font-bold text-[#7A0C2E]">Mana Vivaha • Advanced Register • 5 Steps</div>
+          <span className="hidden sm:inline text-[10px] px-2 py-1 rounded-full bg-[#FFF8E7] border border-[#D4AF37]/40 text-[#7A0C2E] font-bold">
+            55 fields • photo • referral lock
+          </span>
           <Link href="/search/TSAP-M-2025-1042" className="text-xs border px-3 py-1 rounded-full">🔍 Search by Code</Link>
         </div>
 
-        {/* Progress - 5 Steps */}
-        <div className="bg-white rounded-full p-2 flex gap-1 mb-4 card-shadow overflow-x-auto">
-          {[
-            { n: 1, label: "Personal" },
-            { n: 2, label: "Family" },
-            { n: 3, label: "Caste/Astro" },
-            { n: 4, label: "Edu/Job" },
-            { n: 5, label: "Location/Photo" },
-          ].map(s => (
-            <div key={s.n} className={`flex-1 min-w-[70px] py-2 rounded-full text-center text-[11px] font-bold ${step >= s.n ? 'maroon-gradient text-white' : 'bg-gray-100 text-gray-400'}`}>
-              {s.n}. {s.label} {step > s.n ? '✅' : ''}
+        {/* Progress - 5 Steps + % */}
+        <div className="bg-white rounded-2xl p-2.5 mb-4 card-shadow">
+          <div className="flex items-center justify-between px-1.5 mb-2">
+            <div className="text-[11px] font-bold text-maroon">
+              {step >= 6 ? "✅ Complete — profile ready!" : `Step ${step} of 5 — ${stepLabels[step - 1]?.label || ""}`}
             </div>
-          ))}
+            <div className="text-[11px] font-bold text-gold-deep">
+              {step >= 6 ? 100 : Math.round(((step - 1) / 5) * 100 + 20)}%
+            </div>
+          </div>
+          <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden mb-2.5">
+            <div
+              className="h-full maroon-gradient rounded-full transition-all duration-500"
+              style={{ width: `${step >= 6 ? 100 : Math.round(((step - 1) / 5) * 100 + 20)}%` }}
+            />
+          </div>
+          <div className="flex gap-1 overflow-x-auto scrollbar-hide">
+            {stepLabels.map(s => (
+              <div
+                key={s.n}
+                className={`flex-1 min-w-[74px] py-2 px-1 rounded-xl text-center text-[11px] font-bold transition ${
+                  step >= s.n ? "maroon-gradient text-white" : "bg-gray-100 text-gray-400"
+                }`}
+              >
+                {step > s.n ? "✓ " : `${s.n}. `}
+                {s.label}
+              </div>
+            ))}
+          </div>
         </div>
 
         {errors.length > 0 && (
@@ -642,22 +671,53 @@ function RegisterContent() {
                   <div className="text-3xl">📸</div>
                   <div className="text-xs mt-2 font-bold">Click to upload - Photo 1 mandatory</div>
                   <div className="mt-3 flex justify-center gap-3">
-                    <label className="px-4 py-2 bg-white border rounded-full text-xs font-bold cursor-pointer">
+                    <label className="px-4 py-2 bg-white border rounded-full text-xs font-bold cursor-pointer focus-brand">
                       📷 Upload Photo
-                      <input type="file" accept="image/*" className="hidden" onChange={e => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          const url = URL.createObjectURL(file);
-                          setPhotoPreview(url);
-                        }
-                      }} />
+                      <input
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp"
+                        className="hidden"
+                        onChange={e => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          // Validation — photo upload mistakes block
+                          if (!file.type.startsWith("image/")) {
+                            setErrors(["Photo file matrame (JPG/PNG/WebP) — ee file type kadu"]);
+                            return;
+                          }
+                          if (file.size > 5 * 1024 * 1024) {
+                            setErrors([`Photo ${(file.size / 1024 / 1024).toFixed(1)}MB undi — 5MB lopala pettu (phone lo 'resize' cheyyi)`]);
+                            return;
+                          }
+                          setErrors([]);
+                          setPhotoPreview(URL.createObjectURL(file));
+                          setPhotoName(`${file.name} • ${(file.size / 1024).toFixed(0)} KB`);
+                        }}
+                      />
                     </label>
-                    <button onClick={() => setPhotoPreview("https://i.pravatar.cc/300?img=" + Math.floor(Math.random() * 70))} className="px-4 py-2 gold-gradient rounded-full text-xs font-bold text-[#7A0C2E]">🎲 Demo Photo</button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPhotoPreview("https://i.pravatar.cc/300?img=" + Math.floor(Math.random() * 70));
+                        setPhotoName("demo-photo.jpg • sample");
+                      }}
+                      className="px-4 py-2 gold-gradient rounded-full text-xs font-bold text-[#7A0C2E]"
+                    >
+                      🎲 Demo Photo
+                    </button>
                   </div>
                   {photoPreview && (
                     <div className="mt-4">
-                      <img src={photoPreview} alt="preview" className="w-32 h-32 mx-auto rounded-xl object-cover border-2 border-[#D4AF37]" />
-                      <div className="text-[10px] text-green-600 mt-1">✅ Photo uploaded - AI blur check pass - Verified badge ready</div>
+                      <img src={photoPreview} alt="profile photo preview" className="w-32 h-32 mx-auto rounded-xl object-cover border-2 border-[#D4AF37]" />
+                      {photoName && <div className="text-[10px] text-gray-500 mt-1">{photoName}</div>}
+                      <div className="text-[10px] text-green-600 mt-1">✅ Photo ready — watermark + verified badge apply avutundi</div>
+                      <button
+                        type="button"
+                        onClick={() => { setPhotoPreview(""); setPhotoName(""); }}
+                        className="mt-2 text-[10px] font-bold text-red-600 border border-red-200 rounded-full px-3 py-1"
+                      >
+                        ✕ Photo remove
+                      </button>
                     </div>
                   )}
                   <div className="text-[10px] text-gray-400 mt-2">AI blur check + selfie verify → Verified badge • Private mode lo only paid ki clear</div>
@@ -794,9 +854,73 @@ function RegisterContent() {
               </div>
             </div>
 
-            {/* ADVANCED TEMPLATE WITH PHOTO - Neat */}
+            {/* REAL GENERATED CARD (backend nunchi) — download + share */}
+            {backend?.card_url && (
+              <div className="bg-white rounded-[1.5rem] p-6 card-shadow border border-[#D4AF37]/30">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <h3 className="font-bold text-[#7A0C2E]">🎴 Me Real Profile Card — backend lo generate ayyindi</h3>
+                  <span className="text-[10px] px-2 py-1 rounded-full bg-green-50 text-green-700 font-bold">
+                    {backend.publish_queued ? "Channels ki queue ayyindi ✓" : "Ready"}
+                  </span>
+                </div>
+                <div className="mt-4 flex flex-col md:flex-row gap-5 items-start">
+                  <img
+                    src={backend.card_url}
+                    alt={`Profile card ${backend.tsap_id}`}
+                    className="w-full max-w-[320px] rounded-2xl border border-[#D4AF37] shadow-lg"
+                  />
+                  <div className="flex-1 space-y-2 text-xs w-full">
+                    <div className="bg-[#FFF8E7] rounded-xl p-3">
+                      <div className="font-bold text-[#7A0C2E]">ID: {backend.tsap_id}</div>
+                      <div className="text-gray-600 mt-1">Credits: {backend.credits} FREE • Top matches: {backend.top_3_matches?.length ?? 0}</div>
+                    </div>
+                    {backend.share_text && (
+                      <div className="bg-gray-50 rounded-xl p-3">
+                        <div className="font-bold text-[11px] text-gray-700 mb-1">WhatsApp/Status share text (ready):</div>
+                        <div className="text-[11px] text-gray-600 whitespace-pre-line">{backend.share_text}</div>
+                        <button
+                          type="button"
+                          onClick={() => navigator.clipboard?.writeText(backend.share_text)}
+                          className="mt-2 px-3 py-1.5 border rounded-full text-[11px] font-bold"
+                        >
+                          📋 Copy share text
+                        </button>
+                      </div>
+                    )}
+                    <div className="flex flex-wrap gap-2">
+                      <a
+                        href={backend.card_url}
+                        download={`${backend.tsap_id}-manavivaha-card.png`}
+                        className="px-4 py-2.5 maroon-gradient text-white rounded-full text-[12px] font-bold"
+                      >
+                        ⬇️ Card download
+                      </a>
+                      <a
+                        href={backend.card_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="px-4 py-2.5 border border-[#D4AF37] text-[#7A0C2E] rounded-full text-[12px] font-bold"
+                      >
+                        👁️ Full size chudu
+                      </a>
+                      <Link
+                        href={`/search/${backend.tsap_id}`}
+                        className="px-4 py-2.5 border rounded-full text-[12px] font-bold"
+                      >
+                        🔍 ID search lo open
+                      </Link>
+                    </div>
+                    <div className="text-[11px] text-gray-500">
+                      Ee card ne Telegram + WhatsApp channels lo post avutundi (watermark + QR tho).
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* IN-PAGE TEMPLATE PREVIEW */}
             <div className="bg-white rounded-[1.5rem] p-6 card-shadow">
-              <h3 className="font-bold text-[#7A0C2E]">🎴 Me Advanced Profile Card (Telegram/WhatsApp/Website lo ilage vasthundi - photo tho neat)</h3>
+              <h3 className="font-bold text-[#7A0C2E]">🎴 Card Preview — ilage kanipisthundi (anni details tho)</h3>
               <div className="mt-4 max-w-md mx-auto border-2 border-[#D4AF37] rounded-2xl overflow-hidden shadow-xl">
                 <div className="maroon-gradient text-white p-2 text-center text-xs font-bold flex justify-between px-4">
                   <span>TSAP MATRIMONY</span>

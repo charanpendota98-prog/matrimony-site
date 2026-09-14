@@ -45,7 +45,10 @@ backend/
   main.py                 ← FastAPI (register, search, matches, credits, channels, publish)
   telegram_bot.py         ← aiogram bot (approve → auto-post → deep links)
   gen_frontend_channels.py / gen_master_list.py   ← registry → frontend + docs (auto-gen)
-frontend/                 ← Next.js 14 (register 55 fields, /channels, home, search, bureau...)
+frontend/
+  src/lib/site-config.ts  ← ⭐ CUSTOMIZE IKKADE (brand, prices, features, contacts)
+  src/components/         ← SiteHeader, SiteFooter, StickyCTA, Reveal, SectionHeading
+  src/app/                ← home, register (55 fields), channels, matches, referral, bureau, admin
 whatsapp-bridge/          ← optional Baileys service (groups/newsletter posting)
 docker-compose.yml        ← postgres, redis, backend, frontend, bot, wa-bridge (+nginx profile)
 nginx.conf                ← host nginx config (manavivaha.in, /api proxy, SSL via certbot)
@@ -56,6 +59,7 @@ nginx.conf                ← host nginx config (manavivaha.in, /api proxy, SSL 
 |---|---|
 | [CHANNELS-MASTER-LIST-TELUGU.md](CHANNELS-MASTER-LIST-TELUGU.md) | 65 channels final list + waves + bot router rules |
 | [WEBSITE-STRATEGY-AND-100-PERCENT-GAPS.md](WEBSITE-STRATEGY-AND-100-PERCENT-GAPS.md) | Custom vs WordPress + auto-post flow + 30 gaps (P0→P3) |
+| [WEBSITE-CUSTOMIZATION-GUIDE.md](WEBSITE-CUSTOMIZATION-GUIDE.md) | Enti ekkada marchali — brand/pricing/features/colors + verify steps |
 | [ULTIMATE-TSAP-MASTER-PLAN-TELUGU.md](ULTIMATE-TSAP-MASTER-PLAN-TELUGU.md) | Master business plan |
 | [REFERRAL-SHORT-CODE-BUREAU-OFFER.md](REFERRAL-SHORT-CODE-BUREAU-OFFER.md) | Referral ₹50 + bureau B2B |
 

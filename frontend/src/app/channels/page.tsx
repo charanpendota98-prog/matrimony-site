@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ALL_CHANNELS, CHANNEL_STATS, CHANNEL_TIERS, Channel } from "@/lib/channels";
 
@@ -8,6 +8,21 @@ export default function ChannelsPage() {
   const [wave, setWave] = useState<number | 0>(0);
   const [q, setQ] = useState("");
   const [onlyLive, setOnlyLive] = useState(false);
+
+  // ?tier=L3_CASTE / ?wave=1 / ?q=reddy — home page nunchi vachina filters apply chey
+  // (Suspense avasaram ledu — build static ga ne untundi)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const sp = new URLSearchParams(window.location.search);
+    const t = sp.get("tier");
+    const w = sp.get("wave");
+    const query = sp.get("q");
+    const live = sp.get("live");
+    if (t && ["L0_OFFICIAL", "L1_REGION", "L2_RELIGION", "L3_CASTE", "L4_SPECIAL"].includes(t)) setTier(t);
+    if (w && ["1", "2", "3", "4"].includes(w)) setWave(Number(w));
+    if (query) setQ(query);
+    if (live === "1") setOnlyLive(true);
+  }, []);
 
   const list = useMemo(() => {
     const needle = q.trim().toLowerCase();
@@ -100,8 +115,20 @@ export default function ChannelsPage() {
               LIVE matrame chupinchu
             </label>
           </div>
-          <div className="text-[11px] text-gray-500 mt-2">
-            {list.length} channels kanipisthunnayi • Wave-1 = day-1 launch batch • per channel ki bot admin + pinned post must
+          <div className="text-[11px] text-gray-500 mt-2 flex flex-wrap items-center gap-2">
+            <span>{list.length} channels kanipisthunnayi</span>
+            {tier !== "ALL" && <span className="px-2 py-0.5 rounded-full bg-maroon-soft text-maroon font-bold">{tier.replace("_", " ")}</span>}
+            {wave !== 0 && <span className="px-2 py-0.5 rounded-full bg-gold-soft text-maroon font-bold">Wave {wave}</span>}
+            {q && <span className="px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 font-bold">“{q}”</span>}
+            {(tier !== "ALL" || wave !== 0 || q || onlyLive) && (
+              <button
+                onClick={() => { setTier("ALL"); setWave(0); setQ(""); setOnlyLive(false); }}
+                className="px-2 py-0.5 rounded-full border border-maroon/30 text-maroon font-bold"
+              >
+                ✕ filters clear
+              </button>
+            )}
+            <span className="text-gray-400">• per channel ki bot admin + pinned post must</span>
           </div>
         </div>
 
