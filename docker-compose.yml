@@ -23,14 +23,62 @@ services:
       - ./backend:/app
       - ./cards:/tmp/cards
       - ./photos:/tmp/photos
+      - ./cards:/app/cards
+      - ./publish_logs:/app/publish_logs
     ports:
       - "8000:8000"
     environment:
       - DATABASE_URL=postgresql://tsap:tsap123@postgres:5432/tsap_matrimony
       - REDIS_URL=redis://redis:6379
       - BOT_TOKEN=${BOT_TOKEN}
+      - WA_MAX_ATTEMPTS=${WA_MAX_ATTEMPTS}
+      - BOT_TOKEN_ALERT=${BOT_TOKEN_ALERT}
+      - BOT_TOKEN_BACKUP=${BOT_TOKEN_BACKUP}
       - RAZORPAY_KEY=${RAZORPAY_KEY}
       - RAZORPAY_SECRET=${RAZORPAY_SECRET}
+      - ADMIN_CHAT_ID=${ADMIN_CHAT_ID}
+      - SITE_URL=${SITE_URL:-https://manavivaha.in}
+      # Auto-publish (Telegram + WhatsApp)
+      - AUTO_POST_ON_REGISTER=${AUTO_POST_ON_REGISTER:-true}
+      - PUBLISH_DRY_RUN=${PUBLISH_DRY_RUN:-false}
+      - PUBLISH_RETRIES=${PUBLISH_RETRIES:-3}
+      - PUBLISH_RATE_LIMIT=${PUBLISH_RATE_LIMIT:-1.2}
+      # WhatsApp: off | cloud_api | bridge
+      - WHATSAPP_MODE=${WHATSAPP_MODE:-off}
+      - WHATSAPP_TOKEN=${WHATSAPP_TOKEN}
+      - WHATSAPP_PHONE_ID=${WHATSAPP_PHONE_ID}
+      - WHATSAPP_TO=${WHATSAPP_TO}
+      - WHATSAPP_BRIDGE_URL=${WHATSAPP_BRIDGE_URL}
+      - WHATSAPP_BRIDGE_TARGETS=${WHATSAPP_BRIDGE_TARGETS}
+      - PUBLIC_BASE_URL=${PUBLIC_BASE_URL:-https://manavivaha.in}
+      # 🛡️ WhatsApp anti-ban (random 120–170s gap, caps, quiet hours, warmup)
+      - WA_ENABLED=${WA_ENABLED:-true}
+      - WA_MIN_GAP=${WA_MIN_GAP:-120}
+      - WA_MAX_GAP=${WA_MAX_GAP:-170}
+      - WA_MIN_GAP_INTEREST=${WA_MIN_GAP_INTEREST:-60}
+      - WA_MAX_GAP_INTEREST=${WA_MAX_GAP_INTEREST:-120}
+      - WA_BREAK_EVERY=${WA_BREAK_EVERY:-6}
+      - WA_BREAK_MIN_MIN=${WA_BREAK_MIN_MIN:-8}
+      - WA_BREAK_MAX_MIN=${WA_BREAK_MAX_MIN:-20}
+      - WA_LONG_PAUSE_CHANCE=${WA_LONG_PAUSE_CHANCE:-0.08}
+      - WA_DAILY_CAP=${WA_DAILY_CAP:-60}
+      - WA_TARGET_DAILY_CAP=${WA_TARGET_DAILY_CAP:-8}
+      - WA_ACTIVE_START=${WA_ACTIVE_START:-8}
+      - WA_ACTIVE_END=${WA_ACTIVE_END:-22}
+      - WA_WARMUP_DAYS=${WA_WARMUP_DAYS:-4}
+      - WA_FAIL_COOLDOWN_MIN=${WA_FAIL_COOLDOWN_MIN:-30}
+      - WA_TEST_FAST=${WA_TEST_FAST:-false}
+      # 💌 Interest/request model (chatting ledu) + payments + demo
+      - INTEREST_MAX_PER_DAY=${INTEREST_MAX_PER_DAY:-20}
+      - INTEREST_EXPIRY_DAYS=${INTEREST_EXPIRY_DAYS:-7}
+      - INTEREST_REFUND_ON_DECLINE=${INTEREST_REFUND_ON_DECLINE:-true}
+      - PAYMENT_AUTO_APPROVE=${PAYMENT_AUTO_APPROVE:-true}
+      - DEMO_SEED_ENABLED=${DEMO_SEED_ENABLED:-true}
+      # 🌱 Growth: namaste welcome + lead capture + launch inventory
+      - ADMIN_WHATSAPP_NUMBER=${ADMIN_WHATSAPP_NUMBER}
+      - SUPPORT_PHONE=${SUPPORT_PHONE:-9100000000}
+      - LAUNCH_SEED_COUNT=${LAUNCH_SEED_COUNT:-60}
+      - LAUNCH_TARGET_PROFILES=${LAUNCH_TARGET_PROFILES:-360}
     depends_on:
       - postgres
       - redis
@@ -38,6 +86,9 @@ services:
   frontend:
     build: ./frontend
     command: npm run dev -- -H 0.0.0.0 -p 3000
+    environment:
+      # /api/* rewrite → backend (browser lo localhost reference undadu)
+      - BACKEND_URL=http://backend:8000
     volumes:
       - ./frontend:/app
       - /app/node_modules
@@ -58,7 +109,54 @@ services:
       - backend
       - redis
 
+  # OPTIONAL — WhatsApp bridge (Baileys). Start cheyyali ante: docker-compose up -d whatsapp-bridge
+  # QR scan cheyyali (http://<server>:3001/qr) → taruvata WHATSAPP_MODE=bridge set chey .env lo
+  whatsapp-bridge:
+    build: ./whatsapp-bridge
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./whatsapp-bridge/session:/app/session
+    environment:
+      - PORT=3001
+      - SESSION_DIR=/app/session
+      - BRIDGE_NAME=wa1
+      - BRIDGE_TOKEN=${WA1_BRIDGE_TOKEN:-}
+    restart: unless-stopped
+
+  # OPTIONAL — 2nd WhatsApp number (failover + load split). Start: docker-compose up -d whatsapp-bridge2
+  # QR: http://<server>:3002/qr  → .env WA_INSTANCES lo http://whatsapp-bridge2:3000 add chey
+  whatsapp-bridge2:
+    build: ./whatsapp-bridge
+    ports:
+      - "3002:3001"
+    volumes:
+      - ./whatsapp-bridge/session2:/app/session
+    environment:
+      - PORT=3001
+      - SESSION_DIR=/app/session
+      - BRIDGE_NAME=wa2
+      - BRIDGE_TOKEN=${WA2_BRIDGE_TOKEN:-}
+    restart: unless-stopped
+
+  # OPTIONAL — 3rd WhatsApp number (requests lane + backup). QR: http://<server>:3003/qr
+  whatsapp-bridge3:
+    build: ./whatsapp-bridge
+    ports:
+      - "3003:3001"
+    volumes:
+      - ./whatsapp-bridge/session3:/app/session
+    environment:
+      - PORT=3001
+      - SESSION_DIR=/app/session
+      - BRIDGE_NAME=wa3
+      - BRIDGE_TOKEN=${WA3_BRIDGE_TOKEN:-}
+    restart: unless-stopped
+
+  # OPTIONAL — docker nginx. Host nginx (certbot) unte idi vaddu (port conflict).
+  # Start: docker-compose --profile with-nginx up -d nginx
   nginx:
+    profiles: ["with-nginx"]
     image: nginx:alpine
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf

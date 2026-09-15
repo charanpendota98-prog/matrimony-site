@@ -1,0 +1,288 @@
+"use client";
+/**
+ * 👁️ /search/[id] — PROFILE VIEW (WAVE 9 rewrite)
+ * ===============================================
+ * 🐞 FIXES (mundu unna bugs):
+ *   • HARDCODED fake profile (Lakshmi Reddy + phone "9848012345") — tappu ID ki kooda ade kanipinchedu
+ *   • "Number Chudu 1 Credit" button — kani backend aa number eppudu ivvadu (fake promise)
+ *   • Credit locally deduct ayyedi (server ki telidu) → balance mismatch
+ *   • ✅ Ippudu: real /api/search/{id} data, 404 honest, 🔒 consent-based unlock, quality + trust,
+ *     block/report wired, shortlist + interest token tho.
+ */
+import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import TrustBadge from "@/components/TrustBadge";
+import AuthGate from "@/components/AuthGate";
+import { apiGet, apiPost, authHeaders, getToken } from "@/lib/api";
+
+type Row = Record<string, any>;
+
+const CONSENT_STEPS = [
+  "1️⃣ Interest pampandi (FREE 3 requests) — vaallaki mee profile WhatsApp lo veltundi",
+  "2️⃣ Vaallu accept cheste — rendu vaipula numbers WhatsApp lo exchange (consent)",
+  "3️⃣ Appudu matladukondi — mana side nunchi madhyastham kooda undi",
+];
+
+export default function ProfileView() {
+  const params = useParams();
+  const idFromUrl = String(params?.id || "").toUpperCase();
+  const [searchId, setSearchId] = useState(idFromUrl);
+  const [data, setData] = useState<Row | null>(null);
+  const [err, setErr] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [myTsapId, setMyTsapId] = useState("");
+  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [sending, setSending] = useState(false);
+  const [savedNow, setSavedNow] = useState(false);
+  const [needsLogin, setNeedsLogin] = useState(false);
+  const [blocked, setBlocked] = useState(false);
+  const [reported, setReported] = useState(false);
+
+  const profile: Row = data?.profile || {};
+  const trust = (data?.trust as Row) || null;
+  const quality = (data?.quality as Row) || null;
+
+  const load = useCallback(async (id: string) => {
+    if (!id) return;
+    setLoading(true); setErr(""); setMsg(null);
+    const { ok, status, data: d, errorTelugu } = await apiGet<Row>(`/api/search/${encodeURIComponent(id)}`);
+    setLoading(false);
+    if (!ok || !d) {
+      setData(null);
+      setErr(status === 404 ? `🔍 TSAP ID dorakaledu: ${id} — ID correct ga unda check cheyyandi (register ayyara?)` : errorTelugu);
+      return;
+    }
+    setData(d);
+  }, []);
+
+  useEffect(() => {
+    try {
+      setMyTsapId(localStorage.getItem("tsap_id") || "");
+    } catch { /* ignore */ }
+    void load(idFromUrl);
+  }, [idFromUrl, load]);
+
+  useEffect(() => {
+    if (!idFromUrl) return;
+    const my = (() => { try { return localStorage.getItem("tsap_id") || ""; } catch { return ""; } })();
+    void fetch("/api/view", {
+      method: "POST", headers: authHeaders(),
+      body: JSON.stringify({ tsap_id: idFromUrl, viewer_id: my }),
+    });
+  }, [idFromUrl]);
+
+  const sendInterest = async (templateId?: string) => {
+    setSending(true); setMsg(null);
+    const { ok, data: d, status, errorTelugu: eTel, needsLogin: nl } = await apiPost<Row>("/api/interest/send",
+      { from_id: myTsapId, to_id: searchId, channel: "search_page", ...(templateId ? { template_id: templateId } : {}) });
+    setSending(false);
+    if (nl) { setNeedsLogin(true); return; }
+    if (ok) setMsg({ ok: true, text: String(d?.message_telugu || "Interest pampincharu ✅ — accept ayithe numbers exchange") });
+    else if (status === 402) setMsg({ ok: false, text: "⚠️ Credits ayipoyayi — ₹99 → 5 profiles. Numbers kooda accept tho ne (consent)." });
+    else if (status === 404) setMsg({ ok: false, text: "Mee TSAP ID register cheyyaledu — mundu FREE register cheyyandi." });
+    else setMsg({ ok: false, text: eTel });
+  };
+
+  const toggleSave = async () => {
+    const { ok, data: d, needsLogin: nl, errorTelugu: eTel } = await apiPost<Row>("/api/save", { tsap_id: myTsapId, target_id: searchId });
+    if (nl) { setNeedsLogin(true); return; }
+    if (!ok) { setMsg({ ok: false, text: eTel }); return; }
+    setSavedNow(!!d?.saved);
+    setMsg({ ok: true, text: String(d?.message_telugu || "Shortlist update ayyindi") });
+  };
+
+  const doBlock = async () => {
+    const { ok, data: d, needsLogin: nl, errorTelugu: eTel } = await apiPost<Row>("/api/block", { tsap_id: myTsapId, block_id: searchId, reason: "profile page nunchi" });
+    if (nl) { setNeedsLogin(true); return; }
+    if (ok) { setBlocked(true); setMsg({ ok: true, text: String(d?.message_telugu || "Block ayyindi") }); }
+    else setMsg({ ok: false, text: eTel });
+  };
+
+  const doReport = async () => {
+    const { ok, data: d, needsLogin: nl, errorTelugu: eTel } = await apiPost<Row>("/api/report", { reporter_id: myTsapId, target_id: searchId, category: "fake_profile", detail: "Profile page nunchi report" });
+    if (nl) { setNeedsLogin(true); return; }
+    if (ok) { setReported(true); setMsg({ ok: true, text: String(d?.message_telugu || d?.ack_telugu || "Report pampam — team 48h lo chustundi") }); }
+    else setMsg({ ok: false, text: eTel });
+  };
+
+  const shareWhatsApp = () => {
+    if (!profile) return;
+    const text = `🙏 Mana Vivaha profile — ${profile.full_name} (${profile.tsap_id})\n` +
+      `${profile.age}y • ${profile.height || "—"} • ${profile.caste} • ${profile.education} • ${profile.job}\n` +
+      `📍 ${profile.district}, ${profile.state} • 💰 ${profile.salary}\n` +
+      `🔒 Number locked — interest accept ayithe exchange\n` +
+      `Full details: ${window.location.origin}/search/${profile.tsap_id}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
+  };
+
+  return (
+    <main className="mx-auto max-w-3xl px-4 py-6">
+      <div className="flex items-center gap-2">
+        <Link href="/matches" className="text-[12px] font-bold text-[#7A0C2E]">← Matches</Link>
+        <div className="flex flex-1 items-center gap-2 rounded-2xl border border-rose-200 bg-white px-3 py-2">
+          <span>🔍</span>
+          <input value={searchId} onChange={(e) => setSearchId(e.target.value.toUpperCase())}
+            onKeyDown={(e) => { if (e.key === "Enter") void load(searchId.trim()); }}
+            placeholder="TSAP ID (ex: TSAP-F-2025-1042)" aria-label="TSAP ID search"
+            className="flex-1 bg-transparent text-sm outline-none" />
+          <button onClick={() => void load(searchId.trim())} className="rounded-xl bg-[#7A0C2E] px-3 py-1.5 text-[12px] font-bold text-white">Chudu</button>
+        </div>
+      </div>
+
+      {loading ? <p className="mt-6 text-center text-slate-500">⏳ Profile load avutundi…</p> : null}
+      {!loading && err ? (
+        <div className="mt-6 rounded-2xl border-2 border-amber-300 bg-amber-50 p-5 text-center">
+          <p className="font-bold text-amber-900">{err}</p>
+          <div className="mt-3 flex flex-wrap justify-center gap-2">
+            <Link href="/matches" className="rounded-xl bg-[#7A0C2E] px-4 py-2 text-sm font-bold text-white">💞 Matches chudu</Link>
+            <Link href="/register" className="rounded-xl border border-[#7A0C2E] px-4 py-2 text-sm font-bold text-[#7A0C2E]">🆓 Register FREE</Link>
+          </div>
+        </div>
+      ) : null}
+
+      {needsLogin ? <div className="mt-4"><AuthGate note="Interest pampadam, shortlist, block — ee actions ki OTP login kavali (mee privacy koraku)." /></div> : null}
+
+      {!loading && !err && data ? (
+        <>
+          <section className="mt-4 rounded-3xl border border-rose-200 bg-white p-5">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h1 className="text-2xl font-extrabold text-[#7A0C2E]">{profile.full_name || "Profile"}</h1>
+                <p className="font-mono text-[12px] text-slate-500">{profile.tsap_id}</p>
+                <div className="mt-2 flex flex-wrap gap-2 text-[11px]">
+                  <TrustBadge trust={trust} completeness={Number(quality?.percent ?? 0)} />
+                  {profile.phone_verified || profile.is_verified
+                    ? <span className="rounded-full border border-emerald-300 bg-emerald-50 px-2 py-0.5 font-semibold text-emerald-800">✅ Phone verified</span>
+                    : <span className="rounded-full border border-slate-300 bg-slate-50 px-2 py-0.5 text-slate-600">⏳ Verify pending</span>}
+                  {profile.boosted ? <span className="rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 font-semibold text-amber-800">⚡ Boosted</span> : null}
+                </div>
+              </div>
+              <div className="shrink-0 rounded-2xl bg-rose-50 px-3 py-2 text-center">
+                <p className="text-lg font-extrabold text-[#7A0C2E]">{quality?.percent ?? 0}%</p>
+                <p className="text-[10px] text-slate-500">profile complete</p>
+              </div>
+            </div>
+
+            <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-[13px] text-slate-700 sm:grid-cols-3">
+              {[
+                ["🎂 వయస్సు", `${profile.age ?? "—"}y`],
+                ["📏 ఎత్తు", profile.height || "—"],
+                ["🕉️ కులం", `${profile.caste || "—"}${profile.sub_caste ? ` (${profile.sub_caste})` : ""}`],
+                ["🎓 చదువు", `${profile.education || "—"}${profile.education_detail ? ` ${profile.education_detail}` : ""}`],
+                ["💼 ఉద్యోగం", `${profile.job || "—"}${profile.company ? ` @ ${profile.company}` : ""}`],
+                ["💰 ఆదాయం", profile.salary || "—"],
+                ["📍 ప్రాంతం", `${profile.district || "—"}, ${profile.state || "—"}`],
+                ["⭐ నక్షత్రం", `${profile.star || "—"} / ${profile.rasi || "—"}`],
+                ["💍 Marital", profile.marital_status || "—"],
+                ["🕉️ గోత్రం", profile.gothram || "—"],
+                ["👨‍👩‍👧 కుటుంబం", `${profile.family_type || "—"} · ${profile.family_status || "—"}`],
+                ["🧿 దోషం", profile.dosham || "No"],
+              ].map(([k, v]) => (
+                <div key={String(k)}>
+                  <dt className="text-[11px] text-slate-500">{k}</dt>
+                  <dd className="font-semibold">{v}</dd>
+                </div>
+              ))}
+            </dl>
+
+            {profile.about_myself ? (
+              <div className="mt-4 rounded-2xl bg-slate-50 p-3">
+                <p className="text-[12px] font-bold text-slate-700">📝 Mee gurinchi</p>
+                <p className="mt-1 text-[13px] text-slate-700">{profile.about_myself}</p>
+              </div>
+            ) : null}
+
+            {Array.isArray(data.reasons) && data.reasons.length ? (
+              <div className="mt-3 rounded-2xl bg-emerald-50 p-3">
+                <p className="text-[12px] font-bold text-emerald-900">💡 Enduku match avutharu?</p>
+                <ul className="mt-1 space-y-0.5 text-[12px] text-emerald-900">
+                  {data.reasons.slice(0, 4).map((r: string, i: number) => <li key={i}>✔️ {r}</li>)}
+                </ul>
+              </div>
+            ) : null}
+          </section>
+
+          {/* 🔒 NUMBER LOCK — policy: credit tho numbers ivvamu */}
+          <section className="mt-4 rounded-3xl border-2 border-rose-300 bg-rose-50 p-5">
+            <h2 className="text-lg font-extrabold text-[#7A0C2E]">🔒 Phone number — {data.phone_masked || "•••••"} (locked)</h2>
+            <p className="mt-1 text-[13px] text-rose-900">
+              {data.can_view_number_reason || "Free lo numbers ivvamu — interest accept (consent) tho matrame exchange avutayi."}
+            </p>
+            <ol className="mt-3 space-y-1 text-[13px] text-rose-900">
+              {(data.unlock_telugu || CONSENT_STEPS).map((s: string, i: number) => <li key={i}>{s}</li>)}
+            </ol>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <button onClick={() => void sendInterest()} disabled={sending}
+                className="rounded-xl bg-[#7A0C2E] px-4 py-2.5 text-sm font-bold text-white disabled:opacity-60">
+                {sending ? "Pampisthunnam…" : "💌 Interest pampandi (FREE 3)"}
+              </button>
+              <button onClick={() => void sendInterest("traditional")} disabled={sending}
+                className="rounded-xl border border-[#7A0C2E] px-4 py-2.5 text-sm font-bold text-[#7A0C2E]">
+                🙏 Template tho pampu
+              </button>
+              <Link href="/pricing" className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-bold text-slate-700">
+                💳 Paid plans (₹99 → 5 profiles)
+              </Link>
+            </div>
+          </section>
+
+          {/* actions */}
+          <section className="mt-4 flex flex-wrap gap-2">
+            <button onClick={() => void toggleSave()}
+              className={`rounded-xl px-4 py-2 text-sm font-bold ${savedNow ? "bg-rose-100 text-rose-700" : "border border-slate-300 text-slate-700"}`}>
+              {savedNow ? "❤️ Shortlist lo undi" : "🤍 Shortlist"}
+            </button>
+            <button onClick={shareWhatsApp} className="rounded-xl bg-green-600 px-4 py-2 text-sm font-bold text-white">WhatsApp share</button>
+            <button onClick={() => void doBlock()} disabled={blocked} className="rounded-xl border border-rose-300 px-4 py-2 text-sm font-bold text-rose-700 disabled:opacity-50">
+              🚫 Block
+            </button>
+            <button onClick={() => void doReport()} disabled={reported} className="rounded-xl border border-amber-300 px-4 py-2 text-sm font-bold text-amber-800 disabled:opacity-50">
+              🚩 Report
+            </button>
+            <Link href="/safety" className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-bold text-slate-700">🛡️ Safety tips</Link>
+          </section>
+
+          {msg ? (
+            <p aria-live="polite" className={`mt-4 rounded-2xl border p-3 text-sm font-semibold ${msg.ok ? "border-emerald-300 bg-emerald-50 text-emerald-900" : "border-amber-300 bg-amber-50 text-amber-900"}`}>
+              {msg.text}
+            </p>
+          ) : null}
+
+          {/* trust breakdown */}
+          {trust ? (
+            <section className="mt-4 rounded-3xl border border-slate-200 bg-white p-4">
+              <h2 className="text-sm font-bold text-slate-800">🛡️ Trust score {trust.score}/100 — {trust.badge_telugu}</h2>
+              <ul className="mt-2 space-y-1 text-[12px] text-slate-600">
+                {(trust.factors || []).map((f: Row, i: number) => (
+                  <li key={i}>{(f.points as number) > 0 ? "✅" : "•"} {f.telugu} <span className="text-slate-400">({f.points}/{f.max})</span></li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+
+          {Object.keys(quality?.sections || {}).length ? (
+            <section className="mt-4 rounded-3xl border border-slate-200 bg-white p-4">
+              <h2 className="text-sm font-bold text-slate-800">📝 Profile completeness {quality?.percent}%</h2>
+              <div className="mt-2 grid grid-cols-2 gap-2 text-[12px] sm:grid-cols-4">
+                {Object.entries(quality.sections as Record<string, Row>).map(([k, v]) => (
+                  <div key={k} className="rounded-xl bg-slate-50 p-2">
+                    <p className="font-semibold capitalize text-slate-700">{k}</p>
+                    <p className="text-slate-500">{v.percent}%</p>
+                  </div>
+                ))}
+              </div>
+              {Array.isArray(quality.important_telugu) && quality.important_telugu.length ? (
+                <p className="mt-2 text-[12px] text-amber-800">{(quality.important_telugu as string[]).slice(0, 3).join(" · ")}</p>
+              ) : null}
+            </section>
+          ) : null}
+
+          <p className="mt-4 text-center text-[11px] text-slate-500">
+            🔐 {data.consent_note_telugu || "Numbers consent tho matrame exchange — mana consent ledger lo record untundi"}
+          </p>
+        </>
+      ) : null}
+    </main>
+  );
+}

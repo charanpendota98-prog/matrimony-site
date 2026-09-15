@@ -3,7 +3,7 @@ TSAP Matrimony — DB Models + Pydantic Schemas
 Pin-to-Pin Perfect Advanced
 """
 from pydantic import BaseModel, Field
-from typing import Optional, List
+from typing import Dict, Any, Optional, List
 from datetime import datetime
 from enum import Enum
 
@@ -116,7 +116,7 @@ class UserDB(BaseModel):
     is_approved: bool = False
     privacy_mode: str = "public"  # public / private
     credits: int = 3
-    plan: str = "FREE"  # FREE, TRIAL_99, PREMIUM_299, VIP_999, BUREAU
+    plan: str = "FREE"  # FREE, S_29, S_99, S_199, S_299, S_499, BUREAU_999, BUREAU_2999
     plan_expiry: Optional[datetime] = None
     source_channel: Optional[str] = ""  # deep link source
     created_at: datetime = Field(default_factory=datetime.utcnow)
@@ -167,9 +167,26 @@ class RegisterResponse(BaseModel):
     card_url: str
     credits: int
     message_telugu: str
+    # 🔐 WAVE 9 — auth token (private API IDOR fix) + privacy/clarity fields
+    auth_token: str = ""
+    phone_masked: str = ""
+    duplicate_phone: bool = False
+    quality: Optional[Dict[str, Any]] = None
+    message_plan_telugu: str = ""
     next_steps: List[str]
     auto_post_queue: List[str]
     top_3_matches: List[MatchResult]
+    # Auto-publish (Telegram + WhatsApp) — register avvagane
+    publish_queued: bool = False
+    publish_targets: List[str] = []
+    namaste_queued: bool = False
+    welcome_status: Optional[Dict[str, Any]] = None
+    share_kit: Optional[Dict[str, Any]] = None
+    share_text: str = ""
+    # 🤝 Referral 2.0 — mee sontha code/link + friend code nunchi vachina bonus
+    referral: Optional[Dict[str, Any]] = None
+    # 🎁 WAVE 10 — register avvagane WhatsApp ki velle "3 profiles + caste channel links" pack
+    welcome_pack: Optional[Dict[str, Any]] = None
 
 class SearchResponse(BaseModel):
     profile: UserDB

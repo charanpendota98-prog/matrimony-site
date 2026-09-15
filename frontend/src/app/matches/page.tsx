@@ -1,204 +1,909 @@
 "use client";
-import { useState, useEffect } from "react";
+
+/**
+ * MANA VIVAHA — ADVANCED MATCHES (v3)
+ * ===================================
+ * Real backend /api/search tho wire ayyindi (mundu client-side demo filter matrame).
+ *  • 13 filters: gender, age range (slider), caste, district, state, job, education,
+ *    salary_min, marital, religion, verified only, photo only, keyword
+ *  • 5 sorts: Best match (score) / New / Age / Porutham 10/10 / Boosted
+ *  • Why-match reasons + 10-porutham badge per card (viewer tho compare chesi)
+ *  • Active filter chips (✕ remove) + saved searches (🔔 local) + share-search link
+ *  • Phone lo: bottom-sheet filters, thumb buttons, sticky search
+ *  • API fail aithe demo data fallback (site eppudu khali ga kanipinchadu)
+ */
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { CASTES, DISTRICTS_BY_STATE, EDUCATIONS, JOBS, MARITAL_STATUSES, RELIGIONS, SALARIES } from "@/lib/telugu-data";
+import { SITE_CONFIG } from "@/lib/site-config";
+import QuickLead from "@/components/QuickLead";
+import TrustBadge from "@/components/TrustBadge";
+import AuthGate from "@/components/AuthGate";
+import { apiGet, apiPost, getToken } from "@/lib/api";
 
-export default function MatchesAdvanced() {
-  const [credits, setCredits] = useState(3);
-  const [myPhone, setMyPhone] = useState("98480xxxxx");
-  const [showCount, setShowCount] = useState(5);
-  const [filters, setFilters] = useState({
-    job: "Any",
-    location: "Any",
-    caste: "Any",
-    ageMin: "18",
-    ageMax: "60",
-    salary: "Any",
-    education: "Any",
-    district: "Any",
-    state: "Any",
-    marital: "Any",
-  });
-  const [matches, setMatches] = useState<any[]>([]);
+type Row = Record<string, any>;
+const SAVED_SEARCHES_KEY = "tsap_saved_searches_v1";
+const SORTS = [
+  { v: "score", l: "🏆 Best match" },
+  { v: "porutham", l: "💍 Porutham (10)" },
+  { v: "trust", l: "🛡️ Trust score" },
+  { v: "completeness", l: "📝 Profile complete" },
+  { v: "new", l: "🆕 New" },
+  { v: "age", l: "🎂 Age" },
+  { v: "boosted", l: "⚡ Boosted" },
+];
+const DEFAULT_FILTERS: Row = {
+  gender: "", q: "", caste: "", district: "", state: "", job: "", education: "",
+  salary_min: 0, salary_max: 0, marital_status: "", religion: "", age_min: 18, age_max: 60,
+  verified_only: false, photo_only: false,
+  // 🆕 WAVE 9 advanced filters
+  height_min: "", height_max: "", dosham: "", min_completeness: 0,
+  exclude_viewed: false, exclude_interested: false,
+};
 
-  useEffect(() => {
-    const c = localStorage.getItem("tsap_credits");
-    if (c) setCredits(parseInt(c));
-    const all = [
-      { id: "TSAP-F-2025-1042", fullName: "Lakshmi Reddy", age: 24, caste: "Reddy", edu: "BTech CSE", job: "Software", company: "TCS", district: "Hyderabad", state: "TS", mandal: "Gachibowli", salary: "60k", marital: "Pelli Kaledu", gothram: "Bharadwaj", star: "Rohini", workLocation: "Hyderabad", score: 92, photo: "https://i.pravatar.cc/300?img=32", reasons: ["Hyderabad + Software perfect", "Reddy + Bharadwaj same caste", "Age gap 3y ideal", "Middle Class Nuclear matching"], phone: "9848012345" },
-      { id: "TSAP-M-2025-2042", fullName: "Ramesh Reddy", age: 45, caste: "Reddy", edu: "BTech", job: "Software", company: "Infosys", district: "Hyderabad", state: "TS", mandal: "Madhapur", salary: "1L+", marital: "Pelli Kaledu", gothram: "Kaundinya", star: "Bharani", workLocation: "Hyderabad", score: 88, photo: "https://i.pravatar.cc/300?img=12", reasons: ["Software Hyderabad 45y exact match", "Reddy same Gothram diff allowed", "Salary 1L+ stable", "Madhapur near Gachibowli 5km"], phone: "9848023456" },
-      { id: "TSAP-M-2025-3042", fullName: "Suresh Reddy", age: 47, caste: "Reddy", edu: "MTech", job: "Software", company: "Wipro", district: "Hyderabad", state: "TS", mandal: "Kukatpally", salary: "1L+", marital: "Pelli Kaledu", gothram: "Kasyapa", star: "Ashwini", workLocation: "Hyderabad", score: 85, photo: "https://i.pravatar.cc/300?img=15", reasons: ["Software Hyd 45+ Reddy 100% filter", "Age 47 mature stable", "MTech educated", "Kukatpally Hyd circle"], phone: "9848034567" },
-      { id: "TSAP-M-2025-4042", fullName: "Kiran Reddy", age: 28, caste: "Reddy", edu: "BTech", job: "Govt Job", company: "TS Govt", district: "Nalgonda", state: "TS", mandal: "Nalgonda", salary: "60k", marital: "Pelli Kaledu", gothram: "Bharadwaj", star: "Rohini", workLocation: "Nalgonda", score: 90, photo: "https://i.pravatar.cc/300?img=20", reasons: ["Govt Job hot secure", "Reddy same Gothram diff", "Nalgonda near Hyd 60km"], phone: "9848045678" },
-      { id: "TSAP-M-2025-5042", fullName: "Arjun Reddy", age: 32, caste: "Reddy", edu: "MBBS", job: "Doctor", company: "Apollo", district: "Hyderabad", state: "TS", mandal: "Banjara Hills", salary: "2L+", marital: "Pelli Kaledu", gothram: "Vasishta", star: "Mrigasira", workLocation: "Hyderabad", score: 94, photo: "https://i.pravatar.cc/300?img=30", reasons: ["Doctor Hyderabad premium", "Reddy 32y young", "2L+ affluent"], phone: "9848056789" },
-    ];
-    setMatches(all);
-  }, []);
+/* demo fallback — API fail aithe ee rows chupistham (site khali ga kanipinchadu) */
+const FALLBACK: Row[] = [
+  { tsap_id: "TSAP-F-2025-1042", full_name: "Lakshmi Reddy", age: 24, gender: "Bride", caste: "Reddy", sub_caste: "Pakanati", education: "BTech", education_detail: "CSE", job: "Software Engineer", company: "TCS", salary: "8L", height: "5'4\"", district: "Hyderabad", state: "TS", gothram: "Bharadwaj", star: "Rohini", rasi: "Vrishabha", marital_status: "Pelli Kaledu", phone_verified: true, has_photo: false, boosted: false, score: 92, reasons: ["Hyderabad + Software perfect", "Reddy same caste — channels lo reach ekkuva", "Age gap ideal", "Family values matching"], porutham: { score: 8, max: 10, verdict: "Uttama porutham" } },
+  { tsap_id: "TSAP-F-2025-2042", full_name: "Sravani Chowdary", age: 26, gender: "Bride", caste: "Kamma", education: "MSc", job: "Data Analyst", company: "Deloitte", salary: "10L", height: "5'5\"", district: "Vijayawada", state: "AP", gothram: "Kasyapa", star: "Ashwini", marital_status: "Pelli Kaledu", phone_verified: true, has_photo: false, score: 84, reasons: ["AP + Kamma same region", "Education MSc match", "Salary range matching"], porutham: { score: 7, max: 10, verdict: "Manchi porutham" } },
+  { tsap_id: "TSAP-F-2025-3042", full_name: "Meghana Vysya", age: 25, gender: "Bride", caste: "Vysya", education: "BPharm", job: "Pharmacist", company: "MedPlus", salary: "4.5L", height: "5'3\"", district: "Hyderabad", state: "TS", gothram: "Kaushika", star: "Chitra", marital_status: "Pelli Kaledu", phone_verified: true, has_photo: false, score: 78, reasons: ["Hyderabad same city", "Healthcare field stable", "Age perfect"], porutham: { score: 7, max: 10, verdict: "Manchi porutham" } },
+];
 
-  const filtered = matches.filter(m => {
-    if (filters.job !== "Any" && m.job !== filters.job) return false;
-    if (filters.location !== "Any" && m.workLocation.toLowerCase().indexOf(filters.location.toLowerCase()) === -1 && m.district.toLowerCase().indexOf(filters.location.toLowerCase()) === -1) return false;
-    if (filters.caste !== "Any" && m.caste !== filters.caste) return false;
-    if (filters.district !== "Any" && m.district !== filters.district) return false;
-    if (filters.state !== "Any" && m.state !== filters.state) return false;
-    if (filters.marital !== "Any" && m.marital !== filters.marital) return false;
-    if (parseInt(m.age) < parseInt(filters.ageMin) || parseInt(m.age) > parseInt(filters.ageMax)) return false;
-    if (filters.salary === "60k+" && (m.salary === "10k-20k" || m.salary === "20k-40k")) return false;
-    if (filters.salary === "1L+" && !(m.salary === "1L+" || m.salary === "2L+")) return false;
-    if (filters.education !== "Any" && m.edu.indexOf(filters.education) === -1) return false;
-    return true;
-  }).sort((a, b) => b.score - a.score).slice(0, showCount);
-
-  const shareWhatsApp = (profile: any) => {
-    const reason = profile.reasons[0] || "";
-    const text = "TSAP Matrimony BEST " + profile.score + "% - " + profile.fullName + " (" + profile.id + ") Age " + profile.age + " " + profile.caste + " " + profile.job + " at " + profile.district + " " + profile.mandal + " Salary " + profile.salary + " Why: " + reason + " Search https://tsapmatrimony.com/search/" + profile.id + " Bot @telugumatrimony1_bot Phone " + (credits > 0 ? profile.phone : "Pay 99 unlock");
-    window.open("https://wa.me/" + myPhone + "?text=" + encodeURIComponent(text), "_blank");
+/* ---------- 🧠 MATCH SCORE 2.0 — "enduku ee score?" expandable panel ---------- */
+function ScoreBreakdown({ v2 }: { v2: any }) {
+  const [open, setOpen] = useState(false);
+  if (!v2) return null;
+  const gradeColor: Record<string, string> = {
+    perfect: "bg-emerald-100 text-emerald-800 border-emerald-300",
+    best: "bg-emerald-50 text-emerald-800 border-emerald-200",
+    good: "bg-amber-50 text-amber-800 border-amber-200",
+    average: "bg-gray-100 text-gray-700 border-gray-300",
   };
-
-  const shareTelegram = (profile: any) => {
-    const reason = profile.reasons[0] || "";
-    const url = "https://tsapmatrimony.com/search/" + profile.id;
-    const txt = "TSAP " + profile.id + " " + profile.fullName + " " + profile.score + "% " + reason;
-    window.open("https://t.me/share/url?url=" + encodeURIComponent(url) + "&text=" + encodeURIComponent(txt), "_blank");
-  };
-
-  const shareBulkWhatsApp = () => {
-    let list = "";
-    filtered.forEach(p => {
-      list += "- " + p.id + " " + p.fullName + " " + p.age + "y " + p.caste + " " + p.job + " " + p.district + " " + p.score + "% " + p.reasons[0] + "\n";
-    });
-    const text = "TSAP Top " + filtered.length + " BEST Matches Filter Job=" + filters.job + " Location=" + filters.location + " Age " + filters.ageMin + "-" + filters.ageMax + " Caste=" + filters.caste + "\n\n" + list + "\nSearch each ID on tsapmatrimony.com Credits " + credits + " Bot @telugumatrimony1_bot Channels @TSBRIDE @TSGROOM1";
-    window.open("https://wa.me/" + myPhone + "?text=" + encodeURIComponent(text), "_blank");
-  };
-
+  const gc = gradeColor[String(v2.grade || "average")] || gradeColor.average;
   return (
-    <div className="min-h-screen bg-[#FFF8E7] p-4">
-      <div className="max-w-6xl mx-auto">
-        <div className="flex items-center justify-between mb-4">
-          <Link href="/" className="text-sm font-bold text-[#7A0C2E]">Home</Link>
-          <div className="font-bold text-[#7A0C2E]">Advanced Matches Filters + Share</div>
-          <div className="text-xs bg-white px-3 py-1 rounded-full">Credits {credits} Phone {myPhone}</div>
-        </div>
-
-        <div className="bg-gradient-to-r from-[#7A0C2E] to-[#A0143A] text-white rounded-2xl p-4">
-          <div className="font-bold text-sm">Example: Software Hyderabad 45+ Reddy 5 profiles</div>
-          <div className="text-xs opacity-90 mt-1">Filter Job Software Location Hyderabad AgeMin 45 Caste Reddy Show 5 then best 5 only reason + Share WhatsApp Telegram to registered number</div>
-        </div>
-
-        <div className="mt-4 bg-white rounded-[1.5rem] p-5 border-2 border-[#D4AF37]/30">
-          <h3 className="font-bold text-[#7A0C2E]">Advanced Filters Manaku Matrame 100% Perfect No Gaps</h3>
-          <p className="text-xs text-gray-500 mt-1">Filter matchable profiles only system manaku matrame advanced</p>
-          <div className="mt-4 grid grid-cols-2 md:grid-cols-5 gap-3">
-            <div>
-              <label className="text-[11px] font-bold">Job Filter</label>
-              <select value={filters.job} onChange={e => setFilters({ ...filters, job: e.target.value })} className="w-full mt-1 p-2 rounded-xl bg-gray-50 border text-xs">
-                <option>Any</option><option>Software</option><option>Govt Job</option><option>Business</option><option>Doctor</option><option>Private Job</option>
-              </select>
-            </div>
-            <div>
-              <label className="text-[11px] font-bold">Location</label>
-              <select value={filters.location} onChange={e => setFilters({ ...filters, location: e.target.value })} className="w-full mt-1 p-2 rounded-xl bg-gray-50 border text-xs">
-                <option>Any</option><option>Hyderabad</option><option>Nalgonda</option><option>Warangal</option><option>Vijayawada</option><option>USA</option>
-              </select>
-            </div>
-            <div>
-              <label className="text-[11px] font-bold">Caste</label>
-              <select value={filters.caste} onChange={e => setFilters({ ...filters, caste: e.target.value })} className="w-full mt-1 p-2 rounded-xl bg-gray-50 border text-xs">
-                <option>Any</option><option>Reddy</option><option>Kamma</option><option>Kapu</option><option>Velama</option><option>Yadav</option>
-              </select>
-            </div>
-            <div>
-              <label className="text-[11px] font-bold">District</label>
-              <select value={filters.district} onChange={e => setFilters({ ...filters, district: e.target.value })} className="w-full mt-1 p-2 rounded-xl bg-gray-50 border text-xs">
-                <option>Any</option><option>Hyderabad</option><option>Nalgonda</option><option>Rangareddy</option><option>Medchal</option>
-              </select>
-            </div>
-            <div>
-              <label className="text-[11px] font-bold">State</label>
-              <select value={filters.state} onChange={e => setFilters({ ...filters, state: e.target.value })} className="w-full mt-1 p-2 rounded-xl bg-gray-50 border text-xs">
-                <option>Any</option><option>TS</option><option>AP</option>
-              </select>
-            </div>
-            <div>
-              <label className="text-[11px] font-bold">Age Min 45 example</label>
-              <select value={filters.ageMin} onChange={e => setFilters({ ...filters, ageMin: e.target.value })} className="w-full mt-1 p-2 rounded-xl bg-gray-50 border text-xs">
-                {Array.from({ length: 45 }, (_, i) => 18 + i).map(a => <option key={a} value={a}>{a}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="text-[11px] font-bold">Age Max</label>
-              <select value={filters.ageMax} onChange={e => setFilters({ ...filters, ageMax: e.target.value })} className="w-full mt-1 p-2 rounded-xl bg-gray-50 border text-xs">
-                {Array.from({ length: 45 }, (_, i) => 18 + i).map(a => <option key={a} value={a}>{a}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="text-[11px] font-bold">Salary</label>
-              <select value={filters.salary} onChange={e => setFilters({ ...filters, salary: e.target.value })} className="w-full mt-1 p-2 rounded-xl bg-gray-50 border text-xs">
-                <option>Any</option><option>60k+</option><option>1L+</option>
-              </select>
-            </div>
-            <div>
-              <label className="text-[11px] font-bold">Education</label>
-              <select value={filters.education} onChange={e => setFilters({ ...filters, education: e.target.value })} className="w-full mt-1 p-2 rounded-xl bg-gray-50 border text-xs">
-                <option>Any</option><option>BTech</option><option>MTech</option><option>MBBS</option><option>MBA</option>
-              </select>
-            </div>
-            <div>
-              <label className="text-[11px] font-bold">Show Count 5 example</label>
-              <select value={showCount} onChange={e => setShowCount(parseInt(e.target.value))} className="w-full mt-1 p-2 rounded-xl bg-gray-50 border text-xs font-bold border-[#D4AF37]">
-                <option value={1}>1 Profile</option><option value={5}>5 Profiles example</option><option value={10}>10 Profiles</option><option value={20}>20 Profiles</option>
-              </select>
-            </div>
-          </div>
-          <div className="mt-4 flex flex-wrap gap-2">
-            <div className="text-xs bg-[#FFF8E7] px-3 py-2 rounded-full">Total Matched {filtered.length} / {matches.length} Best only 70+ Showing top {showCount}</div>
-            <div className="text-xs bg-green-50 border border-green-200 px-3 py-2 rounded-full text-green-700">Filter Job {filters.job} Location {filters.location} Age {filters.ageMin}+ Caste {filters.caste} found {filtered.length}</div>
-            <button onClick={shareBulkWhatsApp} className="text-xs bg-green-600 text-white px-4 py-2 rounded-full font-bold">Share All {filtered.length} to My WhatsApp {myPhone}</button>
-            <button onClick={() => setFilters({ job: "Any", location: "Any", caste: "Any", ageMin: "18", ageMax: "60", salary: "Any", education: "Any", district: "Any", state: "Any", marital: "Any" })} className="text-xs border px-4 py-2 rounded-full">Reset Filters</button>
-          </div>
-          <div className="mt-3 text-[11px] text-gray-500">Registered Number <input value={myPhone} onChange={e => setMyPhone(e.target.value)} className="border rounded px-2 py-1 text-xs w-32" /> Share button WhatsApp Telegram to registered number forward 100% automation</div>
-        </div>
-
-        <div className="mt-4 grid md:grid-cols-2 gap-4">
-          {filtered.map(m => (
-            <div key={m.id} className="bg-white rounded-[1.5rem] p-4 border border-[#D4AF37]/20">
-              <div className="flex gap-3">
-                <img src={m.photo} alt={m.fullName} className="w-20 h-24 rounded-xl object-cover border" />
-                <div className="flex-1">
-                  <div className="font-bold text-sm">{m.fullName} {m.id} {m.age}y {m.caste} {m.edu}</div>
-                  <div className="text-xs text-gray-500">{m.job} at {m.company} {m.district} {m.mandal} {m.state} {m.salary} {m.workLocation} Gothram {m.gothram} Star {m.star}</div>
-                  <div className="mt-2 bg-[#FFF8E7] rounded-xl p-2 text-[11px] space-y-1">
-                    <div className="font-bold text-[#7A0C2E]">Star {m.score}% BEST Why match</div>
-                    {m.reasons.map((r: string, i: number) => <div key={i}>Yes {r}</div>)}
-                  </div>
-                  <div className="mt-3 flex gap-2">
-                    <Link href={"/search/" + m.id} className="flex-1 py-2 border rounded-full text-center text-xs font-bold">Open ID</Link>
-                    <button onClick={() => shareWhatsApp(m)} className="flex-1 py-2 bg-green-600 text-white rounded-full text-xs font-bold">WhatsApp Share</button>
-                    <button onClick={() => shareTelegram(m)} className="flex-1 py-2 bg-blue-500 text-white rounded-full text-xs font-bold">Telegram Share</button>
-                  </div>
-                  <div className="mt-2 text-[10px] text-gray-400">Share to registered number {myPhone} forward neat WhatsApp Telegram</div>
+    <div className="mx-4 mb-3 rounded-2xl border border-maroon/15 bg-white overflow-hidden">
+      <button onClick={() => setOpen(!open)} className="w-full flex items-center gap-2 px-3 py-2.5 text-left">
+        <span className="text-[12px] font-bold text-maroon">🧠 Enduku ee score?</span>
+        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${gc}`}>{v2.grade}</span>
+        {v2?.mutual?.both_like ? (
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-300">
+            💞 mutual (+8%)
+          </span>
+        ) : null}
+        <span className="ml-auto text-[11px] text-gray-500">{open ? "▲ moosu" : "▼ chudu"}</span>
+      </button>
+      {open && (
+        <div className="px-3 pb-3">
+          <div className="text-[11px] text-gray-600 mb-2">{v2.verdict}</div>
+          <div className="space-y-1.5">
+            {(v2.breakdown || []).map((b: any, i: number) => {
+              const got = Number(b.points ?? b.score ?? 0);
+              const max = Math.max(1, Number(b.max || 1));
+              const pct = Math.round((got / max) * 100);
+              return (
+                <div key={i} className="flex items-center gap-2">
+                  <span className="text-[10px] w-[92px] shrink-0 text-gray-700 truncate" title={b.note}>{b.label}</span>
+                  <span className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <span className="block h-2 rounded-full"
+                      style={{ width: `${pct}%`, background: pct >= 80 ? "#0f7a4a" : pct >= 55 ? "#C79A2E" : "#c0405a" }} />
+                  </span>
+                  <span className="text-[10px] font-bold text-gray-700 w-[52px] text-right">{got}/{max}</span>
                 </div>
+              );
+            })}
+          </div>
+          {Array.isArray(v2.weak_points) && v2.weak_points.length > 0 && (
+            <div className="mt-2.5 bg-rose-50 border border-rose-200 rounded-xl p-2.5">
+              <div className="text-[10px] font-bold text-rose-800">⚠️ Jagratha (weak points)</div>
+              {v2.weak_points.map((w: string, i: number) => (
+                <div key={i} className="text-[10px] text-rose-900 telugu">• {w}</div>
+              ))}
+            </div>
+          )}
+          {v2.how_to_improve && (
+            <div className="mt-2 bg-emerald-50 border border-emerald-200 rounded-xl p-2.5">
+              <div className="text-[10px] font-bold text-emerald-800">📈 Score penchadaniki</div>
+              {(Array.isArray(v2.how_to_improve) ? v2.how_to_improve : [v2.how_to_improve]).map((w: string, i: number) => (
+                <div key={i} className="text-[10px] text-emerald-900 telugu">• {w}</div>
+              ))}
+            </div>
+          )}
+          {v2?.mutual?.note && (
+            <div className="mt-2 text-[10px] text-gray-600 telugu">💞 {v2.mutual.note}</div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function FilterSheet({
+  open, onClose, filters, setF, reset, onApply, resultsInfo, facets,
+}: {
+  open: boolean; onClose: () => void; filters: Row; setF: (k: string, v: any) => void;
+  reset: () => void; onApply: () => void; resultsInfo: string; facets?: Row | null;
+}) {
+  const districts: string[] = filters.state ? (DISTRICTS_BY_STATE[filters.state] || []) : [];
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center">
+      <div className="absolute inset-0 bg-black/45" onClick={onClose} />
+      <div className="relative w-full md:max-w-2xl max-h-[88vh] overflow-y-auto bg-cream rounded-t-[2rem] md:rounded-[2rem] p-4 step-slide">
+        <div className="flex items-center justify-between sticky top-0 bg-cream pb-2 -mt-1 pt-1">
+          <div className="font-bold text-maroon text-[16px]">🔎 Advanced filters</div>
+          <button onClick={onClose} className="w-10 h-10 rounded-full bg-white border border-gold/40 font-bold">✕</button>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <label className="text-[13px] font-bold text-ink">Evarini chusthunnaru?</label>
+            <div className="mt-2 flex gap-2">
+              {[{ v: "", l: "Andaru" }, { v: "Bride", l: "👰 Brides" }, { v: "Groom", l: "🤵 Grooms" }].map((g) => (
+                <button key={g.v} onClick={() => setF("gender", g.v)}
+                  className={`chip ${filters.gender === g.v ? "chip-on" : ""}`}>{g.l}</button>
+              ))}
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-gold/30 p-3">
+            <div className="flex items-center justify-between text-[13px] font-bold text-ink">
+              <span>Age range</span><span className="text-maroon">{filters.age_min} – {filters.age_max} yrs</span>
+            </div>
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              <input type="range" min={18} max={60} value={filters.age_min}
+                onChange={(e) => setF("age_min", Math.min(parseInt(e.target.value), filters.age_max))} className="accent-[#7A0C2E]" aria-label="Text input" />
+              <input type="range" min={18} max={60} value={filters.age_max}
+                onChange={(e) => setF("age_max", Math.max(parseInt(e.target.value), filters.age_min))} className="accent-[#7A0C2E]" aria-label="Text input" />
+            </div>
+          </div>
+
+          <div>
+            <label className="text-[13px] font-bold text-ink">State</label>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {[{ v: "", l: "Anni" }, { v: "TS", l: "Telangana" }, { v: "AP", l: "Andhra Pradesh" }, { v: "Other", l: "Other states" }].map((s) => (
+                <button key={s.v} onClick={() => { setF("state", s.v); setF("district", ""); }}
+                  className={`chip ${filters.state === s.v ? "chip-on" : ""}`}>{s.l}</button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="text-[13px] font-bold text-ink">District {filters.state ? "" : "(state select cheyyandi)"}</label>
+            <div className="mt-2 flex flex-wrap gap-2 max-h-44 overflow-y-auto">
+              {districts.map((d) => (
+                <button key={d} onClick={() => setF("district", filters.district === d ? "" : d)}
+                  className={`chip ${filters.district === d ? "chip-on" : ""}`}>{d}</button>
+              ))}
+              {!districts.length && <span className="text-[12px] text-gray-500">State select cheyyandi — districts vasthayi</span>}
+            </div>
+          </div>
+
+          <div>
+            <label className="text-[13px] font-bold text-ink">Caste ({CASTES.length} options)</label>
+            <div className="mt-2 flex flex-wrap gap-2 max-h-48 overflow-y-auto">
+              {CASTES.map((c) => (
+                <button key={c} onClick={() => setF("caste", filters.caste === c ? "" : c)}
+                  className={`chip ${filters.caste === c ? "chip-on" : ""}`}>{c}</button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="text-[13px] font-bold text-ink">Job</label>
+            <div className="mt-2 flex flex-wrap gap-2 max-h-40 overflow-y-auto">
+              {JOBS.slice(0, 24).map((j) => (
+                <button key={j} onClick={() => setF("job", filters.job === j ? "" : j)}
+                  className={`chip ${filters.job === j ? "chip-on" : ""}`}>{j}</button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="text-[13px] font-bold text-ink">Education</label>
+            <div className="mt-2 flex flex-wrap gap-2 max-h-40 overflow-y-auto">
+              {EDUCATIONS.slice(0, 24).map((e) => (
+                <button key={e} onClick={() => setF("education", filters.education === e ? "" : e)}
+                  className={`chip ${filters.education === e ? "chip-on" : ""}`}>{e}</button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="text-[13px] font-bold text-ink">Salary (min)</label>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {[{ v: 0, l: "Any" }].concat(SALARIES.map((s) => ({ v: Number(String(s).replace(/[^\d]/g, "").slice(0, 2)) * 100000, l: s }))).slice(0, 10).map((s) => (
+                <button key={String(s.v)} onClick={() => setF("salary_min", s.v)}
+                  className={`chip ${filters.salary_min === s.v ? "chip-on" : ""}`}>{s.l}</button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="text-[13px] font-bold text-ink">Marital status</label>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {MARITAL_STATUSES.map((m) => (
+                <button key={m} onClick={() => setF("marital_status", filters.marital_status === m ? "" : m)}
+                  className={`chip ${filters.marital_status === m ? "chip-on" : ""}`}>{m}</button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="text-[13px] font-bold text-ink">Religion</label>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {RELIGIONS.map((r) => (
+                <button key={r} onClick={() => setF("religion", filters.religion === r ? "" : r)}
+                  className={`chip ${filters.religion === r ? "chip-on" : ""}`}>{r}</button>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2">
+            <button onClick={() => setF("verified_only", !filters.verified_only)}
+              className={`chip justify-center ${filters.verified_only ? "chip-on" : ""}`}>✅ Verified only</button>
+            <button onClick={() => setF("photo_only", !filters.photo_only)}
+              className={`chip justify-center ${filters.photo_only ? "chip-on" : ""}`}>📸 Photo unnavi</button>
+          </div>
+
+          {/* 🆕 WAVE 9 — advanced filters (height / max salary / dosham / completeness / exclude) */}
+          <div className="rounded-2xl border border-gold/30 bg-white/70 p-3">
+            <p className="text-[12px] font-bold text-maroon">🆕 Advanced filters (WAVE 9)</p>
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              <label className="text-[11px] font-semibold text-gray-700">
+                📏 ఎత్తు min
+                <input value={filters.height_min} onChange={(e) => setF("height_min", e.target.value)} placeholder="5.2"
+                  className="mt-1 w-full rounded-lg border border-gold/40 px-2 py-1.5 text-[12px]" aria-label="5.2" />
+              </label>
+              <label className="text-[11px] font-semibold text-gray-700">
+                📏 ఎత్తు max
+                <input value={filters.height_max} onChange={(e) => setF("height_max", e.target.value)} placeholder="6.0"
+                  className="mt-1 w-full rounded-lg border border-gold/40 px-2 py-1.5 text-[12px]" aria-label="6.0" />
+              </label>
+            </div>
+            <div className="mt-2">
+              <p className="text-[11px] font-semibold text-gray-700">💰 ఆదాయం (max — ekkuva unnavi teesey)</p>
+              <div className="mt-1 flex flex-wrap gap-2">
+                {[{ v: 0, l: "Any" }, { v: 500000, l: "≤5L" }, { v: 1000000, l: "≤10L" }, { v: 2000000, l: "≤20L" }].map((x) => (
+                  <button key={x.v} onClick={() => setF("salary_max", x.v)}
+                    className={`chip ${Number(filters.salary_max) === x.v ? "chip-on" : ""}`}>{x.l}</button>
+                ))}
               </div>
             </div>
-          ))}
+            <div className="mt-2">
+              <p className="text-[11px] font-semibold text-gray-700">🧿 Dosham</p>
+              <div className="mt-1 flex flex-wrap gap-2">
+                {["", "Yes", "No"].map((d) => (
+                  <button key={d || "any"} onClick={() => setF("dosham", d)}
+                    className={`chip ${String(filters.dosham) === d ? "chip-on" : ""}`}>{d || "Any"}</button>
+                ))}
+              </div>
+            </div>
+            <div className="mt-2">
+              <p className="text-[11px] font-semibold text-gray-700">
+                📝 Profile completeness {filters.min_completeness ? `· ${filters.min_completeness}%+` : "· any"}
+              </p>
+              <div className="mt-1 flex flex-wrap gap-2">
+                {[0, 50, 70, 90].map((v) => (
+                  <button key={v} onClick={() => setF("min_completeness", v)}
+                    className={`chip ${Number(filters.min_completeness) === v ? "chip-on" : ""}`}>{v ? `${v}%+` : "Any"}</button>
+                ))}
+              </div>
+            </div>
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              <button onClick={() => setF("exclude_viewed", !filters.exclude_viewed)}
+                className={`chip justify-center ${filters.exclude_viewed ? "chip-on" : ""}`}>🙈 Chusina vaallu teesey</button>
+              <button onClick={() => setF("exclude_interested", !filters.exclude_interested)}
+                className={`chip justify-center ${filters.exclude_interested ? "chip-on" : ""}`}>💌 Interest pampina vaallu teesey</button>
+            </div>
+            {facets?.caste?.length ? (
+              <div className="mt-3">
+                <p className="text-[11px] font-semibold text-gray-700">🔥 Top castes (live counts)</p>
+                <div className="mt-1 flex flex-wrap gap-2">
+                  {(facets.caste as { value: string; count: number }[]).slice(0, 8).map((f) => (
+                    <button key={f.value} onClick={() => setF("caste", filters.caste === f.value ? "" : f.value)}
+                      className={`chip ${filters.caste === f.value ? "chip-on" : ""}`}>{f.value} ({f.count})</button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+            {facets?.district?.length ? (
+              <div className="mt-2">
+                <p className="text-[11px] font-semibold text-gray-700">📍 Top districts (live counts)</p>
+                <div className="mt-1 flex flex-wrap gap-2">
+                  {(facets.district as { value: string; count: number }[]).slice(0, 8).map((f) => (
+                    <button key={f.value} onClick={() => setF("district", filters.district === f.value ? "" : f.value)}
+                      className={`chip ${filters.district === f.value ? "chip-on" : ""}`}>{f.value} ({f.count})</button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+          </div>
         </div>
 
-        {filtered.length === 0 && (
-          <div className="mt-6 bg-white rounded-2xl p-8 text-center">
-            <div className="text-4xl">Search</div>
-            <div className="font-bold mt-2">No profiles match filters change</div>
-            <div className="text-xs text-gray-500 mt-1">Example Software Hyderabad 45+ Reddy profiles available filter exact</div>
+        <div className="sticky bottom-0 bg-cream pt-3 pb-1 safe-bottom">
+          <div className="text-[11px] text-gray-600 mb-2">{resultsInfo}</div>
+          <div className="flex gap-2">
+            <button onClick={reset} className="px-5 py-3 rounded-2xl border border-maroon/25 text-maroon font-bold text-[14px]">Reset</button>
+            <button onClick={onApply} className="flex-1 py-3 rounded-2xl maroon-gradient text-white font-bold text-[15px]">
+              {resultsInfo.includes("—") ? "Results chudu" : "Apply chey"}
+            </button>
           </div>
-        )}
-
-        <div className="mt-6 bg-white rounded-2xl p-4 text-center">
-          <div className="text-sm font-bold">Credits Logic ID Search Always Open</div>
-          <div className="text-xs text-gray-500 mt-1">Limit ayina kuda ID search open profile photos details open numbers lock if no credits malli pay 99 10 credits admin manual premium gift</div>
-          <div className="mt-3 flex justify-center gap-2">
-            <button className="px-6 py-2 gold-gradient rounded-full text-sm font-bold text-[#7A0C2E]">99 10 Credits + Share</button>
-            <button className="px-6 py-2 maroon-gradient text-white rounded-full text-sm font-bold">299 50 Credits + Daily Auto WhatsApp</button>
-          </div>
-          <div className="mt-3 text-[11px] text-gray-400">Oracle VM Free Tier Saripodda YES 4 OCPU 24GB free tier 1 VM 1GB RAM 50GB disk chalu profiles text photos compressed 10k profiles less 5GB ekkuva em avvadu free tier more than enough backup Drive daily</div>
         </div>
       </div>
     </div>
+  );
+}
+
+export default function MatchesAdvanced() {
+  const [filters, setFilters] = useState<Row>({ ...DEFAULT_FILTERS });
+  const [sort, setSort] = useState("score");
+  const [rows, setRows] = useState<Row[]>([]);
+  const [total, setTotal] = useState(0);
+  const [msg, setMsg] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [sheet, setSheet] = useState(false);
+  const [myTsapId, setMyTsapId] = useState("TSAP-M-2025-1042");
+  const [credits, setCredits] = useState(3);
+  const [savedIds, setSavedIds] = useState<string[]>([]);
+  const [sending, setSending] = useState("");
+  const [note, setNote] = useState<{ ok: boolean; text: string } | null>(null);
+  const [savedSearches, setSavedSearches] = useState<any[]>([]);
+  const [myPhone, setMyPhone] = useState("");   // 🐞 FIX (F06): fake "98480xxxxx" placeholder chupinche — ippudu nijamaina masked number matrame
+  const [needsLogin, setNeedsLogin] = useState(false);
+  const [facets, setFacets] = useState<Row | null>(null);
+  const [serverSearches, setServerSearches] = useState<Row[]>([]);
+  const [loadingSaved, setLoadingSaved] = useState(false);
+  const reqId = useRef(0);
+
+  const setF = useCallback((k: string, v: any) => setFilters((p) => ({ ...p, [k]: v })), []);
+
+  /* ---------- viewer + credits + saved shortlist + saved searches ---------- */
+  useEffect(() => {
+    const id = localStorage.getItem("tsap_id");
+    if (id) setMyTsapId(id.toUpperCase());
+    const c = localStorage.getItem("tsap_credits");
+    if (c) setCredits(parseInt(c));
+    try {
+      const ss = JSON.parse(localStorage.getItem(SAVED_SEARCHES_KEY) || "[]");
+      if (Array.isArray(ss)) setSavedSearches(ss);
+    } catch { /* ignore */ }
+  }, []);
+
+  const loadSaved = useCallback(async () => {
+    if (!myTsapId) return;
+    const { ok, data, needsLogin: nl } = await apiGet<Row>(`/api/saved/${myTsapId}`);
+    if (!ok) { if (nl) setNeedsLogin(true); return; }
+    const rows = (data?.items || data?.saved || []) as Row[];
+    setSavedIds(rows.map((x) => x.profile?.tsap_id || x.saved_id).filter(Boolean));
+  }, [myTsapId]);
+
+  useEffect(() => { void loadSaved(); }, [loadSaved]);
+
+  /* ---------- facets (chips counts) + server saved searches ---------- */
+  useEffect(() => {
+    void apiGet<Row>("/api/facets?limit=10").then(({ ok, data }) => { if (ok) setFacets((data?.facets as Row) || null); });
+  }, []);
+
+  const loadServerSearches = useCallback(async () => {
+    if (!myTsapId || !getToken()) return;
+    setLoadingSaved(true);
+    const { ok, data } = await apiGet<Row>(`/api/saved-searches/${myTsapId}`);
+    setLoadingSaved(false);
+    if (ok && Array.isArray(data?.searches)) setServerSearches(data.searches as Row[]);
+  }, [myTsapId]);
+
+  useEffect(() => { void loadServerSearches(); }, [loadServerSearches]);
+
+  /* ---------- fetch (debounced) ---------- */
+  const load = useCallback(async () => {
+    const id = ++reqId.current;
+    setLoading(true);
+    const qs = new URLSearchParams();
+    const skip: Row = { age_min: 18, age_max: 60, salary_min: 0, verified_only: false, photo_only: false };
+    Object.keys(filters).forEach((k) => {
+      const v = filters[k];
+      if (v === "" || v === null || v === undefined) return;
+      if (v === false) { if (skip[k]) return; }
+      if (v === true) qs.set(k, "true");
+      else if (typeof v === "number") { if (skip[k] === v) return; qs.set(k, String(v)); }
+      else if (k in skip && String(skip[k]) === String(v)) return;
+      else qs.set(k, String(v));
+    });
+    qs.set("sort", sort);
+    qs.set("limit", "30");
+    if (myTsapId) qs.set("viewer_id", myTsapId);
+    const { ok, data, errorTelugu: eTel } = await apiGet<Row>(`/api/search?${qs.toString()}`);
+    if (id !== reqId.current) return;
+    if (ok && Array.isArray(data?.results)) {
+      setRows(data!.results as Row[]);
+      setTotal(Number(data?.total ?? (data!.results as Row[]).length));
+      setMsg(String(data?.message_telugu || ""));
+      if (data?.facets && Object.keys(data.facets as Row).length) setFacets(data.facets as Row);
+    } else {
+      setRows(FALLBACK);
+      setTotal(FALLBACK.length);
+      setMsg(`⚠️ ${eTel || "Server nunchi results ravaledu"} — demo profiles chupisthunnam (filters Apply chesthe malli try avutundi)`);
+    }
+    setLoading(false);
+  }, [filters, sort, myTsapId]);
+
+  useEffect(() => {
+    const t = setTimeout(load, 320);
+    return () => clearTimeout(t);
+  }, [load]);
+
+  /* ---------- actions ---------- */
+  const toggleSave = async (row: Row) => {
+    const { ok, data, errorTelugu: eTel, needsLogin: nl } = await apiPost<Row>("/api/save", { tsap_id: myTsapId, target_id: row.tsap_id });
+    if (nl) { setNeedsLogin(true); return; }
+    if (!ok) { setNote({ ok: false, text: eTel }); return; }
+    const saved = !!data?.saved;
+    setSavedIds((prev) => (saved ? (prev.includes(row.tsap_id) ? prev : [...prev, row.tsap_id])
+                                 : prev.filter((x) => x !== row.tsap_id)));
+    setNote({ ok: true, text: String(data?.message_telugu || "Shortlist update ayyindi") });
+  };
+
+  const sendInterest = async (row: Row, templateId?: string) => {
+    setSending(row.tsap_id);
+    setNote(null);
+    const { ok, data, errorTelugu: eTel, needsLogin: nl, status } = await apiPost<Row>("/api/interest/send",
+      { from_id: myTsapId, to_id: row.tsap_id, channel: "matches_page", ...(templateId ? { template_id: templateId } : {}) });
+    if (nl) { setNeedsLogin(true); setSending(""); return; }
+    if (ok) {
+      setNote({ ok: true, text: String(data?.message_telugu || "Interest pampincharu") });
+      if (data?.credits_left !== undefined) {
+        setCredits(Number(data.credits_left));
+        localStorage.setItem("tsap_credits", String(data.credits_left));
+      }
+    } else if (status === 402) {
+      setNote({ ok: false, text: "⚠️ Credits ayipoyayi — ₹99 → 5 profiles. Phone numbers kooda accept tho ne (consent)." });
+    } else {
+      setNote({ ok: false, text: eTel || "Interest pampaledu" });
+    }
+    setSending("");
+  };
+
+  const shareText = (row: Row) =>
+    `🙏 ${SITE_CONFIG.brandName} profile — ${row.full_name} (${row.tsap_id})\n` +
+    `👉 ${row.age}y • ${row.caste} • ${row.education} • ${row.job}${row.company ? " @ " + row.company : ""}\n` +
+    `📍 ${row.district}, ${row.state} • 💰 ${row.salary} • ⭐ ${row.star || "—"}\n` +
+    `Full details: ${SITE_CONFIG.siteUrl || "https://manavivaha.in"}/search/${row.tsap_id}`;
+
+  const shareWhatsApp = (row: Row) =>
+    window.open(`https://wa.me/?text=${encodeURIComponent(shareText(row))}`, "_blank");
+  const shareTelegram = (row: Row) =>
+    window.open(`https://t.me/share/url?url=${encodeURIComponent((SITE_CONFIG.siteUrl || "https://manavivaha.in") + "/search/" + row.tsap_id)}&text=${encodeURIComponent(shareText(row))}`, "_blank");
+
+  const copySearchLink = () => {
+    const url = `${window.location.origin}/matches?${new URLSearchParams(
+      Object.keys(filters).filter((k) => filters[k] !== "" && filters[k] !== false).map((k) => [k, String(filters[k])] as [string, string])
+    ).toString()}`;
+    navigator.clipboard?.writeText(url);
+    setNote({ ok: true, text: "🔗 Search link copy ayyindi — WhatsApp group lo pettandi (vaallu kooda ee filters tho chustharu)" });
+  };
+
+  const saveSearch = async () => {
+    const active = activeChips;
+    if (!active.length) { setNote({ ok: false, text: "Modata filters select cheyyandi" }); return; }
+    const label = active.map((c) => c.label).join(" • ");
+    // 1) server lo save (kotha match alert WhatsApp tho vastundi)
+    if (getToken()) {
+      const serverFilters: Row = {};
+      Object.keys(filters).forEach((k) => {
+        const v = filters[k];
+        if (v === "" || v === null || v === undefined || v === false || v === 0) return;
+        if (k === "age_min" && v === 18) return;
+        if (k === "age_max" && v === 60) return;
+        serverFilters[k] = v;
+      });
+      const { ok, data, errorTelugu: eTel, needsLogin: nl } = await apiPost<Row>("/api/saved-searches",
+        { tsap_id: myTsapId, name: label.slice(0, 40), filters: serverFilters, alert: true });
+      if (nl) { setNeedsLogin(true); return; }
+      if (ok) {
+        setServerSearches((p) => [data?.search as Row, ...p].filter(Boolean));
+        setNote({ ok: true, text: `🔔 Saved! "${label}" — kotha profiles vaste WhatsApp alert vastundi (🔔 Alerts button)` });
+        return;
+      }
+      setNote({ ok: false, text: eTel || "Save avvaledu" });
+      return;
+    }
+    // 2) login ledu → local save (browser lo)
+    const next = [{ label, filters: { ...filters }, sort }, ...savedSearches.filter((s) => s.label !== label)].slice(0, 8);
+    setSavedSearches(next);
+    localStorage.setItem(SAVED_SEARCHES_KEY, JSON.stringify(next));
+    setNote({ ok: true, text: `🔔 Search save ayyindi (local): ${label} — WhatsApp alerts ki OTP login cheyyandi` });
+  };
+
+  /** Kotha matches ni WhatsApp ki pampu (saved search alerts) */
+  const sendAlerts = async () => {
+    if (!getToken()) { setNeedsLogin(true); return; }
+    const { ok, data, errorTelugu: eTel } = await apiPost<Row>(`/api/saved-searches/${myTsapId}/alerts`, {});
+    setNote(ok ? { ok: true, text: String(data?.message_telugu || "Alerts queue lo pettam") }
+               : { ok: false, text: eTel });
+    if (ok) void loadServerSearches();
+  };
+
+  const removeServerSearch = async (searchId: string) => {
+    const { ok } = await apiPost(`/api/saved-searches/${myTsapId}/${searchId}`, {});
+    if (ok) setServerSearches((p) => p.filter((x) => x.search_id !== searchId));
+  };
+
+  /* ---------- active filter chips ---------- */
+  const activeChips = useMemo(() => {
+    const out: { key: string; label: string; clear: () => void }[] = [];
+    const add = (key: string, label: string, v: any) => out.push({ key, label, clear: () => setF(key, v) });
+    if (filters.gender) add("gender", filters.gender === "Bride" ? "👰 Brides" : "🤵 Grooms", "");
+    if (filters.q) add("q", `🔍 "${filters.q}"`, "");
+    if (filters.state) add("state", filters.state === "TS" ? "Telangana" : filters.state === "AP" ? "Andhra" : filters.state, "");
+    if (filters.district) add("district", filters.district, "");
+    if (filters.caste) add("caste", filters.caste, "");
+    if (filters.job) add("job", filters.job, "");
+    if (filters.education) add("education", filters.education, "");
+    if (filters.marital_status) add("marital_status", filters.marital_status, "");
+    if (filters.religion) add("religion", filters.religion, "");
+    if (filters.salary_min) add("salary_min", `💰 ${filters.salary_min / 100000}L+`, 0);
+    if (filters.age_min !== 18 || filters.age_max !== 60) add("age_min", `🎂 ${filters.age_min}–${filters.age_max}y`, 18);
+    if (filters.verified_only) add("verified_only", "✅ Verified", false);
+    if (filters.photo_only) add("photo_only", "📸 Photo", false);
+    if (filters.salary_max) add("salary_max", `💰 ≤${Number(filters.salary_max) / 100000}L`, 0);
+    if (filters.height_min || filters.height_max) add("height_min", `📏 ${filters.height_min || "any"}–${filters.height_max || "any"}`, "");
+    if (filters.dosham) add("dosham", `🧿 Dosham: ${filters.dosham}`, "");
+    if (filters.min_completeness) add("min_completeness", `📝 ${filters.min_completeness}%+ complete`, 0);
+    if (filters.exclude_viewed) add("exclude_viewed", "🙈 Chusina vaallu teesey", false);
+    if (filters.exclude_interested) add("exclude_interested", "💌 Interest pampina vaallu teesey", false);
+    return out;
+  }, [filters, setF]);
+
+  const resultsInfo = loading ? "⏳ వెతుకుతున్నాం…" : `${total} profiles dorikayi`;
+
+  /* ---------- card ---------- */
+  const Card = ({ row }: { row: Row }) => {
+    const saved = savedIds.includes(row.tsap_id);
+    const initial = String(row.full_name || "?").trim().charAt(0).toUpperCase();
+    return (
+      <div className="bg-white rounded-[1.5rem] border border-gold/25 card-shadow overflow-hidden">
+        <div className="flex gap-3 p-4">
+          <Link href={`/search/${row.tsap_id}`} className="shrink-0">
+            {row.photo_url || row.has_photo ? (
+              <img src={row.photo_url || `/photos/${row.tsap_id}_1.jpg`} alt={row.full_name}
+                className="w-[84px] h-[104px] rounded-2xl object-cover border border-gold/40" />
+            ) : (
+              <div className="w-[84px] h-[104px] rounded-2xl maroon-gradient text-white flex flex-col items-center justify-center border border-gold/40">
+                <span className="text-3xl font-bold telugu">{initial}</span>
+                <span className="text-[9px] mt-1 opacity-90">photo ledu</span>
+              </div>
+            )}
+          </Link>
+
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start gap-2">
+              <div className="min-w-0 flex-1">
+                <div className="font-bold text-[15px] text-ink truncate">
+                  {row.full_name}
+                  {row.verification === "id" || row.id_verified ? <span className="ml-1 text-[11px]" title="ID verified — full trust">🏅</span>
+                    : row.verification === "photo" || row.photo_verified ? <span className="ml-1 text-[11px]" title="Photo verified">📸✅</span>
+                    : (row.phone_verified || row.verification === "phone") ? <span className="ml-1 text-[11px] text-emerald-700" title="Phone verified">✅</span> : null}
+                  {row.boosted ? <span className="ml-1 text-[11px]">⚡</span> : null}
+                </div>
+                <div className="text-[11px] text-gray-500 font-mono">{row.tsap_id}</div>
+              </div>
+              {row.score ? (
+                <div className="shrink-0 text-center">
+                  <div className="w-12 h-12 rounded-full gold-gradient text-maroon font-bold flex items-center justify-center text-[15px]">
+                    {row.score}
+                  </div>
+                  <div className="text-[9px] text-gray-500 mt-0.5">match %</div>
+                </div>
+              ) : null}
+            </div>
+
+            <div className="mt-1.5 text-[12px] text-gray-700 leading-relaxed">
+              {row.age}y • {row.height || "—"} • <b>{row.caste}</b>{row.sub_caste ? ` (${row.sub_caste})` : ""}<br />
+              🎓 {row.education}{row.education_detail ? ` ${row.education_detail}` : ""} • 💼 {row.job}{row.company ? ` @ ${row.company}` : ""}<br />
+              📍 {row.district}, {row.state}{row.work_location ? ` • work: ${row.work_location}` : ""} • 💰 {row.salary}
+            </div>
+
+            <div className="mt-1.5 flex flex-wrap gap-1.5 text-[10px]">
+              <span className="bg-cream border border-gold/30 rounded-full px-2 py-0.5">⭐ {row.star || "—"} / {row.rasi || "—"}</span>
+              <span className="bg-cream border border-gold/30 rounded-full px-2 py-0.5">🕉️ {row.gothram || "—"}</span>
+              <span className="bg-cream border border-gold/30 rounded-full px-2 py-0.5">💍 {row.marital_status || "—"}</span>
+              {row.verification_telugu ? (
+                <span className="bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-full px-2 py-0.5">
+                  🛡️ {row.verification_telugu}
+                </span>
+              ) : null}
+              {row.porutham?.score ? (
+                <span className="bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-full px-2 py-0.5">
+                  🧮 {row.porutham.score}/{row.porutham.max} — {row.porutham.verdict}
+                </span>
+              ) : null}
+              <TrustBadge trust={row.trust} completeness={row.quality_percent} />
+              {/* 🔒 Numbers ivvamu — interest pampi accept ayithe matrame exchange */}
+              <span className="bg-rose-50 border border-rose-200 text-rose-800 rounded-full px-2 py-0.5"
+                title="Numbers eppudu public ga kanipinchavu">
+                🔒 Number: {row.phone_masked || "•••••"} (locked)
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <ScoreBreakdown v2={row.match_v2} />
+
+        {Array.isArray(row.reasons) && row.reasons.length > 0 && (
+          <div className="mx-4 mb-3 bg-cream rounded-2xl p-3">
+            <div className="text-[11px] font-bold text-maroon">💡 Enduku match avutharu?</div>
+            <ul className="mt-1 space-y-0.5">
+              {row.reasons.slice(0, 4).map((r: string, i: number) => (
+                <li key={i} className="text-[11px] text-gray-700">✔️ {r}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        <div className="px-4 pb-4 flex flex-wrap gap-2">
+          <Link href={`/search/${row.tsap_id}`} className="flex-1 min-w-[92px] py-2.5 rounded-xl border border-maroon/25 text-center text-[12px] font-bold text-maroon">
+            👁️ Profile
+          </Link>
+          <button onClick={() => sendInterest(row)} disabled={sending === row.tsap_id}
+            className="flex-1 min-w-[140px] py-2.5 rounded-xl maroon-gradient text-white text-[12px] font-bold disabled:opacity-60">
+            {sending === row.tsap_id ? "Pampisthunnam…" : "💌 Interest (1 credit)"}
+          </button>
+          <button onClick={() => toggleSave(row)}
+            className={`py-2.5 px-3 rounded-xl text-[12px] font-bold border ${saved ? "border-rose-300 bg-rose-50 text-rose-700" : "border-maroon/25 text-maroon"}`}>
+            {saved ? "❤️ Saved" : "🤍 Save"}
+          </button>
+          <button onClick={() => shareWhatsApp(row)} className="py-2.5 px-3 rounded-xl bg-green-600 text-white text-[12px] font-bold">WhatsApp</button>
+          <button onClick={() => shareTelegram(row)} className="py-2.5 px-3 rounded-xl bg-blue-500 text-white text-[12px] font-bold">Telegram</button>
+          <Link href={`/safety?target=${row.tsap_id}`} title="Report / Block"
+            className="py-2.5 px-3 rounded-xl border border-rose-300 text-rose-700 text-[12px] font-bold">🚩</Link>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <main className="min-h-screen bg-cream pb-24 md:pb-10">
+      {/* ---------- sticky header ---------- */}
+      <div className="sticky top-0 z-30 bg-cream/95 backdrop-blur border-b border-gold/25 safe-top">
+        <div className="max-w-6xl mx-auto px-4 py-3">
+          <div className="flex items-center gap-2">
+            <Link href="/" className="text-[12px] font-bold text-maroon shrink-0">← Home</Link>
+            <div className="flex-1 flex items-center gap-2 bg-white border border-gold/40 rounded-2xl px-3">
+              <span className="text-[15px]">🔍</span>
+              <input value={filters.q} onChange={(e) => setF("q", e.target.value)} placeholder="Peru / caste / district / job…"
+                className="flex-1 py-3 bg-transparent outline-none text-[14px]" aria-label="Peru / caste / district / job…" />
+            </div>
+            <button onClick={() => setSheet(true)} className="md:hidden shrink-0 px-3 py-3 rounded-2xl maroon-gradient text-white text-[12px] font-bold">
+              Filters{activeChips.length ? ` ${activeChips.length}` : ""}
+            </button>
+            <div className="hidden md:flex items-center gap-2 shrink-0">
+              <input value={myTsapId} onChange={(e) => { const v = e.target.value.toUpperCase(); setMyTsapId(v); localStorage.setItem("tsap_id", v); }}
+                className="text-[11px] font-mono bg-white border border-gold/40 rounded-full px-3 py-2 w-44" title="Mee TSAP ID" aria-label="Text input" />
+              <span className="text-[11px] bg-white border border-gold/40 rounded-full px-3 py-2">credits <b>{credits}</b></span>
+            </div>
+          </div>
+
+          <div className="mt-2 flex gap-2 overflow-x-auto pb-1">
+            {SORTS.map((s) => (
+              <button key={s.v} onClick={() => setSort(s.v)}
+                className={`chip shrink-0 ${sort === s.v ? "chip-on" : ""}`}>{s.l}</button>
+            ))}
+            <button onClick={saveSearch} className="chip shrink-0">🔔 Save search</button>
+            <button onClick={() => void sendAlerts()} className="chip shrink-0" title="Saved searches ki kotha matches WhatsApp lo">
+              📨 New-match alerts{serverSearches.length ? ` (${serverSearches.length})` : ""}
+            </button>
+            <button onClick={copySearchLink} className="chip shrink-0">🔗 Share search</button>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-6xl mx-auto px-4 py-4 md:grid md:grid-cols-[280px_1fr] md:gap-5 md:items-start">
+        {/* ---------- desktop filter sidebar ---------- */}
+        <aside className="hidden md:block bg-white rounded-[1.5rem] border border-gold/25 p-4 sticky top-[132px] max-h-[76vh] overflow-y-auto">
+          <div className="font-bold text-maroon text-[14px]">🔎 Filters ({activeChips.length})</div>
+          <button onClick={() => { setFilters({ ...DEFAULT_FILTERS }); setSort("score"); }}
+            className="mt-2 w-full py-2 rounded-xl border border-maroon/20 text-[12px] font-bold text-maroon">♻️ Reset anni</button>
+          <div className="mt-3">
+            <div className="text-[11px] font-bold text-ink">Evarini?</div>
+            <div className="mt-1.5 flex flex-wrap gap-1.5">
+              {[{ v: "", l: "Andaru" }, { v: "Bride", l: "👰 Brides" }, { v: "Groom", l: "🤵 Grooms" }].map((g) => (
+                <button key={g.v} onClick={() => setF("gender", g.v)} className={`chip ${filters.gender === g.v ? "chip-on" : ""}`}>{g.l}</button>
+              ))}
+            </div>
+          </div>
+          <div className="mt-3">
+            <div className="text-[11px] font-bold text-ink">Age: <span className="text-maroon">{filters.age_min}–{filters.age_max}</span></div>
+            <input type="range" min={18} max={60} value={filters.age_min} onChange={(e) => setF("age_min", Math.min(parseInt(e.target.value), filters.age_max))} className="w-full accent-[#7A0C2E]" aria-label="Text input" />
+            <input type="range" min={18} max={60} value={filters.age_max} onChange={(e) => setF("age_max", Math.max(parseInt(e.target.value), filters.age_min))} className="w-full accent-[#7A0C2E]" aria-label="Text input" />
+          </div>
+          <div className="mt-3">
+            <div className="text-[11px] font-bold text-ink">State</div>
+            <div className="mt-1.5 flex flex-wrap gap-1.5">
+              {["", "TS", "AP", "Other"].map((s) => (
+                <button key={s || "all"} onClick={() => { setF("state", s); setF("district", ""); }}
+                  className={`chip ${filters.state === s ? "chip-on" : ""}`}>{s === "TS" ? "Telangana" : s === "AP" ? "Andhra" : s === "Other" ? "Other" : "Anni"}</button>
+              ))}
+            </div>
+          </div>
+          {filters.state ? (
+            <div className="mt-3">
+              <div className="text-[11px] font-bold text-ink">District</div>
+              <div className="mt-1.5 flex flex-wrap gap-1.5 max-h-40 overflow-y-auto">
+                {(DISTRICTS_BY_STATE[filters.state] || []).map((d) => (
+                  <button key={d} onClick={() => setF("district", filters.district === d ? "" : d)}
+                    className={`chip ${filters.district === d ? "chip-on" : ""}`}>{d}</button>
+                ))}
+              </div>
+            </div>
+          ) : null}
+          <div className="mt-3">
+            <div className="text-[11px] font-bold text-ink">Caste</div>
+            <div className="mt-1.5 flex flex-wrap gap-1.5 max-h-44 overflow-y-auto">
+              {CASTES.slice(0, 20).map((c) => (
+                <button key={c} onClick={() => setF("caste", filters.caste === c ? "" : c)}
+                  className={`chip ${filters.caste === c ? "chip-on" : ""}`}>{c}</button>
+              ))}
+            </div>
+          </div>
+          <div className="mt-3">
+            <div className="text-[11px] font-bold text-ink">Job</div>
+            <div className="mt-1.5 flex flex-wrap gap-1.5">
+              {JOBS.slice(0, 10).map((j) => (
+                <button key={j} onClick={() => setF("job", filters.job === j ? "" : j)}
+                  className={`chip ${filters.job === j ? "chip-on" : ""}`}>{j}</button>
+              ))}
+            </div>
+          </div>
+          <button onClick={() => setSheet(true)} className="mt-3 w-full py-2.5 rounded-xl gold-gradient text-maroon text-[12px] font-bold">
+            ➕ Inka ekkuva filters (caste 43, edu, salary…)
+          </button>
+        </aside>
+
+        {/* ---------- results ---------- */}
+        <section>
+          {note && (
+            <div className={`mb-3 rounded-2xl px-4 py-3 text-[13px] border ${note.ok ? "bg-emerald-50 border-emerald-200 text-emerald-900" : "bg-amber-50 border-amber-200 text-amber-900"}`}>
+              {note.text}{!note.ok && <> <Link href="/requests" className="underline font-bold">Requests page →</Link></>}
+            </div>
+          )}
+
+          <div className="mb-3"><QuickLead source="matches_page" /></div>
+
+          <div className="maroon-gradient text-white rounded-[1.5rem] p-4">
+            <div className="font-bold text-[14px] telugu">🚫 Chatting ledu — 💌 Interest pampu, accept aithe WhatsApp lo numbers exchange</div>
+            <div className="text-[12px] opacity-90 mt-1 telugu">
+              Modati 3 interest requests <b>FREE</b> • 1 request = 1 credit • Decline aithe credit refund.
+            </div>
+          </div>
+
+          {activeChips.length > 0 && (
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {activeChips.map((c) => (
+                <button key={c.key} onClick={c.clear} className="chip">
+                  {c.label} <span className="text-maroon font-bold">✕</span>
+                </button>
+              ))}
+              <button onClick={() => setFilters({ ...DEFAULT_FILTERS })} className="chip">♻️ anni clear</button>
+            </div>
+          )}
+
+          {savedSearches.length > 0 && (
+            <div className="mt-3">
+              <div className="text-[11px] font-bold text-ink mb-1.5">🔔 Mee saved searches</div>
+              <div className="flex flex-wrap gap-1.5">
+                {savedSearches.map((s, i) => (
+                  <button key={i} onClick={() => { setFilters({ ...DEFAULT_FILTERS, ...s.filters }); setSort(s.sort || "score"); }} className="chip">
+                    {s.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="mt-3 flex items-center justify-between">
+            <div className="text-[12px] text-gray-600">{msg || resultsInfo}</div>
+            <div className="text-[11px] text-gray-500 md:hidden">credits <b className="text-maroon">{credits}</b></div>
+          </div>
+
+          {/* 🔒 Numbers rule — crystal clear (free lo 3 profiles, numbers ivvamu) */}
+          <div className="mt-2 rounded-2xl bg-white border border-gold/40 px-3 py-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px]">
+            <span className="font-bold text-maroon">🔒 Numbers ivvamu:</span>
+            <span className="text-gray-700">profiles + full details FREE ga chudochu — kani phone numbers lock.</span>
+            <span className="text-gray-700">💌 Interest pampandi → vaallu <b>accept</b> cheste rendu numbers WhatsApp lo exchange.</span>
+            <Link href="/pricing" className="ml-auto font-bold text-maroon underline">
+              ₹99 → 5 profiles + boost
+            </Link>
+          </div>
+
+          {loading ? (
+            <div className="mt-3 grid md:grid-cols-2 gap-4">
+              {[0, 1, 2, 3].map((i) => (
+                <div key={i} className="bg-white rounded-[1.5rem] border border-gold/20 p-4 animate-pulse">
+                  <div className="flex gap-3">
+                    <div className="w-[84px] h-[104px] rounded-2xl bg-gray-200" />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-4 bg-gray-200 rounded w-2/3" />
+                      <div className="h-3 bg-gray-200 rounded w-1/3" />
+                      <div className="h-3 bg-gray-200 rounded w-5/6" />
+                      <div className="h-3 bg-gray-200 rounded w-3/4" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : rows.length === 0 ? (
+            <div className="mt-4 bg-white rounded-[1.5rem] p-8 text-center border border-gold/25">
+              <div className="text-4xl">🔍</div>
+              <div className="font-bold text-ink mt-2">Ee filters ki profiles dorakaledu</div>
+              <div className="text-[12px] text-gray-500 mt-1">Try cheyandi: age range penchandi, district remove cheyyandi, salary tagginchandi.</div>
+              <div className="mt-3 flex flex-wrap justify-center gap-2">
+                <button onClick={() => setFilters({ ...DEFAULT_FILTERS })} className="chip">♻️ Anni filters clear</button>
+                <button onClick={() => setF("age_max", 60)} className="chip">🎂 Age 60 varaku</button>
+                <button onClick={() => { setF("district", ""); setF("salary_min", 0); }} className="chip">📍 District + 💰 salary remove</button>
+              </div>
+            </div>
+          ) : (
+            <div className="mt-3 grid md:grid-cols-2 gap-4">
+              {rows.map((row) => <Card key={row.tsap_id} row={row} />)}
+            </div>
+          )}
+
+          {/* ---------- pricing strip (new ladder) ---------- */}
+          <div className="mt-6 bg-white rounded-[1.5rem] p-4 border border-gold/25 text-center">
+            <div className="text-[14px] font-bold text-maroon">1 credit = 1 interest request</div>
+            <div className="text-[12px] text-gray-600 mt-1">
+              FREE 3 • ₹99 → 5 • ₹199 → 12 • ₹299 → 25 • ₹499 → 50 (VIP) —
+              <span className="text-maroon font-bold"> pedda tier lo ₹/profile thaggutundi</span>
+            </div>
+            <div className="text-[11px] text-gray-500 mt-1">Add-ons: ⚡ Boost ₹49 • 👀 Who-viewed ₹49 • 🧮 Porutham ₹99 • ✅ Verify badge ₹199</div>
+            <div className="mt-3 flex flex-wrap justify-center gap-2">
+              <Link href="/requests" className="px-5 py-2 gold-gradient rounded-full text-[13px] font-bold text-maroon">💌 Credits teesukondi</Link>
+              <Link href="/register" className="px-5 py-2 maroon-gradient rounded-full text-[13px] font-bold text-white">📝 Free profile create</Link>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <FilterSheet
+        open={sheet} onClose={() => setSheet(false)} filters={filters} setF={setF}
+        reset={() => setFilters({ ...DEFAULT_FILTERS })} onApply={() => setSheet(false)} resultsInfo={resultsInfo}
+        facets={facets}
+      />
+
+      {needsLogin ? (
+        <div className="mx-auto mt-6 max-w-3xl px-4">
+          <AuthGate title="🔒 Shortlist / saved searches ki login cheyyandi"
+            note="Matches chudatam FREE (login avasaram ledu). Kani mee shortlist, kotha-match alerts, inbox — ee private data ki OTP login kavali (mee privacy koraku)." />
+        </div>
+      ) : null}
+
+      {serverSearches.length > 0 ? (
+        <div className="mx-auto mt-6 max-w-3xl px-4">
+          <div className="rounded-2xl border border-gold/40 bg-white p-3">
+            <p className="text-[12px] font-bold text-maroon">🔔 Mee saved searches ({serverSearches.length}) — kotha matches WhatsApp alerts</p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {serverSearches.map((sr) => (
+                <span key={String(sr.search_id)} className="inline-flex items-center gap-1 rounded-full bg-cream border border-gold/30 px-3 py-1 text-[11px]">
+                  {String(sr.name || "search")}
+                  {Number(sr.new_matches) > 0 ? <b className="text-emerald-700"> · {Number(sr.new_matches)} new</b> : null}
+                  <button onClick={() => void removeServerSearch(String(sr.search_id))} title="Delete"
+                    className="ml-1 text-rose-600 font-bold">✕</button>
+                </span>
+              ))}
+            </div>
+            <button onClick={() => void sendAlerts()} className="mt-2 rounded-xl bg-[#7A0C2E] px-3 py-2 text-[11px] font-bold text-white">
+              📨 Ippude kotha matches WhatsApp ki pampu
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      {myPhone ? (
+        <div className="fixed bottom-3 right-3 z-20 md:hidden">
+          <Link href="/requests" className="bg-white border border-gold/40 rounded-full px-4 py-2.5 text-[11px] font-bold text-maroon card-shadow">
+            💌 Requests
+          </Link>
+        </div>
+      ) : null}
+    </main>
   );
 }

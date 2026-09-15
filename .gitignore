@@ -3,3 +3,38 @@ backend/.env
 frontend/.env.local
 .env
 *.env
+
+# python
+__pycache__/
+*.pyc
+
+# runtime
+backend/publish_log.jsonl
+publish_logs/*.jsonl
+whatsapp-bridge/session/
+cards/TSAP-*.png
+photos/
+backend/wa_state.json
+
+# channel setup runtime (state/reports — machine-specific)
+backend/channel_setup_state.json
+backend/channel_setup_report.json
+backend/channel_check_report.json
+
+# Failover runtime state (bot/WA pool) — production lo generate avutundi
+backend/wa_pool_state.json
+backend/wa_state_*.json
+backend/wa_state/ 
+
+# referral 2.0 runtime state (codes/payouts/clicks — machine-specific)
+backend/referral_state.json
+backend/referral_state.json.tmp
+
+# referral posters — runtime lo generate avutayi (repo lo pettakoodadu)
+backend/channel_assets/ref_*.png
+backend/referral_posters/
+backend/vendor_state.json
+
+# wave 9/10 runtime state (saved searches + consent ledger — machine-specific, regenerate avutundi)
+backend/saved_searches_state.json
+backend/consent_ledger_state.json

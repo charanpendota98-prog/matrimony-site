@@ -7,12 +7,20 @@ from datetime import datetime, timedelta
 from typing import Dict
 
 PLANS = {
-    "FREE": {"price": 0, "credits": 3, "daily": 0, "validity_days": 365, "name_telugu": "Free — 3 profiles (lock)"},
-    "TRIAL_99": {"price": 99, "credits": 10, "daily": 2, "validity_days": 30, "name_telugu": "Trial — 10 numbers + daily 2"},
-    "PREMIUM_299": {"price": 299, "credits": 50, "daily": 5, "validity_days": 60, "name_telugu": "Premium — 50 numbers + daily 5"},
-    "VIP_999": {"price": 999, "credits": 9999, "daily": 10, "validity_days": 90, "name_telugu": "VIP Unlimited"},
+    # ✅ WAVE-9: amounts/credits **interest.py PLANS tho exact ga same** (single pricing truth).
+    # Ee file legacy number-view unlocking ki matrame — kotha payments interest.apply_payment() use chestayi.
+    "FREE": {"price": 0, "credits": 3, "daily": 0, "validity_days": 365, "name_telugu": "Free — 3 requests FREE"},
+    "S_29": {"price": 29, "credits": 1, "daily": 1, "validity_days": 15, "name_telugu": "Okka Request — 1 profile"},
+    "S_99": {"price": 99, "credits": 5, "daily": 2, "validity_days": 30, "name_telugu": "Sambandham — 5 profiles + boost"},
+    "S_199": {"price": 199, "credits": 12, "daily": 3, "validity_days": 45, "name_telugu": "Family — 12 profiles + verified badge"},
+    "S_299": {"price": 299, "credits": 25, "daily": 5, "validity_days": 60, "name_telugu": "Premium — 25 profiles + who-viewed"},
+    "S_499": {"price": 499, "credits": 50, "daily": 8, "validity_days": 90, "name_telugu": "Vivaha VIP — 50 profiles + matchmaker"},
     "BUREAU_999": {"price": 999, "credits": 25, "daily": 5, "validity_days": 30, "name_telugu": "Bureau Starter"},
-    "BUREAU_2999": {"price": 2999, "credits": 9999, "daily": 10, "validity_days": 30, "name_telugu": "Bureau Pro"},
+    "BUREAU_2999": {"price": 2999, "credits": 100, "daily": 10, "validity_days": 30, "name_telugu": "Bureau Pro"},
+    # 🕰️ legacy aliases (purathana code/tests break avvakunda) — kotha prices ki map
+    "TRIAL_99": {"price": 99, "credits": 5, "daily": 2, "validity_days": 30, "name_telugu": "Sambandham (legacy TRIAL_99)"},
+    "PREMIUM_299": {"price": 299, "credits": 25, "daily": 5, "validity_days": 60, "name_telugu": "Premium (legacy PREMIUM_299)"},
+    "VIP_999": {"price": 499, "credits": 50, "daily": 8, "validity_days": 90, "name_telugu": "Vivaha VIP (legacy VIP_999 → ₹499)"},
 }
 
 def get_plan_details(plan_key: str) -> Dict:

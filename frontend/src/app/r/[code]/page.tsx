@@ -1,40 +1,90 @@
 "use client";
-import { useEffect } from "react";
+/**
+ * 🔗 /r/<code> — Referral landing (smart tracking)
+ * Click ni API ki pampistundi (funnel), code validate chestundi, referrer peru + bonus chupistundi,
+ * tarvata /register?ref=CODE ki redirect (auto-lock + referee bonus credit).
+ */
+import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import Link from "next/link";
 
-export default function ReferralRedirectPage(){
+export default function ReferralLandingPage() {
   const params = useParams();
   const router = useRouter();
-  const code = params?.code as string;
+  const code = String(params?.code || "").toUpperCase();
+  const [info, setInfo] = useState<any>(null);
+  const [checked, setChecked] = useState(false);
 
-  useEffect(()=>{
-    if(code){
-      // Save referral to localStorage for tracking
-      localStorage.setItem("tsap_ref_from_link", code);
-      // Redirect to register with ref param — auto fill + lock
-      router.replace(`/register?ref=${code}`);
+  useEffect(() => {
+    if (!code) return;
+    localStorage.setItem("tsap_ref_from_link", code);          // backup (register page kooda chaduvutundi)
+    fetch(`/api/referral/click/${code}?source=link`, { method: "POST" })
+      .then((r) => r.json())
+      .then((d) => setInfo(d))
+      .catch(() => { })
+      .finally(() => setChecked(true));
+  }, [code]);
+
+  const valid = info?.valid_code;
+  const name = info?.referrer_name;
+
+  // valid code ayithe 1.2 sec lo register ki auto-redirect (user experience smooth)
+  useEffect(() => {
+    if (!checked) return;
+    if (valid !== false) {
+      const t = setTimeout(() => router.replace(`/register?ref=${code}`), 1600);
+      return () => clearTimeout(t);
     }
-  }, [code, router]);
+  }, [checked, valid, code, router]);
 
   return (
-    <div className="min-h-screen bg-[#FFF8E7] flex items-center justify-center p-4">
-      <div className="bg-white rounded-[1.5rem] p-8 card-shadow text-center max-w-md">
-        <div className="w-16 h-16 maroon-gradient rounded-full flex items-center justify-center text-white text-2xl mx-auto">🔗</div>
-        <h2 className="font-bold text-xl text-[#7A0C2E] mt-4">Referral Link Detected! 🔥</h2>
-        <p className="text-sm text-gray-600 mt-2">Code: <span className="font-bold text-[#7A0C2E]">{code}</span> — auto fill + lock avuthundi...</p>
-        <div className="mt-4 bg-[#FFF8E7] rounded-xl p-3 text-xs text-left">
-          <div className="font-bold">Smart Lock Logic:</div>
-          <div className="mt-1">• Link: tsapmatrimony.com/r/{code} → /register?ref={code}</div>
-          <div>• Register form lo referral auto fill + 🔒 lock</div>
-          <div>• Message: "Lakshmi aunty dwara vacharu — trusted! — 1 extra credit FREE!"</div>
-          <div>• Referrer ki commission guarantee — no fraud</div>
+    <main className="min-h-screen bg-[#FFF8E7] flex items-center justify-center p-4">
+      <div className="w-full max-w-md bg-white rounded-[1.5rem] shadow-lg p-6 text-center">
+        <div className="w-16 h-16 maroon-gradient rounded-full flex items-center justify-center text-white text-3xl mx-auto">
+          {valid === false ? "⚠️" : "🎁"}
         </div>
-        <div className="mt-6">
-          <Link href={`/register?ref=${code}`} className="block w-full py-3 maroon-gradient text-white rounded-full font-bold">🚀 Register with Referral →</Link>
-          <div className="text-xs text-gray-400 mt-3">Redirecting in 2 sec...</div>
+
+        {!checked && <div className="mt-4 text-sm text-gray-500">Code check chestunnam…</div>}
+
+        {checked && valid && (
+          <>
+            <h1 className="mt-4 font-extrabold text-xl text-[#7A0C2E] telugu">
+              {name ? `${name} garu` : "Mee friend"} dwara vacharu! 🙏
+            </h1>
+            <p className="mt-2 text-sm text-gray-600 telugu">
+              Code: <b className="text-[#7A0C2E]">{code}</b> — register cheste mee account ki{" "}
+              <b className="text-green-700">+{info?.bonus_credits || 1} credit FREE</b> 🎁
+            </p>
+            <div className="mt-4 rounded-2xl bg-[#FFF8E7] border border-[#D4AF37]/40 p-3 text-left text-[11px] text-[#7A0C2E] space-y-1">
+              <div>✅ Modati <b>3 requests FREE</b> (+1 bonus credit mee friend nunchi)</div>
+              <div>✅ ₹99 → 5 profiles, ₹199 → 12, ₹299 → 25, ₹499 → 50</div>
+              <div>✅ 52 Telegram channels lo mee profile auto-post</div>
+              <div>✅ ఫోటో గోప్యం · numbers rendu vaipula ok ayyaka matrame</div>
+            </div>
+            <a href={`/register?ref=${code}`}
+              className="mt-5 block w-full py-3 maroon-gradient text-white rounded-full font-bold text-sm">
+              🚀 Register cheyyandi (ref auto-lock)
+            </a>
+            <div className="text-[11px] text-gray-400 mt-2">2 sec lo automatic ga register page ki veltundi…</div>
+          </>
+        )}
+
+        {checked && valid === false && (
+          <>
+            <h1 className="mt-4 font-extrabold text-lg text-[#7A0C2E]">Ee referral code dorakaledu</h1>
+            <p className="mt-2 text-sm text-gray-600 telugu">
+              Code <b>{code}</b> valid kaadu (leda pedda/chinna letters tappu). Parvaledu — meeru normal ga register avvachu,
+              mee sontha referral link kooda automatic ga vastundi.
+            </p>
+            <a href="/register" className="mt-5 block w-full py-3 maroon-gradient text-white rounded-full font-bold text-sm">
+              Register cheyyandi →
+            </a>
+          </>
+        )}
+
+        <div className="mt-4 text-[11px] text-gray-400">
+          Mana Vivaha · manavivaha.in · ₹99 ke Sambandham
         </div>
       </div>
-    </div>
+    </main>
   );
 }

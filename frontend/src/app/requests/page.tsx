@@ -1,0 +1,764 @@
+"use client";
+
+/**
+ * MANA VIVAHA — REQUESTS DASHBOARD (💌 Interest model — chatting LEDU)
+ * ====================================================================
+ * • Interest pampu (1 credit; modati 3 FREE) → owner ki WhatsApp lo mee profile
+ * • Inbox: vachina requests → ✅ Accept / ❌ Decline (decline = credit refund)
+ * • Sent: pampina requests + status + accept ayyaka contact
+ * • Plans: ₹99 → 5 profiles | ₹199 → 12 | ₹299 → 25 | ₹499 → 50 (VIP)  — add-ons + renewal tho
+ * • Anti-ban WhatsApp status (queue + random gap) chupisthundi
+ */
+import { useCallback, useEffect, useState } from "react";
+import AuthGate from "@/components/AuthGate";
+import { authHeaders, apiPost, getToken } from "@/lib/api";
+import Link from "next/link";
+import Reveal from "@/components/Reveal";
+import SectionHeading from "@/components/SectionHeading";
+
+type Plan = { code: string; price: number; profiles: number; label: string; telugu: string; badge: string; per_profile: number; perks?: string[] };
+type Addon = { code: string; price: number; label: string; telugu: string; kind: string };
+type Saved = { saved_at: string; profile: any; porutham?: { score: number; max: number; verdict: string } | null };
+type Req = {
+  request_id: string; from_id: string; to_id: string; status: string; score: number;
+  note?: string; reasons?: string[]; created_at?: string; credit_refunded?: boolean;
+  requester?: any; profile?: any; requester_phone?: string; contact?: string; actions?: string[];
+};
+
+const PLANS_FALLBACK: Plan[] = [
+  { code: "S_99", price: 99, profiles: 5, label: "Sambandham", telugu: "₹99 → 5 profiles", badge: "Entry • ₹19.8/profile", per_profile: 20 },
+  { code: "S_199", price: 199, profiles: 12, label: "Family", telugu: "₹199 → 12 profiles", badge: "Most popular • ₹16.6/profile", per_profile: 17 },
+  { code: "S_299", price: 299, profiles: 25, label: "Premium", telugu: "₹299 → 25 profiles", badge: "Best value • ₹12/profile", per_profile: 12 },
+  { code: "S_499", price: 499, profiles: 50, label: "Vivaha VIP", telugu: "₹499 → 50 profiles", badge: "VIP • ₹10/profile", per_profile: 10 },
+];
+
+const STATUS_STYLE: Record<string, string> = {
+  pending: "bg-amber-100 text-amber-800 border-amber-300",
+  accepted: "bg-emerald-100 text-emerald-800 border-emerald-300",
+  declined: "bg-rose-100 text-rose-800 border-rose-300",
+  expired: "bg-gray-100 text-gray-600 border-gray-300",
+  withdrawn: "bg-gray-100 text-gray-600 border-gray-300",
+};
+
+export default function RequestsPage() {
+  const [needsLogin, setNeedsLogin] = useState(false);
+  const [myId, setMyId] = useState("");
+  const [tab, setTab] = useState<"inbox" | "sent" | "send" | "plans" | "porutham" | "saved" | "viewers">("inbox");
+  const [credits, setCredits] = useState<number | null>(null);
+  const [plans, setPlans] = useState<Plan[]>(PLANS_FALLBACK);
+  const [inbox, setInbox] = useState<any>({ received: [], pending: 0, accepted: 0, declined: 0 });
+  const [sent, setSent] = useState<any>({ sent: [] });
+  const [toId, setToId] = useState("");
+  const [note, setNote] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [toast, setToast] = useState<{ kind: "ok" | "err" | "info"; text: string } | null>(null);
+  const [lastSend, setLastSend] = useState<any>(null);
+  const [wa, setWa] = useState<any>(null);
+  const [showOwnerMsg, setShowOwnerMsg] = useState(false);
+  const [addons, setAddons] = useState<Addon[]>([]);
+  const [renewal, setRenewal] = useState<any>(null);
+  const [saved, setSaved] = useState<{ count: number; saved: Saved[] }>({ count: 0, saved: [] });
+  // 🆕 WAVE 9 ADVANCED — Telugu interest templates + consent ledger + profile strength
+  const [templates, setTemplates] = useState<{ id: string; text: string; tag?: string }[]>([]);
+  const [consent, setConsent] = useState<{ events?: any[]; total?: number } | null>(null);
+  const [quality, setQuality] = useState<any>(null);
+  const [views, setViews] = useState<any>(null);
+  const [por, setPor] = useState<any>(null);
+  const [porA, setPorA] = useState("");
+  const [porB, setPorB] = useState("");
+
+  // ---- load my ID (localStorage / ?id=) + plans -------------------------
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const sp = new URLSearchParams(window.location.search);
+    const fromUrl = sp.get("id") || "";
+    const stored = window.localStorage.getItem("tsap_id") || "";
+    const id = (fromUrl || stored || "").toUpperCase();
+    if (id) {
+      setMyId(id);
+      window.localStorage.setItem("tsap_id", id);
+    }
+    fetch("/api/plans")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d?.plans) setPlans(d.plans.filter((p: Plan) => p.price > 0));
+        if (d?.addons) setAddons(d.addons);
+        if (d?.renewal) setRenewal(d.renewal);
+      })
+      .catch(() => {});
+    fetch("/api/wa/status").then((r) => r.json()).then(setWa).catch(() => {});
+  }, []);
+
+  const refresh = useCallback(
+    async (id: string) => {
+      if (!id) return;
+      try {
+        const [c, i, s, sv, vw, tpl, cst, ql] = await Promise.all([
+          fetch(`/api/credits/${id}`, { headers: authHeaders() }).then((r) => { if (r.status === 401) setNeedsLogin(true); return r.json(); }),
+          fetch(`/api/interest/inbox/${id}`, { headers: authHeaders() }).then((r) => { if (r.status === 401) setNeedsLogin(true); return r.json(); }),
+          fetch(`/api/interest/sent/${id}`, { headers: authHeaders() }).then((r) => { if (r.status === 401) setNeedsLogin(true); return r.json(); }),
+          fetch(`/api/saved/${id}`, { headers: authHeaders() }).then((r) => { if (r.status === 401) setNeedsLogin(true); return r.json(); }),
+          fetch(`/api/views/${id}`, { headers: authHeaders() }).then((r) => { if (r.status === 401) setNeedsLogin(true); return r.json(); }),
+          fetch("/api/templates/interest").then((r) => r.json()).catch(() => ({})),
+          fetch(`/api/consent/log/${id}`, { headers: authHeaders() }).then((r) => { if (r.status === 401) setNeedsLogin(true); return r.json(); }).catch(() => ({})),
+          fetch(`/api/profile/${id}/quality`, { headers: authHeaders() }).then((r) => { if (r.status === 401) setNeedsLogin(true); return r.json(); }).catch(() => ({})),
+        ]);
+        if (typeof c?.credits === "number") setCredits(c.credits);
+        if (i?.received) setInbox(i);
+        if (s?.sent) setSent(s);
+        if (sv?.saved) setSaved({ count: sv.count, saved: sv.saved });
+        if (vw?.tsap_id) setViews(vw);
+        if (Array.isArray(tpl?.templates)) setTemplates(tpl.templates);
+        if (cst?.tsap_id) setConsent(cst);
+        if (ql?.tsap_id || ql?.completeness) setQuality(ql);
+      } catch {
+        setToast({ kind: "err", text: "Server tho connect avvaledu — malli try cheyyandi" });
+      }
+    },
+    []
+  );
+
+  useEffect(() => {
+    if (myId) refresh(myId);
+  }, [myId, refresh]);
+
+  const saveId = (v: string) => {
+    const id = v.trim().toUpperCase();
+    setMyId(id);
+    if (typeof window !== "undefined" && id) window.localStorage.setItem("tsap_id", id);
+    if (id) refresh(id);
+  };
+
+  const sendInterest = async () => {
+    if (!myId) return setToast({ kind: "err", text: "Mundu mee TSAP ID ivvandi (register chesaka vastundi)" });
+    if (!toId.trim()) return setToast({ kind: "err", text: "Ee profile ki pampali — TSAP ID type cheyyandi" });
+    setBusy(true);
+    setToast(null);
+    try {
+      const r = await fetch("/api/interest/send", {
+        method: "POST",
+        headers: authHeaders(),
+        body: JSON.stringify({ from_id: myId, to_id: toId.trim().toUpperCase(), note }),
+      });
+      const d = await r.json();
+      if (r.status === 402) {
+        setToast({ kind: "err", text: d.message_telugu || "Credits ledu" });
+        setTab("plans");
+        setCredits(0);
+      } else if (!r.ok) {
+        setToast({ kind: "err", text: d.message_telugu || d.detail || "Request fail ayyindi" });
+      } else {
+        setLastSend(d);
+        setToast({ kind: "ok", text: d.message_telugu });
+        setNote("");
+        setCredits(d.credits_left);
+        refresh(myId);
+      }
+    } catch {
+      setToast({ kind: "err", text: "Network problem — malli try cheyyandi" });
+    }
+    setBusy(false);
+  };
+
+  const respond = async (request_id: string, action: string) => {
+    setBusy(true);
+    try {
+      const r = await fetch("/api/interest/respond", {
+        method: "POST",
+        headers: authHeaders(),
+        body: JSON.stringify({ tsap_id: myId, request_id, action }),
+      });
+      const d = await r.json();
+      setToast({ kind: r.ok ? "ok" : "err", text: d.message_telugu || d.detail || d.message });
+      refresh(myId);
+    } catch {
+      setToast({ kind: "err", text: "Network problem" });
+    }
+    setBusy(false);
+  };
+
+  const buy = async (plan: string) => {
+    setBusy(true);
+    try {
+      const r = await fetch("/api/credits/buy", {
+        method: "POST",
+        headers: authHeaders(),
+        body: JSON.stringify({ tsap_id: myId, plan }),
+      });
+      const d = await r.json();
+      if (r.ok) {
+        setCredits(d.credits_now);
+        setToast({ kind: "ok", text: d.message_telugu });
+        if (d.upi_link) window.open(d.upi_link, "_blank");
+      } else setToast({ kind: "err", text: d.detail || "Payment start avvaledu" });
+    } catch {
+      setToast({ kind: "err", text: "Network problem" });
+    }
+    setBusy(false);
+  };
+
+  const loadDemo = async () => {
+    setBusy(true);
+    try {
+      const d = await fetch("/api/demo/seed", { method: "POST" }).then((r) => r.json());
+      const list = (d.created || []).map((x: any) => x.tsap_id).join(", ");
+      setToast({ kind: "info", text: `Demo profiles: ${list} — veetilo oka ID me "Mee ID" ga petti, inkokati ki interest pampandi` });
+    } catch {
+      setToast({ kind: "err", text: "Demo load avvaledu" });
+    }
+    setBusy(false);
+  };
+
+  const checkPorutham = async () => {
+    if (!porA || !porB) return setToast({ kind: "err", text: "Rendu TSAP ID ivvandi (bride + groom)" });
+    setBusy(true);
+    try {
+      const d = await fetch(`/api/porutham?bride=${porA.trim().toUpperCase()}&groom=${porB.trim().toUpperCase()}`).then((r) => r.json());
+      setPor(d);
+      setToast({ kind: d.available ? "ok" : "info", text: d.available ? `🔮 Porutham ${d.score}/10 — ${d.verdict}` : d.reason });
+    } catch {
+      setToast({ kind: "err", text: "Porutham check fail ayyindi" });
+    }
+    setBusy(false);
+  };
+
+  const removeSaved = async (id: string) => {
+    await fetch("/api/save", { method: "POST", headers: authHeaders(),
+      body: JSON.stringify({ tsap_id: myId, saved_id: id }) });
+    refresh(myId);
+  };
+
+  const chip = (s: string) =>
+    `text-[10px] font-bold px-2 py-0.5 rounded-full border ${STATUS_STYLE[s] || "bg-gray-100 text-gray-600 border-gray-300"}`;
+
+  return (
+    <main className="min-h-screen">
+      {/* HERO */}
+      <section className="maroon-gradient text-white">
+        <div className="max-w-6xl mx-auto px-4 py-10">
+          <Reveal>
+            <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-3 py-1 text-[11px] font-bold">
+              🚫 Chatting ledu • 💌 Interest request • 🛡️ Anti-ban WhatsApp delivery
+            </div>
+            <h1 className="mt-3 text-2xl md:text-4xl font-bold">Requests Dashboard</h1>
+            <p className="mt-2 text-[13px] md:text-sm opacity-90 telugu max-w-3xl">
+              Nachhina profile ki <b>Interest pampu</b> — vaallaki WhatsApp lo mee profile card veltundi.
+              Vaallu <b>Accept</b> chesthe rendu numbers automatic ga exchange avutayi. <b>Decline</b> chesthe mee credit refund.
+              Chatting, spam calls, fake ids — anni ikkade aagutayi.
+            </p>
+          </Reveal>
+
+          <div className="mt-5 flex flex-wrap gap-3 items-end">
+            <div>
+              <label className="text-[11px] font-bold opacity-90">Mee TSAP ID</label>
+              <input
+                value={myId}
+                onChange={(e) => setMyId(e.target.value.toUpperCase())}
+                onBlur={(e) => saveId(e.target.value)}
+                placeholder="TSAP-M-2025-1042"
+                className="mt-1 w-56 px-3 py-2 rounded-xl text-ink font-mono text-sm outline-none focus-brand" aria-label="TSAP-M-2025-1042" />
+            </div>
+            <button onClick={() => saveId(myId)} className="gold-gradient text-maroon font-bold text-sm px-4 py-2.5 rounded-xl hover-lift">
+              Load my dashboard
+            </button>
+            <button onClick={loadDemo} disabled={busy} className="bg-white/10 border border-white/25 text-white font-bold text-sm px-4 py-2.5 rounded-xl">
+              🎬 Demo profiles load
+            </button>
+            <div className="ml-auto bg-white/10 border border-white/20 rounded-xl px-4 py-2">
+              <div className="text-[10px] opacity-80">Credits</div>
+              <div className="font-bold text-lg leading-none">{credits === null ? "—" : credits}</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div className="max-w-6xl mx-auto px-4 py-6">
+        {toast && (
+          <div
+            className={`mb-4 rounded-2xl px-4 py-3 text-[13px] border card-shadow ${
+              toast.kind === "ok"
+                ? "bg-emerald-50 border-emerald-200 text-emerald-900"
+                : toast.kind === "err"
+                ? "bg-rose-50 border-rose-200 text-rose-900"
+                : "bg-amber-50 border-amber-200 text-amber-900"
+            }`}
+          >
+            {toast.text}
+          </div>
+        )}
+
+        {/* TABS */}
+        <div className="flex flex-wrap gap-2 mb-4">
+          {[
+            { k: "inbox", l: `📥 Vachina requests${inbox.pending ? ` (${inbox.pending})` : ""}` },
+            { k: "sent", l: `📤 Pampina requests${sent.sent?.length ? ` (${sent.sent.length})` : ""}` },
+            { k: "send", l: "💌 Interest pampu" },
+            { k: "porutham", l: "🔮 Porutham" },
+            { k: "saved", l: `❤️ Saved${saved.count ? ` (${saved.count})` : ""}` },
+            { k: "viewers", l: `👀 Viewers${views?.total_views ? ` (${views.total_views})` : ""}` },
+            { k: "plans", l: "💳 Plans & Credits" },
+          ].map((t) => (
+            <button
+              key={t.k}
+              onClick={() => setTab(t.k as any)}
+              className={`px-4 py-2 rounded-xl text-[13px] font-bold border transition ${
+                tab === t.k ? "bg-maroon text-white border-maroon" : "bg-white text-maroon border-maroon/20 hover-lift"
+              }`}
+            >
+              {t.l}
+            </button>
+          ))}
+        </div>
+
+        {/* INBOX */}
+        {tab === "inbox" && (
+          <div className="space-y-3">
+            {!myId && <Empty text="Mee TSAP ID ivvandi — inbox chudataniki." />}
+            {myId && inbox.received?.length === 0 && <Empty text="Inka requests raledu. Mee profile ni 1 channel lo post cheyyandi — reach perugutundi." />}
+            {inbox.received?.map((it: Req) => (
+              <Reveal key={it.request_id}>
+                <div className="bg-white rounded-2xl p-4 card-shadow border border-gold/20">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className={chip(it.status)}>{it.status.toUpperCase()}</span>
+                    <span className="text-[11px] text-gray-500 font-mono">{it.request_id}</span>
+                    {it.score > 0 && <span className="text-[11px] font-bold text-maroon">⭐ {it.score}% match</span>}
+                    {(it as any).porutham_score ? (
+                      <span className="text-[11px] font-bold text-amber-700">🔮 Porutham {(it as any).porutham_score}/10</span>
+                    ) : null}
+                    <span className="ml-auto text-[11px] text-gray-500">{it.requester_phone}</span>
+                  </div>
+                  <div className="mt-2 grid md:grid-cols-2 gap-3">
+                    <div>
+                      <div className="font-bold text-[15px] text-maroon">{it.requester?.full_name} ({it.requester?.age}y)</div>
+                      <div className="text-[12px] text-gray-600 mt-1 leading-relaxed">
+                        🆔 {it.from_id}{it.requester?.verified ? " ✅" : ""}<br />
+                        🎓 {it.requester?.education} {it.requester?.education_detail}<br />
+                        💼 {it.requester?.job} {it.requester?.company}<br />
+                        💰 {it.requester?.salary} • 📏 {it.requester?.height}<br />
+                        📍 {it.requester?.district}, {it.requester?.state}<br />
+                        💍 {it.requester?.caste} {it.requester?.gothram ? `• Gothram ${it.requester?.gothram}` : ""}<br />
+                        🌟 {it.requester?.star || "—"} • Rasi {it.requester?.rasi || "—"}
+                      </div>
+                      {it.note ? <div className="mt-2 text-[12px] bg-cream border border-gold/30 rounded-xl p-2">📝 &ldquo;{it.note}&rdquo;</div> : null}
+                    </div>
+                    <div>
+                      {it.reasons?.length ? (
+                        <div className="text-[12px] text-gray-700">
+                          <div className="font-bold text-maroon mb-1">Enduku match avutaru:</div>
+                          {it.reasons.slice(0, 4).map((r) => (
+                            <div key={r}>✅ {r}</div>
+                          ))}
+                        </div>
+                      ) : null}
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {it.actions?.includes("accept") ? (
+                          <>
+                            <button onClick={() => respond(it.request_id, "accept")} disabled={busy} className="bg-emerald-600 text-white font-bold text-[13px] px-4 py-2 rounded-xl hover-lift">
+                              ✅ Accept — number exchange
+                            </button>
+                            <button onClick={() => respond(it.request_id, "decline")} disabled={busy} className="bg-white border border-rose-300 text-rose-700 font-bold text-[13px] px-4 py-2 rounded-xl">
+                              ❌ Decline (credit refund)
+                            </button>
+                          </>
+                        ) : it.status === "accepted" ? (
+                          <div className="text-[12px] bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2 text-emerald-900">
+                            ✅ Accepted — contact: <b>{it.requester_phone}</b> (WhatsApp lo kooda vachhindi)
+                          </div>
+                        ) : (
+                          <div className="text-[12px] text-gray-500">Ee request {it.status} — inka action ledu</div>
+                        )}
+                        <Link href={`/search/${it.from_id}`} className="text-[13px] font-bold text-maroon underline px-2 py-2">
+                          Full profile chudu →
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        )}
+
+        {/* SENT */}
+        {tab === "sent" && (
+          <div className="space-y-3">
+            {myId && sent.sent?.length === 0 && <Empty text="Inka evariki interest pampaledu — 💌 'Interest pampu' tab lo start cheyyandi." />}
+            {sent.sent?.map((it: Req) => (
+              <Reveal key={it.request_id}>
+                <div className="bg-white rounded-2xl p-4 card-shadow border border-gold/20 flex flex-wrap items-center gap-3">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className={chip(it.status)}>{it.status.toUpperCase()}</span>
+                      <span className="font-bold text-[14px] text-maroon">{it.profile?.full_name} ({it.profile?.age}y)</span>
+                      <span className="text-[11px] text-gray-500 font-mono">{it.to_id}</span>
+                      {it.score > 0 && <span className="text-[11px] font-bold">⭐ {it.score}%</span>}
+                      {it.credit_refunded && <span className="text-[10px] font-bold text-emerald-700">↩️ refund</span>}
+                    </div>
+                    <div className="text-[12px] text-gray-600 mt-1">
+                      🎓 {it.profile?.education} • 💼 {it.profile?.job} • 📍 {it.profile?.district}, {it.profile?.state} • 💍 {it.profile?.caste}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-[10px] text-gray-500">Contact</div>
+                    <div className={`text-[13px] font-bold ${it.status === "accepted" ? "text-emerald-700" : "text-gray-400"}`}>{it.contact}</div>
+                  </div>
+                  <Link href={`/search/${it.to_id}`} className="text-[12px] font-bold text-maroon underline">
+                    Profile →
+                  </Link>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        )}
+
+        {/* SEND */}
+        {tab === "send" && (
+          <div className="grid md:grid-cols-2 gap-5">
+            <div className="bg-white rounded-2xl p-5 card-shadow border border-gold/20">
+              <SectionHeading eyebrow="1 credit = 1 profile" title="💌 Interest pampu" subtitle="Profile ID ivvandi — vaallaki mana WhatsApp nunchi mee profile + card veltundi." telugu align="left" />
+              <div className="mt-4 space-y-3">
+                <div>
+                  <label className="text-[12px] font-bold text-ink">Profile TSAP ID *</label>
+                  <input
+                    value={toId}
+                    onChange={(e) => setToId(e.target.value.toUpperCase())}
+                    placeholder="TSAP-F-2025-1042"
+                    className="mt-1 w-full px-3 py-2.5 rounded-xl border border-gold/40 font-mono text-sm outline-none focus-brand" aria-label="TSAP-F-2025-1042" />
+                </div>
+                {templates.length > 0 && (
+                  <div>
+                    <div className="text-[11px] font-bold text-ink">💬 Ready-made Telugu messages (tap chesi edit cheyyandi)</div>
+                    <div className="mt-1 flex flex-wrap gap-1.5">
+                      {templates.slice(0, 6).map((t) => (
+                        <button key={t.id} type="button" onClick={() => setNote(t.text.slice(0, 280))}
+                          className="rounded-full border border-gold/40 bg-cream px-2.5 py-1 text-[10px] font-semibold text-maroon hover:bg-gold/20"
+                          title={t.text}>
+                          {t.tag || t.id}: {t.text.slice(0, 22)}…
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                <div>
+                  <label className="text-[12px] font-bold text-ink">Chinna message (optional)</label>
+                  <textarea
+                    value={note}
+                    onChange={(e) => setNote(e.target.value.slice(0, 280))}
+                    rows={3}
+                    placeholder="Mee profile chala bagundi — mana family values match avutunnayi. Matladukovachu."
+                    className="mt-1 w-full px-3 py-2.5 rounded-xl border border-gold/40 text-sm outline-none focus-brand" aria-label="Text area" />
+                  <div className="text-[10px] text-gray-500 mt-1">{note.length}/280 • number/email pettaku (privacy policy)</div>
+                </div>
+                <button onClick={sendInterest} disabled={busy} className="w-full maroon-gradient text-white font-bold py-3 rounded-xl hover-lift disabled:opacity-60">
+                  {busy ? "Pampisthunnam…" : "💌 Interest pampu"}
+                </button>
+                <div className="text-[11px] text-gray-500">
+                  Credits: <b>{credits === null ? "—" : credits}</b> • Modati 3 requests FREE • Decline aithe refund
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              {lastSend ? (
+                <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4">
+                  <div className="font-bold text-emerald-900">✅ {lastSend.request_id} pampincharu</div>
+                  <div className="text-[12px] text-emerald-900 mt-1">
+                    ⭐ {lastSend.score}% match • ⏳ {lastSend.expires_in_days} days valid • credits migilayi <b>{lastSend.credits_left}</b>
+                  </div>
+                  <div className="text-[12px] text-emerald-900 mt-2">
+                    📲 WhatsApp: {lastSend.whatsapp?.owner_queued ? "owner ki queue ayyindi" : "queue avvaledu (WHATSAPP_MODE chudu)"} • {lastSend.whatsapp?.anti_ban}
+                  </div>
+                  <button onClick={() => setShowOwnerMsg(!showOwnerMsg)} className="mt-3 text-[12px] font-bold text-emerald-800 underline">
+                    {showOwnerMsg ? "Message daachi pettu" : "Vaallaki velle message chudu (preview)"}
+                  </button>
+                  {showOwnerMsg && (
+                    <pre className="mt-2 text-[11px] whitespace-pre-wrap bg-white border border-emerald-200 rounded-xl p-3 max-h-72 overflow-auto">{lastSend.owner_message_preview}</pre>
+                  )}
+                </div>
+              ) : (
+                <div className="bg-cream border border-gold/30 rounded-2xl p-5">
+                  <div className="font-bold text-maroon">Ela pani chestundi?</div>
+                  <ol className="mt-2 text-[12px] text-gray-700 space-y-1 list-decimal list-inside">
+                    <li>Mee ID + vaalla ID ivvandi → request pampistham (1 credit)</li>
+                    <li>Vaallaki mana WhatsApp nunchi mee profile card + details</li>
+                    <li>Vaallu Accept chesthe — rendu numbers automatic ga WhatsApp lo</li>
+                    <li>Decline/expire aithe — mee credit refund (expire ki kooda)</li>
+                  </ol>
+                  <div className="mt-3 text-[11px] text-gray-600">🚫 Chatting ledu — consent-based contact exchange matrame. Fake ids, spam calls block.</div>
+                </div>
+              )}
+
+              {quality && (
+                <div className="bg-white border border-gold/30 rounded-2xl p-4">
+                  <div className="font-bold text-maroon text-[13px]">📝 Mee profile strength: {quality.completeness?.percent ?? "—"}%</div>
+                  <div className="mt-1 text-[11px] text-gray-600">{quality.grade_telugu || quality.completeness?.verdict_telugu || ""}</div>
+                  <div className="mt-2 h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="h-2 gold-gradient" style={{ width: `${Math.min(100, Number(quality.completeness?.percent ?? 0))}%` }} />
+                  </div>
+                  {Array.isArray(quality.completeness?.important_telugu) && quality.completeness.important_telugu.length > 0 && (
+                    <ul className="mt-2 text-[11px] text-gray-700 list-disc list-inside space-y-0.5">
+                      {quality.completeness.important_telugu.slice(0, 3).map((t: string, i: number) => <li key={i}>{t}</li>)}
+                    </ul>
+                  )}
+
+                  {quality.trust && (
+                    <div className="mt-2 text-[11px] text-emerald-800">
+                      🛡️ Trust score: <b>{quality.trust.score}</b>/100 • {quality.trust.badge_telugu}
+                    </div>
+                  )}
+                  {quality.photo_tip_telugu && <div className="mt-1 text-[11px] text-gray-600">📷 {quality.photo_tip_telugu}</div>}
+                </div>
+              )}
+
+              {consent && (
+                <div className="bg-white border border-emerald-200 rounded-2xl p-4">
+                  <div className="font-bold text-emerald-900 text-[13px]">🔐 Consent ledger (number exchange audit)</div>
+                  <div className="mt-1 text-[11px] text-emerald-800">
+                    Mee number eppudu evariki ichharo ikkada record untundi — {consent.total ?? 0} events.
+                  </div>
+                  {Array.isArray(consent.events) && consent.events.length > 0 ? (
+                    <ul className="mt-2 space-y-1">
+                      {consent.events.slice(0, 5).map((e: any, i: number) => (
+                        <li key={i} className="text-[11px] text-gray-700 border-l-2 border-emerald-300 pl-2">
+                          {e.action || e.kind || "consent"} • {String(e.with || e.other_id || "").slice(0, 18)} • {String(e.at || "").slice(0, 16)}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <div className="mt-2 text-[11px] text-gray-600">Inka number exchange ledu — interest accept ayithe ikkada kanipistundi (audit trail).</div>
+                  )}
+                </div>
+              )}
+
+              {wa?.antiban && (
+                <div className="bg-navy text-white rounded-2xl p-4">
+                  <div className="font-bold text-[13px]">🛡️ WhatsApp anti-ban status</div>
+                  <div className="mt-2 text-[11px] opacity-90 grid grid-cols-2 gap-1">
+                    <span>Gap: {wa.antiban.random_gap}</span>
+                    <span>Roju cap: {wa.antiban.daily_cap}</span>
+                    <span>Today sent: {wa.antiban.sent_today}</span>
+                    <span>Queue: {wa.queued}</span>
+                    <span>Type sim: {wa.antiban.sent_since_break >= 0 ? "ON" : "OFF"}</span>
+                    <span>Hours: {wa.antiban.active_hours_ist?.[0]}–{wa.antiban.active_hours_ist?.[1]} IST</span>
+                  </div>
+                  <div className="text-[10px] opacity-70 mt-2">Telegram post ayyaka → WhatsApp (random gap) — ban risk thakkuva</div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* PORUTHAM TOOL */}
+        {tab === "porutham" && (
+          <div className="grid md:grid-cols-2 gap-5">
+            <div className="bg-white rounded-2xl p-5 card-shadow border border-gold/20">
+              <SectionHeading eyebrow="Traditional 10 poruthams" title="🔮 Kundli / Porutham check"
+                subtitle="Bride + groom TSAP ID ivvandi — 10 porutham (rasi, nakshatra, gana, yoni, rajju, vedha, mahendra, stree deergha, vashya, adhipathi) calculate chestham." telugu align="left" />
+              <div className="mt-4 space-y-3">
+                <input value={porA} onChange={(e) => setPorA(e.target.value.toUpperCase())} placeholder="Bride TSAP ID — TSAP-F-2025-1042"
+                  className="w-full px-3 py-2.5 rounded-xl border border-gold/40 font-mono text-sm outline-none focus-brand" aria-label="Bride TSAP ID — TSAP-F-2025-1042" />
+                <input value={porB} onChange={(e) => setPorB(e.target.value.toUpperCase())} placeholder="Groom TSAP ID — TSAP-M-2025-1042"
+                  className="w-full px-3 py-2.5 rounded-xl border border-gold/40 font-mono text-sm outline-none focus-brand" aria-label="Groom TSAP ID — TSAP-M-2025-1042" />
+                <button onClick={checkPorutham} disabled={busy} className="w-full maroon-gradient text-white font-bold py-3 rounded-xl hover-lift disabled:opacity-60">
+                  🔮 Porutham calculate chey
+                </button>
+                <div className="text-[11px] text-gray-500">Idi traditional tables batti software estimate — final ga purohit/panchangam tho confirm cheyyandi.</div>
+              </div>
+            </div>
+            <div className="space-y-3">
+              {por ? (
+                <div className="bg-white rounded-2xl p-5 card-shadow border border-gold/30">
+                  <div className="flex items-center gap-3">
+                    <div className="text-3xl font-bold text-maroon">{por.score}<span className="text-sm text-gray-400">/{por.max_score || 10}</span></div>
+                    <div>
+                      <div className="font-bold text-[14px] text-maroon">{por.verdict}</div>
+                      <div className="text-[11px] text-gray-500">
+                        {por.bride_star || por.bride?.star} ↔ {por.groom_star || por.groom?.star} • {por.bride_rasi} ↔ {por.groom_rasi}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-3 space-y-1.5">
+                    {(por.items || []).map((x: any) => (
+                      <div key={x.no} className="text-[12px] flex gap-2">
+                        <span>{x.pass ? "✅" : "❌"}</span>
+                        <span className="font-bold text-ink w-40 shrink-0">{x.name}</span>
+                        <span className="text-gray-600">{x.note}</span>
+                      </div>
+                    ))}
+                  </div>
+                  {por.doshas?.length ? (
+                    <div className="mt-3 text-[12px] bg-rose-50 border border-rose-200 text-rose-800 rounded-xl px-3 py-2">
+                      ⚠️ Critical: {por.doshas.join(", ")} — peddalu + purohitulu tho discuss cheyyandi
+                    </div>
+                  ) : null}
+                  <div className="mt-3 text-[11px] text-gray-500">{por.advice_telugu}</div>
+                </div>
+              ) : (
+                <div className="bg-cream border border-gold/30 rounded-2xl p-5">
+                  <div className="font-bold text-maroon">10 poruthams enti?</div>
+                  <ol className="mt-2 text-[12px] text-gray-700 space-y-1 list-decimal list-inside">
+                    <li>Rasi porutham (6/8 dosham check)</li>
+                    <li>Nakshatra porutham</li>
+                    <li>Gana porutham (Deva/Manushya/Rakshasa)</li>
+                    <li>Yoni porutham (animal symbols)</li>
+                    <li>Rajju porutham ⚠️ critical</li>
+                    <li>Vedha porutham ⚠️ critical</li>
+                    <li>Mahendra porutham</li>
+                    <li>Stree deergha</li>
+                    <li>Vashya porutham</li>
+                    <li>Rasi adhipathi</li>
+                  </ol>
+                  <div className="mt-3 text-[11px] text-gray-600">Mee profile lo <b>Star (Nakshatram)</b> + <b>Rasi</b> fill chesi unte automatic ga vastundi.</div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* SAVED / SHORTLIST */}
+        {tab === "saved" && (
+          <div className="space-y-3">
+            {saved.count === 0 && <Empty text="Inka emi save cheyyaledu — /matches lo ❤️ button press cheyyandi." />}
+            {saved.saved.map((x: Saved) => (
+              <Reveal key={x.profile.tsap_id}>
+                <div className="bg-white rounded-2xl p-4 card-shadow border border-gold/20 flex flex-wrap items-center gap-3">
+                  <div className="min-w-0 flex-1">
+                    <div className="font-bold text-[14px] text-maroon">
+                      ❤️ {x.profile.full_name} ({x.profile.age}y)
+                      <span className="ml-2 text-[11px] text-gray-500 font-mono">{x.profile.tsap_id}</span>
+                    </div>
+                    <div className="text-[12px] text-gray-600 mt-1">
+                      🎓 {x.profile.education} • 💼 {x.profile.job} • 📍 {x.profile.district}, {x.profile.state} • 💍 {x.profile.caste}
+                    </div>
+                    {x.porutham ? (
+                      <div className="text-[12px] font-bold text-amber-700 mt-1">🔮 Porutham {x.porutham.score}/{x.porutham.max} — {x.porutham.verdict?.split("—")[0]}</div>
+                    ) : null}
+                  </div>
+                  <button onClick={() => { setToId(x.profile.tsap_id); setTab("send"); }} className="text-[12px] font-bold maroon-gradient text-white px-3 py-2 rounded-xl">
+                    💌 Interest pampu
+                  </button>
+                  <Link href={`/search/${x.profile.tsap_id}`} className="text-[12px] font-bold text-maroon underline">Profile →</Link>
+                  <button onClick={() => removeSaved(x.profile.tsap_id)} className="text-[12px] text-gray-500 underline">Remove</button>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        )}
+
+        {/* VIEWERS */}
+        {tab === "viewers" && (
+          <div className="space-y-3">
+            {!views ? <Empty text="Mee TSAP ID load cheyyandi — viewers chudataniki." /> : (
+              <>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {[["👀 Total views", views.total_views], ["🧑 Unique viewers", views.unique_viewers],
+                    ["📅 Today", views.today], ["🔓 Who-viewed", views.whoviewed_unlocked ? "Unlocked ✅" : "Locked 🔒"]].map(([l, v]) => (
+                    <div key={String(l)} className="bg-white rounded-2xl p-4 card-shadow border border-gold/20">
+                      <div className="text-[11px] text-gray-500">{l}</div>
+                      <div className="text-xl font-bold text-maroon">{v as any}</div>
+                    </div>
+                  ))}
+                </div>
+                {!views.whoviewed_unlocked && (
+                  <div className="bg-cream border border-gold/30 rounded-2xl p-4 flex flex-wrap items-center gap-3">
+                    <div className="text-[13px] text-gray-700 flex-1">
+                      🔒 Evaru chusaro names chudali ante <b>₹49</b> (30 days) — leda ₹299+ plan lo free ga vastundi.
+                    </div>
+                    <button onClick={() => buy("WHOVIEWED_49")} className="gold-gradient text-maroon font-bold text-[12px] px-4 py-2 rounded-xl">₹49 unlock</button>
+                  </div>
+                )}
+                <div className="bg-white rounded-2xl p-4 card-shadow border border-gold/20">
+                  {(views.viewers?.length ? views.viewers : views.viewers_masked || []).map((v: any, i: number) => (
+                    <div key={i} className="text-[12px] py-1.5 border-b last:border-0 border-gray-100 flex flex-wrap gap-3">
+                      <span className="font-bold text-maroon">{v.full_name || "🔒 Hidden member"}</span>
+                      <span className="text-gray-600">{v.caste} • {v.district} • {v.age}y</span>
+                      {v.tsap_id ? <Link href={`/search/${v.tsap_id}`} className="text-maroon underline">profile →</Link> : null}
+                    </div>
+                  ))}
+                  {!(views.viewers?.length || views.viewers_masked?.length) && (
+                    <div className="text-[12px] text-gray-500">Inka evaru chudaledu — mee profile ni oka channel lo boost cheyyandi (₹49).</div>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* PLANS */}
+        {tab === "plans" && (
+          <div>
+            <SectionHeading eyebrow="Credits" title="Plans — 1 credit = 1 profile" subtitle="₹/profile prati tier lo thaggutundi (₹20 → ₹10). Decline aithe credit refund. Razorpay live ayyaka automatic — ippudu UPI link tho." telugu align="left" />
+            {renewal && (
+              <div className="mt-3 rounded-2xl bg-cream border border-gold/30 p-3 text-[12px] text-gray-700">
+                🔁 <b>Renewal offer (pata customers):</b> ₹{renewal.price} → <b>{renewal.profiles} profiles</b> — first-time ₹99 → 5 profiles.
+                <button onClick={() => buy(renewal.code)} className="ml-2 text-maroon font-bold underline">renew chey</button>
+              </div>
+            )}
+            <div className="mt-4 grid md:grid-cols-3 gap-4">
+              {plans.map((p, i) => (
+                <Reveal key={p.code} delay={i * 80}>
+                  <div className={`bg-white rounded-2xl p-5 card-shadow border h-full ${p.code === "S_299" ? "border-gold" : "border-gold/20"}`}>
+                    {p.badge && <div className="text-[10px] font-bold text-gold-deep tracking-widest uppercase">{p.badge}</div>}
+                    <div className="text-2xl font-bold text-maroon mt-1">₹{p.price}</div>
+                    <div className="font-bold text-[14px] text-ink">{p.profiles} profiles</div>
+                    <div className="text-[11px] text-gray-500">₹{p.per_profile}/profile • {p.label}</div>
+                    <ul className="mt-3 text-[12px] text-gray-700 space-y-1">
+                      {(p.perks || [`${p.profiles} interest requests`, "WhatsApp lo profile share",
+                                    "Accept aithe number exchange", "Decline aithe refund"]).map((x: string) => (
+                        <li key={x}>✅ {x}</li>
+                      ))}
+                    </ul>
+                    <button
+                      onClick={() => buy(p.code)}
+                      disabled={busy || !myId}
+                      className="mt-4 w-full gold-gradient text-maroon font-bold py-2.5 rounded-xl hover-lift disabled:opacity-50"
+                    >
+                      {myId ? `₹${p.price} pay → ${p.profiles} profiles` : "Mee TSAP ID ivvandi"}
+                    </button>
+                  </div>
+                </Reveal>
+              ))}
+            </div>
+            <div className="mt-4 text-[12px] text-gray-600 bg-cream border border-gold/30 rounded-2xl p-4">
+              💡 <b>Free plan:</b> register cheyagane 3 interest requests FREE. <b>Referral:</b> friend ni pilichi vaallu ₹99 pay chesthe meeku ₹50 +
+              vaallaki extra credit. <b>Bureau/agents:</b> ₹999/mo → 25 profiles + monthly report.
+            </div>
+
+            {/* 🎁 ADD-ONS */}
+            <div className="mt-6">
+              <SectionHeading eyebrow="Add-ons" title="🎁 Extra value — credits kanna" subtitle="Ivi per-item: boost, who-viewed, porutham report, verification badge." telugu align="left" />
+              <div className="mt-3 grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                {addons.map((a) => (
+                  <div key={a.code} className="bg-white rounded-2xl p-4 card-shadow border border-gold/25 flex flex-col">
+                    <div className="text-xl font-bold text-maroon">₹{a.price}</div>
+                    <div className="text-[13px] font-bold text-ink">{a.label}</div>
+                    <div className="text-[11px] text-gray-600 flex-1">{a.telugu}</div>
+                    <button onClick={() => buy(a.code)} disabled={busy || !myId}
+                      className="mt-3 gold-gradient text-maroon font-bold text-[12px] py-2 rounded-xl disabled:opacity-50">
+                      ₹{a.price} teesukondi
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+      {needsLogin ? (
+        <div className="mt-6">
+          <AuthGate title="🔒 Mee inbox / credits / shortlist ki login cheyyandi"
+            note="Ee private data token tho protect chesam (vere vaallu mee inbox chudalenu). Phone OTP login 10 seconds." />
+        </div>
+      ) : null}
+    </main>
+  );
+}
+
+function Empty({ text }: { text: string }) {
+  return (
+    <div className="bg-white rounded-2xl p-6 text-center card-shadow border border-gold/20">
+      <div className="text-3xl">💌</div>
+      <div className="text-[13px] text-gray-600 mt-2">{text}</div>
+    </div>
+  );
+}

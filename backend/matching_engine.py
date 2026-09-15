@@ -158,6 +158,50 @@ def find_top_matches(user: Dict, all_profiles: List[Dict], limit=10, min_score=7
     scored.sort(key=lambda x: (x["score"], x.get("is_verified", False), x.get("created_at", "")), reverse=True)
     return scored[:limit]
 
+def generate_profile_highlights(profile: Dict, limit: int = 4) -> List[str]:
+    """
+    Channel card ki 'Enduku best match' reasons — profile nunchi + vaadi expectations nunchi.
+    Idi viewer ki convince cheyyadaniki (profile owner's own strengths + preference clarity).
+    """
+    r = []
+    g = profile.get("gender", "Bride")
+    who = "Ammai" if g == "Bride" else "Abbai"
+    dist = profile.get("district", "")
+    state = profile.get("state", "TS")
+    caste = profile.get("caste", "")
+    gothram = profile.get("gothram", "")
+    star = profile.get("star", "")
+    job = profile.get("job", "")
+    edu = profile.get("education", "")
+    salary = profile.get("salary", "")
+    loc = profile.get("work_location") or profile.get("current_city") or dist
+    fam = profile.get("family_status") or profile.get("family_type", "")
+
+    if caste and gothram:
+        r.append(f"{caste} {gothram} gothram{(' + ' + star + ' nakshatram') if star else ''} — sambandham clear ga cheppochu")
+    if job:
+        r.append(f"{edu + ' + ' if edu else ''}{job}{(' (' + str(salary) + ')') if salary else ''} — settled profession, no tension")
+    if loc:
+        r.append(f"{loc} lo work{(' / ' + profile.get('current_city') + ' lo stay') if profile.get('current_city') and profile.get('current_city') != loc else ''} — {who} tho same city lo undochu")
+    if fam:
+        r.append(f"{fam} family • {profile.get('father_name','')} {profile.get('father_occupation','')}".strip())
+    if profile.get("dob_correct") or profile.get("is_verified"):
+        r.append("ID + DOB verified — fake kaadu, manam guarantee istham")
+    if str(profile.get("marital_status", "")).lower().startswith(("pelli", "never", "first")):
+        r.append("First marriage • single • no past complications")
+    if profile.get("photo_urls") and str(profile.get("photo_urls")).strip("[]'"):
+        r.append("Photo verified + watermark — screenshot misuse jarigadu")
+
+    # de-dupe + limit
+    out, seen = [], set()
+    for x in r:
+        x = x.strip()
+        if x and x.lower() not in seen:
+            seen.add(x.lower())
+            out.append(x)
+    return out[:limit]
+
+
 # Mock test
 if __name__=="__main__":
     user = {"tsap_id":"TSAP-M-1042","gender":"Groom","age":27,"height":"5'8\"","caste":"Reddy","district":"Nalgonda","state":"TS","mandal":"Gachibowli","education":"BTech","job":"Software","marital_status":"Pelli Kaledu","star":"Rohini","gothram":"Bharadwaj"}

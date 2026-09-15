@@ -1,0 +1,273 @@
+"use client";
+/**
+ * 🏪 VENDOR ADS & DIRECTORY — Mana Vivaha
+ * ======================================
+ * "Pelli sambandham related vaallaki promotions kooda cheyyali bestga"
+ *  • 18 categories (catering, photography, decorations, hall, pandit, makeup...)
+ *  • Ad packages ₹149 → ₹3999 (+ add-ons)
+ *  • Vendor directory (filter: category/district/search) + WhatsApp CTA
+ *  • Own vendor → dashboard (impressions, clicks, enquiries) + promo poster
+ */
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+
+type Cat = { key: string; en: string; te: string; icon: string; count?: number };
+type Vendor = any;
+
+export default function VendorsPage() {
+  const [data, setData] = useState<any>(null);
+  const [pkgs, setPkgs] = useState<any>(null);
+  const [cats, setCats] = useState<Cat[]>([]);
+  const [cat, setCat] = useState("");
+  const [district, setDistrict] = useState("");
+  const [q, setQ] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [copied, setCopied] = useState("");
+
+  useEffect(() => {
+    fetch("/api/vendors/categories").then((r) => r.json()).then((d) => setCats(d.categories || [])).catch(() => { });
+    fetch("/api/vendors/packages").then((r) => r.json()).then(setPkgs).catch(() => { });
+  }, []);
+
+  useEffect(() => {
+    setLoading(true);
+    const params = new URLSearchParams();
+    if (cat) params.set("category", cat);
+    if (district) params.set("district", district);
+    if (q) params.set("q", q);
+    fetch(`/api/vendors?${params.toString()}`)
+      .then((r) => r.json())
+      .then(setData)
+      .catch(() => { })
+      .finally(() => setLoading(false));
+  }, [cat, district, q]);
+
+  const vendors: Vendor[] = data?.vendors || [];
+  const districts = useMemo(() => {
+    const set = new Set<string>();
+    vendors.forEach((v) => v.district && set.add(v.district));
+    return Array.from(set).slice(0, 14);
+  }, [vendors]);
+
+  const copy = (t: string, k: string) => {
+    navigator.clipboard?.writeText(t);
+    setCopied(k);
+    setTimeout(() => setCopied(""), 1500);
+  };
+
+  return (
+    <main className="min-h-screen bg-cream pb-20">
+      {/* HERO */}
+      <section className="maroon-gradient text-white">
+        <div className="max-w-7xl mx-auto px-4 py-9">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <h1 className="text-2xl md:text-3xl font-extrabold">
+                🏪 Wedding Vendors — <span className="text-gold">pelli ki kavalsina anni okate chota</span>
+              </h1>
+              <p className="text-[13px] opacity-90 mt-2 telugu max-w-3xl">
+                Catering • Photography • Decorations • Function Hall • Tent House • Pandit • Jewellery • Makeup •
+                Mehendi • DJ/Band • Invitations • Cars • Planners • Cake • Gifts • Honeymoon — 18 categories.
+                <br />
+                <b>Mee business kooda promote cheyyandi — ₹149 nunchi</b> (52 channels + WhatsApp lanes + leads direct mee WhatsApp ki).
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Link href="/vendors/register" className="rounded-full gold-gradient text-maroon px-4 py-2 text-xs font-bold">
+                🏪 Mee business ni add cheyyandi
+              </Link>
+              <a href="#packages" className="rounded-full bg-white/10 border border-white/25 px-4 py-2 text-xs font-bold">
+                Ad packages 💰
+              </a>
+            </div>
+          </div>
+          <div className="mt-4 flex flex-wrap gap-2 text-[11px]">
+            <span className="px-3 py-1 rounded-full bg-white/10">{cats.length || 18} categories</span>
+            <span className="px-3 py-1 rounded-full bg-white/10">{data?.total ?? "…"} vendors listed</span>
+            <span className="px-3 py-1 rounded-full bg-[#D4AF37] text-maroon font-bold">Verified badge + rating</span>
+            <span className="px-3 py-1 rounded-full bg-white/10">Enquiries direct mee WhatsApp ki</span>
+          </div>
+        </div>
+      </section>
+
+      <div className="max-w-7xl mx-auto px-4">
+        {/* FILTERS */}
+        <section className="mt-6 bg-white rounded-3xl border border-gold/30 card-shadow p-4">
+          <div className="flex flex-wrap gap-2">
+            <button onClick={() => setCat("")}
+              className={`px-3 py-1.5 rounded-full text-[12px] font-bold border ${!cat ? "maroon-gradient text-white border-transparent" : "border-maroon/20 text-maroon"}`}>
+              Anni ({data?.total ?? 0})
+            </button>
+            {cats.map((c) => (
+              <button key={c.key} onClick={() => setCat(cat === c.key ? "" : c.key)}
+                className={`px-3 py-1.5 rounded-full text-[12px] font-bold border ${cat === c.key ? "maroon-gradient text-white border-transparent" : "border-maroon/20 text-maroon"}`}>
+                {c.icon} {c.en}{c.count ? ` · ${c.count}` : ""}
+              </button>
+            ))}
+          </div>
+          <div className="mt-3 grid md:grid-cols-2 gap-3">
+            <input value={district} onChange={(e) => setDistrict(e.target.value)}
+              placeholder="District / city (udaharanam: Warangal, Hyderabad, Guntur)"
+              className="input-mobile" aria-label="District / city (udaharanam: Warangal, Hyderabad, Guntur)" />
+            <input value={q} onChange={(e) => setQ(e.target.value)}
+              placeholder="Search (business peru, service, keywords)"
+              className="input-mobile" aria-label="Search (business peru, service, keywords)" />
+          </div>
+          {districts.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {districts.map((d) => (
+                <button key={d} onClick={() => setDistrict(d)}
+                  className="px-2.5 py-1 rounded-full bg-maroon-soft text-maroon text-[11px] font-semibold">📍 {d}</button>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* DIRECTORY */}
+        <section className="mt-6">
+          <div className="flex items-center justify-between">
+            <h2 className="font-bold text-maroon text-lg">
+              {cat ? `${cats.find((c) => c.key === cat)?.icon || ""} ${cats.find((c) => c.key === cat)?.en || cat}` : "Anni vendors"} — {vendors.length}
+            </h2>
+            {loading && <span className="text-[11px] text-gray-500">⏳ load avutundi…</span>}
+          </div>
+
+          {!loading && vendors.length === 0 && (
+            <div className="mt-4 bg-white rounded-3xl border border-gold/30 p-6 text-center">
+              <div className="text-4xl">🔍</div>
+              <div className="mt-2 font-bold text-maroon">Ee filter ki vendors dorakaledu</div>
+              <div className="text-[12px] text-gray-600 mt-1 telugu">
+                Mee business ni modati ga add cheyyandi — mana team 2 గంటల్లో verify chesi listing live chestundi.
+              </div>
+              <Link href="/vendors/register" className="mt-3 inline-block gold-gradient text-maroon font-bold text-[12px] px-4 py-2.5 rounded-xl">
+                🏪 Free ga register cheyyandi
+              </Link>
+            </div>
+          )}
+
+          <div className="mt-3 grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {vendors.map((v) => (
+              <div key={v.id} className="bg-white rounded-3xl border border-gold/30 card-shadow overflow-hidden flex flex-col">
+                <div className="px-4 pt-4 flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-lg">{v.icon}</span>
+                      <h3 className="font-bold text-maroon text-[15px] truncate">{v.business_name}</h3>
+                    </div>
+                    <div className="text-[11px] text-gray-600 mt-0.5">{v.category_te || v.category}</div>
+                    <div className="text-[11px] text-gray-500 mt-0.5">📍 {v.city}{v.district && v.district !== v.city ? `, ${v.district}` : ""}</div>
+                  </div>
+                  <div className="text-right shrink-0">
+                    {v.verified && <div className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2 py-0.5">✅ Verified</div>}
+                    {v.package === "V_PREMIUM" && <div className="mt-1 text-[10px] font-bold text-maroon bg-gold/20 rounded-full px-2 py-0.5">👑 Premium</div>}
+                  </div>
+                </div>
+                {v.about && <div className="px-4 mt-2 text-[12px] text-gray-700 line-clamp-3">{v.about}</div>}
+                <div className="px-4 mt-2 flex flex-wrap gap-1.5 text-[11px]">
+                  {v.price_range && <span className="px-2 py-0.5 rounded-full bg-cream border border-gold/30 text-maroon font-semibold">💰 {v.price_range}</span>}
+                  {v.experience_years && <span className="px-2 py-0.5 rounded-full bg-cream border border-gold/30">⭐ {v.experience_years} yrs</span>}
+                </div>
+                <div className="mt-auto px-4 py-3 flex flex-wrap gap-2">
+                  {v.whatsapp_link && (
+                    <a href={v.whatsapp_link} target="_blank" rel="noreferrer"
+                      onClick={() => fetch(`/api/vendors/${v.id}/click?source=directory`, { method: "POST" }).catch(() => { })}
+                      className="flex-1 text-center bg-green-600 text-white font-bold text-[12px] px-3 py-2.5 rounded-xl">
+                      💬 WhatsApp
+                    </a>
+                  )}
+                  <Link href={`/vendors/${v.id}`} className="flex-1 text-center border border-maroon/25 text-maroon font-bold text-[12px] px-3 py-2.5 rounded-xl">
+                    Details / Enquiry
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* PACKAGES */}
+        <section id="packages" className="mt-10">
+          <h2 className="font-bold text-maroon text-xl">💰 Ad Packages — mee business ki publicity</h2>
+          <p className="text-[12px] text-gray-600 mt-1 telugu">
+            {pkgs?.headline || "Mee business ni Mana Vivaha lo promote cheyyandi — ₹149 nunchi"}
+          </p>
+          <div className="mt-4 grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {(pkgs?.packages || []).map((p: any) => (
+              <div key={p.code} className={`bg-white rounded-3xl border p-4 card-shadow ${p.popular ? "border-gold ring-2 ring-gold/40" : "border-gold/30"}`}>
+                {p.popular && <div className="text-[10px] font-bold gold-gradient text-maroon inline-block px-2 py-0.5 rounded-full mb-1">🔥 MOST POPULAR</div>}
+                <div className="font-bold text-maroon text-[15px]">{p.name}</div>
+                <div className="mt-1 text-2xl font-extrabold text-maroon">
+                  ₹{p.price} <span className="text-[12px] font-semibold text-gray-500">/ {p.days} days</span>
+                </div>
+                <div className="text-[12px] text-gray-700 mt-1">{p.telugu}</div>
+                <ul className="mt-2 space-y-1 text-[11px] text-gray-700">
+                  {(p.perks || []).map((x: string) => <li key={x}>✅ {x}</li>)}
+                </ul>
+                {p.best_for && <div className="mt-2 text-[11px] text-maroon bg-cream rounded-xl px-2 py-1">🎯 {p.best_for}</div>}
+                <Link href={`/vendors/register?package=${p.code}`}
+                  className="mt-3 block text-center maroon-gradient text-white font-bold text-[12px] px-4 py-2.5 rounded-xl">
+                  Ee package thisukondi
+                </Link>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-4 grid md:grid-cols-2 gap-4">
+            <div className="bg-white rounded-3xl border border-gold/30 p-4">
+              <div className="font-bold text-maroon">➕ Add-ons (package tho kalipi)</div>
+              <div className="mt-2 space-y-1 text-[12px]">
+                {(pkgs?.addons || []).map((a: any) => (
+                  <div key={a.code} className="flex items-center justify-between border-b border-gray-100 py-1.5">
+                    <span>{a.name}</span><b className="text-maroon">₹{a.price}</b>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-2 text-[11px] text-gray-500">Renewal ki {pkgs?.renewal_discount_pct || 15}% discount.</div>
+            </div>
+            <div className="bg-white rounded-3xl border border-gold/30 p-4">
+              <div className="font-bold text-maroon">🔄 Ela pani chestundi (5 steps)</div>
+              <ol className="mt-2 space-y-1 text-[12px] text-gray-700 list-decimal list-inside">
+                {(pkgs?.how_it_works_telugu || []).map((s: string) => <li key={s}>{s.replace(/^\d️⃣\s*/, "")}</li>)}
+              </ol>
+              <div className="mt-2 text-[11px] text-emerald-800 bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2">
+                📊 Impressions / clicks / enquiries anni mee dashboard lo live ga kanipistayi — edi pani chesindo telustundi.
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* WHY */}
+        <section className="mt-8 grid md:grid-cols-2 gap-4">
+          <div className="bg-white rounded-3xl border border-gold/30 p-5">
+            <h3 className="font-bold text-maroon">🎯 Enduku Mana Vivaha?</h3>
+            <ul className="mt-2 space-y-1 text-[12px] text-gray-700">
+              {(pkgs?.why_telugu || []).map((w: string) => <li key={w}>{w}</li>)}
+            </ul>
+          </div>
+          <div className="bg-navy text-white rounded-3xl p-5">
+            <h3 className="font-bold">📢 Mana channels lo mee promo ela velthundi</h3>
+            <ul className="mt-2 space-y-1 text-[12px] opacity-90">
+              <li>• Telegram: mee city/caste channel + 4 main channels (bride/groom TS/AP)</li>
+              <li>• WhatsApp: anti-ban safe order lo (random gaps, daily caps) — status + groups</li>
+              <li>• Website: home top banner, /vendors page lo top slot, matches sidebar</li>
+              <li>• Poster with QR — mee customers direct ga WhatsApp cheyyochu</li>
+            </ul>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Link href="/vendors/register" className="gold-gradient text-maroon font-bold text-[12px] px-4 py-2.5 rounded-xl">
+                🏪 Ippude join avvandi
+              </Link>
+              <button onClick={() => copy("https://manavivaha.in/vendors", "link")}
+                className="bg-white/10 border border-white/25 font-bold text-[12px] px-4 py-2.5 rounded-xl">
+                {copied === "link" ? "copied ✓" : "🔗 link copy"}
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <div className="mt-8 text-[11px] text-gray-500 text-center">
+          ⚠️ Vendor listings mana team verify chestundi (phone + business proof). Customers: advance money ivvakandi —
+          agreement + bill thisukondi. Problem unte report cheyyandi: manavivaha.in/safety
+        </div>
+      </div>
+    </main>
+  );
+}

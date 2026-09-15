@@ -1,822 +1,1138 @@
 "use client";
-import { useState, useEffect } from "react";
+
+/**
+ * MANA VIVAHA — SMART MOBILE REGISTER (v3)
+ * ========================================
+ * Phone lo 3 nimushalalo complete avvali — adi target. Ela:
+ *   • Chip pickers (type cheyyadam kanna tap cheyyadam easy) — caste, star, district, salary…
+ *   • DOB ichina age **automatic** ga vastundi (nuvvu age type cheyyakkarledu)
+ *   • Star pick chesthe **rasi automatic** ga suggest avutundi
+ *   • Auto-save draft (phone refresh/back ayina form poyedu) + "Continue" banner
+ *   • Bottom lo thumb-reachable big buttons (Next/Back) + sticky % progress
+ *   • Inline Telugu validation — "ee field kavali" ani chepthundi (English errors ledu)
+ *   • 📱 OTP verify (dev mode) → number verified badge
+ *   • 📸 Photo phone lo ne compress (1200px) → upload → fast on 2G/3G too
+ *   • 🎤 Voice input (about_myself) — supported browsers lo
+ */
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { CHANNEL_STATS } from "@/lib/channels";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import Reveal from "@/components/Reveal";
+import { SITE_CONFIG } from "@/lib/site-config";
+import { authHeaders } from "@/lib/api";
+import {
+  BLOOD_GROUPS, BODY_TYPES, CASTES, COMPLEXIONS, DISTRICTS_BY_STATE, EDUCATIONS, FAMILY_STATUSES,
+  FAMILY_TYPES, FAMILY_VALUES, HEIGHTS, JOBS, MARITAL_STATUSES, MOTHER_TONGUES, NAKSHATRAS, NAK_TO_RASI,
+  OCCUPATIONS, PHYSICAL_STATUS, RASIS, RELIGIONS, SALARIES, WEIGHTS, WORK_TYPES,
+  ageFromDob, compressImage, maxDobFor18,
+} from "@/lib/telugu-data";
 
-export default function RegisterPageAdvanced() {
-  const searchParams = useSearchParams();
-  const refFromUrl = searchParams.get('ref');
+const DRAFT_KEY = "tsap_reg_draft_v3";
+const STEPS = [
+  { n: 1, label: "Basic", icon: "🙋", hint: "Mee basic details — 30 seconds" },
+  { n: 2, label: "Community", icon: "💍", hint: "Caste + star details — card ki kavali" },
+  { n: 3, label: "Education", icon: "🎓", hint: "Chaduvu + udyogam" },
+  { n: 4, label: "Family", icon: "👨‍👩‍👧", hint: "Family + contact" },
+  { n: 5, label: "Photo", icon: "📸", hint: "Photo + finish (chi-vi details)" },
+];
 
-  const [step, setStep] = useState(1);
-  const [isReferralLocked, setIsReferralLocked] = useState(false);
-  const [referrerName, setReferrerName] = useState("");
-  const [errors, setErrors] = useState<string[]>([]);
-  const [generated, setGenerated] = useState<any>(null);
-  const [photoPreview, setPhotoPreview] = useState<string>("");
+const DEFAULT_FORM: Record<string, any> = {
+  gender: "", full_name: "", dob: "", birth_time: "", age: "", height: "", weight: "",
+  marital_status: "Pelli Kaledu", religion: "Hindu", mother_tongue: "Telugu",
+  caste: "", sub_caste: "", gothram: "", star: "", rasi: "", moola_nakshatram: "No", dosham: "No",
+  education: "", education_detail: "", college: "", job: "", company: "", salary: "",
+  experience: "", work_type: "", work_location: "",
+  father_name: "", father_occupation: "", mother_name: "", mother_occupation: "",
+  brothers: "0", brothers_married: "0", sisters: "0", sisters_married: "0",
+  family_type: "Nuclear", family_status: "Middle Class", family_values: "Traditional",
+  native_place: "", state: "TS", district: "", mandal: "", current_city: "", pincode: "",
+  phone: "", email: "", photo_private: true, about_myself: "",
+  expectations: "", exp_age_min: "", exp_age_max: "", exp_job: "", exp_location: "", exp_caste: "",
+  physical_status: "Normal", body_type: "Average", complexion: "Fair", blood_group: "",
+  referral_code: "", consent: false,
+};
 
-  // FULL ADVANCED FORM STATE - All matrimony typical fields
-  const [form, setForm] = useState({
-    // Step 1 - Personal Basic
-    fullName: "",
-    gender: "Bride",
-    dob: "",
-    dobCorrect: false,
-    birthTime: "",
-    age: "",
-    height: "5'4\"",
-    weight: "",
-    bloodGroup: "",
-    maritalStatus: "Pelli Kaledu",
-    physicalStatus: "Normal",
-    motherTongue: "Telugu",
-    bodyType: "Average",
-    complexion: "Fair",
-
-    // Step 2 - Family
-    fatherName: "",
-    fatherOccupation: "",
-    motherName: "",
-    motherOccupation: "",
-    familyType: "Nuclear",
-    familyValues: "Traditional",
-    familyStatus: "Middle Class",
-    brothers: "0",
-    brothersMarried: "0",
-    sisters: "0",
-    sistersMarried: "0",
-    nativePlace: "",
-    aboutFamily: "",
-
-    // Step 3 - Astro & Caste
-    caste: "Reddy",
-    subCaste: "",
-    gothram: "",
-    star: "",
-    rasi: "",
-    dosham: "No",
-    moolaNakshatram: "No",
-
-    // Step 4 - Education & Career
-    education: "BTech",
-    educationDetail: "",
-    college: "",
-    job: "Software",
-    company: "",
-    salary: "60k",
-    workLocation: "Hyderabad",
-    aboutMyself: "",
-
-    // Step 5 - Location & Contact & Expectations & Photos
-    state: "TS",
-    district: "Nalgonda",
-    mandal: "",
-    currentCity: "",
-    pincode: "",
-    phone: "",
-    email: "",
-    photoPrivate: false,
-    // Expectations Builder - Advanced Filters
-    expAgeMin: "21",
-    expAgeMax: "28",
-    expHeightMin: "5'0\"",
-    expHeightMax: "5'10\"",
-    expCaste: [] as string[],
-    expEducation: "Any",
-    expJob: "Any",
-    expLocation: "Any",
-    expSalary: "Any",
-    referral: "",
-  });
-
-  useEffect(() => {
-    if (refFromUrl) {
-      setForm(prev => ({ ...prev, referral: refFromUrl }));
-      setIsReferralLocked(true);
-      const referrers = JSON.parse(localStorage.getItem("tsap_referrers") || "[]");
-      const found = referrers.find((r: any) => r.code === refFromUrl);
-      if (found) setReferrerName(found.name);
-      else {
-        if (refFromUrl.length <= 6) setReferrerName(refFromUrl);
-        else setReferrerName(refFromUrl);
-      }
-      localStorage.setItem("tsap_ref_from_link", refFromUrl);
-    }
-  }, [refFromUrl]);
-
-  // Auto-calc age from DOB
-  useEffect(() => {
-    if (form.dob) {
-      const dob = new Date(form.dob);
-      const now = new Date();
-      let age = now.getFullYear() - dob.getFullYear();
-      const m = now.getMonth() - dob.getMonth();
-      if (m < 0 || (m === 0 && now.getDate() < dob.getDate())) age--;
-      if (age >= 18) setForm(prev => ({ ...prev, age: age.toString() }));
-    }
-  }, [form.dob]);
-
-  const districtsTS = ["Adilabad", "Bhadradri", "Hanumakonda", "Hyderabad", "Jagtial", "Jangaon", "Jayashankar", "Jogulamba", "Kamareddy", "Karimnagar", "Khammam", "Kumuram Bheem", "Mahabubabad", "Mahabubnagar", "Mancherial", "Medak", "Medchal", "Mulugu", "Nagarkurnool", "Nalgonda", "Narayanpet", "Nirmal", "Nizamabad", "Peddapalli", "Rajanna Sircilla", "Rangareddy", "Sangareddy", "Siddipet", "Suryapet", "Vikarabad", "Wanaparthy", "Warangal", "Yadadri"];
-  const districtsAP = ["Alluri", "Anakapalli", "Ananthapur", "Annamayya", "Bapatla", "Chittoor", "East Godavari", "Eluru", "Guntur", "YSR Kadapa", "Kakinada", "Konaseema", "Krishna", "Kurnool", "Nandyal", "Nellore", "NTR", "Palnadu", "Parvathipuram", "Prakasam", "Srikakulam", "Sri Sathya Sai", "Tirupati", "Visakhapatnam", "Vizianagaram", "West Godavari"];
-  const castes = ["Reddy", "Kamma", "Kapu", "Velama", "Vysya", "Brahmin", "Goud", "Yadav", "Mudiraj", "Padmashali", "Raju", "SC-Mala", "SC-Madiga", "ST-Lambadi", "Muslim", "Christian", "Open"];
-  const educations = ["10th", "Inter", "Degree", "BTech", "MTech", "MBBS", "BDS", "MBA", "MCA", "PhD", "CA", "IAS", "LLB", "BEd", "Others"];
-  const jobs = ["Govt Job", "Private Job", "Software", "Business", "Agriculture", "Abroad-NRI", "No Job", "Doctor", "Engineer", "Teacher", "Police", "Bank", "Army"];
-
-  // VALIDATION PER STEP - mandatory logic
-  const validateStep = (s: number): boolean => {
-    const errs: string[] = [];
-    if (s === 1) {
-      if (!form.fullName.trim() || form.fullName.length < 3) errs.push("Full Name mandatory - min 3 letters");
-      if (!form.dob) errs.push("DOB mandatory - date select cheyyi");
-      if (!form.dobCorrect) errs.push("DOB correct tick mandatory - 'Na DOB correctena' tick cheyyi");
-      if (!form.age || parseInt(form.age) < 18) errs.push("Age mandatory - 18+");
-      if (!form.height) errs.push("Height mandatory");
-      if (!form.maritalStatus) errs.push("Marital Status mandatory");
-      if (!form.physicalStatus) errs.push("Physical Status mandatory");
-    }
-    if (s === 2) {
-      if (!form.fatherName.trim()) errs.push("Father Name mandatory - matrimony lo must");
-      if (!form.motherName.trim()) errs.push("Mother Name mandatory");
-      if (!form.nativePlace.trim()) errs.push("Native Place mandatory");
-    }
-    if (s === 3) {
-      if (!form.caste) errs.push("Caste mandatory");
-      if (!form.gothram.trim()) errs.push("Gothram mandatory - Telugu matrimony lo must");
-      // star, rasi optional - advanced but not mandatory
-    }
-    if (s === 4) {
-      if (!form.education) errs.push("Education mandatory");
-      if (!form.educationDetail.trim()) errs.push("Education Detail mandatory - e.g. BTech CSE");
-      if (!form.job) errs.push("Job mandatory");
-      if (!form.salary) errs.push("Salary mandatory");
-      if (!form.workLocation.trim()) errs.push("Work Location mandatory");
-      if (!form.aboutMyself.trim() || form.aboutMyself.length < 50) errs.push("About Myself mandatory - min 50 letters - ne gurinchi rayi");
-    }
-    if (s === 5) {
-      if (!form.state) errs.push("State mandatory");
-      if (!form.district) errs.push("District mandatory");
-      if (!form.mandal.trim()) errs.push("Mandal/Town mandatory - deep filter ki");
-      if (!form.phone.trim() || form.phone.length < 10) errs.push("Phone mandatory - 10 digits");
-      if (!photoPreview) errs.push("Photo 1 mandatory - face clear photo");
-      // email optional
-    }
-    setErrors(errs);
-    return errs.length === 0;
-  };
-
-  const nextStep = (s: number) => {
-    if (validateStep(s)) {
-      setErrors([]);
-      setStep(s + 1);
-      window.scrollTo(0, 0);
-    }
-  };
-
-  const handleGenerate = async () => {
-    if (!validateStep(5)) return;
-    const id = `TSAP-${form.gender === 'Bride' ? 'F' : 'M'}-2025-${Math.floor(1000 + Math.random() * 9000)}`;
-    const card = {
-      id,
-      ...form,
-      credits: 3,
-      score: 92,
-      photoUrl: photoPreview,
-      reasons: [
-        `Nuvvu ${form.district} + ${form.workLocation} kavali annavu → ee profile kooda ${form.district} lone`,
-        `Nuvvu ${form.job} + ${form.education} kavali annavu → profile kooda ${form.job} ${form.education}`,
-        `Caste ${form.caste} Gothram ${form.gothram} + Age ${form.age} gap perfect — 92% set!`,
-        `Family ${form.familyType} + ${form.familyStatus} + Father ${form.fatherOccupation} — matching`,
-      ],
-      expectationMatch: `Expectation: Age ${form.expAgeMin}-${form.expAgeMax}, Height ${form.expHeightMin}-${form.expHeightMax}, Caste ${form.expCaste.length ? form.expCaste.join(",") : form.caste}, Job ${form.expJob}, Location ${form.expLocation}`,
-    };
-    setGenerated(card);
-    const existing = JSON.parse(localStorage.getItem("tsap_profiles") || "[]");
-    existing.push(card);
-    localStorage.setItem("tsap_profiles", JSON.stringify(existing));
-    localStorage.setItem("tsap_last_id", id);
-    setStep(6);
-
-    // Try backend API also
-    try {
-      const fd = new FormData();
-      fd.append("gender", form.gender);
-      fd.append("age", form.age);
-      fd.append("height", form.height);
-      fd.append("marital_status", form.maritalStatus);
-      fd.append("caste", form.caste);
-      fd.append("sub_caste", form.subCaste);
-      fd.append("gothram", form.gothram);
-      fd.append("star", form.star);
-      fd.append("education", form.education);
-      fd.append("job", form.job);
-      fd.append("salary", form.salary);
-      fd.append("state", form.state);
-      fd.append("district", form.district);
-      fd.append("mandal", form.mandal);
-      fd.append("phone", form.phone);
-      fd.append("referral_code", form.referral);
-      fd.append("photo_private", String(form.photoPrivate));
-      fd.append("expectations", JSON.stringify({ ageMin: form.expAgeMin, ageMax: form.expAgeMax, caste: form.expCaste, job: form.expJob }));
-      // @ts-ignore - backend URL
-      fetch("http://localhost:8000/api/register", { method: "POST", body: fd }).then(r => r.json()).then(d => console.log("Backend:", d)).catch(() => { });
-    } catch { }
-  };
-
-  const toggleExpCaste = (c: string) => {
-    setForm(prev => {
-      const arr = prev.expCaste.includes(c) ? prev.expCaste.filter(x => x !== c) : [...prev.expCaste, c];
-      return { ...prev, expCaste: arr };
-    });
-  };
-
+/* ---------------------------------------------------------------- UI atoms */
+function Chip({ on, gold, children, onClick }: { on?: boolean; gold?: boolean; children: React.ReactNode; onClick: () => void }) {
   return (
-    <div className="min-h-screen bg-[#FFF8E7] p-4">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex items-center justify-between mb-4">
-          <Link href="/" className="text-sm text-[#7A0C2E] font-bold">← Home</Link>
-          <div className="text-sm font-bold text-[#7A0C2E]">TSAP Matrimony • Advanced Register • 5 Steps</div>
-          <Link href="/search/TSAP-M-2025-1042" className="text-xs border px-3 py-1 rounded-full">🔍 Search by Code</Link>
-        </div>
+    <button type="button" onClick={onClick} className={`chip ${on ? (gold ? "chip-on-gold" : "chip-on") : ""}`}>
+      {children}
+    </button>
+  );
+}
 
-        {/* Progress - 5 Steps */}
-        <div className="bg-white rounded-full p-2 flex gap-1 mb-4 card-shadow overflow-x-auto">
-          {[
-            { n: 1, label: "Personal" },
-            { n: 2, label: "Family" },
-            { n: 3, label: "Caste/Astro" },
-            { n: 4, label: "Edu/Job" },
-            { n: 5, label: "Location/Photo" },
-          ].map(s => (
-            <div key={s.n} className={`flex-1 min-w-[70px] py-2 rounded-full text-center text-[11px] font-bold ${step >= s.n ? 'maroon-gradient text-white' : 'bg-gray-100 text-gray-400'}`}>
-              {s.n}. {s.label} {step > s.n ? '✅' : ''}
-            </div>
-          ))}
-        </div>
-
-        {errors.length > 0 && (
-          <div className="bg-red-50 border border-red-200 rounded-xl p-3 mb-4">
-            <div className="font-bold text-red-700 text-sm">⚠️ Mandatory fields fill cheyyi - next ki velladu:</div>
-            <div className="mt-1 text-xs text-red-600 space-y-1">
-              {errors.map((e, i) => <div key={i}>• {e}</div>)}
-            </div>
-          </div>
-        )}
-
-        {/* STEP 1 - Personal */}
-        {step === 1 && (
-          <div className="bg-white rounded-[1.5rem] p-6 card-shadow">
-            <h2 className="font-bold text-[#7A0C2E] text-lg">Step 1 — Personal Details 👤 <span className="text-red-500 text-xs">* mandatory = next ki velladu</span></h2>
-            <p className="text-xs text-gray-500 telugu">Full Name, DOB correct tick, Time, Height - matrimony site lo anni mandatory fields</p>
-            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="md:col-span-2">
-                <label className="text-xs font-bold">Full Name <span className="text-red-500">*</span></label>
-                <input value={form.fullName} onChange={e => setForm({ ...form, fullName: e.target.value })} placeholder="e.g. Lakshmi Reddy" className="w-full mt-1 p-3 rounded-xl bg-gray-50 border text-sm" />
-                <div className="text-[10px] text-gray-400">Real name - profile card lo vasthundi</div>
-              </div>
-              <div>
-                <label className="text-xs font-bold">Bride / Groom <span className="text-red-500">*</span></label>
-                <div className="flex gap-2 mt-1">
-                  {["Bride", "Groom"].map(g => (
-                    <button key={g} onClick={() => setForm({ ...form, gender: g })} className={`flex-1 py-3 rounded-xl text-sm font-bold border ${form.gender === g ? 'maroon-gradient text-white' : 'bg-gray-50'}`}>{g === 'Bride' ? '👰 Bride' : '🤵 Groom'}</button>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <label className="text-xs font-bold">Date of Birth <span className="text-red-500">*</span></label>
-                <input type="date" value={form.dob} onChange={e => setForm({ ...form, dob: e.target.value })} className="w-full mt-1 p-3 rounded-xl bg-gray-50 border text-sm" />
-              </div>
-              <div className="md:col-span-2 bg-[#FFF8E7] border border-[#D4AF37]/30 rounded-xl p-3">
-                <div className="flex items-start gap-2">
-                  <input type="checkbox" checked={form.dobCorrect} onChange={e => setForm({ ...form, dobCorrect: e.target.checked })} className="mt-1 w-5 h-5" />
-                  <div>
-                    <label className="text-xs font-bold">✅ Na DOB correctena? Tick petti confirm cheyyi <span className="text-red-500">*</span></label>
-                    <div className="text-[11px] text-gray-600 mt-1">• Correct ayithe ✅ tick - admin verified badge vasthundi<br />• Correct kaakapothe ❌ vaddu - approximate ayithe admin ki cheppu - astrology matching lo use</div>
-                    {form.dobCorrect && <div className="text-[11px] text-green-600 font-bold mt-1">✅ Confirmed - Me DOB 100% correct ani record ayyindi - verified badge!</div>}
-                  </div>
-                </div>
-              </div>
-              <div>
-                <label className="text-xs font-bold">Birth Time (optional - astrology ki)</label>
-                <input type="time" value={form.birthTime} onChange={e => setForm({ ...form, birthTime: e.target.value })} className="w-full mt-1 p-3 rounded-xl bg-gray-50 border text-sm" />
-                <div className="text-[10px] text-gray-400">e.g. 10:30 AM - horoscope matching ki</div>
-              </div>
-              <div>
-                <label className="text-xs font-bold">Age (auto from DOB) <span className="text-red-500">*</span></label>
-                <select value={form.age} onChange={e => setForm({ ...form, age: e.target.value })} className="w-full mt-1 p-3 rounded-xl bg-gray-50 border text-sm">
-                  {Array.from({ length: 45 }, (_, i) => 18 + i).map(a => <option key={a} value={a}>{a} years</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="text-xs font-bold">Height <span className="text-red-500">*</span></label>
-                <select value={form.height} onChange={e => setForm({ ...form, height: e.target.value })} className="w-full mt-1 p-3 rounded-xl bg-gray-50 border text-sm">
-                  {["4'5\"", "4'8\"", "5'0\"", "5'2\"", "5'4\"", "5'6\"", "5'8\"", "5'10\"", "6'0\"", "6'2\""].map(h => <option key={h} value={h}>{h}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="text-xs font-bold">Weight (optional)</label>
-                <input value={form.weight} onChange={e => setForm({ ...form, weight: e.target.value })} placeholder="e.g. 55kg" className="w-full mt-1 p-3 rounded-xl bg-gray-50 border text-sm" />
-              </div>
-              <div>
-                <label className="text-xs font-bold">Marital Status <span className="text-red-500">*</span></label>
-                <select value={form.maritalStatus} onChange={e => setForm({ ...form, maritalStatus: e.target.value })} className="w-full mt-1 p-3 rounded-xl bg-gray-50 border text-sm">
-                  <option>Pelli Kaledu</option>
-                  <option>Vidakuulu (Divorced)</option>
-                  <option>Widow/Widower</option>
-                  <option>Handicapped — Special</option>
-                </select>
-              </div>
-              <div>
-                <label className="text-xs font-bold">Physical Status <span className="text-red-500">*</span></label>
-                <select value={form.physicalStatus} onChange={e => setForm({ ...form, physicalStatus: e.target.value })} className="w-full mt-1 p-3 rounded-xl bg-gray-50 border text-sm">
-                  <option>Normal</option>
-                  <option>Physically Challenged</option>
-                </select>
-              </div>
-              <div>
-                <label className="text-xs font-bold">Mother Tongue</label>
-                <select value={form.motherTongue} onChange={e => setForm({ ...form, motherTongue: e.target.value })} className="w-full mt-1 p-3 rounded-xl bg-gray-50 border text-sm">
-                  <option>Telugu</option><option>Hindi</option><option>English</option><option>Tamil</option><option>Kannada</option>
-                </select>
-              </div>
-              <div>
-                <label className="text-xs font-bold">Body Type</label>
-                <select value={form.bodyType} onChange={e => setForm({ ...form, bodyType: e.target.value })} className="w-full mt-1 p-3 rounded-xl bg-gray-50 border text-sm">
-                  <option>Slim</option><option>Average</option><option>Athletic</option><option>Heavy</option>
-                </select>
-              </div>
-            </div>
-            <button onClick={() => nextStep(1)} className="w-full mt-6 py-3 maroon-gradient text-white rounded-full font-bold">Next — Family Details →</button>
-            <div className="mt-2 text-[10px] text-center text-gray-400">Mandatory fields fill cheyakapothe next button work avvadu — validation active ✅</div>
-          </div>
-        )}
-
-        {/* STEP 2 - Family */}
-        {step === 2 && (
-          <div className="bg-white rounded-[1.5rem] p-6 card-shadow">
-            <h2 className="font-bold text-[#7A0C2E] text-lg">Step 2 — Family Details 👨‍👩‍👧 <span className="text-red-500 text-xs">* mandatory</span></h2>
-            <p className="text-xs text-gray-500">Father Name, Mother Name - matrimony lo chala important - family background</p>
-            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="text-xs font-bold">Father Name <span className="text-red-500">*</span></label>
-                <input value={form.fatherName} onChange={e => setForm({ ...form, fatherName: e.target.value })} placeholder="e.g. Ramesh Reddy" className="w-full mt-1 p-3 rounded-xl bg-gray-50 border text-sm" />
-              </div>
-              <div>
-                <label className="text-xs font-bold">Father Occupation</label>
-                <input value={form.fatherOccupation} onChange={e => setForm({ ...form, fatherOccupation: e.target.value })} placeholder="e.g. Farmer, Govt Job, Business" className="w-full mt-1 p-3 rounded-xl bg-gray-50 border text-sm" />
-              </div>
-              <div>
-                <label className="text-xs font-bold">Mother Name <span className="text-red-500">*</span></label>
-                <input value={form.motherName} onChange={e => setForm({ ...form, motherName: e.target.value })} placeholder="e.g. Sita Reddy" className="w-full mt-1 p-3 rounded-xl bg-gray-50 border text-sm" />
-              </div>
-              <div>
-                <label className="text-xs font-bold">Mother Occupation</label>
-                <input value={form.motherOccupation} onChange={e => setForm({ ...form, motherOccupation: e.target.value })} placeholder="e.g. Housewife, Teacher" className="w-full mt-1 p-3 rounded-xl bg-gray-50 border text-sm" />
-              </div>
-              <div>
-                <label className="text-xs font-bold">Family Type</label>
-                <select value={form.familyType} onChange={e => setForm({ ...form, familyType: e.target.value })} className="w-full mt-1 p-3 rounded-xl bg-gray-50 border text-sm">
-                  <option>Joint</option><option>Nuclear</option>
-                </select>
-              </div>
-              <div>
-                <label className="text-xs font-bold">Family Values</label>
-                <select value={form.familyValues} onChange={e => setForm({ ...form, familyValues: e.target.value })} className="w-full mt-1 p-3 rounded-xl bg-gray-50 border text-sm">
-                  <option>Traditional</option><option>Moderate</option><option>Liberal</option><option>Orthodox</option>
-                </select>
-              </div>
-              <div>
-                <label className="text-xs font-bold">Family Status</label>
-                <select value={form.familyStatus} onChange={e => setForm({ ...form, familyStatus: e.target.value })} className="w-full mt-1 p-3 rounded-xl bg-gray-50 border text-sm">
-                  <option>Middle Class</option><option>Upper Middle Class</option><option>Rich</option><option>Affluent</option>
-                </select>
-              </div>
-              <div>
-                <label className="text-xs font-bold">Native Place <span className="text-red-500">*</span></label>
-                <input value={form.nativePlace} onChange={e => setForm({ ...form, nativePlace: e.target.value })} placeholder="e.g. Nalgonda village" className="w-full mt-1 p-3 rounded-xl bg-gray-50 border text-sm" />
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="text-xs font-bold">Brothers</label>
-                  <select value={form.brothers} onChange={e => setForm({ ...form, brothers: e.target.value })} className="w-full mt-1 p-3 rounded-xl bg-gray-50 border text-sm">
-                    {["0", "1", "2", "3", "4+"].map(n => <option key={n} value={n}>{n}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="text-xs font-bold">Brothers Married</label>
-                  <select value={form.brothersMarried} onChange={e => setForm({ ...form, brothersMarried: e.target.value })} className="w-full mt-1 p-3 rounded-xl bg-gray-50 border text-sm">
-                    {["0", "1", "2", "3"].map(n => <option key={n} value={n}>{n}</option>)}
-                  </select>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="text-xs font-bold">Sisters</label>
-                  <select value={form.sisters} onChange={e => setForm({ ...form, sisters: e.target.value })} className="w-full mt-1 p-3 rounded-xl bg-gray-50 border text-sm">
-                    {["0", "1", "2", "3", "4+"].map(n => <option key={n} value={n}>{n}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="text-xs font-bold">Sisters Married</label>
-                  <select value={form.sistersMarried} onChange={e => setForm({ ...form, sistersMarried: e.target.value })} className="w-full mt-1 p-3 rounded-xl bg-gray-50 border text-sm">
-                    {["0", "1", "2", "3"].map(n => <option key={n} value={n}>{n}</option>)}
-                  </select>
-                </div>
-              </div>
-              <div className="md:col-span-2">
-                <label className="text-xs font-bold">About Family (optional but best)</label>
-                <textarea value={form.aboutFamily} onChange={e => setForm({ ...form, aboutFamily: e.target.value })} placeholder="e.g. Manadi middle class traditional family, father farmer, mother housewife, close-knit..." className="w-full mt-1 p-3 rounded-xl bg-gray-50 border text-sm" rows={3}></textarea>
-              </div>
-            </div>
-            <div className="flex gap-3 mt-6">
-              <button onClick={() => setStep(1)} className="flex-1 py-3 border rounded-full font-bold text-sm">← Back</button>
-              <button onClick={() => nextStep(2)} className="flex-1 py-3 maroon-gradient text-white rounded-full font-bold">Next — Caste/Astro →</button>
-            </div>
-          </div>
-        )}
-
-        {/* STEP 3 - Caste Astro */}
-        {step === 3 && (
-          <div className="bg-white rounded-[1.5rem] p-6 card-shadow">
-            <h2 className="font-bold text-[#7A0C2E] text-lg">Step 3 — Caste, Gothram, Nakshatram 🌟 <span className="text-red-500 text-xs">* mandatory</span></h2>
-            <p className="text-xs text-gray-500">Gothram mandatory - Star/Rasi/Dosham optional - advanced horoscope ki</p>
-            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="text-xs font-bold">Caste <span className="text-red-500">*</span></label>
-                <select value={form.caste} onChange={e => setForm({ ...form, caste: e.target.value })} className="w-full mt-1 p-3 rounded-xl bg-gray-50 border text-sm">
-                  {castes.map(c => <option key={c} value={c}>{c}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="text-xs font-bold">Sub-Caste (optional)</label>
-                <input value={form.subCaste} onChange={e => setForm({ ...form, subCaste: e.target.value })} placeholder="e.g. Pakanati, Motati" className="w-full mt-1 p-3 rounded-xl bg-gray-50 border text-sm" />
-              </div>
-              <div>
-                <label className="text-xs font-bold">Gothram <span className="text-red-500">*</span></label>
-                <input value={form.gothram} onChange={e => setForm({ ...form, gothram: e.target.value })} placeholder="e.g. Bharadwaj, Kaundinya, Kasyapa" className="w-full mt-1 p-3 rounded-xl bg-gray-50 border text-sm" />
-                <div className="text-[10px] text-gray-400">Telugu matrimony lo must - same gothram avoid</div>
-              </div>
-              <div>
-                <label className="text-xs font-bold">Nakshatram / Star (optional) ⭐</label>
-                <input value={form.star} onChange={e => setForm({ ...form, star: e.target.value })} placeholder="e.g. Rohini, Bharani, Ashwini" className="w-full mt-1 p-3 rounded-xl bg-gray-50 border text-sm" />
-                <div className="text-[10px] text-green-600">Optional - unte jathakam matching easy - 10% extra score</div>
-              </div>
-              <div>
-                <label className="text-xs font-bold">Rasi (optional)</label>
-                <select value={form.rasi} onChange={e => setForm({ ...form, rasi: e.target.value })} className="w-full mt-1 p-3 rounded-xl bg-gray-50 border text-sm">
-                  <option value="">Select Rasi (optional)</option>
-                  <option>Mesha</option><option>Vrushabha</option><option>Mithuna</option><option>Karkataka</option><option>Simha</option><option>Kanya</option><option>Tula</option><option>Vruschika</option><option>Dhanu</option><option>Makara</option><option>Kumbha</option><option>Meena</option>
-                </select>
-              </div>
-              <div>
-                <label className="text-xs font-bold">Dosham (optional)</label>
-                <select value={form.dosham} onChange={e => setForm({ ...form, dosham: e.target.value })} className="w-full mt-1 p-3 rounded-xl bg-gray-50 border text-sm">
-                  <option>No</option><option>Yes - Kuja Dosham</option><option>Yes - Nadi Dosham</option><option>Don't Know</option>
-                </select>
-              </div>
-              <div className="md:col-span-2 bg-blue-50 border border-blue-200 rounded-xl p-3 text-xs">
-                <div className="font-bold text-blue-700">🌟 Horoscope Advanced Logic:</div>
-                <div className="mt-1 text-gray-600">• Gothram mandatory - same gothram unte match score tagguthundi (0%)<br />• Star/Rasi optional - unte 92% nundi 95% ki boost - jathakam perfect<br />• DOB Time unte - exact lagna matching - premium feature<br />• Dosham Yes ayithe - dosham unna profiles tho ne match - filter auto</div>
-              </div>
-            </div>
-            <div className="flex gap-3 mt-6">
-              <button onClick={() => setStep(2)} className="flex-1 py-3 border rounded-full font-bold text-sm">← Back</button>
-              <button onClick={() => nextStep(3)} className="flex-1 py-3 maroon-gradient text-white rounded-full font-bold">Next — Education/Job →</button>
-            </div>
-          </div>
-        )}
-
-        {/* STEP 4 - Education Job */}
-        {step === 4 && (
-          <div className="bg-white rounded-[1.5rem] p-6 card-shadow">
-            <h2 className="font-bold text-[#7A0C2E] text-lg">Step 4 — Education, Job, Salary 🎓💼 <span className="text-red-500 text-xs">* mandatory</span></h2>
-            <p className="text-xs text-gray-500">Qualification, Job, Salary - filters ki chala important</p>
-            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="text-xs font-bold">Qualification <span className="text-red-500">*</span></label>
-                <select value={form.education} onChange={e => setForm({ ...form, education: e.target.value })} className="w-full mt-1 p-3 rounded-xl bg-gray-50 border text-sm">
-                  {educations.map(ed => <option key={ed} value={ed}>{ed}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="text-xs font-bold">Education Detail <span className="text-red-500">*</span></label>
-                <input value={form.educationDetail} onChange={e => setForm({ ...form, educationDetail: e.target.value })} placeholder="e.g. BTech CSE, MBBS General, MBA Finance" className="w-full mt-1 p-3 rounded-xl bg-gray-50 border text-sm" />
-              </div>
-              <div>
-                <label className="text-xs font-bold">College / University (optional)</label>
-                <input value={form.college} onChange={e => setForm({ ...form, college: e.target.value })} placeholder="e.g. JNTU Hyderabad" className="w-full mt-1 p-3 rounded-xl bg-gray-50 border text-sm" />
-              </div>
-              <div>
-                <label className="text-xs font-bold">Job Type <span className="text-red-500">*</span></label>
-                <select value={form.job} onChange={e => setForm({ ...form, job: e.target.value })} className="w-full mt-1 p-3 rounded-xl bg-gray-50 border text-sm">
-                  {jobs.map(j => <option key={j} value={j}>{j}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="text-xs font-bold">Company Name (optional)</label>
-                <input value={form.company} onChange={e => setForm({ ...form, company: e.target.value })} placeholder="e.g. TCS, Infosys, Govt School" className="w-full mt-1 p-3 rounded-xl bg-gray-50 border text-sm" />
-              </div>
-              <div>
-                <label className="text-xs font-bold">Salary / Income <span className="text-red-500">*</span></label>
-                <select value={form.salary} onChange={e => setForm({ ...form, salary: e.target.value })} className="w-full mt-1 p-3 rounded-xl bg-gray-50 border text-sm">
-                  <option>10k-20k</option><option>20k-40k</option><option>40k-60k</option><option>60k-1L</option><option>1L-2L</option><option>2L+</option><option>Not Disclosed</option>
-                </select>
-              </div>
-              <div>
-                <label className="text-xs font-bold">Work Location <span className="text-red-500">*</span></label>
-                <input value={form.workLocation} onChange={e => setForm({ ...form, workLocation: e.target.value })} placeholder="e.g. Hyderabad Gachibowli, USA, Bangalore" className="w-full mt-1 p-3 rounded-xl bg-gray-50 border text-sm" />
-              </div>
-              <div className="md:col-span-2">
-                <label className="text-xs font-bold">About Myself <span className="text-red-500">*</span> (min 50 letters)</label>
-                <textarea value={form.aboutMyself} onChange={e => setForm({ ...form, aboutMyself: e.target.value })} placeholder="e.g. Nenu software engineer, simple family, traditional values, looking for understanding partner, non-smoker, teetotaler, respect elders..." className="w-full mt-1 p-3 rounded-xl bg-gray-50 border text-sm" rows={4}></textarea>
-                <div className="text-[10px] text-gray-400 mt-1">{form.aboutMyself.length}/50 min - {form.aboutMyself.length >= 50 ? '✅ OK' : '❌ Too short'}</div>
-              </div>
-            </div>
-            <div className="flex gap-3 mt-6">
-              <button onClick={() => setStep(3)} className="flex-1 py-3 border rounded-full font-bold text-sm">← Back</button>
-              <button onClick={() => nextStep(4)} className="flex-1 py-3 maroon-gradient text-white rounded-full font-bold">Next — Location/Photo →</button>
-            </div>
-          </div>
-        )}
-
-        {/* STEP 5 - Location Contact Expectations Photo */}
-        {step === 5 && (
-          <div className="bg-white rounded-[1.5rem] p-6 card-shadow">
-            <h2 className="font-bold text-[#7A0C2E] text-lg">Step 5 — Location, Photo, Expectations, Contact 📍📸 <span className="text-red-500 text-xs">* mandatory</span></h2>
-            <p className="text-xs text-gray-500">Mandal mandatory deep filter ki - Photo mandatory - Expectations builder advanced</p>
-            <div className="mt-4 space-y-5">
-              {/* Location */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs font-bold">State <span className="text-red-500">*</span></label>
-                  <select value={form.state} onChange={e => setForm({ ...form, state: e.target.value })} className="w-full mt-1 p-3 rounded-xl bg-gray-50 border text-sm">
-                    <option value="TS">Telangana</option>
-                    <option value="AP">Andhra Pradesh</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="text-xs font-bold">District <span className="text-red-500">*</span></label>
-                  <select value={form.district} onChange={e => setForm({ ...form, district: e.target.value })} className="w-full mt-1 p-3 rounded-xl bg-gray-50 border text-sm">
-                    {(form.state === "TS" ? districtsTS : districtsAP).map(d => <option key={d} value={d}>{d}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="text-xs font-bold">Mandal / Town <span className="text-red-500">*</span> (deep filter)</label>
-                  <input value={form.mandal} onChange={e => setForm({ ...form, mandal: e.target.value })} placeholder="e.g. Gachibowli, Kukatpally, Miyapur" className="w-full mt-1 p-3 rounded-xl bg-gray-50 border text-sm" />
-                  <div className="text-[10px] text-gray-400">Example: Software jobs Hyderabad 45+ Reddy filter ki mandatory</div>
-                </div>
-                <div>
-                  <label className="text-xs font-bold">Current City</label>
-                  <input value={form.currentCity} onChange={e => setForm({ ...form, currentCity: e.target.value })} placeholder="e.g. Hyderabad" className="w-full mt-1 p-3 rounded-xl bg-gray-50 border text-sm" />
-                </div>
-                <div>
-                  <label className="text-xs font-bold">Pincode (optional)</label>
-                  <input value={form.pincode} onChange={e => setForm({ ...form, pincode: e.target.value })} placeholder="500032" className="w-full mt-1 p-3 rounded-xl bg-gray-50 border text-sm" />
-                </div>
-              </div>
-
-              {/* Photo */}
-              <div>
-                <label className="text-xs font-bold">Photos 1-3 (Face clear) <span className="text-red-500">* Photo 1 mandatory</span></label>
-                <div className="mt-1 border-2 border-dashed border-[#D4AF37]/50 rounded-xl p-6 text-center bg-[#FFF8E7]">
-                  <div className="text-3xl">📸</div>
-                  <div className="text-xs mt-2 font-bold">Click to upload - Photo 1 mandatory</div>
-                  <div className="mt-3 flex justify-center gap-3">
-                    <label className="px-4 py-2 bg-white border rounded-full text-xs font-bold cursor-pointer">
-                      📷 Upload Photo
-                      <input type="file" accept="image/*" className="hidden" onChange={e => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          const url = URL.createObjectURL(file);
-                          setPhotoPreview(url);
-                        }
-                      }} />
-                    </label>
-                    <button onClick={() => setPhotoPreview("https://i.pravatar.cc/300?img=" + Math.floor(Math.random() * 70))} className="px-4 py-2 gold-gradient rounded-full text-xs font-bold text-[#7A0C2E]">🎲 Demo Photo</button>
-                  </div>
-                  {photoPreview && (
-                    <div className="mt-4">
-                      <img src={photoPreview} alt="preview" className="w-32 h-32 mx-auto rounded-xl object-cover border-2 border-[#D4AF37]" />
-                      <div className="text-[10px] text-green-600 mt-1">✅ Photo uploaded - AI blur check pass - Verified badge ready</div>
-                    </div>
-                  )}
-                  <div className="text-[10px] text-gray-400 mt-2">AI blur check + selfie verify → Verified badge • Private mode lo only paid ki clear</div>
-                </div>
-                <div className="mt-2 flex items-center gap-2">
-                  <input type="checkbox" checked={form.photoPrivate} onChange={e => setForm({ ...form, photoPrivate: e.target.checked })} />
-                  <label className="text-xs">Photo Private Mode? (only paid members ki chupinchu - ammayila ki safe - mandatory kadu)</label>
-                </div>
-              </div>
-
-              {/* Expectations Builder - Advanced Filters */}
-              <div className="bg-[#FFF8E7] rounded-xl p-4 border border-[#D4AF37]/30">
-                <h3 className="font-bold text-[#7A0C2E] text-sm">🎯 Expectations Builder — Nee Expectations Enti? (Advanced Filters)</h3>
-                <p className="text-[11px] text-gray-500">Example: Software jobs Hyderabad lo 45+ Reddy abbai kavali - ilanti filters ikkada pettochu - system neeku matching profiles matrame chupisthundi</p>
-                <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-3">
-                  <div>
-                    <label className="text-[11px] font-bold">Age Min</label>
-                    <select value={form.expAgeMin} onChange={e => setForm({ ...form, expAgeMin: e.target.value })} className="w-full mt-1 p-2 rounded-xl bg-white border text-xs">
-                      {Array.from({ length: 30 }, (_, i) => 18 + i).map(a => <option key={a} value={a}>{a}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="text-[11px] font-bold">Age Max</label>
-                    <select value={form.expAgeMax} onChange={e => setForm({ ...form, expAgeMax: e.target.value })} className="w-full mt-1 p-2 rounded-xl bg-white border text-xs">
-                      {Array.from({ length: 40 }, (_, i) => 20 + i).map(a => <option key={a} value={a}>{a}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="text-[11px] font-bold">Height Min</label>
-                    <select value={form.expHeightMin} onChange={e => setForm({ ...form, expHeightMin: e.target.value })} className="w-full mt-1 p-2 rounded-xl bg-white border text-xs">
-                      {["4'5\"", "5'0\"", "5'2\"", "5'4\"", "5'6\""].map(h => <option key={h} value={h}>{h}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="text-[11px] font-bold">Height Max</label>
-                    <select value={form.expHeightMax} onChange={e => setForm({ ...form, expHeightMax: e.target.value })} className="w-full mt-1 p-2 rounded-xl bg-white border text-xs">
-                      {["5'6\"", "5'8\"", "5'10\"", "6'0\"", "6'2\""].map(h => <option key={h} value={h}>{h}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="text-[11px] font-bold">Job Preference</label>
-                    <select value={form.expJob} onChange={e => setForm({ ...form, expJob: e.target.value })} className="w-full mt-1 p-2 rounded-xl bg-white border text-xs">
-                      <option>Any</option><option>Software</option><option>Govt Job</option><option>Business</option><option>Doctor</option><option>Abroad-NRI</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="text-[11px] font-bold">Location Preference</label>
-                    <select value={form.expLocation} onChange={e => setForm({ ...form, expLocation: e.target.value })} className="w-full mt-1 p-2 rounded-xl bg-white border text-xs">
-                      <option>Any</option><option>Hyderabad</option><option>Warangal</option><option>Vijayawada</option><option>USA</option><option>TS Only</option><option>AP Only</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="text-[11px] font-bold">Education</label>
-                    <select value={form.expEducation} onChange={e => setForm({ ...form, expEducation: e.target.value })} className="w-full mt-1 p-2 rounded-xl bg-white border text-xs">
-                      <option>Any</option><option>BTech</option><option>MTech</option><option>MBBS</option><option>MBA</option><option>Degree</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="text-[11px] font-bold">Salary</label>
-                    <select value={form.expSalary} onChange={e => setForm({ ...form, expSalary: e.target.value })} className="w-full mt-1 p-2 rounded-xl bg-white border text-xs">
-                      <option>Any</option><option>40k+</option><option>60k+</option><option>1L+</option>
-                    </select>
-                  </div>
-                </div>
-                <div className="mt-3">
-                  <label className="text-[11px] font-bold">Caste Preference (multi-select - advanced)</label>
-                  <div className="mt-1 flex flex-wrap gap-1">
-                    {castes.slice(0, 8).map(c => (
-                      <button key={c} onClick={() => toggleExpCaste(c)} className={`px-3 py-1 rounded-full text-[11px] font-bold border ${form.expCaste.includes(c) ? 'maroon-gradient text-white' : 'bg-white'}`}>{c} {form.expCaste.includes(c) ? '✅' : ''}</button>
-                    ))}
-                  </div>
-                  <div className="text-[10px] text-gray-400 mt-1">Selected: {form.expCaste.length ? form.expCaste.join(", ") : "Same caste (default)"} - filter lo use avuthundi</div>
-                </div>
-                <div className="mt-3 bg-white rounded-xl p-2 text-[11px] text-gray-600">
-                  💡 Example: Nee dagara ammai ki matches kavali - software jobs Hyderabad lo 45 years above Reddy abbai - appudu filter: Job=Software, Location=Hyderabad, AgeMin=45, Caste=Reddy → System 5 profiles matrame chupisthundi best matching tho
-                </div>
-              </div>
-
-              {/* Contact */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs font-bold">Phone Number (OTP) <span className="text-red-500">*</span></label>
-                  <input value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} placeholder="98480xxxxx" className="w-full mt-1 p-3 rounded-xl bg-gray-50 border text-sm" />
-                  <div className="text-[10px] text-green-600 mt-1">✅ OTP verify - fake block - encrypted store</div>
-                </div>
-                <div>
-                  <label className="text-xs font-bold">Email (optional)</label>
-                  <input value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="lakshmi@gmail.com" className="w-full mt-1 p-3 rounded-xl bg-gray-50 border text-sm" />
-                </div>
-                <div className="md:col-span-2">
-                  <label className="text-xs font-bold">👥 Meeku evaru chepparu? Referral Code / Phone {isReferralLocked ? "🔒 (Locked - auto fill)" : "(optional)"}</label>
-                  <input
-                    value={form.referral}
-                    onChange={e => !isReferralLocked && setForm({ ...form, referral: e.target.value })}
-                    readOnly={isReferralLocked}
-                    placeholder="e.g. LAK42 or TSAP-1042"
-                    className={`w-full mt-1 p-3 rounded-xl border text-sm ${isReferralLocked ? "bg-[#FFF8E7] border-[#D4AF37] font-bold text-[#7A0C2E]" : "bg-gray-50"}`}
-                  />
-                  {isReferralLocked ? (
-                    <div className="mt-2 bg-green-50 border border-green-200 rounded-xl p-3">
-                      <div className="text-xs font-bold text-green-700">🔒 {referrerName} dwara vacharu — trusted! — Meeku 1 extra credit FREE! 🎉</div>
-                      <div className="text-[11px] text-gray-600 mt-1">• Referral lock ayyindi — commission guarantee — no fraud<br />• {referrerName} ki ₹50 vastundi pay ayyaka — meeku 1 extra FREE</div>
-                    </div>
-                  ) : (
-                    <div className="text-[10px] text-gray-500 mt-1">Referral unte meeku 1 extra credit FREE - referrer ki ₹50 - short code LAK42 type</div>
-                  )}
-                </div>
-              </div>
-
-              <div className="bg-[#FFF8E7] rounded-xl p-3 text-xs">
-                <div className="font-bold">🔐 Privacy & Admin:</div>
-                <div className="mt-1 text-gray-600">• Phone encrypted, admin kuda log tho ne chusthadu<br />• Photo-private ON cheste public lo blur - paid ki clear<br />• Watermark ID tho - screenshot misuse block<br />• Profile Code separate vasthundi - ID tho search cheyochu</div>
-              </div>
-            </div>
-            <div className="flex gap-3 mt-6">
-              <button onClick={() => setStep(4)} className="flex-1 py-3 border rounded-full font-bold text-sm">← Back</button>
-              <button onClick={handleGenerate} className="flex-1 py-3 gold-gradient text-[#7A0C2E] rounded-full font-bold text-sm">🎉 Generate ID + Advanced Card</button>
-            </div>
-          </div>
-        )}
-
-        {/* STEP 6 - Generated - Advanced Template */}
-        {step === 6 && generated && (
-          <div className="space-y-4">
-            <div className="bg-white rounded-[1.5rem] p-6 card-shadow text-center">
-              <div className="text-4xl">🎉</div>
-              <h2 className="font-bold text-xl text-[#7A0C2E] mt-2">Congratulations {generated.fullName}!</h2>
-              <p className="text-sm telugu">Me profile ready - advanced template thayaru ayyindi - admin approve tarvata channels lo auto post</p>
-              <div className="mt-4 bg-[#FFF8E7] rounded-xl p-4 inline-block border-2 border-[#D4AF37]">
-                <div className="text-xs text-gray-500">Me Separate Profile Code (ID Search ki)</div>
-                <div className="font-bold text-2xl text-[#7A0C2E] tracking-wider">{generated.id}</div>
-                <div className="text-xs mt-1">Credits: {generated.credits} FREE • Verified: Pending • DOB: {generated.dobCorrect ? '✅ Correct' : '❌ Approximate'}</div>
-                <div className="mt-2 text-[11px] bg-white rounded-full px-3 py-1">Search: /search/{generated.id} → profile open avuthundi</div>
-              </div>
-            </div>
-
-            {/* ADVANCED TEMPLATE WITH PHOTO - Neat */}
-            <div className="bg-white rounded-[1.5rem] p-6 card-shadow">
-              <h3 className="font-bold text-[#7A0C2E]">🎴 Me Advanced Profile Card (Telegram/WhatsApp/Website lo ilage vasthundi - photo tho neat)</h3>
-              <div className="mt-4 max-w-md mx-auto border-2 border-[#D4AF37] rounded-2xl overflow-hidden shadow-xl">
-                <div className="maroon-gradient text-white p-2 text-center text-xs font-bold flex justify-between px-4">
-                  <span>TSAP MATRIMONY</span>
-                  <span>{generated.id}</span>
-                  <span>✅ {generated.dobCorrect ? 'DOB Verified' : 'Pending'}</span>
-                </div>
-                <div className="p-4 flex gap-4 bg-white">
-                  <div className="w-28 h-32 rounded-xl overflow-hidden border-2 border-[#D4AF37] flex-shrink-0">
-                    {generated.photoUrl ? <img src={generated.photoUrl} alt="profile" className="w-full h-full object-cover" /> : <div className="w-full h-full bg-gray-100 flex items-center justify-center text-3xl">{generated.gender === 'Bride' ? '👰' : '🤵'}</div>}
-                  </div>
-                  <div className="flex-1 text-xs space-y-1">
-                    <div className="font-bold text-sm text-[#7A0C2E]">{generated.fullName} • {generated.age}y • {generated.height} • {generated.caste}</div>
-                    <div>🎓 {generated.education} {generated.educationDetail} {generated.college ? `@ ${generated.college}` : ''}</div>
-                    <div>💼 {generated.job} {generated.company ? `@ ${generated.company}` : ''} • {generated.salary} • {generated.workLocation}</div>
-                    <div>📍 {generated.district}, {generated.mandal}, {generated.state} {generated.currentCity ? `• Now ${generated.currentCity}` : ''}</div>
-                    <div className="text-[11px] text-gray-600">👨‍👩‍👧 S/o {generated.fatherName} ({generated.fatherOccupation}) • {generated.familyType} • {generated.familyStatus}</div>
-                    <div className="text-[10px] text-gray-500">🌟 Gothram: {generated.gothram} • Star: {generated.star || '—'} • Rasi: {generated.rasi || '—'} • Dosham: {generated.dosham} • Birth: {generated.dob} {generated.birthTime ? ` ${generated.birthTime}` : ''}</div>
-                  </div>
-                </div>
-                <div className="bg-[#FFF8E7] p-3 text-xs">
-                  <div className="font-bold text-[#7A0C2E]">⭐ {generated.score}% BEST MATCH • Expectation: {generated.expectationMatch}</div>
-                  <div className="mt-2 space-y-1">
-                    {generated.reasons.map((r: string, i: number) => <div key={i}>✅ {r}</div>)}
-                  </div>
-                  <div className="mt-2 text-[11px] text-gray-600 italic">About: {generated.aboutMyself.slice(0, 120)}...</div>
-                </div>
-                <div className="p-2 bg-gray-50 text-[10px] text-center text-gray-400 flex justify-between px-4">
-                  <span>📞 Number: Pay tarvata 🔒</span>
-                  <span>Bot: @telugumatrimony1_bot</span>
-                  <span>#{generated.caste} #{generated.state} #{generated.gender} #Age{generated.age} • WM: {generated.id}</span>
-                </div>
-              </div>
-
-              <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-                <div className="bg-green-50 border border-green-200 rounded-xl p-3">
-                  <div className="font-bold text-green-700">✅ Auto-Post Queue - Website Automate</div>
-                  <div className="mt-1 text-gray-600">• @{generated.state === 'TS' ? 'TSBRIDE' : 'APBRIDE'} & @TSGROOM1 (Live 2)<br />• @tsap_{generated.caste.toLowerCase()}<br />• {generated.maritalStatus !== 'Pelli Kaledu' ? `@tsap_${generated.maritalStatus.includes('Handicapped') ? 'handicapped' : 'second'}` : 'Main only'}<br />• Official digest (top score aithe)</div>
-                </div>
-                <div className="bg-blue-50 border border-blue-200 rounded-xl p-3">
-                  <div className="font-bold text-blue-700">🤖 Filter System - Manaku Matrame Kanipisthundi</div>
-                  <div className="mt-1 text-gray-600">• Admin UI lo advanced filters: Software, Hyderabad, 45+, Reddy, Govt Job, etc<br />• Nuvvu 5 profiles adigithe - best 5 matrame display - reason tho<br />• Share button: WhatsApp & Telegram → registered number ki forward<br />• 100% perfect - no gaps</div>
-                </div>
-              </div>
-
-              <div className="mt-6 flex flex-wrap gap-3">
-                <Link href={`/search/${generated.id}`} className="flex-1 min-w-[140px] py-3 maroon-gradient text-white rounded-full text-center font-bold text-sm">🔍 ID Search - {generated.id}</Link>
-                <Link href="/matches" className="flex-1 min-w-[140px] py-3 border border-[#D4AF37] text-[#7A0C2E] rounded-full text-center font-bold text-sm">💘 Matches - Filters</Link>
-                <button onClick={() => {
-                  const text = `TSAP Matrimony Profile: ${generated.id} - ${generated.fullName}, ${generated.age}y, ${generated.caste}, ${generated.job} @ ${generated.district}. Search: https://tsapmatrimony.com/search/${generated.id}`;
-                  window.open(`https://wa.me/${generated.phone}?text=${encodeURIComponent(text)}`, '_blank');
-                }} className="flex-1 min-w-[140px] py-3 bg-green-600 text-white rounded-full text-center font-bold text-sm">📱 WhatsApp Share</button>
-                <button onClick={() => {
-                  const text = `TSAP Matrimony Profile: ${generated.id} - ${generated.fullName}. Search https://t.me/TSBRIDE`;
-                  window.open(`https://t.me/share/url?url=${encodeURIComponent(`https://tsapmatrimony.com/search/${generated.id}`)}&text=${encodeURIComponent(text)}`, '_blank');
-                }} className="flex-1 min-w-[140px] py-3 bg-blue-500 text-white rounded-full text-center font-bold text-sm">✈️ Telegram Share</button>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-[1.5rem] p-6 card-shadow">
-              <h3 className="font-bold">💰 Credits & Next - Automation</h3>
-              <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-3">
-                <div className="bg-[#FFF8E7] rounded-xl p-3 text-center">
-                  <div className="text-2xl font-bold text-[#7A0C2E]">{generated.credits}</div>
-                  <div className="text-xs">FREE Credits</div>
-                  <div className="text-[10px] text-gray-500">ID Search always open - number ki credit</div>
-                </div>
-                <div className="bg-green-50 rounded-xl p-3 text-center">
-                  <div className="text-sm font-bold">Referral</div>
-                  <div className="text-xs mt-1">{generated.referral || 'No referral'}</div>
-                  <div className="text-[10px] text-gray-500 mt-1">Pay ayyaka referrer ki ₹50</div>
-                </div>
-                <div className="bg-blue-50 rounded-xl p-3 text-center">
-                  <div className="text-sm font-bold">Oracle VM Free Tier</div>
-                  <div className="text-xs mt-1">Saripothunda? YES - 1GB RAM, 50GB</div>
-                  <div className="text-[10px] text-gray-500 mt-1">1000 profiles easy - profiles ekkuva em avvadu</div>
-                </div>
-              </div>
-              <Link href="/" className="block w-full mt-4 py-3 bg-gray-100 rounded-full text-center font-bold text-sm">🏠 Home ki Vellu - Advanced Website 100% Perfect</Link>
-            </div>
+function ChipGroup({
+  label, options, value, onChange, required, searchable, te, hint, cols,
+}: {
+  label: string; options: { v: string; te?: string }[]; value: string; onChange: (v: string) => void;
+  required?: boolean; searchable?: boolean; te?: boolean; hint?: string; cols?: number;
+}) {
+  const [q, setQ] = useState("");
+  const list = useMemo(() => {
+    const needle = q.trim().toLowerCase();
+    if (!needle) return options;
+    return options.filter((o) => o.v.toLowerCase().includes(needle) || (o.te || "").includes(q.trim()));
+  }, [q, options]);
+  return (
+    <div>
+      <label className="text-[13px] font-bold text-ink">
+        {label} {required ? <span className="req-star">*</span> : <span className="text-[10px] text-gray-400">(optional)</span>}
+      </label>
+      {hint && <div className="hint">{hint}</div>}
+      {searchable && (
+        <input
+          value={q} onChange={(e) => setQ(e.target.value)} placeholder="🔍 Type chesi vethakandi…"
+          className="input-mobile mt-2" inputMode="search"
+        />
+      )}
+      <div className={`mt-2 flex flex-wrap gap-2 ${cols === 1 ? "flex-col" : ""}`}>
+        {list.slice(0, searchable ? 60 : 40).map((o) => (
+          <Chip key={o.v} on={value === o.v} gold={te} onClick={() => onChange(value === o.v ? "" : o.v)}>
+            {te && o.te ? <span className="telugu">{o.te}</span> : null}
+            <span>{o.v}</span>
+          </Chip>
+        ))}
+        {list.length === 0 && (
+          <div className="text-[12px] text-gray-500">
+            Dorakaledu — <button type="button" onClick={() => onChange(q.trim())} className="text-maroon font-bold underline">“{q}” ni alane pettu</button>
           </div>
         )}
       </div>
     </div>
+  );
+}
+
+function TextField({
+  label, value, onChange, placeholder, required, hint, type = "text", inputMode, max, optional, telugu,
+}: {
+  label: string; value: string; onChange: (v: string) => void; placeholder?: string; required?: boolean;
+  hint?: string; type?: string; inputMode?: "text" | "tel" | "numeric" | "email" | "decimal";
+  max?: string; optional?: boolean; telugu?: boolean;
+}) {
+  const invalid = required && !String(value || "").trim();
+  return (
+    <div>
+      <label className="text-[13px] font-bold text-ink">
+        {label} {required ? <span className="req-star">*</span> : (optional ? <span className="text-[10px] text-gray-400">(optional)</span> : null)}
+      </label>
+      <input
+        type={type} inputMode={inputMode} max={max} value={value} placeholder={placeholder}
+        onChange={(e) => onChange(e.target.value)}
+        aria-invalid={invalid ? "true" : "false"}
+        className={`input-mobile mt-1 ${telugu ? "telugu" : ""}`}
+      />
+      {hint && <div className="hint">{hint}</div>}
+    </div>
+  );
+}
+
+function Stepper({ label, value, onChange, max = 10 }: { label: string; value: string; onChange: (v: string) => void; max?: number }) {
+  const n = parseInt(value || "0", 10) || 0;
+  return (
+    <div className="flex items-center justify-between bg-white rounded-2xl border border-gold/30 px-3 py-2">
+      <span className="text-[13px] font-bold text-ink">{label}</span>
+      <div className="flex items-center gap-3">
+        <button type="button" onClick={() => onChange(String(Math.max(0, n - 1)))}
+          className="w-11 h-11 rounded-full maroon-gradient text-white text-xl font-bold leading-none">−</button>
+        <span className="w-7 text-center font-bold text-maroon">{n}</span>
+        <button type="button" onClick={() => onChange(String(Math.min(max, n + 1)))}
+          className="w-11 h-11 rounded-full gold-gradient text-maroon text-xl font-bold leading-none">+</button>
+      </div>
+    </div>
+  );
+}
+
+function Toggle({ label, sub, value, onChange }: { label: string; sub?: string; value: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <button type="button" onClick={() => onChange(!value)}
+      className="w-full flex items-center gap-3 bg-white rounded-2xl border border-gold/30 p-3 text-left">
+      <span className={`w-14 h-8 rounded-full p-1 transition ${value ? "bg-maroon" : "bg-gray-300"}`}>
+        <span className={`block w-6 h-6 bg-white rounded-full transition ${value ? "translate-x-6" : ""}`} />
+      </span>
+      <span className="min-w-0">
+        <span className="block text-[13px] font-bold text-ink">{label}</span>
+        {sub && <span className="block text-[11px] text-gray-500">{sub}</span>}
+      </span>
+    </button>
+  );
+}
+
+/* ---------------------------------------------------------------- main */
+function Wizard() {
+  const params = useSearchParams();
+  const [step, setStep] = useState(1);
+  const [f, setF] = useState<Record<string, any>>(DEFAULT_FORM);
+  const [errs, setErrs] = useState<string[]>([]);
+  const [shake, setShake] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [draftFound, setDraftFound] = useState(false);
+  const [savedAt, setSavedAt] = useState<string>("");
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState("");
+  const [photoUrl, setPhotoUrl] = useState("");
+  const [photoInfo, setPhotoInfo] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpCode, setOtpCode] = useState("");
+  const [otpMsg, setOtpMsg] = useState("");
+  const [phoneOk, setPhoneOk] = useState(false);
+  const [refLocked, setRefLocked] = useState("");
+  const [result, setResult] = useState<any>(null);
+  // 🎁 WAVE 10 — "register avvagane WhatsApp ki 3 profiles + caste channel links"
+  const [packResend, setPackResend] = useState<{ busy: boolean; msg: string }>({ busy: false, msg: "" });
+  const [clarity, setClarity] = useState<any>(null);
+  const [copied, setCopied] = useState("");
+  const topRef = useRef<HTMLDivElement>(null);
+  const voiceRef = useRef<any>(null);
+
+  const set = (k: string, v: any) => {
+    setF((prev) => ({ ...prev, [k]: v }));
+    setErrs([]);
+  };
+
+  /* ---------- 🆓 FREE vs PAID clarity (numbers rule) — /api/free-plan ---------- */
+  useEffect(() => {
+    fetch("/api/free-plan").then((r) => r.json()).then(setClarity).catch(() => { });
+  }, []);
+
+  /* ---------- referral auto-lock (?ref=LAK42) ---------- */
+  useEffect(() => {
+    const ref = (params?.get("ref") || "").trim().toUpperCase();
+    if (ref) {
+      setRefLocked(ref);
+      setF((prev) => ({ ...prev, referral_code: ref }));
+    }
+  }, [params]);
+
+  /* ---------- draft resume ---------- */
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY);
+      if (!raw) return;
+      const d = JSON.parse(raw);
+      if (d?.data && (d.data.full_name || d.data.phone)) {
+        setDraftFound(true);
+        setSavedAt(d.savedAt || "");
+      }
+    } catch { /* ignore */ }
+  }, []);
+
+  const resumeDraft = () => {
+    try {
+      const d = JSON.parse(localStorage.getItem(DRAFT_KEY) || "{}");
+      setF({ ...DEFAULT_FORM, ...(d.data || {}) });
+      setStep(Math.min(5, Math.max(1, d.step || 1)));
+      setDraftFound(false);
+    } catch { /* ignore */ }
+  };
+
+  const clearDraft = () => {
+    localStorage.removeItem(DRAFT_KEY);
+    setDraftFound(false);
+    setF({ ...DEFAULT_FORM, referral_code: refLocked });
+  };
+
+  /* ---------- auto-save (debounced) ---------- */
+  useEffect(() => {
+    if (result) return;
+    const t = setTimeout(() => {
+      try {
+        const now = new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
+        localStorage.setItem(DRAFT_KEY, JSON.stringify({ data: f, step, savedAt: now }));
+        setSavedAt(now);
+      } catch { /* ignore */ }
+    }, 700);
+    return () => clearTimeout(t);
+  }, [f, step, result]);
+
+  /* ---------- age from DOB ---------- */
+  useEffect(() => {
+    const a = ageFromDob(f.dob);
+    if (a && String(a) !== String(f.age)) setF((prev) => ({ ...prev, age: String(a) }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [f.dob]);
+
+  /* ---------- star → rasi auto ---------- */
+  useEffect(() => {
+    if (f.star && !f.rasi && NAK_TO_RASI[f.star]) setF((prev) => ({ ...prev, rasi: NAK_TO_RASI[f.star] }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [f.star]);
+
+  const scrollTop = () => topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+
+  /* ---------- validation per step ---------- */
+  const validate = (s: number): string[] => {
+    const e: string[] = [];
+    if (s === 1) {
+      if (!f.gender) e.push("Bride / Groom select cheyyandi");
+      if (!String(f.full_name).trim()) e.push("Full name type cheyyandi");
+      if (!f.dob) e.push("Date of birth select cheyyandi");
+      else if (!ageFromDob(f.dob)) e.push("DOB correct ga ledu");
+      if (!f.height) e.push("Height select cheyyandi");
+      if (!f.marital_status) e.push("Marital status select cheyyandi");
+    }
+    if (s === 2) {
+      if (!f.caste) e.push("Caste select cheyyandi (channels ki kavali)");
+    }
+    if (s === 3) {
+      if (!f.education) e.push("Education select cheyyandi");
+      if (!f.job) e.push("Job / udyogam select cheyyandi");
+      if (!f.salary) e.push("Salary range select cheyyandi");
+    }
+    if (s === 4) {
+      if (!f.state) e.push("State select cheyyandi");
+      if (!f.district) e.push("District select cheyyandi");
+      if (!/^\d{10}$/.test(String(f.phone))) e.push("10 digit mobile number ivvandi");
+    }
+    if (s === 5) {
+      if (!f.consent) e.push("Terms + privacy accept cheyyandi (kindha checkbox)");
+    }
+    return e;
+  };
+
+  const next = () => {
+    const e = validate(step);
+    if (e.length) {
+      setErrs(e);
+      setShake(true);
+      setTimeout(() => setShake(false), 400);
+      scrollTop();
+      return;
+    }
+    setErrs([]);
+    setStep((s) => Math.min(5, s + 1));
+    scrollTop();
+  };
+
+  const back = () => {
+    setErrs([]);
+    setStep((s) => Math.max(1, s - 1));
+    scrollTop();
+  };
+
+  /* ---------- profile strength ---------- */
+  const strength = useMemo(() => {
+    const keys = ["full_name", "gender", "dob", "height", "weight", "marital_status", "caste", "sub_caste",
+      "gothram", "star", "rasi", "education", "education_detail", "college", "job", "company", "salary",
+      "experience", "work_type", "work_location", "father_name", "father_occupation", "mother_name",
+      "native_place", "state", "district", "mandal", "current_city", "pincode", "phone", "about_myself",
+      "body_type", "complexion", "blood_group"];
+    const filled = keys.filter((k) => String(f[k] || "").trim()).length + (photoUrl ? 2 : 0);
+    return Math.min(100, Math.round((filled / (keys.length + 2)) * 100));
+  }, [f, photoUrl]);
+
+  /* ---------- photo pick + compress ---------- */
+  const pickPhoto = async (file?: File | null) => {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) return setErrs(["Photo file matrame (JPG/PNG/WebP)"]);
+    if (file.size > 8 * 1024 * 1024) return setErrs(["Photo chala peddadi (8MB+) — chinna photo pettandi"]);
+    setBusy(true);
+    const small = await compressImage(file, 1200, 0.85);
+    setPhotoFile(small);
+    setPhotoPreview(URL.createObjectURL(small));
+    setPhotoInfo(`${(small.size / 1024).toFixed(0)} KB${small.size < file.size ? ` (${(file.size / 1024).toFixed(0)} KB → compress)` : ""} • upload chesthunnam…`);
+    try {
+      const fd = new FormData();
+      fd.append("file", small);
+      const r = await fetch("/api/photo/upload", { method: "POST", body: fd });
+      const d = await r.json();
+      if (r.ok) {
+        setPhotoUrl(d.url);
+        setPhotoInfo(`${d.kb} KB ✅ uploaded — card lo mee photo vasthundi`);
+      } else {
+        setPhotoInfo("");
+        setErrs([d.detail || "Photo upload avvaledu"]);
+      }
+    } catch {
+      setErrs(["Network problem — photo malli try cheyyandi"]);
+    }
+    setBusy(false);
+  };
+
+  /* ---------- OTP ---------- */
+  const sendOtp = async () => {
+    if (!/^\d{10}$/.test(f.phone)) return setErrs(["Mundu 10 digit number ivvandi"]);
+    setBusy(true);
+    try {
+      const d = await fetch("/api/otp/send", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: f.phone }),
+      }).then((r) => r.json());
+      setOtpSent(true);
+      setOtpMsg(d.message_telugu || "OTP pampinchaam");
+      if (d.dev_code) setOtpCode(d.dev_code);
+    } catch {
+      setErrs(["OTP pampaledu — malli try cheyyandi"]);
+    }
+    setBusy(false);
+  };
+
+  const verifyOtp = async () => {
+    setBusy(true);
+    try {
+      const r = await fetch("/api/otp/verify", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: f.phone, code: otpCode }),
+      });
+      const d = await r.json();
+      if (r.ok && d.success) {
+        setPhoneOk(true);
+        setOtpMsg(d.message_telugu);
+      } else {
+        setOtpMsg(d.message_telugu || "OTP tappu");
+      }
+    } catch {
+      setOtpMsg("Verify avvaledu — malli try cheyyandi");
+    }
+    setBusy(false);
+  };
+
+  /* ---------- voice input (about_myself) ---------- */
+  const startVoice = () => {
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SR) return setErrs(["Ee browser lo voice input ledu — type cheyyandi"]);
+    try {
+      const rec = new SR();
+      rec.lang = "te-IN";
+      rec.continuous = false;
+      rec.interimResults = false;
+      rec.onresult = (ev: any) => {
+        const text = ev.results?.[0]?.[0]?.transcript || "";
+        set("about_myself", (f.about_myself ? f.about_myself + " " : "") + text);
+      };
+      rec.start();
+      voiceRef.current = rec;
+    } catch {
+      setErrs(["Voice input start avvaledu"]);
+    }
+  };
+
+  /* ---------- submit ---------- */
+  const submit = async () => {
+    const all = [1, 2, 3, 4, 5].flatMap(validate);
+    if (all.length) {
+      setErrs(all);
+      setShake(true);
+      setTimeout(() => setShake(false), 400);
+      return;
+    }
+    setBusy(true);
+    setErrs([]);
+    try {
+      const fd = new FormData();
+      const strings = [
+        "gender", "full_name", "dob", "birth_time", "height", "weight", "marital_status", "religion",
+        "mother_tongue", "caste", "sub_caste", "gothram", "star", "rasi", "moola_nakshatram", "dosham",
+        "education", "education_detail", "college", "job", "company", "salary", "experience", "work_type",
+        "work_location", "father_name", "father_occupation", "mother_name", "mother_occupation", "brothers",
+        "brothers_married", "sisters", "sisters_married", "family_type", "family_status", "family_values",
+        "native_place", "state", "district", "mandal", "current_city", "pincode", "phone", "email",
+        "about_myself", "expectations", "exp_age_min", "exp_age_max", "exp_job", "exp_location", "exp_caste",
+        "physical_status", "body_type", "complexion", "blood_group", "referral_code",
+      ];
+      strings.forEach((k) => fd.append(k, String(f[k] ?? "")));
+      fd.append("age", String(f.age || ageFromDob(f.dob) || ""));
+      fd.append("photo_private", String(!!f.photo_private));
+      fd.append("dob_correct", "true");
+      fd.append("phone_verified", String(phoneOk));
+      if (photoUrl) fd.append("photo_url", photoUrl);
+      if (refLocked) fd.append("referral_code", refLocked);
+
+      const r = await fetch("/api/register", { method: "POST", body: fd });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.detail || "Register avvaledu");
+      setResult(d);
+      localStorage.removeItem(DRAFT_KEY);
+      // 🔐 WAVE 9 — auth token save (private API: inbox/credits/views/saved ki) + demo login ready
+      try {
+        if (d?.auth_token) { localStorage.setItem("tsap_token", String(d.auth_token)); localStorage.setItem("tsap_id", String(d.tsap_id || "")); }
+      } catch { /* private mode */ }
+      // 🤝 Referral page + requests lo ide user kanipinchali (demo ID kaadu)
+      try {
+        const newId = d.tsap_id || d.user_id || "";
+        if (newId) {
+          localStorage.setItem("tsap_last_id", newId);
+          const list = JSON.parse(localStorage.getItem("tsap_profiles") || "[]");
+          localStorage.setItem("tsap_profiles", JSON.stringify(
+            [{ id: newId, name: f.full_name, gender: f.gender, at: Date.now() },
+              ...list.filter((p: any) => (p?.id || p?.tsap_id) !== newId)].slice(0, 5)));
+        }
+      } catch { /* private mode lo localStorage block ayithe parvaledu */ }
+      scrollTop();
+    } catch (e: any) {
+      setErrs([e?.message || "Register lo problem — malli try cheyyandi"]);
+    }
+    setBusy(false);
+  };
+
+  const copy = (text: string, tag: string) => {
+    navigator.clipboard?.writeText(text).then(() => {
+      setCopied(tag);
+      setTimeout(() => setCopied(""), 1600);
+    });
+  };
+
+  /* ================= SUCCESS SCREEN ================= */
+  if (result) {
+    const tsap = result.tsap_id || result.user_id || "TSAP-XXXX";
+    const cardUrl = result.card_url || `/cards/${tsap}.png`;
+    const share = result.share_text || `${SITE_CONFIG.brandName} profile ${tsap}`;
+    return (
+      <main className="min-h-screen">
+        <section className="maroon-gradient text-white">
+          <div className="max-w-3xl mx-auto px-4 py-9 text-center">
+            <div className="text-5xl">🎉</div>
+            <h1 className="mt-2 text-2xl font-bold">Profile ready ayyindi!</h1>
+            <p className="text-[13px] opacity-90 mt-1 telugu">Mee ID + card kindha undi — WhatsApp status lo share cheyyandi, reach double avutundi.</p>
+            <div className="mt-4 inline-flex items-center gap-2 bg-white/10 border border-white/25 rounded-2xl px-4 py-3">
+              <span className="font-mono text-lg font-bold">{tsap}</span>
+              <button onClick={() => copy(tsap, "id")} className="text-[11px] font-bold gold-gradient text-maroon px-3 py-1.5 rounded-full">
+                {copied === "id" ? "copied ✓" : "copy"}
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <div className="max-w-3xl mx-auto px-4 py-6 space-y-4">
+          {result.publish_targets?.length ? (
+            <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4">
+              <div className="font-bold text-emerald-900">📢 Auto-post queue ayyindi</div>
+              <div className="text-[12px] text-emerald-800 mt-1">
+                {result.publish_targets.join(" • ")} + WhatsApp (anti-ban random gap tho)
+              </div>
+            </div>
+          ) : null}
+
+          <div className="bg-white rounded-2xl p-4 border border-gold/30 card-shadow">
+            <div className="font-bold text-maroon text-[15px]">🎁 Mee account ki enti vachindi</div>
+            <div className="mt-2 grid sm:grid-cols-3 gap-2 text-[12px]">
+              <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-emerald-900">
+                <b>{result.credits ?? 3} requests</b> ready<br /><span className="text-[11px]">(FREE 3 + referral bonus {result.referral?.joined_with?.ok ? "+1" : ""})</span>
+              </div>
+              <div className="bg-cream border border-gold/40 rounded-xl p-3 text-maroon">
+                <b>3 profiles</b> chudochu<br /><span className="text-[11px]">numbers 🔒 locked</span>
+              </div>
+              <div className="bg-navy text-white rounded-xl p-3">
+                <b>Numbers eppudu?</b><br /><span className="text-[11px] opacity-90">interest pampi vaallu accept cheste (leda ₹99 plan tho ekkuva profiles)</span>
+              </div>
+            </div>
+            {result.quality ? (
+              <div className="mt-2 rounded-xl border border-gold/40 bg-white p-3 text-[12px]">
+                <div className="font-bold text-maroon">📝 Mee profile completeness: {result.quality.percent}%</div>
+                <div className="mt-1 text-gray-600">
+                  {result.quality.verdict_telugu}
+                  {Array.isArray(result.quality.important_telugu) && result.quality.important_telugu.length
+                    ? ` · ${result.quality.important_telugu.slice(0, 2).join(" · ")}` : ""}
+                </div>
+                <div className="mt-1 text-[11px] text-emerald-700">
+                  ✅ Login token save ayyindi — mee inbox/credits/shortlist ippudu mee browser lo secure ({result.phone_masked ? `number: ${result.phone_masked}` : "number masked"})
+                </div>
+              </div>
+            ) : null}
+            {result.welcome_pack ? (
+              <div className="mt-2 rounded-xl border-2 border-emerald-300 bg-emerald-50 p-3">
+                <div className="font-bold text-emerald-900 text-[13px]">
+                  📲 Mee WhatsApp ki pampinam — 3 profiles + mee caste channel links
+                </div>
+                <div className="mt-1 text-[11px] text-emerald-800">
+                  {result.welcome_pack.queue?.queued
+                    ? `✅ WhatsApp lo vellindi (${result.welcome_pack.queue?.kind || "welcome_pack"}) — mee number ${result.phone_masked || ""} ki`
+                    : "🕒 WhatsApp bridge connect ayye varaku queue lo undi — kaani ee 3 profiles ikkade chudandi:"}
+                </div>
+                <div className="mt-2 grid gap-2 sm:grid-cols-3">
+                  {(result.welcome_pack.profiles || []).map((pf: any, i: number) => (
+                    <Link key={pf.tsap_id} href={`/search/${pf.tsap_id}`}
+                      className="block bg-white border border-gold/40 rounded-xl p-2.5 hover:bg-cream">
+                      <div className="text-[12px] font-bold text-maroon">{["1️⃣","2️⃣","3️⃣"][i]} {pf.name}</div>
+                      <div className="text-[11px] text-gray-700">{pf.age} yrs • {pf.caste} • {pf.district}</div>
+                      <div className="text-[10px] text-gray-500">{pf.education} • {pf.job}</div>
+                      <div className="text-[10px] text-emerald-700">⭐ {pf.score}% match • 🔒 number locked</div>
+                    </Link>
+                  ))}
+                </div>
+                {(result.welcome_pack.channels || []).length > 0 && (
+                  <div className="mt-2">
+                    <div className="text-[12px] font-bold text-maroon">📢 Mee caste channels — daily matches ikkada</div>
+                    <div className="mt-1 flex flex-wrap gap-1.5">
+                      {(result.welcome_pack.channels || []).map((ch: any) => (
+                        <span key={ch.key} className="inline-flex items-center gap-1 rounded-full border border-maroon/20 bg-white px-2 py-1 text-[10px]">
+                          <b className="text-maroon">{ch.name}</b>
+                          {ch.telegram && <a className="text-sky-700 underline" href={ch.telegram} target="_blank" rel="noopener noreferrer">✈️ Telegram</a>}
+                          {ch.whatsapp && <a className="text-emerald-700 underline" href={ch.whatsapp} target="_blank" rel="noopener noreferrer">🟢 WhatsApp</a>}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <button
+                    onClick={async () => {
+                      setPackResend({ busy: true, msg: "" });
+                      try {
+                        const r = await fetch(`/api/welcome-pack/${tsap}/resend`, { method: "POST", headers: authHeaders() });
+                        const d = await r.json();
+                        setPackResend({ busy: false, msg: d.message_telugu || (r.ok ? "✅ Malli pampinam" : "⚠️ Pampaledu") });
+                      } catch { setPackResend({ busy: false, msg: "⚠️ Server tho connect avvaledu" }); }
+                    }}
+                    disabled={packResend.busy}
+                    className="rounded-xl border border-emerald-600 text-emerald-800 font-bold text-[11px] px-3 py-2 disabled:opacity-60">
+                    {packResend.busy ? "Pampisthunnam…" : "📲 Malli WhatsApp ki pampu (3 profiles + channels)"}
+                  </button>
+                  <a href={SITE_CONFIG.supportLink} target="_blank" rel="noopener noreferrer"
+                    className="rounded-xl border border-maroon/25 text-maroon font-bold text-[11px] px-3 py-2">
+                    💬 WhatsApp channel link kavali? Support ki ping
+                  </a>
+                  {packResend.msg && <span className="text-[11px] text-emerald-800">{packResend.msg}</span>}
+                </div>
+                <div className="mt-1 text-[10px] text-emerald-800">
+                  🔒 Numbers eppudu message lo pettamu — profile link + channel links matrame (consent tho matrame number exchange).
+                </div>
+              </div>
+            ) : null}
+            <div className="mt-2 flex flex-wrap gap-2">
+              <Link href={`/matches?id=${tsap}`} className="maroon-gradient text-white font-bold text-[12px] px-4 py-2.5 rounded-xl">
+                🔎 Mee 3 profiles chudandi (FREE)
+              </Link>
+              <Link href={`/requests?id=${tsap}`} className="border border-maroon/25 text-maroon font-bold text-[12px] px-4 py-2.5 rounded-xl">
+                💌 Interests pampandi
+              </Link>
+              <Link href="/pricing" className="gold-gradient text-maroon font-bold text-[12px] px-4 py-2.5 rounded-xl">
+                💰 ₹99 → 5 profiles + boost
+              </Link>
+            </div>
+          </div>
+
+          {result.referral?.my_code ? (
+            <div className="bg-gradient-to-br from-maroon to-[#5b1030] text-white rounded-2xl p-4">
+              <div className="flex items-center justify-between">
+                <div className="font-bold text-[15px]">🤝 Mee referral code ready</div>
+                <span className="text-[11px] font-bold gold-gradient text-maroon px-2.5 py-1 rounded-full">
+                  ₹{result.referral.commission_offer || 50}/friend
+                </span>
+              </div>
+              {result.referral.joined_with?.ok ? (
+                <div className="mt-2 bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-[12px]">
+                  🤝 <b>{result.referral.joined_with.referrer_name} garu</b> dwara vacharu — meeku{" "}
+                  <b>+{result.referral.joined_with.bonus_credits} FREE credit</b> vachindi (code {result.referral.joined_with.referrer_code}).
+                  Vaallaki kooda mee first payment tho ₹50 veltundi 🙌
+                </div>
+              ) : result.referral.joined_with?.reason && result.referral.joined_with.reason !== "no_code" ? (
+                <div className="mt-2 bg-amber-400/20 border border-amber-200/40 rounded-xl px-3 py-2 text-[11px]">
+                  ℹ️ {result.referral.joined_with.message_telugu || "Referral code lock avvaledu"} — parvaledu, mee sontha code tho ippudu start cheyyandi.
+                </div>
+              ) : null}
+              <div className="mt-3 bg-white/10 border border-white/20 rounded-xl px-3 py-2 flex items-center gap-2">
+                <span className="font-mono text-base font-bold">{result.referral.my_code}</span>
+                <button onClick={() => copy(String(result.referral.my_code), "refcode")}
+                  className="text-[11px] font-bold gold-gradient text-maroon px-2.5 py-1 rounded-full">
+                  {copied === "refcode" ? "copied ✓" : "code copy"}
+                </button>
+                <button onClick={() => copy(String(result.referral.my_link), "reflink")}
+                  className="text-[11px] font-bold bg-white/15 border border-white/25 px-2.5 py-1 rounded-full">
+                  {copied === "reflink" ? "copied ✓" : "link copy"}
+                </button>
+              </div>
+              <div className="mt-1 text-[11px] opacity-90 break-all font-mono">{result.referral.my_link}</div>
+              <div className="mt-2 text-[12px] opacity-95 telugu">{result.referral.earn_telugu}</div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <a href={`https://wa.me/?text=${encodeURIComponent(String(result.referral.share_message || ""))}`}
+                  target="_blank" rel="noreferrer"
+                  className="bg-green-600 text-white font-bold text-[12px] px-4 py-2.5 rounded-xl">
+                  📲 WhatsApp group ki pampu
+                </a>
+                <a href={result.referral.poster_url} download={`${result.referral.my_code}-manavivaha-referral.png`}
+                  className="gold-gradient text-maroon font-bold text-[12px] px-4 py-2.5 rounded-xl">
+                  ⬇️ Poster (QR tho)
+                </a>
+                <a href={result.referral.poster_status_url} target="_blank" rel="noreferrer"
+                  className="bg-white/10 border border-white/25 text-white font-bold text-[12px] px-4 py-2.5 rounded-xl">
+                  📱 Status poster
+                </a>
+                <Link href={`${result.referral.dashboard || "/referral"}?id=${tsap}`}
+                  className="bg-white/10 border border-white/25 text-white font-bold text-[12px] px-4 py-2.5 rounded-xl">
+                  📊 Referral dashboard
+                </Link>
+              </div>
+              <ul className="mt-2 space-y-0.5 text-[11px] opacity-85 list-disc list-inside">
+                {(result.referral.rule_telugu || []).map((t: string) => <li key={t}>{t}</li>)}
+              </ul>
+            </div>
+          ) : null}
+
+          {result.namaste_queued ? (
+            <div className="bg-cream border border-gold/40 rounded-2xl p-4">
+              <div className="font-bold text-maroon text-[14px]">🙏 Namaste message mee WhatsApp ki pampam</div>
+              <div className="text-[12px] text-gray-700 mt-1 telugu">
+                Mana side nunchi mee profile card + full details + next steps mee number ki veltayi (chatting ledu — spam undadu).
+                {result.welcome_status?.manual_text ? " Bridge connect ayyaka automatic ga pothundi; ippudu support team manual ga pampisthundi." : ""}
+              </div>
+              {result.welcome_status?.manual_text ? (
+                <button onClick={() => copy(String(result.welcome_status.manual_text), "namaste")}
+                  className="mt-2 text-[11px] font-bold gold-gradient text-maroon px-3 py-2 rounded-xl">
+                  {copied === "namaste" ? "copied ✓" : "📋 Namaste message copy (support ki)"}
+                </button>
+              ) : null}
+            </div>
+          ) : null}
+
+          {result.share_kit ? (
+            <div className="bg-white rounded-2xl p-4 border border-gold/25 card-shadow">
+              <div className="font-bold text-maroon text-[14px]">🎴 Share kit — reach penchandi</div>
+              <div className="text-[12px] text-gray-600 mt-1 telugu">
+                Card image + caption ready. Status lo pettandi — {result.share_kit.best_time_to_post}.
+              </div>
+              <pre className="mt-2 bg-cream rounded-xl p-3 text-[11px] whitespace-pre-wrap telugu">{result.share_kit.caption_short}</pre>
+              <div className="mt-2 flex flex-wrap gap-2">
+                <a href={result.share_kit.whatsapp_share} target="_blank" rel="noreferrer"
+                  className="bg-green-600 text-white font-bold text-[12px] px-4 py-2.5 rounded-xl">WhatsApp status ki</a>
+                <a href={result.share_kit.telegram_share} target="_blank" rel="noreferrer"
+                  className="bg-blue-500 text-white font-bold text-[12px] px-4 py-2.5 rounded-xl">Telegram ki</a>
+                <button onClick={() => copy(String(result.share_kit.caption), "kit")}
+                  className="border border-maroon/25 text-maroon font-bold text-[12px] px-4 py-2.5 rounded-xl">
+                  {copied === "kit" ? "copied ✓" : "📋 Caption copy"}
+                </button>
+                <a href={result.share_kit.card_image} download={`${tsap}-manavivaha-card.png`}
+                  className="gold-gradient text-maroon font-bold text-[12px] px-4 py-2.5 rounded-xl">⬇️ Card image</a>
+              </div>
+              <ul className="mt-2 space-y-0.5">
+                {(result.share_kit.tips_telugu || []).map((t: string) => (
+                  <li key={t} className="text-[11px] text-gray-600">• {t}</li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+
+          <div className="bg-white rounded-2xl p-4 card-shadow border border-gold/25">
+            <div className="font-bold text-maroon text-[15px]">🎴 Mee profile card</div>
+            {cardUrl ? (
+              <img src={cardUrl} alt={`${tsap} profile card`} className="mt-3 w-full rounded-2xl border border-gold/30" />
+            ) : null}
+            <div className="mt-3 flex flex-wrap gap-2">
+              <a href={cardUrl} download={`${tsap}-manavivaha-card.png`} className="maroon-gradient text-white font-bold text-[13px] px-4 py-2.5 rounded-xl">
+                ⬇️ Download card
+              </a>
+              <a href={cardUrl} target="_blank" rel="noreferrer" className="border border-maroon/30 text-maroon font-bold text-[13px] px-4 py-2.5 rounded-xl">
+                🔍 Full size
+              </a>
+              <button onClick={() => copy(share, "share")} className="gold-gradient text-maroon font-bold text-[13px] px-4 py-2.5 rounded-xl">
+                {copied === "share" ? "copied ✓" : "📋 Share text copy"}
+              </button>
+              <a href={`https://wa.me/?text=${encodeURIComponent(share)}`} target="_blank" rel="noreferrer"
+                className="bg-green-600 text-white font-bold text-[13px] px-4 py-2.5 rounded-xl">WhatsApp lo pampu</a>
+            </div>
+          </div>
+
+          <div className="bg-navy text-white rounded-2xl p-4">
+            <div className="font-bold text-[14px]">Ippudu em cheyyali? (2 steps)</div>
+            <ol className="mt-2 text-[12px] space-y-1 opacity-90 list-decimal list-inside">
+              <li>Mee profile {CHANNEL_STATS.total} channels lo post avutundi (4 main + caste-wise) — 30 nimushalalo live</li>
+              <li>Matches chusi <b>💌 Interest pampu</b> — modati 3 FREE, vaallaki WhatsApp lo mee profile veltundi</li>
+            </ol>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Link href={`/requests?id=${tsap}`} className="gold-gradient text-maroon font-bold text-[13px] px-4 py-2.5 rounded-xl">💌 Requests dashboard</Link>
+              <Link href={`/search/${tsap}`} className="bg-white/10 border border-white/25 text-white font-bold text-[13px] px-4 py-2.5 rounded-xl">Mee profile chudu</Link>
+            </div>
+          </div>
+
+          <div className="text-[11px] text-gray-500 text-center">
+            ⚠️ Photos/numbers watermark + log tho untayi • Advance money adigithe report cheyyandi: {SITE_CONFIG.supportPhoneDisplay}
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  /* ================= WIZARD ================= */
+  const pct = Math.round(((step - 1) / 5) * 100);
+  const stepMeta = STEPS[step - 1];
+  const distList = DISTRICTS_BY_STATE[f.state] || [];
+
+  return (
+    <main className="min-h-screen pb-32" ref={topRef}>
+      {/* ---------- sticky progress ---------- */}
+      <div className="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-gold/25 safe-top">
+        <div className="max-w-3xl mx-auto px-4 py-3">
+          <div className="flex items-center gap-3">
+            <Link href="/" className="text-[12px] font-bold text-maroon">← Home</Link>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">{stepMeta.icon}</span>
+                <div className="min-w-0">
+                  <div className="text-[13px] font-bold text-ink truncate">
+                    Step {step} of 5 — {stepMeta.label}
+                  </div>
+                  <div className="text-[10px] text-gray-500 telugu truncate">{stepMeta.hint}</div>
+                </div>
+              </div>
+            </div>
+            <div className="text-right shrink-0">
+              <div className="text-[11px] font-bold text-maroon">{strength}%</div>
+              <div className="text-[9px] text-gray-500">profile strength</div>
+            </div>
+          </div>
+          <div className="mt-2 flex items-center gap-1.5">
+            {STEPS.map((s) => (
+              <button key={s.n} onClick={() => { if (s.n < step) setStep(s.n); }}
+                className={`h-1.5 flex-1 rounded-full ${s.n <= step ? "maroon-gradient" : "bg-gray-200"}`} aria-label={`Step ${s.n}`} />
+            ))}
+          </div>
+          <div className="mt-1.5 flex items-center justify-between text-[10px] text-gray-500">
+            <span>≈ {Math.max(1, 5 - step)} nimishalu migilindi</span>
+            <span>{savedAt ? `💾 draft save ${savedAt}` : "💾 auto-save ON"}</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-3xl mx-auto px-4 py-5">
+        {/* 🆓 FREE vs PAID — SCREEN 1 lo ne clear ga (numbers rule kooda) */}
+        <div className="mb-4 bg-white rounded-2xl border border-gold/40 card-shadow p-4">
+          <div className="font-bold text-maroon text-[14px]">🆓 Register 100% FREE — enti vasthundi, enti raadu (clear ga)</div>
+          <div className="mt-2 grid sm:grid-cols-2 gap-3 text-[12px]">
+            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3">
+              <div className="font-bold text-emerald-900">FREE లో ఇచ్చేది</div>
+              <ul className="mt-1 space-y-0.5 text-emerald-900">
+                <li>✅ <b>{(clarity?.free?.profiles ?? 3)} profiles</b> chudochu (full details: caste, education, job, family, porutham)</li>
+                <li>✅ <b>{(clarity?.free?.requests ?? 3)} interests</b> pampochu — vaallaki mana WhatsApp nunchi mee profile veltundi</li>
+                <li>✅ Mee profile card FREE (Telugu, neat) + channels lo auto-post</li>
+                <li>✅ Vaallu <b>accept cheste → numbers exchange</b> (WhatsApp lo, consent tho)</li>
+              </ul>
+            </div>
+            <div className="bg-rose-50 border border-rose-200 rounded-xl p-3">
+              <div className="font-bold text-rose-900">FREE లో ఇవ్వనిది (🔒)</div>
+              <ul className="mt-1 space-y-0.5 text-rose-900">
+                <li>🔒 <b>Phone numbers — ఇవ్వము</b> (98••••••45 ani matrame kanipisthundi)</li>
+                <li>🔒 Photo (privacy mode unna profiles ki blur)</li>
+                <li>🚫 Chatting ledu (manam chat platform kaadu — spam/report తగ్గడానికి)</li>
+              </ul>
+              <div className="mt-1 text-[11px]">3 FREE taruvata: <b>₹99 → 5 profiles + boost</b> · ₹199 → 12 · ₹299 → 25 · ₹499 → 50</div>
+            </div>
+          </div>
+          <div className="mt-2 text-[11px] text-gray-600">
+            🔐 Mee number DB lo encrypt ga untundi. Consent (accept) tho matrame evariki kanipisthundi.
+            {" "}<a href="/pricing" className="underline font-bold text-maroon">Pricing</a> ·
+            {" "}<a href="/safety" className="underline font-bold text-maroon">Safety</a>
+          </div>
+        </div>
+
+        {/* draft banner */}
+        {draftFound && (
+          <div className="mb-4 bg-cream border border-gold/40 rounded-2xl p-4">
+            <div className="font-bold text-maroon text-[14px]">💾 Mee pura form dorkindi{draftSavedLabel(savedAt)}</div>
+            <div className="text-[12px] text-gray-600 mt-1">Ekkada aagipoyindo akkada nunchi continue cheyyochu — malli type cheyyakkarledu.</div>
+            <div className="mt-3 flex gap-2">
+              <button onClick={resumeDraft} className="maroon-gradient text-white font-bold text-[13px] px-4 py-2.5 rounded-xl">▶️ Continue chey</button>
+              <button onClick={clearDraft} className="border border-maroon/25 text-maroon font-bold text-[13px] px-4 py-2.5 rounded-xl">Kotha ga start</button>
+            </div>
+          </div>
+        )}
+
+        {refLocked && (
+          <div className="mb-4 bg-emerald-50 border border-emerald-200 rounded-2xl px-4 py-3 text-[12px] text-emerald-900">
+            🤝 <b>{refLocked}</b> referral code lock ayyindi — mee friend ki ₹50 + meeku <b>+1 credit FREE</b>.
+            {" "}Register FREE (3 profiles free) — tarvata mee ₹99 plan thisukunte aa ₹50 mee friend wallet ki veltundi.
+          </div>
+        )}
+
+        {errs.length > 0 && (
+          <div className={`mb-4 bg-rose-50 border border-rose-200 rounded-2xl px-4 py-3 ${shake ? "shake" : ""}`}>
+            <div className="font-bold text-rose-800 text-[13px]">Ivi saricheyyali:</div>
+            <ul className="mt-1 text-[12px] text-rose-700 list-disc list-inside">
+              {errs.slice(0, 5).map((e) => <li key={e}>{e}</li>)}
+            </ul>
+          </div>
+        )}
+
+        <div key={step} className="step-slide space-y-5">
+          {/* ---------------- STEP 1 ---------------- */}
+          {step === 1 && (
+            <>
+              <div>
+                <label className="text-[13px] font-bold text-ink">Evaru register chesthunnaru? <span className="req-star">*</span></label>
+                <div className="mt-2 grid grid-cols-2 gap-3">
+                  {[{ v: "Bride", l: "👰 పెళ్లి కూతురు", s: "Bride" }, { v: "Groom", l: "🤵 పెళ్లి కొడుకు", s: "Groom" }].map((g) => (
+                    <button key={g.v} type="button" onClick={() => set("gender", g.v)}
+                      className={`rounded-2xl border-2 p-4 text-center ${f.gender === g.v ? "border-maroon bg-maroon-soft" : "border-gold/30 bg-white"}`}>
+                      <div className="text-2xl">{g.v === "Bride" ? "👰" : "🤵"}</div>
+                      <div className="font-bold text-[14px] text-maroon mt-1 telugu">{g.l}</div>
+                      <div className="text-[11px] text-gray-500">{g.s}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <TextField label="Full name" value={f.full_name} onChange={(v) => set("full_name", v)} required
+                placeholder="Lakshmi Reddy" hint="Card + channels lo ide peru kanipisthundi" />
+
+              <div className="grid grid-cols-2 gap-3">
+                <TextField label="Date of birth" value={f.dob} onChange={(v) => set("dob", v)} required
+                  type="date" max={maxDobFor18()} hint="Age automatic vastundi" />
+                <div>
+                  <label className="text-[13px] font-bold text-ink">Age (auto)</label>
+                  <div className="input-mobile mt-1 flex items-center justify-between bg-cream">
+                    <span className="font-bold text-maroon">{f.age || "—"}</span>
+                    <span className="text-[10px] text-gray-500">DOB nunchi</span>
+                  </div>
+                </div>
+              </div>
+
+              <ChipGroup label="Height" required options={HEIGHTS.map((h) => ({ v: h }))} value={f.height}
+                onChange={(v) => set("height", v)} />
+              <ChipGroup label="Weight" options={WEIGHTS.map((w) => ({ v: w }))} value={f.weight}
+                onChange={(v) => set("weight", v)} />
+              <ChipGroup label="Marital status" required options={MARITAL_STATUSES.map((m) => ({ v: m }))}
+                value={f.marital_status} onChange={(v) => set("marital_status", v)} />
+              <ChipGroup label="Religion" options={RELIGIONS.map((r) => ({ v: r }))} value={f.religion}
+                onChange={(v) => set("religion", v)} />
+              <ChipGroup label="Mother tongue" options={MOTHER_TONGUES.map((m) => ({ v: m }))} value={f.mother_tongue}
+                onChange={(v) => set("mother_tongue", v)} />
+            </>
+          )}
+
+          {/* ---------------- STEP 2 ---------------- */}
+          {step === 2 && (
+            <>
+              <ChipGroup label="Caste" required searchable
+                options={CASTES.map((c) => ({ v: c }))} value={f.caste} onChange={(v) => set("caste", v)}
+                hint="43 caste channels unnayi — mee caste channel lo profile post avutundi" />
+              <TextField label="Sub caste" optional value={f.sub_caste} onChange={(v) => set("sub_caste", v)}
+                placeholder="Pakanati / Deshathi / Telaga…" />
+              <TextField label="Gothram" optional value={f.gothram} onChange={(v) => set("gothram", v)}
+                placeholder="Bharadwaj" hint="Porutham report ki kavali" />
+              <ChipGroup label="Star / Nakshatram" searchable te
+                options={NAKSHATRAS.map((n) => ({ v: n.en, te: n.te }))} value={f.star}
+                onChange={(v) => set("star", v)} hint="Star select chesthe rasi automatic vastundi (porutham 10/10)" />
+              <ChipGroup label="Rasi" te options={RASIS.map((r) => ({ v: r.en, te: r.te }))} value={f.rasi}
+                onChange={(v) => set("rasi", v)} />
+              <ChipGroup label="Moola nakshatram?" options={[{ v: "No" }, { v: "Yes" }]} value={f.moola_nakshatram}
+                onChange={(v) => set("moola_nakshatram", v)} />
+              <ChipGroup label="Dosham unda?" options={[{ v: "No" }, { v: "Yes" }, { v: "Not Sure" }]} value={f.dosham}
+                onChange={(v) => set("dosham", v)} />
+            </>
+          )}
+
+          {/* ---------------- STEP 3 ---------------- */}
+          {step === 3 && (
+            <>
+              <ChipGroup label="Education" required searchable options={EDUCATIONS.map((x) => ({ v: x }))}
+                value={f.education} onChange={(v) => set("education", v)} />
+              <TextField label="Education detail" optional value={f.education_detail} onChange={(v) => set("education_detail", v)}
+                placeholder="CSE / Finance / Nursing…" />
+              <TextField label="College / University" optional value={f.college} onChange={(v) => set("college", v)}
+                placeholder="JNTU Hyderabad" />
+              <ChipGroup label="Job / Udyogam" required searchable options={JOBS.map((j) => ({ v: j }))}
+                value={f.job} onChange={(v) => set("job", v)} />
+              <TextField label="Company" optional value={f.company} onChange={(v) => set("company", v)} placeholder="TCS / Govt / Own business" />
+              <TextField label="Experience" optional value={f.experience} onChange={(v) => set("experience", v)}
+                inputMode="numeric" placeholder="3 years" />
+              <div className="grid grid-cols-2 gap-3">
+                <ChipGroup label="Work type" options={WORK_TYPES.map((w) => ({ v: w }))} value={f.work_type}
+                  onChange={(v) => set("work_type", v)} />
+              </div>
+              <ChipGroup label="Salary" required options={SALARIES.map((s) => ({ v: s }))} value={f.salary}
+                onChange={(v) => set("salary", v)} hint="Approximate range chalu — exact number vadalasina avasaram ledu" />
+              <TextField label="Work location" optional value={f.work_location} onChange={(v) => set("work_location", v)}
+                placeholder="Hyderabad / Gachibowli / USA" />
+            </>
+          )}
+
+          {/* ---------------- STEP 4 ---------------- */}
+          {step === 4 && (
+            <>
+              <div className="grid grid-cols-2 gap-3">
+                <ChipGroup label="State" required options={[{ v: "TS" }, { v: "AP" }, { v: "Other" }]} value={f.state}
+                  onChange={(v) => { set("state", v); set("district", ""); }} />
+              </div>
+              <ChipGroup label="District" required searchable options={distList.map((d) => ({ v: d }))}
+                value={f.district} onChange={(v) => set("district", v)}
+                hint="District channel + local matches ki kavali" />
+              <div className="grid grid-cols-1 gap-3">
+                <TextField label="Mandal / Area" optional value={f.mandal} onChange={(v) => set("mandal", v)} placeholder="Miryalaguda" />
+                <TextField label="Current city" optional value={f.current_city} onChange={(v) => set("current_city", v)} placeholder="Hyderabad" />
+                <TextField label="Pincode" optional value={f.pincode} onChange={(v) => set("pincode", v)} inputMode="numeric" placeholder="500032" />
+                <TextField label="Native place" optional value={f.native_place} onChange={(v) => set("native_place", v)} placeholder="Nalgonda" />
+              </div>
+
+              <div className="bg-white rounded-2xl border border-gold/30 p-4 space-y-3">
+                <div className="font-bold text-maroon text-[14px]">📱 Mobile number (verification)</div>
+                <TextField label="WhatsApp / Mobile" required value={f.phone} onChange={(v) => set("phone", v.replace(/\D/g, "").slice(0, 10))}
+                  type="tel" inputMode="tel" placeholder="98480 12345"
+                  hint="Mee number evariki kanipinchadu — interest accept ayyaka matrame exchange avutundi" />
+                {!phoneOk ? (
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button type="button" onClick={sendOtp} disabled={busy || f.phone.length !== 10}
+                      className="maroon-gradient text-white font-bold text-[13px] px-4 py-2.5 rounded-xl disabled:opacity-50">
+                      {otpSent ? "OTP malli pampu" : "OTP pampu"}
+                    </button>
+                    {otpSent && (
+                      <>
+                        <input value={otpCode} onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                          inputMode="numeric" placeholder="4 digit OTP"
+                          className="input-mobile w-32 text-center tracking-[0.4em] font-bold" />
+                        <button type="button" onClick={verifyOtp} disabled={busy || otpCode.length !== 4}
+                          className="gold-gradient text-maroon font-bold text-[13px] px-4 py-2.5 rounded-xl disabled:opacity-50">✅ Verify</button>
+                      </>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-[12px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2">
+                    ✅ Number verify ayyindi — verified badge profile ki vastundi
+                  </div>
+                )}
+                {otpMsg && <div className="text-[11px] text-gray-600">{otpMsg}</div>}
+                <TextField label="Email" optional value={f.email} onChange={(v) => set("email", v)} inputMode="email" placeholder="name@gmail.com" />
+              </div>
+
+              <div className="grid grid-cols-1 gap-3">
+                <TextField label="Father name" optional value={f.father_name} onChange={(v) => set("father_name", v)} />
+                <ChipGroup label="Father occupation" options={OCCUPATIONS.map((o) => ({ v: o }))} value={f.father_occupation}
+                  onChange={(v) => set("father_occupation", v)} />
+                <TextField label="Mother name" optional value={f.mother_name} onChange={(v) => set("mother_name", v)} />
+                <ChipGroup label="Mother occupation" options={OCCUPATIONS.map((o) => ({ v: o }))} value={f.mother_occupation}
+                  onChange={(v) => set("mother_occupation", v)} />
+              </div>
+
+              <Stepper label="Brothers" value={f.brothers} onChange={(v) => set("brothers", v)} />
+              <Stepper label="Brothers (married)" value={f.brothers_married} onChange={(v) => set("brothers_married", v)} />
+              <Stepper label="Sisters" value={f.sisters} onChange={(v) => set("sisters", v)} />
+              <Stepper label="Sisters (married)" value={f.sisters_married} onChange={(v) => set("sisters_married", v)} />
+              <ChipGroup label="Family type" options={FAMILY_TYPES.map((x) => ({ v: x }))} value={f.family_type}
+                onChange={(v) => set("family_type", v)} />
+              <ChipGroup label="Family status" options={FAMILY_STATUSES.map((x) => ({ v: x }))} value={f.family_status}
+                onChange={(v) => set("family_status", v)} />
+              <ChipGroup label="Family values" options={FAMILY_VALUES.map((x) => ({ v: x }))} value={f.family_values}
+                onChange={(v) => set("family_values", v)} />
+            </>
+          )}
+
+          {/* ---------------- STEP 5 ---------------- */}
+          {step === 5 && (
+            <>
+              <div className="bg-white rounded-2xl border border-gold/30 p-4">
+                <div className="font-bold text-maroon text-[15px]">📸 Photo (3x ekkuva matches vastayi)</div>
+                <div className="hint">Phone gallery / camera nunchi teesukondi. Photo automatic ga compress avutundi (fast upload). Watermark + private mode tho safe.</div>
+                <div className="mt-3 flex items-center gap-3">
+                  <label className="cursor-pointer">
+                    <input type="file" accept="image/*" className="hidden"
+                      onChange={(e) => pickPhoto(e.target.files?.[0])} />
+                    <span className="inline-block maroon-gradient text-white font-bold text-[13px] px-4 py-3 rounded-xl">
+                      {photoPreview ? "Photo marchu" : "📷 Photo select / camera"}
+                    </span>
+                  </label>
+                  {photoPreview && (
+                    <div className="relative">
+                      <img src={photoPreview} alt="preview" className="w-20 h-20 rounded-2xl object-cover border-2 border-gold" />
+                      <button type="button"
+                        onClick={() => { setPhotoFile(null); setPhotoPreview(""); setPhotoUrl(""); setPhotoInfo(""); }}
+                        className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-white border border-rose-300 text-rose-600 font-bold text-xs">✕</button>
+                    </div>
+                  )}
+                </div>
+                {photoInfo && <div className="hint mt-2">{photoInfo}</div>}
+              </div>
+
+              <Toggle label="🔒 Photo-private mode" sub="Public lo blur ga kanipisthundi — interest accept ayyaka matrame clear"
+                value={!!f.photo_private} onChange={(v) => set("photo_private", v)} />
+
+              <div>
+                <label className="text-[13px] font-bold text-ink">About me / Naa gurinchi <span className="text-[10px] text-gray-400">(optional)</span></label>
+                <textarea value={f.about_myself} onChange={(e) => set("about_myself", e.target.value.slice(0, 600))}
+                  rows={4} placeholder="Nenu simple family, software engineer… (Telugu lo kooda rayochu)"
+                  className="input-mobile mt-1 telugu" />
+                <div className="mt-2 flex items-center gap-2">
+                  <button type="button" onClick={startVoice}
+                    className="border border-maroon/30 text-maroon font-bold text-[12px] px-3 py-2 rounded-xl">🎤 Voice tho cheppu</button>
+                  <span className="text-[10px] text-gray-500">{f.about_myself.length}/600</span>
+                </div>
+              </div>
+
+              <ChipGroup label="Body type" options={BODY_TYPES.map((x) => ({ v: x }))} value={f.body_type}
+                onChange={(v) => set("body_type", v)} />
+              <ChipGroup label="Complexion" options={COMPLEXIONS.map((x) => ({ v: x }))} value={f.complexion}
+                onChange={(v) => set("complexion", v)} />
+              <ChipGroup label="Blood group" options={BLOOD_GROUPS.map((x) => ({ v: x }))} value={f.blood_group}
+                onChange={(v) => set("blood_group", v)} />
+              <ChipGroup label="Physical status" options={PHYSICAL_STATUS.map((x) => ({ v: x }))} value={f.physical_status}
+                onChange={(v) => set("physical_status", v)} />
+
+              <div className="bg-cream rounded-2xl border border-gold/30 p-4 space-y-3">
+                <div className="font-bold text-maroon text-[14px]">💞 Mee expectations (matches filter ki)</div>
+                <div className="grid grid-cols-2 gap-3">
+                  <TextField label="Age from" optional value={f.exp_age_min} onChange={(v) => set("exp_age_min", v.replace(/\D/g, "").slice(0, 2))}
+                    inputMode="numeric" placeholder="22" />
+                  <TextField label="Age to" optional value={f.exp_age_max} onChange={(v) => set("exp_age_max", v.replace(/\D/g, "").slice(0, 2))}
+                    inputMode="numeric" placeholder="30" />
+                </div>
+                <ChipGroup label="Job preference" options={JOBS.slice(0, 12).map((j) => ({ v: j }))} value={f.exp_job}
+                  onChange={(v) => set("exp_job", v)} />
+                <TextField label="Location preference" optional value={f.exp_location} onChange={(v) => set("exp_location", v)}
+                  placeholder="Hyderabad / USA" />
+                <ChipGroup label="Caste preference" options={[{ v: "Same caste" }, { v: "Any caste" }, { v: "Caste no bar" }]}
+                  value={f.exp_caste} onChange={(v) => set("exp_caste", v)} />
+                <TextField label="Free text expectations" optional value={f.expectations} onChange={(v) => set("expectations", v)}
+                  placeholder="Govt job / business / respects elders…" />
+              </div>
+
+              <label className="flex items-start gap-3 bg-white rounded-2xl border border-gold/30 p-4">
+                <input type="checkbox" checked={!!f.consent} onChange={(e) => set("consent", e.target.checked)}
+                  className="mt-1 w-5 h-5 accent-[#7A0C2E]" />
+                <span className="text-[12px] text-gray-700">
+                  Naa details <b>nijam</b> ani confirm chesthunnanu. <b>Mana Vivaha</b> terms + privacy policy accept chesthunnanu —
+                  details channels lo post avutayi, number accept ayyaka matrame share avutundi.
+                </span>
+              </label>
+            </>
+          )}
+        </div>
+
+        {/* ---------------- trust strip ---------------- */}
+        <div className="mt-6 grid grid-cols-2 gap-2 text-[11px] text-gray-600">
+          {["🔒 Number evariki ivvamu", "🛡️ Watermark + log", "↩️ Decline aithe refund", "🚫 Chatting ledu"].map((t) => (
+            <div key={t} className="bg-white border border-gold/25 rounded-xl px-3 py-2">{t}</div>
+          ))}
+        </div>
+      </div>
+
+      {/* ---------------- sticky action bar ---------------- */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/97 backdrop-blur border-t border-gold/30 safe-bottom">
+        <div className="max-w-3xl mx-auto px-4 py-3 flex items-center gap-3">
+          {step > 1 && (
+            <button onClick={back} className="px-5 py-3.5 rounded-2xl border border-maroon/25 text-maroon font-bold text-[14px]">
+              ← Back
+            </button>
+          )}
+          <div className="flex-1 text-[10px] text-gray-500">
+            {step < 5 ? `Next: ${STEPS[step].label}` : "Chivari step — submit cheyyandi"}
+          </div>
+          {step < 5 ? (
+            <button onClick={next} className="px-7 py-3.5 rounded-2xl maroon-gradient text-white font-bold text-[15px]">
+              Next →
+            </button>
+          ) : (
+            <button onClick={submit} disabled={busy}
+              className="px-6 py-3.5 rounded-2xl gold-gradient text-maroon font-bold text-[15px] disabled:opacity-60">
+              {busy ? "Register avutund…" : "✅ Register cheyyi"}
+            </button>
+          )}
+        </div>
+      </div>
+    </main>
+  );
+}
+
+function draftSavedLabel(savedAt: string) {
+  return savedAt ? ` (${savedAt} ki save ayyindi)` : "";
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-[60vh] flex items-center justify-center text-gray-500 text-sm">
+          Register form load avutundi…
+        </div>
+      }
+    >
+      <Wizard />
+    </Suspense>
   );
 }
