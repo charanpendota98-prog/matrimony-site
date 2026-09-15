@@ -9,6 +9,8 @@
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { SITE_CONFIG } from "@/lib/site-config";
+import { authHeaders } from "@/lib/api";
+import AuthGate from "@/components/AuthGate";
 
 type Dash = any;
 
@@ -24,6 +26,7 @@ export default function ReferralPage() {
   const [pay, setPay] = useState({ open: false, amount: "", upi: "", method: "upi" });
   const [payRes, setPayRes] = useState<any>(null);
   const [copied, setCopied] = useState("");
+  const [needsLogin, setNeedsLogin] = useState(false);   // 🐞 FIX: referral dashboard owner-only — token lekapote 401
 
   /* ---------- load ---------- */
   useEffect(() => {
@@ -38,11 +41,12 @@ export default function ReferralPage() {
 
   const load = useCallback((id: string) => {
     if (!id) return;
-    fetch(`/api/referral/${id}`)
-      .then((r) => r.json())
+    // 🐞 FIX: private dashboard — X-Tsap-Token pampali (lekapote 401 → mee account lo login cheyyali)
+    fetch(`/api/referral/${id}`, { headers: authHeaders() })
+      .then((r) => { if (r.status === 401) { setNeedsLogin(true); return { detail: "🔒 Mee account lo login cheyyandi (OTP) — appude mee referral dashboard kanipistundi" }; } return r.json(); })
       .then((d) => { if (d.ok) setDash(d); else setErr(d.detail || "Dashboard load avvaledu"); })
       .catch(() => setErr("Server nunchi data ravaledu — API check cheyyandi"));
-    fetch(`/api/referral/${id}/payouts`).then((r) => r.json()).then((d) => d.success && setDash((prev: Dash) => prev ? { ...prev, payouts_live: d.payouts, payout_meta: d } : prev)).catch(() => { });
+    fetch(`/api/referral/${id}/payouts`, { headers: authHeaders() }).then((r) => r.json()).then((d) => d.success && setDash((prev: Dash) => prev ? { ...prev, payouts_live: d.payouts, payout_meta: d } : prev)).catch(() => { });
   }, []);
 
   useEffect(() => { if (tsapId) load(tsapId); }, [tsapId, load]);
@@ -100,7 +104,7 @@ export default function ReferralPage() {
             <span className="px-3 py-1 rounded-full bg-white/10">ID: <b>{tsapId || "…"}</b></span>
             <input value={tsapId} onChange={(e) => setTsapId(e.target.value.toUpperCase())}
               className="px-3 py-1.5 rounded-full bg-white/10 border border-white/25 text-white placeholder-white/60 text-xs w-56"
-              placeholder="Mee TSAP ID (TSAP-F-2025-1042)" />
+              placeholder="Mee TSAP ID (TSAP-F-2025-1042)" aria-label="Mee TSAP ID (TSAP-F-2025-1042)" />
             <span className="px-3 py-1 rounded-full bg-[#D4AF37] text-[#7A0C2E] font-bold">{tier.icon} {tier.key}</span>
             {s.paid_count > 0 && <span className="px-3 py-1 rounded-full bg-white/10">{s.paid_count} paying referrals</span>}
           </div>
@@ -177,9 +181,9 @@ export default function ReferralPage() {
               <div className="mt-3 rounded-xl border border-[#D4AF37]/40 bg-[#FFF8E7] p-3 text-xs">
                 <div className="font-bold text-[#7A0C2E]">💸 Payout request</div>
                 <input value={pay.amount} onChange={(e) => setPay({ ...pay, amount: e.target.value.replace(/\D/g, "") })}
-                  className="mt-2 w-full rounded-lg border px-3 py-2" placeholder="Amount (min ₹100)" />
+                  className="mt-2 w-full rounded-lg border px-3 py-2" placeholder="Amount (min ₹100)" aria-label="Amount (min ₹100)" />
                 <input value={pay.upi} onChange={(e) => setPay({ ...pay, upi: e.target.value })}
-                  className="mt-2 w-full rounded-lg border px-3 py-2" placeholder="UPI ID — udaharanam: name@okhdfcbank" />
+                  className="mt-2 w-full rounded-lg border px-3 py-2" placeholder="UPI ID — udaharanam: name@okhdfcbank" aria-label="UPI ID — udaharanam: name@okhdfcbank" />
                 <button onClick={submitPayout} className="mt-2 w-full rounded-lg bg-[#7A0C2E] text-white py-2 font-bold">Request pampu</button>
                 <div className="text-[10px] text-gray-500 mt-1">3 working days lo mee UPI ki — UTR tho confirm avutundi.</div>
               </div>
@@ -363,10 +367,14 @@ export default function ReferralPage() {
             <div className="mt-3 flex flex-wrap gap-2 text-xs">
               <Link href="/pricing" className="underline font-bold text-[#7A0C2E]">Pricing</Link>
               <Link href="/channels" className="underline font-bold text-[#7A0C2E]">Channels</Link>
-              <a href={`https://wa.me/${SITE_CONFIG.supportWhatsapp}`} className="underline font-bold text-[#7A0C2E]">Support WhatsApp</a>
+              <a href={SITE_CONFIG.supportLink} className="underline font-bold text-[#7A0C2E]">Support WhatsApp</a>
             </div>
           </div>
         </section>
+        {needsLogin && <AuthGate
+          title="🔒 Mee referral dashboard ki OTP login kavali"
+          note="Mee referral code, clicks, wallet, payouts — ivi mee account data. OTP tho login cheyyandi, appude kanipistundi (vere vaallaki kanipinchadu)." />}
+
       </div>
     </main>
   );

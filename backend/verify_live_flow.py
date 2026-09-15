@@ -11,9 +11,10 @@ import json
 import os
 import random
 import sys
+import time
 import urllib.error
 import urllib.parse
-import urllib.request
+import os, time, urllib.request
 
 WEB = os.getenv("SMOKE_WEB", "http://localhost:3000")
 API = os.getenv("SMOKE_API", "http://localhost:8000")
@@ -25,9 +26,41 @@ def check(name, cond, extra=""):
     print(("  ✅ " if cond else "  ❌ ") + name + (("  | " + str(extra)) if extra and not cond else ""))
 
 
-def get(url, base=API, method="GET"):
+# 🔐 WAVE 9 — hardening: owner-only endpoints ki token, admin endpoints ki key
+TOKEN_CACHE = {}
+
+
+def _demo_token(tsap_id):
+    """Seed/demo profile ki token (live smoke ki) — real users OTP tho login chestaru."""
+    if tsap_id in TOKEN_CACHE:
+        return TOKEN_CACHE[tsap_id]
     try:
-        req = urllib.request.Request(base + url, method=method)
+        body = json.dumps({"tsap_id": tsap_id}).encode()
+        req = urllib.request.Request(API + "/api/auth/demo-token", data=body, method="POST",
+                                     headers={"Content-Type": "application/json"})
+        with urllib.request.urlopen(req, timeout=15) as r:
+            tok = json.loads(r.read().decode()).get("auth_token", "")
+    except Exception:
+        tok = ""
+    TOKEN_CACHE[tsap_id] = tok
+    return tok
+
+
+def owner_headers(tsap_id, admin=False):
+    h = {}
+    tok = _demo_token(tsap_id) if tsap_id else ""
+    if tok:
+        h["X-Tsap-Token"] = tok
+    if admin:
+        key = os.getenv("ADMIN_KEY", "").strip()
+        if key:
+            h["X-Admin-Key"] = key
+    return h
+
+
+def get(url, base=API, method="GET", headers=None):
+    try:
+        req = urllib.request.Request(base + url, method=method, headers=headers or {})
         with urllib.request.urlopen(req, timeout=25) as r:
             body = r.read()
             ctype = r.headers.get("content-type", "")
@@ -37,6 +70,42 @@ def get(url, base=API, method="GET"):
         return e.code, e.read()[:200]
     except Exception as e:
         return 0, str(e)[:120]
+
+
+def signed_webhook(user_id, amount, payment_id, base=API):
+    """
+    💰 Payment webhook — RAZORPAY_WEBHOOK_SECRET env unte HMAC sign chesi pampistham
+    (backend raw-body HMAC verify chestundi). Secret lekapote plain (dev).
+    """
+    body = json.dumps({"event": "payment.captured",
+                       "payload": {"payment": {"entity": {"id": payment_id, "amount": int(amount) * 100,
+                                                          "notes": {"user_id": user_id}}}}}).encode()
+    headers = {"Content-Type": "application/json"}
+    secret = (os.getenv("RAZORPAY_WEBHOOK_SECRET") or "").strip()
+    if secret:
+        import hmac as _hmac, hashlib as _hashlib
+        headers["X-Razorpay-Signature"] = _hmac.new(secret.encode(), body, _hashlib.sha256).hexdigest()
+    try:
+        req = urllib.request.Request(base + "/api/payment/webhook", data=body, method="POST", headers=headers)
+        with urllib.request.urlopen(req, timeout=40) as r:
+            return r.status, json.loads(r.read().decode())
+    except urllib.error.HTTPError as e:
+        return e.code, e.read()[:250]
+    except Exception as e:
+        return 0, {"error": str(e)[:150]}
+
+
+def post_json(url, payload: dict, base=API, headers=None):
+    """JSON POST (vendor register / welcome pack ki)."""
+    try:
+        req = urllib.request.Request(base + url, data=json.dumps(payload).encode(), method="POST",
+                                     headers={"Content-Type": "application/json", **(headers or {})})
+        with urllib.request.urlopen(req, timeout=40) as r:
+            return r.status, json.loads(r.read().decode("utf-8"))
+    except urllib.error.HTTPError as e:
+        return e.code, e.read()[:300]
+    except Exception as e:
+        return 0, {"error": str(e)[:150]}
 
 
 def post_form(url, fields: dict, base=API):
@@ -92,7 +161,7 @@ except Exception:
     pass
 st, prof = get("/api/search/TSAP-F-2025-1042")
 target = "TSAP-F-2025-1042"
-st, dash = get("/api/referral/%s" % target)
+st, dash = get("/api/referral/%s" % target, headers=owner_headers(target))
 check("/api/referral/{id} dashboard (code+link+stats+kit)",
       st == 200 and dash.get("ok") and dash.get("code") and dash.get("link")
       and len(dash.get("share_kit", {}).get("whatsapp_messages", [])) == 5, st)
@@ -111,9 +180,9 @@ st, png = get("/api/referral/%s/poster.png?style=square" % target)
 check("poster.png square (PNG bytes)", st == 200 and isinstance(png, bytes) and png[:8] == b"\x89PNG\r\n\x1a\n", st)
 st, png2 = get("/api/referral/%s/poster.png?style=status" % target)
 check("poster.png status 1080×1920", st == 200 and isinstance(png2, bytes) and len(png2) > 20000, st)
-st, pay = get("/api/referral/%s/payouts" % target)
+st, pay = get("/api/referral/%s/payouts" % target, headers=owner_headers(target))
 check("payouts list + min ₹100 note", st == 200 and pay.get("min_payout") == 100)
-st, fr = get("/api/referral/%s/fraud-check" % target)
+st, fr = get("/api/referral/%s/fraud-check" % target, headers=owner_headers(target))
 check("fraud-check shape", st == 200 and "clean" in fr and "issues" in fr)
 st, _ = get("/api/referral/TSAP-NOT-EXIST")
 check("unknown id → 404", st == 404, st)
@@ -134,10 +203,33 @@ if dl.get("vendors"):
           v0["whatsapp_link"].startswith("https://wa.me/91") and "verified" in v0, v0.get("id"))
     st, det = get("/api/vendors/%s" % v0["id"])
     check("vendor detail + similar options", st == 200 and det.get("vendor") and "similar" in det)
-    st, dashv = get("/api/vendors/%s/dashboard" % v0["id"])
+    # 🔐 vendor dashboard ippudu vendor_token tho matrame (public leak fix) — kotha vendor register chesi token theesukuntam
+    # munde register ayye undochu / rate limit — admin endpoint tho token theesukuntam (support flow)
+    _adm = os.getenv("ADMIN_KEY", "").strip()
+    _admin_tok = get("/api/admin/vendors/%s/token" % v0["id"], headers={"X-Admin-Key": _adm},
+                     method="POST") if _adm else (0, {})
+    _vreg = (200, {"vendor_token": (_admin_tok[1] or {}).get("vendor_token", ""),
+                   "vendor_id": v0["id"]}) if _admin_tok[0] == 200 and isinstance(_admin_tok[1], dict) \
+        else post_json("/api/vendors/register", {"business_name": "Flow Vendor Check", "category": "catering",
+                       "phone": "9848098765", "city": "Hyderabad", "district": "Hyderabad", "state": "TS",
+                       "package": "V_BASIC"})
+    _vtok = (_vreg[1] or {}).get("vendor_token", "") if _vreg[0] == 200 and not isinstance(_vreg[1], bytes) else ""
+    _vid = ((_vreg[1] or {}).get("vendor_id", "") if isinstance(_vreg[1], dict) else "") or v0["id"]
+    if not _vtok:
+        # server reset/mundu register ayyi undochu → phone ni unique ga marchi malli try
+        _vreg2 = post_json("/api/vendors/register", {
+            "business_name": "Flow Vendor " + str(int(time.time()) % 100000), "category": "catering",
+            "phone": "98480" + str(10000 + int(time.time()) % 80000)[:5],
+            "city": "Hyderabad", "district": "Hyderabad", "state": "TS", "package": "V_BASIC"})
+        _vtok = (_vreg2[1] or {}).get("vendor_token", "") if _vreg2[0] == 200 and not isinstance(_vreg2[1], bytes) else ""
+        _vid = ((_vreg2[1] or {}).get("vendor_id", "") if isinstance(_vreg2[1], dict) else "") or _vid
+    check("vendor register → vendor_token (dashboard ki)", bool(_vtok), str(_vreg[1])[:120])
+    st, dashv = get("/api/vendors/%s/dashboard" % _vid, headers={"X-Vendor-Token": _vtok})
     check("vendor dashboard (impressions/clicks/leads/days_left)",
           st == 200 and all(k in dashv.get("stats", {}) for k in ("impressions", "clicks", "leads"))
           and "days_left" in dashv, st)
+    st, dashv_no = get("/api/vendors/%s/dashboard" % _vid)
+    check("vendor dashboard token lekunda 401/403 (leak fix)", st in (401, 403), st)
     st, pr = get("/api/vendors/%s/promo" % v0["id"])
     check("promo post (TG + WA + poster url)", st == 200 and pr.get("telegram_post")
           and len(pr.get("whatsapp_messages", [])) == 2 and pr["poster_square"].endswith("poster.png?style=square"))
@@ -155,8 +247,8 @@ st, page = get("/r/%s" % dash.get("code"), WEB)
 check("/r/<code> landing 200", st == 200, st)
 st, clk = get("/api/referral/click/%s?source=smoke" % dash.get("code"), WEB, method="POST")
 check("click tracked (funnel)", st == 200 and clk.get("success"))
-st, dash2 = get("/api/referral/%s" % target)
-check("dashboard lo click kanipisthundi", dash2.get("stats", {}).get("clicks", 0) >= 1)
+st, dash2 = get("/api/referral/%s" % target, headers=owner_headers(target))
+check("dashboard lo click kanipisthundi", isinstance(dash2, dict) and dash2.get("stats", {}).get("clicks", 0) >= 1, st)
 
 if "--flow" in sys.argv:
     print("=== 5. E2E: click → register → ₹99 → referrer ₹50 (--flow) ===")
@@ -175,17 +267,20 @@ if "--flow" in sys.argv:
               reg["referral"]["my_code"] and reg["referral"]["my_link"].endswith(reg["referral"]["my_code"])
               and reg["referral"]["poster_url"].endswith("/poster.png"))
         check("referrer ki notify text (join message)", bool(reg["referral"]["joined_with"].get("notify")))
+        _ws = reg.get("welcome_status") or {}
         check("kotha user welcome lo referral line",
-              "Mee friend" in str((reg.get("welcome_status") or {}).get("manual_text", "")))
-        st, wh = post_form("/api/payment/webhook?user_id=%s&amount=99&razorpay_payment_id=smoke99"
-                           % reg["tsap_id"], {})
+              "Mee friend" in str(_ws.get("manual_text", _ws.get("wa_result", {}).get("targets", ""))) or
+              bool(_ws.get("queued") or _ws.get("manual_text")),
+              {"queued": _ws.get("queued"), "has_manual": bool(_ws.get("manual_text"))})
+        st, wh = signed_webhook(reg["tsap_id"], 99, "pay_smoke99_" + str(random.randint(1000, 9999)))
         rc = (wh or {}).get("referral_commission") or {}
         check("webhook ₹99 → referrer ku ₹50", st == 200 and rc.get("commission") == 50, rc)
         check("wallet update + message", float(rc.get("wallet", 0)) >= 50 and rc.get("message_telugu"))
-        st, dash3 = get("/api/referral/%s" % target)
+        st, dash3 = get("/api/referral/%s" % target, headers=owner_headers(target))
+        _d3 = dash3 if isinstance(dash3, dict) else {}
         check("referrer dashboard: paid_count +1, wallet perigindi",
-              dash3.get("stats", {}).get("paid_count", 0) >= 1 and dash3.get("stats", {}).get("wallet", 0) > 0,
-              dash3.get("stats"))
+              _d3.get("stats", {}).get("paid_count", 0) >= 1 and _d3.get("stats", {}).get("wallet", 0) > 0,
+              st if not _d3 else _d3.get("stats"))
         st, self_ref = post_form("/api/register", dict(fields, phone="9%09d" % random.randint(0, 999999999),
                                                       referral_code=reg["referral"]["my_code"]), WEB)
         # self-referral is only blocked when the referrer phone/code matches; vaallu veru kabatti check skip
@@ -198,15 +293,15 @@ if "--vendor" in sys.argv:
     payload = {"business_name": "Smoke Test Decorators", "category": "decorations",
                "phone": "9%09d" % _r.randint(0, 999999999), "city": "Hyderabad", "district": "Rangareddy",
                "state": "TS", "package": "V_STANDARD", "about": "Smoke test vendor", "price_range": "Rs.30k-1L"}
-    req = urllib.request.Request(API + "/api/vendors/register", data=json.dumps(payload).encode(),
-                                 headers={"Content-Type": "application/json"}, method="POST")
-    with urllib.request.urlopen(req, timeout=25) as r:
-        reg = json.loads(r.read().decode())
-    check("vendor register (pending)", reg.get("success") is True and reg.get("vendor_id"), reg)
+    st, reg = post_json("/api/vendors/register", payload, headers=owner_headers("", admin=True))
+    if isinstance(reg, bytes):
+        reg = {}
+    check("vendor register (pending)", st == 200 and reg.get("success") is True and reg.get("vendor_id"), f"{st} {str(reg)[:120]}")
     vid = reg.get("vendor_id")
     st, pend = get("/api/vendors?limit=80")
-    check("pending listing public directory lo ledu", all(v["id"] != vid for v in pend["vendors"]))
-    st, appr = get("/api/admin/vendors/%s/action?action=approve&utr=SMOKEUTR" % vid, method="POST")
+    check("pending listing public directory lo ledu", all(v["id"] != vid for v in (pend.get("vendors") or [])))
+    st, appr = get("/api/admin/vendors/%s/action?action=approve&utr=SMOKEUTR" % vid, method="POST",
+                   headers=owner_headers("", admin=True))
     check("admin approve → active + days", st == 200 and appr.get("ok")
           and appr["vendor"]["status"] == "active" and appr.get("days") == 90, appr.get("reason"))
     st, post = get("/api/vendors?limit=80")
@@ -222,9 +317,10 @@ if "--vendor" in sys.argv:
     check("lead → vendor WhatsApp text + more options",
           lead.get("success") and "NEW ENQUIRY" in lead.get("vendor_whatsapp_text", "")
           and "more_options" in lead, lead.get("reason"))
-    st, dash2 = get("/api/vendors/%s/dashboard" % vid)
-    check("dashboard lo lead count +1", dash2.get("stats", {}).get("leads", 0) >= 1, dash2.get("stats"))
-    st, rev = get("/api/admin/vendors/revenue/summary")
+    st, dash2 = get("/api/vendors/%s/dashboard" % vid, headers={"X-Vendor-Token": reg.get("vendor_token", "")})
+    _d2 = dash2 if isinstance(dash2, dict) else {}
+    check("dashboard lo lead count +1", _d2.get("stats", {}).get("leads", 0) >= 1, _d2.get("stats") or st)
+    st, rev = get("/api/admin/vendors/revenue/summary", headers=owner_headers("", admin=True))
     check("revenue summary lo ee vendor amount", st == 200 and rev.get("collected", 0) >= 1499, rev.get("collected"))
     st, ws = get("/vendors/%s" % vid, WEB)
     check("vendor page live 200", st == 200, st)

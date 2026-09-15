@@ -22,7 +22,10 @@ export default function VendorDetailPage({ params }: { params: { id: string } })
 
   const load = useCallback(() => {
     fetch(`/api/vendors/${id}`).then((r) => r.json()).then((d) => d.success ? setData(d) : setErr(d.detail || "Vendor dorakaledu")).catch(() => setErr("Server nunchi data ravaledu"));
-    fetch(`/api/vendors/${id}/dashboard`).then((r) => r.json()).then((d) => d.success && setDash(d)).catch(() => { });
+    // 🐞 FIX: vendor dashboard (impressions/clicks/leads) public ga chupinchakoodadu — vendor token kavali
+    let vtok = "";
+    try { vtok = localStorage.getItem("tsap_vendor_token") || ""; } catch { /* ignore */ }
+    if (vtok) fetch(`/api/vendors/${id}/dashboard`, { headers: { "X-Vendor-Token": vtok } }).then((r) => r.json()).then((d) => d.success && setDash(d)).catch(() => { });
     fetch(`/api/vendors/${id}/promo`).then((r) => r.json()).then((d) => d.success && setPromo(d)).catch(() => { });
   }, [id]);
 
@@ -142,13 +145,13 @@ export default function VendorDetailPage({ params }: { params: { id: string } })
                 ) : (
                   <>
                     <div className="mt-3 grid sm:grid-cols-2 gap-3">
-                      <input className="input-mobile" placeholder="Mee peru *" value={lead.name} onChange={(e) => setLead({ ...lead, name: e.target.value })} />
+                      <input className="input-mobile" placeholder="Mee peru *" value={lead.name} onChange={(e) => setLead({ ...lead, name: e.target.value })} aria-label="Mee peru *" />
                       <input className="input-mobile" placeholder="Mee mobile (10 digits) *" value={lead.phone}
-                        onChange={(e) => setLead({ ...lead, phone: e.target.value })} inputMode="tel" />
-                      <input className="input-mobile" placeholder="District" value={lead.district} onChange={(e) => setLead({ ...lead, district: e.target.value })} />
-                      <input className="input-mobile" type="date" value={lead.event_date} onChange={(e) => setLead({ ...lead, event_date: e.target.value })} />
-                      <input className="input-mobile" placeholder="Budget (udaharanam: ₹80,000)" value={lead.budget} onChange={(e) => setLead({ ...lead, budget: e.target.value })} />
-                      <input className="input-mobile" placeholder="Requirement (udaharanam: 400 members lunch)" value={lead.message} onChange={(e) => setLead({ ...lead, message: e.target.value })} />
+                        onChange={(e) => setLead({ ...lead, phone: e.target.value })} inputMode="tel" aria-label="Mee mobile (10 digits) *" />
+                      <input className="input-mobile" placeholder="District" value={lead.district} onChange={(e) => setLead({ ...lead, district: e.target.value })} aria-label="District" />
+                      <input className="input-mobile" type="date" value={lead.event_date} onChange={(e) => setLead({ ...lead, event_date: e.target.value })} aria-label="Text input" />
+                      <input className="input-mobile" placeholder="Budget (udaharanam: ₹80,000)" value={lead.budget} onChange={(e) => setLead({ ...lead, budget: e.target.value })} aria-label="Budget (udaharanam: ₹80,000)" />
+                      <input className="input-mobile" placeholder="Requirement (udaharanam: 400 members lunch)" value={lead.message} onChange={(e) => setLead({ ...lead, message: e.target.value })} aria-label="Requirement (udaharanam: 400 members lunch)" />
                     </div>
                     {leadRes?.success === false && <div className="mt-2 text-[12px] text-rose-700">⚠️ {leadRes.message_telugu}</div>}
                     <button onClick={sendLead} disabled={busy}

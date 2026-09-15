@@ -19,11 +19,18 @@ export const SITE_CONFIG = {
   established: 2025,
 
   // ---------- Contact / channels ----------
+  // 🐞 FIX (F08): ikkada **fake** number ("+91 98480 12345") undedi — legal/refund pages lo kooda ade
+  // kanipinchi, customers tappu number ki message chesevaru. Ippudu env nunchi:
+  //   NEXT_PUBLIC_SUPPORT_WHATSAPP=9190XXXXXXXX  NEXT_PUBLIC_SUPPORT_PHONE=+91 90XX XXX XXX
+  // Set cheyyakapote Telegram bot link chupistundi (fake number eppudu chupinchamu).
   botUsername: "@telugumatrimony1_bot",
   botUrl: "https://t.me/telugumatrimony1_bot",
-  supportWhatsapp: "919848012345", // +91 98480 12345 (change)
-  supportPhone: "+91 98480 12345",
-  supportEmail: "care@manavivaha.in",
+  supportWhatsapp: (process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP || "").trim(),
+  supportPhone: (process.env.NEXT_PUBLIC_SUPPORT_PHONE || "").trim(),
+  supportEmail: (process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "care@manavivaha.in").trim(),
+  supportConfigured: Boolean((process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP || process.env.NEXT_PUBLIC_SUPPORT_PHONE || "").trim()),
+  get supportPhoneDisplay() { return this.supportPhone || "Telegram bot (@" + this.botUsername.replace("@", "") + ")"; },
+  get supportLink() { return this.supportWhatsapp ? `https://wa.me/${this.supportWhatsapp}` : this.botUrl; },
 
   // ---------- Social (optional, empty = hide) ----------
   social: {

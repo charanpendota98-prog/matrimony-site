@@ -20,6 +20,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import Reveal from "@/components/Reveal";
 import { SITE_CONFIG } from "@/lib/site-config";
+import { authHeaders } from "@/lib/api";
 import {
   BLOOD_GROUPS, BODY_TYPES, CASTES, COMPLEXIONS, DISTRICTS_BY_STATE, EDUCATIONS, FAMILY_STATUSES,
   FAMILY_TYPES, FAMILY_VALUES, HEIGHTS, JOBS, MARITAL_STATUSES, MOTHER_TONGUES, NAKSHATRAS, NAK_TO_RASI,
@@ -177,6 +178,8 @@ function Wizard() {
   const [phoneOk, setPhoneOk] = useState(false);
   const [refLocked, setRefLocked] = useState("");
   const [result, setResult] = useState<any>(null);
+  // 🎁 WAVE 10 — "register avvagane WhatsApp ki 3 profiles + caste channel links"
+  const [packResend, setPackResend] = useState<{ busy: boolean; msg: string }>({ busy: false, msg: "" });
   const [clarity, setClarity] = useState<any>(null);
   const [copied, setCopied] = useState("");
   const topRef = useRef<HTMLDivElement>(null);
@@ -440,6 +443,10 @@ function Wizard() {
       if (!r.ok) throw new Error(d.detail || "Register avvaledu");
       setResult(d);
       localStorage.removeItem(DRAFT_KEY);
+      // 🔐 WAVE 9 — auth token save (private API: inbox/credits/views/saved ki) + demo login ready
+      try {
+        if (d?.auth_token) { localStorage.setItem("tsap_token", String(d.auth_token)); localStorage.setItem("tsap_id", String(d.tsap_id || "")); }
+      } catch { /* private mode */ }
       // 🤝 Referral page + requests lo ide user kanipinchali (demo ID kaadu)
       try {
         const newId = d.tsap_id || d.user_id || "";
@@ -509,6 +516,79 @@ function Wizard() {
                 <b>Numbers eppudu?</b><br /><span className="text-[11px] opacity-90">interest pampi vaallu accept cheste (leda ₹99 plan tho ekkuva profiles)</span>
               </div>
             </div>
+            {result.quality ? (
+              <div className="mt-2 rounded-xl border border-gold/40 bg-white p-3 text-[12px]">
+                <div className="font-bold text-maroon">📝 Mee profile completeness: {result.quality.percent}%</div>
+                <div className="mt-1 text-gray-600">
+                  {result.quality.verdict_telugu}
+                  {Array.isArray(result.quality.important_telugu) && result.quality.important_telugu.length
+                    ? ` · ${result.quality.important_telugu.slice(0, 2).join(" · ")}` : ""}
+                </div>
+                <div className="mt-1 text-[11px] text-emerald-700">
+                  ✅ Login token save ayyindi — mee inbox/credits/shortlist ippudu mee browser lo secure ({result.phone_masked ? `number: ${result.phone_masked}` : "number masked"})
+                </div>
+              </div>
+            ) : null}
+            {result.welcome_pack ? (
+              <div className="mt-2 rounded-xl border-2 border-emerald-300 bg-emerald-50 p-3">
+                <div className="font-bold text-emerald-900 text-[13px]">
+                  📲 Mee WhatsApp ki pampinam — 3 profiles + mee caste channel links
+                </div>
+                <div className="mt-1 text-[11px] text-emerald-800">
+                  {result.welcome_pack.queue?.queued
+                    ? `✅ WhatsApp lo vellindi (${result.welcome_pack.queue?.kind || "welcome_pack"}) — mee number ${result.phone_masked || ""} ki`
+                    : "🕒 WhatsApp bridge connect ayye varaku queue lo undi — kaani ee 3 profiles ikkade chudandi:"}
+                </div>
+                <div className="mt-2 grid gap-2 sm:grid-cols-3">
+                  {(result.welcome_pack.profiles || []).map((pf: any, i: number) => (
+                    <Link key={pf.tsap_id} href={`/search/${pf.tsap_id}`}
+                      className="block bg-white border border-gold/40 rounded-xl p-2.5 hover:bg-cream">
+                      <div className="text-[12px] font-bold text-maroon">{["1️⃣","2️⃣","3️⃣"][i]} {pf.name}</div>
+                      <div className="text-[11px] text-gray-700">{pf.age} yrs • {pf.caste} • {pf.district}</div>
+                      <div className="text-[10px] text-gray-500">{pf.education} • {pf.job}</div>
+                      <div className="text-[10px] text-emerald-700">⭐ {pf.score}% match • 🔒 number locked</div>
+                    </Link>
+                  ))}
+                </div>
+                {(result.welcome_pack.channels || []).length > 0 && (
+                  <div className="mt-2">
+                    <div className="text-[12px] font-bold text-maroon">📢 Mee caste channels — daily matches ikkada</div>
+                    <div className="mt-1 flex flex-wrap gap-1.5">
+                      {(result.welcome_pack.channels || []).map((ch: any) => (
+                        <span key={ch.key} className="inline-flex items-center gap-1 rounded-full border border-maroon/20 bg-white px-2 py-1 text-[10px]">
+                          <b className="text-maroon">{ch.name}</b>
+                          {ch.telegram && <a className="text-sky-700 underline" href={ch.telegram} target="_blank" rel="noopener noreferrer">✈️ Telegram</a>}
+                          {ch.whatsapp && <a className="text-emerald-700 underline" href={ch.whatsapp} target="_blank" rel="noopener noreferrer">🟢 WhatsApp</a>}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <button
+                    onClick={async () => {
+                      setPackResend({ busy: true, msg: "" });
+                      try {
+                        const r = await fetch(`/api/welcome-pack/${tsap}/resend`, { method: "POST", headers: authHeaders() });
+                        const d = await r.json();
+                        setPackResend({ busy: false, msg: d.message_telugu || (r.ok ? "✅ Malli pampinam" : "⚠️ Pampaledu") });
+                      } catch { setPackResend({ busy: false, msg: "⚠️ Server tho connect avvaledu" }); }
+                    }}
+                    disabled={packResend.busy}
+                    className="rounded-xl border border-emerald-600 text-emerald-800 font-bold text-[11px] px-3 py-2 disabled:opacity-60">
+                    {packResend.busy ? "Pampisthunnam…" : "📲 Malli WhatsApp ki pampu (3 profiles + channels)"}
+                  </button>
+                  <a href={SITE_CONFIG.supportLink} target="_blank" rel="noopener noreferrer"
+                    className="rounded-xl border border-maroon/25 text-maroon font-bold text-[11px] px-3 py-2">
+                    💬 WhatsApp channel link kavali? Support ki ping
+                  </a>
+                  {packResend.msg && <span className="text-[11px] text-emerald-800">{packResend.msg}</span>}
+                </div>
+                <div className="mt-1 text-[10px] text-emerald-800">
+                  🔒 Numbers eppudu message lo pettamu — profile link + channel links matrame (consent tho matrame number exchange).
+                </div>
+              </div>
+            ) : null}
             <div className="mt-2 flex flex-wrap gap-2">
               <Link href={`/matches?id=${tsap}`} className="maroon-gradient text-white font-bold text-[12px] px-4 py-2.5 rounded-xl">
                 🔎 Mee 3 profiles chudandi (FREE)
@@ -655,7 +735,7 @@ function Wizard() {
           </div>
 
           <div className="text-[11px] text-gray-500 text-center">
-            ⚠️ Photos/numbers watermark + log tho untayi • Advance money adigithe report cheyyandi: {SITE_CONFIG.supportPhone}
+            ⚠️ Photos/numbers watermark + log tho untayi • Advance money adigithe report cheyyandi: {SITE_CONFIG.supportPhoneDisplay}
           </div>
         </div>
       </main>

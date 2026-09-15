@@ -107,7 +107,7 @@ export default function PrivacyPage() {
         <div className="font-bold text-[#7A0C2E]">🧑‍⚖️ Grievance Officer (DPDP Act 2023)</div>
         <div className="mt-2 space-y-1">
           <div>Name: Grievance Officer, {SITE_CONFIG.legalName}</div>
-          <div>Email: <b>{SITE_CONFIG.supportEmail}</b> • WhatsApp/Phone: <b>{SITE_CONFIG.supportPhone}</b></div>
+          <div>Email: <b>{SITE_CONFIG.supportEmail}</b> • WhatsApp/Phone: <b>{SITE_CONFIG.supportPhoneDisplay}</b></div>
           <div>Address: Hyderabad, Telangana, India</div>
           <div>Response: 15 రోజుల్లో (complaint acknowledge 48h lopu)</div>
         </div>

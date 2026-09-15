@@ -103,7 +103,7 @@ export default function TermsPage() {
       <div className="mt-8 rounded-2xl border border-gray-200 bg-white p-5 text-xs text-gray-700">
         <div className="font-bold text-[#7A0C2E]">Contact</div>
         <div className="mt-2 space-y-1">
-          <div>Email: <b>{SITE_CONFIG.supportEmail}</b> • WhatsApp: <b>{SITE_CONFIG.supportPhone}</b></div>
+          <div>Email: <b>{SITE_CONFIG.supportEmail}</b> • WhatsApp/Phone: <b>{SITE_CONFIG.supportPhoneDisplay}</b></div>
           <div>{SITE_CONFIG.legalName}, Hyderabad, Telangana, India</div>
         </div>
       </div>

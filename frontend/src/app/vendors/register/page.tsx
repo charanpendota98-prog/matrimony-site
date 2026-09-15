@@ -190,21 +190,21 @@ export default function VendorRegisterPage() {
         <div className="bg-white rounded-3xl border border-gold/30 p-4 space-y-3">
           <div className="text-[13px] font-bold text-ink">2. Business details</div>
           <input className="input-mobile" placeholder="Business peru * (udaharanam: Sri Lakshmi Catering)"
-            value={f.business_name} onChange={(e) => set("business_name", e.target.value)} />
+            value={f.business_name} onChange={(e) => set("business_name", e.target.value)} aria-label="Business peru * (udaharanam: Sri Lakshmi Catering)" />
           <div className="grid sm:grid-cols-2 gap-3">
-            <input className="input-mobile" placeholder="Owner peru" value={f.owner_name} onChange={(e) => set("owner_name", e.target.value)} />
-            <input className="input-mobile" placeholder="Experience (years)" value={f.experience_years} onChange={(e) => set("experience_years", e.target.value)} inputMode="numeric" />
+            <input className="input-mobile" placeholder="Owner peru" value={f.owner_name} onChange={(e) => set("owner_name", e.target.value)} aria-label="Owner peru" />
+            <input className="input-mobile" placeholder="Experience (years)" value={f.experience_years} onChange={(e) => set("experience_years", e.target.value)} inputMode="numeric" aria-label="Experience (years)" />
           </div>
           <div className="grid sm:grid-cols-2 gap-3">
             <input className="input-mobile" placeholder="Mobile number * (10 digits)" value={f.phone}
-              onChange={(e) => set("phone", e.target.value)} inputMode="tel" />
+              onChange={(e) => set("phone", e.target.value)} inputMode="tel" aria-label="Mobile number * (10 digits)" />
             <input className="input-mobile" placeholder="WhatsApp number (veru unte)" value={f.whatsapp}
-              onChange={(e) => set("whatsapp", e.target.value)} inputMode="tel" />
+              onChange={(e) => set("whatsapp", e.target.value)} inputMode="tel" aria-label="WhatsApp number (veru unte)" />
           </div>
           <div className="grid sm:grid-cols-3 gap-3">
-            <input className="input-mobile" placeholder="City / town *" value={f.city} onChange={(e) => set("city", e.target.value)} />
-            <input className="input-mobile" placeholder="District" value={f.district} onChange={(e) => set("district", e.target.value)} />
-            <select className="input-mobile" value={f.state} onChange={(e) => set("state", e.target.value)}>
+            <input className="input-mobile" placeholder="City / town *" value={f.city} onChange={(e) => set("city", e.target.value)} aria-label="City / town *" />
+            <input className="input-mobile" placeholder="District" value={f.district} onChange={(e) => set("district", e.target.value)} aria-label="District" />
+            <select className="input-mobile" value={f.state} onChange={(e) => set("state", e.target.value)} aria-label="Select option">
               <option value="TS">Telangana</option>
               <option value="AP">Andhra Pradesh</option>
               <option value="KA">Karnataka</option>
@@ -212,13 +212,13 @@ export default function VendorRegisterPage() {
             </select>
           </div>
           <input className="input-mobile" placeholder="Service areas (udaharanam: Warangal, Hanamkonda, Kazipet)"
-            value={f.service_areas} onChange={(e) => set("service_areas", e.target.value)} />
+            value={f.service_areas} onChange={(e) => set("service_areas", e.target.value)} aria-label="Service areas (udaharanam: Warangal, Hanamkonda, Kazipet)" />
           <input className="input-mobile" placeholder="Rate range (udaharanam: ₹250-450 per plate / ₹40,000 nunchi)"
-            value={f.price_range} onChange={(e) => set("price_range", e.target.value)} />
+            value={f.price_range} onChange={(e) => set("price_range", e.target.value)} aria-label="Rate range (udaharanam: ₹250-450 per plate / ₹40,000 nunchi)" />
           <textarea className="input-mobile min-h-[90px]" placeholder="Mee business gurinchi 3-4 lines (Telugu/English) — customers ki ide kanipisthundi"
-            value={f.about} onChange={(e) => set("about", e.target.value)} />
+            value={f.about} onChange={(e) => set("about", e.target.value)} aria-label="Text area" />
           <input className="input-mobile" placeholder="Photo/logo URL (optional — tarvata WhatsApp lo pampochu)"
-            value={f.photo_url} onChange={(e) => set("photo_url", e.target.value)} />
+            value={f.photo_url} onChange={(e) => set("photo_url", e.target.value)} aria-label="Photo/logo URL (optional — tarvata WhatsApp lo pampochu)" />
         </div>
 
         {/* PACKAGE */}

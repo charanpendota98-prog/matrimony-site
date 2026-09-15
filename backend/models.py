@@ -167,6 +167,12 @@ class RegisterResponse(BaseModel):
     card_url: str
     credits: int
     message_telugu: str
+    # 🔐 WAVE 9 — auth token (private API IDOR fix) + privacy/clarity fields
+    auth_token: str = ""
+    phone_masked: str = ""
+    duplicate_phone: bool = False
+    quality: Optional[Dict[str, Any]] = None
+    message_plan_telugu: str = ""
     next_steps: List[str]
     auto_post_queue: List[str]
     top_3_matches: List[MatchResult]
@@ -179,6 +185,8 @@ class RegisterResponse(BaseModel):
     share_text: str = ""
     # 🤝 Referral 2.0 — mee sontha code/link + friend code nunchi vachina bonus
     referral: Optional[Dict[str, Any]] = None
+    # 🎁 WAVE 10 — register avvagane WhatsApp ki velle "3 profiles + caste channel links" pack
+    welcome_pack: Optional[Dict[str, Any]] = None
 
 class SearchResponse(BaseModel):
     profile: UserDB

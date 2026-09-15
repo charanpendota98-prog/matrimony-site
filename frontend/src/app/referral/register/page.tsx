@@ -3,6 +3,7 @@
  * 🔑 "Mee referral link teesukondi" — TSAP ID pettandi (register appude code auto-create ayyindi).
  * Advanced: live API nunchi code + link + poster + share messages + wallet summary.
  */
+import { authHeaders } from "@/lib/api";
 import { useState } from "react";
 import Link from "next/link";
 
@@ -18,7 +19,7 @@ export default function GetMyReferralCodePage() {
     if (!id) { setErr("TSAP ID pettandi (udaharanam: TSAP-F-2025-1042)"); return; }
     setLoading(true); setErr(""); setData(null);
     try {
-      const r = await fetch(`/api/referral/${id}`);
+      const r = await fetch(`/api/referral/${id}`, { headers: authHeaders() });
       const d = await r.json();
       if (d.ok) { setData(d); localStorage.setItem("tsap_last_id", id); }
       else setErr(d.detail || "Ee ID dorakaledu — sari ga chusukondi leda register avvandi");
@@ -46,7 +47,7 @@ export default function GetMyReferralCodePage() {
             <input value={tsapId} onChange={(e) => setTsapId(e.target.value.toUpperCase())}
               onKeyDown={(e) => e.key === "Enter" && load()}
               placeholder="TSAP-F-2025-1042 / TSAP-M-2025-1042"
-              className="flex-1 rounded-xl border border-gray-300 px-4 py-3 text-sm font-mono" />
+              className="flex-1 rounded-xl border border-gray-300 px-4 py-3 text-sm font-mono" aria-label="TSAP-F-2025-1042 / TSAP-M-2025-1042" />
             <button onClick={load} disabled={loading}
               className="rounded-xl maroon-gradient text-white px-6 py-3 font-bold text-sm">
               {loading ? "…" : "Teesukondi →"}

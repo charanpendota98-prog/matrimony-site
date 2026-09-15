@@ -10,6 +10,8 @@
  * • Anti-ban WhatsApp status (queue + random gap) chupisthundi
  */
 import { useCallback, useEffect, useState } from "react";
+import AuthGate from "@/components/AuthGate";
+import { authHeaders, apiPost, getToken } from "@/lib/api";
 import Link from "next/link";
 import Reveal from "@/components/Reveal";
 import SectionHeading from "@/components/SectionHeading";
@@ -39,6 +41,7 @@ const STATUS_STYLE: Record<string, string> = {
 };
 
 export default function RequestsPage() {
+  const [needsLogin, setNeedsLogin] = useState(false);
   const [myId, setMyId] = useState("");
   const [tab, setTab] = useState<"inbox" | "sent" | "send" | "plans" | "porutham" | "saved" | "viewers">("inbox");
   const [credits, setCredits] = useState<number | null>(null);
@@ -55,6 +58,10 @@ export default function RequestsPage() {
   const [addons, setAddons] = useState<Addon[]>([]);
   const [renewal, setRenewal] = useState<any>(null);
   const [saved, setSaved] = useState<{ count: number; saved: Saved[] }>({ count: 0, saved: [] });
+  // 🆕 WAVE 9 ADVANCED — Telugu interest templates + consent ledger + profile strength
+  const [templates, setTemplates] = useState<{ id: string; text: string; tag?: string }[]>([]);
+  const [consent, setConsent] = useState<{ events?: any[]; total?: number } | null>(null);
+  const [quality, setQuality] = useState<any>(null);
   const [views, setViews] = useState<any>(null);
   const [por, setPor] = useState<any>(null);
   const [porA, setPorA] = useState("");
@@ -86,18 +93,24 @@ export default function RequestsPage() {
     async (id: string) => {
       if (!id) return;
       try {
-        const [c, i, s, sv, vw] = await Promise.all([
-          fetch(`/api/credits/${id}`).then((r) => r.json()),
-          fetch(`/api/interest/inbox/${id}`).then((r) => r.json()),
-          fetch(`/api/interest/sent/${id}`).then((r) => r.json()),
-          fetch(`/api/saved/${id}`).then((r) => r.json()),
-          fetch(`/api/views/${id}`).then((r) => r.json()),
+        const [c, i, s, sv, vw, tpl, cst, ql] = await Promise.all([
+          fetch(`/api/credits/${id}`, { headers: authHeaders() }).then((r) => { if (r.status === 401) setNeedsLogin(true); return r.json(); }),
+          fetch(`/api/interest/inbox/${id}`, { headers: authHeaders() }).then((r) => { if (r.status === 401) setNeedsLogin(true); return r.json(); }),
+          fetch(`/api/interest/sent/${id}`, { headers: authHeaders() }).then((r) => { if (r.status === 401) setNeedsLogin(true); return r.json(); }),
+          fetch(`/api/saved/${id}`, { headers: authHeaders() }).then((r) => { if (r.status === 401) setNeedsLogin(true); return r.json(); }),
+          fetch(`/api/views/${id}`, { headers: authHeaders() }).then((r) => { if (r.status === 401) setNeedsLogin(true); return r.json(); }),
+          fetch("/api/templates/interest").then((r) => r.json()).catch(() => ({})),
+          fetch(`/api/consent/log/${id}`, { headers: authHeaders() }).then((r) => { if (r.status === 401) setNeedsLogin(true); return r.json(); }).catch(() => ({})),
+          fetch(`/api/profile/${id}/quality`, { headers: authHeaders() }).then((r) => { if (r.status === 401) setNeedsLogin(true); return r.json(); }).catch(() => ({})),
         ]);
         if (typeof c?.credits === "number") setCredits(c.credits);
         if (i?.received) setInbox(i);
         if (s?.sent) setSent(s);
         if (sv?.saved) setSaved({ count: sv.count, saved: sv.saved });
         if (vw?.tsap_id) setViews(vw);
+        if (Array.isArray(tpl?.templates)) setTemplates(tpl.templates);
+        if (cst?.tsap_id) setConsent(cst);
+        if (ql?.tsap_id || ql?.completeness) setQuality(ql);
       } catch {
         setToast({ kind: "err", text: "Server tho connect avvaledu — malli try cheyyandi" });
       }
@@ -124,7 +137,7 @@ export default function RequestsPage() {
     try {
       const r = await fetch("/api/interest/send", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: authHeaders(),
         body: JSON.stringify({ from_id: myId, to_id: toId.trim().toUpperCase(), note }),
       });
       const d = await r.json();
@@ -152,7 +165,7 @@ export default function RequestsPage() {
     try {
       const r = await fetch("/api/interest/respond", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: authHeaders(),
         body: JSON.stringify({ tsap_id: myId, request_id, action }),
       });
       const d = await r.json();
@@ -169,7 +182,7 @@ export default function RequestsPage() {
     try {
       const r = await fetch("/api/credits/buy", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: authHeaders(),
         body: JSON.stringify({ tsap_id: myId, plan }),
       });
       const d = await r.json();
@@ -210,7 +223,7 @@ export default function RequestsPage() {
   };
 
   const removeSaved = async (id: string) => {
-    await fetch("/api/save", { method: "POST", headers: { "Content-Type": "application/json" },
+    await fetch("/api/save", { method: "POST", headers: authHeaders(),
       body: JSON.stringify({ tsap_id: myId, saved_id: id }) });
     refresh(myId);
   };
@@ -243,8 +256,7 @@ export default function RequestsPage() {
                 onChange={(e) => setMyId(e.target.value.toUpperCase())}
                 onBlur={(e) => saveId(e.target.value)}
                 placeholder="TSAP-M-2025-1042"
-                className="mt-1 w-56 px-3 py-2 rounded-xl text-ink font-mono text-sm outline-none focus-brand"
-              />
+                className="mt-1 w-56 px-3 py-2 rounded-xl text-ink font-mono text-sm outline-none focus-brand" aria-label="TSAP-M-2025-1042" />
             </div>
             <button onClick={() => saveId(myId)} className="gold-gradient text-maroon font-bold text-sm px-4 py-2.5 rounded-xl hover-lift">
               Load my dashboard
@@ -411,9 +423,22 @@ export default function RequestsPage() {
                     value={toId}
                     onChange={(e) => setToId(e.target.value.toUpperCase())}
                     placeholder="TSAP-F-2025-1042"
-                    className="mt-1 w-full px-3 py-2.5 rounded-xl border border-gold/40 font-mono text-sm outline-none focus-brand"
-                  />
+                    className="mt-1 w-full px-3 py-2.5 rounded-xl border border-gold/40 font-mono text-sm outline-none focus-brand" aria-label="TSAP-F-2025-1042" />
                 </div>
+                {templates.length > 0 && (
+                  <div>
+                    <div className="text-[11px] font-bold text-ink">💬 Ready-made Telugu messages (tap chesi edit cheyyandi)</div>
+                    <div className="mt-1 flex flex-wrap gap-1.5">
+                      {templates.slice(0, 6).map((t) => (
+                        <button key={t.id} type="button" onClick={() => setNote(t.text.slice(0, 280))}
+                          className="rounded-full border border-gold/40 bg-cream px-2.5 py-1 text-[10px] font-semibold text-maroon hover:bg-gold/20"
+                          title={t.text}>
+                          {t.tag || t.id}: {t.text.slice(0, 22)}…
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 <div>
                   <label className="text-[12px] font-bold text-ink">Chinna message (optional)</label>
                   <textarea
@@ -421,8 +446,7 @@ export default function RequestsPage() {
                     onChange={(e) => setNote(e.target.value.slice(0, 280))}
                     rows={3}
                     placeholder="Mee profile chala bagundi — mana family values match avutunnayi. Matladukovachu."
-                    className="mt-1 w-full px-3 py-2.5 rounded-xl border border-gold/40 text-sm outline-none focus-brand"
-                  />
+                    className="mt-1 w-full px-3 py-2.5 rounded-xl border border-gold/40 text-sm outline-none focus-brand" aria-label="Text area" />
                   <div className="text-[10px] text-gray-500 mt-1">{note.length}/280 • number/email pettaku (privacy policy)</div>
                 </div>
                 <button onClick={sendInterest} disabled={busy} className="w-full maroon-gradient text-white font-bold py-3 rounded-xl hover-lift disabled:opacity-60">
@@ -464,6 +488,48 @@ export default function RequestsPage() {
                 </div>
               )}
 
+              {quality && (
+                <div className="bg-white border border-gold/30 rounded-2xl p-4">
+                  <div className="font-bold text-maroon text-[13px]">📝 Mee profile strength: {quality.completeness?.percent ?? "—"}%</div>
+                  <div className="mt-1 text-[11px] text-gray-600">{quality.grade_telugu || quality.completeness?.verdict_telugu || ""}</div>
+                  <div className="mt-2 h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="h-2 gold-gradient" style={{ width: `${Math.min(100, Number(quality.completeness?.percent ?? 0))}%` }} />
+                  </div>
+                  {Array.isArray(quality.completeness?.important_telugu) && quality.completeness.important_telugu.length > 0 && (
+                    <ul className="mt-2 text-[11px] text-gray-700 list-disc list-inside space-y-0.5">
+                      {quality.completeness.important_telugu.slice(0, 3).map((t: string, i: number) => <li key={i}>{t}</li>)}
+                    </ul>
+                  )}
+
+                  {quality.trust && (
+                    <div className="mt-2 text-[11px] text-emerald-800">
+                      🛡️ Trust score: <b>{quality.trust.score}</b>/100 • {quality.trust.badge_telugu}
+                    </div>
+                  )}
+                  {quality.photo_tip_telugu && <div className="mt-1 text-[11px] text-gray-600">📷 {quality.photo_tip_telugu}</div>}
+                </div>
+              )}
+
+              {consent && (
+                <div className="bg-white border border-emerald-200 rounded-2xl p-4">
+                  <div className="font-bold text-emerald-900 text-[13px]">🔐 Consent ledger (number exchange audit)</div>
+                  <div className="mt-1 text-[11px] text-emerald-800">
+                    Mee number eppudu evariki ichharo ikkada record untundi — {consent.total ?? 0} events.
+                  </div>
+                  {Array.isArray(consent.events) && consent.events.length > 0 ? (
+                    <ul className="mt-2 space-y-1">
+                      {consent.events.slice(0, 5).map((e: any, i: number) => (
+                        <li key={i} className="text-[11px] text-gray-700 border-l-2 border-emerald-300 pl-2">
+                          {e.action || e.kind || "consent"} • {String(e.with || e.other_id || "").slice(0, 18)} • {String(e.at || "").slice(0, 16)}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <div className="mt-2 text-[11px] text-gray-600">Inka number exchange ledu — interest accept ayithe ikkada kanipistundi (audit trail).</div>
+                  )}
+                </div>
+              )}
+
               {wa?.antiban && (
                 <div className="bg-navy text-white rounded-2xl p-4">
                   <div className="font-bold text-[13px]">🛡️ WhatsApp anti-ban status</div>
@@ -490,9 +556,9 @@ export default function RequestsPage() {
                 subtitle="Bride + groom TSAP ID ivvandi — 10 porutham (rasi, nakshatra, gana, yoni, rajju, vedha, mahendra, stree deergha, vashya, adhipathi) calculate chestham." telugu align="left" />
               <div className="mt-4 space-y-3">
                 <input value={porA} onChange={(e) => setPorA(e.target.value.toUpperCase())} placeholder="Bride TSAP ID — TSAP-F-2025-1042"
-                  className="w-full px-3 py-2.5 rounded-xl border border-gold/40 font-mono text-sm outline-none focus-brand" />
+                  className="w-full px-3 py-2.5 rounded-xl border border-gold/40 font-mono text-sm outline-none focus-brand" aria-label="Bride TSAP ID — TSAP-F-2025-1042" />
                 <input value={porB} onChange={(e) => setPorB(e.target.value.toUpperCase())} placeholder="Groom TSAP ID — TSAP-M-2025-1042"
-                  className="w-full px-3 py-2.5 rounded-xl border border-gold/40 font-mono text-sm outline-none focus-brand" />
+                  className="w-full px-3 py-2.5 rounded-xl border border-gold/40 font-mono text-sm outline-none focus-brand" aria-label="Groom TSAP ID — TSAP-M-2025-1042" />
                 <button onClick={checkPorutham} disabled={busy} className="w-full maroon-gradient text-white font-bold py-3 rounded-xl hover-lift disabled:opacity-60">
                   🔮 Porutham calculate chey
                 </button>
@@ -678,6 +744,12 @@ export default function RequestsPage() {
           </div>
         )}
       </div>
+      {needsLogin ? (
+        <div className="mt-6">
+          <AuthGate title="🔒 Mee inbox / credits / shortlist ki login cheyyandi"
+            note="Ee private data token tho protect chesam (vere vaallu mee inbox chudalenu). Phone OTP login 10 seconds." />
+        </div>
+      ) : null}
     </main>
   );
 }

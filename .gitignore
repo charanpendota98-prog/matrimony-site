@@ -34,3 +34,7 @@ backend/referral_state.json.tmp
 backend/channel_assets/ref_*.png
 backend/referral_posters/
 backend/vendor_state.json
+
+# wave 9/10 runtime state (saved searches + consent ledger — machine-specific, regenerate avutundi)
+backend/saved_searches_state.json
+backend/consent_ledger_state.json

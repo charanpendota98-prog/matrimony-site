@@ -49,7 +49,7 @@ export default function RefundPage() {
 
       <Section title="3. Refund ela adagali (process)">
         <ol>
-          <li>WhatsApp: <b>{SITE_CONFIG.supportPhone}</b> leda email: <b>{SITE_CONFIG.supportEmail}</b></li>
+          <li>WhatsApp/Phone: <b>{SITE_CONFIG.supportPhoneDisplay}</b> leda email: <b>{SITE_CONFIG.supportEmail}</b></li>
           <li>Pampalsinavi: TSAP ID • payment date • amount • Razorpay payment ID • reason (1 line)</li>
           <li>Verify chesi <b>2 working days</b> lo approve/decline cheppi cheptham.</li>
           <li>Approve ayithe <b>5–7 working days</b> lo mee bank/UPI ki credited avutundi (bank timing batti).</li>
@@ -84,7 +84,7 @@ export default function RefundPage() {
       <div className="mt-8 rounded-2xl border border-gray-200 bg-white p-5 text-xs text-gray-700">
         <div className="font-bold text-[#7A0C2E]">📞 Contact (refunds & payments)</div>
         <div className="mt-2 space-y-1">
-          <div>WhatsApp / Phone: <b>{SITE_CONFIG.supportPhone}</b></div>
+          <div>WhatsApp / Phone: <b>{SITE_CONFIG.supportPhoneDisplay}</b></div>
           <div>Email: <b>{SITE_CONFIG.supportEmail}</b></div>
           <div>Website: <b>https://{SITE_CONFIG.domain}</b> • Bot: {SITE_CONFIG.botUsername}</div>
           <div>Business: {SITE_CONFIG.legalName}, Hyderabad, Telangana, India</div>

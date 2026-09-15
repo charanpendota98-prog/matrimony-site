@@ -86,6 +86,12 @@ export default function SiteHeader() {
             ID Search
           </Link>
           <Link
+            href="/login"
+            className="hidden sm:inline-flex px-3.5 py-2 text-[13px] font-semibold border border-maroon/30 text-maroon rounded-full hover:bg-maroon-soft transition"
+          >
+            📱 Login
+          </Link>
+          <Link
             href="/register"
             className="px-4 py-2.5 rounded-full text-[13px] font-bold maroon-gradient text-white shadow-soft hover:shadow-brand transition"
           >

@@ -17,20 +17,28 @@ import Link from "next/link";
 import { CASTES, DISTRICTS_BY_STATE, EDUCATIONS, JOBS, MARITAL_STATUSES, RELIGIONS, SALARIES } from "@/lib/telugu-data";
 import { SITE_CONFIG } from "@/lib/site-config";
 import QuickLead from "@/components/QuickLead";
+import TrustBadge from "@/components/TrustBadge";
+import AuthGate from "@/components/AuthGate";
+import { apiGet, apiPost, getToken } from "@/lib/api";
 
 type Row = Record<string, any>;
 const SAVED_SEARCHES_KEY = "tsap_saved_searches_v1";
 const SORTS = [
   { v: "score", l: "🏆 Best match" },
   { v: "porutham", l: "💍 Porutham (10)" },
+  { v: "trust", l: "🛡️ Trust score" },
+  { v: "completeness", l: "📝 Profile complete" },
   { v: "new", l: "🆕 New" },
   { v: "age", l: "🎂 Age" },
   { v: "boosted", l: "⚡ Boosted" },
 ];
 const DEFAULT_FILTERS: Row = {
   gender: "", q: "", caste: "", district: "", state: "", job: "", education: "",
-  salary_min: 0, marital_status: "", religion: "", age_min: 18, age_max: 60,
+  salary_min: 0, salary_max: 0, marital_status: "", religion: "", age_min: 18, age_max: 60,
   verified_only: false, photo_only: false,
+  // 🆕 WAVE 9 advanced filters
+  height_min: "", height_max: "", dosham: "", min_completeness: 0,
+  exclude_viewed: false, exclude_interested: false,
 };
 
 /* demo fallback — API fail aithe ee rows chupistham (site khali ga kanipinchadu) */
@@ -109,10 +117,10 @@ function ScoreBreakdown({ v2 }: { v2: any }) {
 }
 
 function FilterSheet({
-  open, onClose, filters, setF, reset, onApply, resultsInfo,
+  open, onClose, filters, setF, reset, onApply, resultsInfo, facets,
 }: {
   open: boolean; onClose: () => void; filters: Row; setF: (k: string, v: any) => void;
-  reset: () => void; onApply: () => void; resultsInfo: string;
+  reset: () => void; onApply: () => void; resultsInfo: string; facets?: Row | null;
 }) {
   const districts: string[] = filters.state ? (DISTRICTS_BY_STATE[filters.state] || []) : [];
   if (!open) return null;
@@ -142,9 +150,9 @@ function FilterSheet({
             </div>
             <div className="mt-2 grid grid-cols-2 gap-2">
               <input type="range" min={18} max={60} value={filters.age_min}
-                onChange={(e) => setF("age_min", Math.min(parseInt(e.target.value), filters.age_max))} className="accent-[#7A0C2E]" />
+                onChange={(e) => setF("age_min", Math.min(parseInt(e.target.value), filters.age_max))} className="accent-[#7A0C2E]" aria-label="Text input" />
               <input type="range" min={18} max={60} value={filters.age_max}
-                onChange={(e) => setF("age_max", Math.max(parseInt(e.target.value), filters.age_min))} className="accent-[#7A0C2E]" />
+                onChange={(e) => setF("age_max", Math.max(parseInt(e.target.value), filters.age_min))} className="accent-[#7A0C2E]" aria-label="Text input" />
             </div>
           </div>
 
@@ -235,6 +243,80 @@ function FilterSheet({
             <button onClick={() => setF("photo_only", !filters.photo_only)}
               className={`chip justify-center ${filters.photo_only ? "chip-on" : ""}`}>📸 Photo unnavi</button>
           </div>
+
+          {/* 🆕 WAVE 9 — advanced filters (height / max salary / dosham / completeness / exclude) */}
+          <div className="rounded-2xl border border-gold/30 bg-white/70 p-3">
+            <p className="text-[12px] font-bold text-maroon">🆕 Advanced filters (WAVE 9)</p>
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              <label className="text-[11px] font-semibold text-gray-700">
+                📏 ఎత్తు min
+                <input value={filters.height_min} onChange={(e) => setF("height_min", e.target.value)} placeholder="5.2"
+                  className="mt-1 w-full rounded-lg border border-gold/40 px-2 py-1.5 text-[12px]" aria-label="5.2" />
+              </label>
+              <label className="text-[11px] font-semibold text-gray-700">
+                📏 ఎత్తు max
+                <input value={filters.height_max} onChange={(e) => setF("height_max", e.target.value)} placeholder="6.0"
+                  className="mt-1 w-full rounded-lg border border-gold/40 px-2 py-1.5 text-[12px]" aria-label="6.0" />
+              </label>
+            </div>
+            <div className="mt-2">
+              <p className="text-[11px] font-semibold text-gray-700">💰 ఆదాయం (max — ekkuva unnavi teesey)</p>
+              <div className="mt-1 flex flex-wrap gap-2">
+                {[{ v: 0, l: "Any" }, { v: 500000, l: "≤5L" }, { v: 1000000, l: "≤10L" }, { v: 2000000, l: "≤20L" }].map((x) => (
+                  <button key={x.v} onClick={() => setF("salary_max", x.v)}
+                    className={`chip ${Number(filters.salary_max) === x.v ? "chip-on" : ""}`}>{x.l}</button>
+                ))}
+              </div>
+            </div>
+            <div className="mt-2">
+              <p className="text-[11px] font-semibold text-gray-700">🧿 Dosham</p>
+              <div className="mt-1 flex flex-wrap gap-2">
+                {["", "Yes", "No"].map((d) => (
+                  <button key={d || "any"} onClick={() => setF("dosham", d)}
+                    className={`chip ${String(filters.dosham) === d ? "chip-on" : ""}`}>{d || "Any"}</button>
+                ))}
+              </div>
+            </div>
+            <div className="mt-2">
+              <p className="text-[11px] font-semibold text-gray-700">
+                📝 Profile completeness {filters.min_completeness ? `· ${filters.min_completeness}%+` : "· any"}
+              </p>
+              <div className="mt-1 flex flex-wrap gap-2">
+                {[0, 50, 70, 90].map((v) => (
+                  <button key={v} onClick={() => setF("min_completeness", v)}
+                    className={`chip ${Number(filters.min_completeness) === v ? "chip-on" : ""}`}>{v ? `${v}%+` : "Any"}</button>
+                ))}
+              </div>
+            </div>
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              <button onClick={() => setF("exclude_viewed", !filters.exclude_viewed)}
+                className={`chip justify-center ${filters.exclude_viewed ? "chip-on" : ""}`}>🙈 Chusina vaallu teesey</button>
+              <button onClick={() => setF("exclude_interested", !filters.exclude_interested)}
+                className={`chip justify-center ${filters.exclude_interested ? "chip-on" : ""}`}>💌 Interest pampina vaallu teesey</button>
+            </div>
+            {facets?.caste?.length ? (
+              <div className="mt-3">
+                <p className="text-[11px] font-semibold text-gray-700">🔥 Top castes (live counts)</p>
+                <div className="mt-1 flex flex-wrap gap-2">
+                  {(facets.caste as { value: string; count: number }[]).slice(0, 8).map((f) => (
+                    <button key={f.value} onClick={() => setF("caste", filters.caste === f.value ? "" : f.value)}
+                      className={`chip ${filters.caste === f.value ? "chip-on" : ""}`}>{f.value} ({f.count})</button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+            {facets?.district?.length ? (
+              <div className="mt-2">
+                <p className="text-[11px] font-semibold text-gray-700">📍 Top districts (live counts)</p>
+                <div className="mt-1 flex flex-wrap gap-2">
+                  {(facets.district as { value: string; count: number }[]).slice(0, 8).map((f) => (
+                    <button key={f.value} onClick={() => setF("district", filters.district === f.value ? "" : f.value)}
+                      className={`chip ${filters.district === f.value ? "chip-on" : ""}`}>{f.value} ({f.count})</button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+          </div>
         </div>
 
         <div className="sticky bottom-0 bg-cream pt-3 pb-1 safe-bottom">
@@ -265,7 +347,11 @@ export default function MatchesAdvanced() {
   const [sending, setSending] = useState("");
   const [note, setNote] = useState<{ ok: boolean; text: string } | null>(null);
   const [savedSearches, setSavedSearches] = useState<any[]>([]);
-  const [myPhone, setMyPhone] = useState("98480xxxxx");
+  const [myPhone, setMyPhone] = useState("");   // 🐞 FIX (F06): fake "98480xxxxx" placeholder chupinche — ippudu nijamaina masked number matrame
+  const [needsLogin, setNeedsLogin] = useState(false);
+  const [facets, setFacets] = useState<Row | null>(null);
+  const [serverSearches, setServerSearches] = useState<Row[]>([]);
+  const [loadingSaved, setLoadingSaved] = useState(false);
   const reqId = useRef(0);
 
   const setF = useCallback((k: string, v: any) => setFilters((p) => ({ ...p, [k]: v })), []);
@@ -282,13 +368,30 @@ export default function MatchesAdvanced() {
     } catch { /* ignore */ }
   }, []);
 
-  useEffect(() => {
+  const loadSaved = useCallback(async () => {
     if (!myTsapId) return;
-    fetch(`/api/saved/${myTsapId}`)
-      .then((r) => r.json())
-      .then((d) => setSavedIds((d.items || []).map((x: any) => x.profile?.tsap_id).filter(Boolean)))
-      .catch(() => { /* ignore */ });
+    const { ok, data, needsLogin: nl } = await apiGet<Row>(`/api/saved/${myTsapId}`);
+    if (!ok) { if (nl) setNeedsLogin(true); return; }
+    const rows = (data?.items || data?.saved || []) as Row[];
+    setSavedIds(rows.map((x) => x.profile?.tsap_id || x.saved_id).filter(Boolean));
   }, [myTsapId]);
+
+  useEffect(() => { void loadSaved(); }, [loadSaved]);
+
+  /* ---------- facets (chips counts) + server saved searches ---------- */
+  useEffect(() => {
+    void apiGet<Row>("/api/facets?limit=10").then(({ ok, data }) => { if (ok) setFacets((data?.facets as Row) || null); });
+  }, []);
+
+  const loadServerSearches = useCallback(async () => {
+    if (!myTsapId || !getToken()) return;
+    setLoadingSaved(true);
+    const { ok, data } = await apiGet<Row>(`/api/saved-searches/${myTsapId}`);
+    setLoadingSaved(false);
+    if (ok && Array.isArray(data?.searches)) setServerSearches(data.searches as Row[]);
+  }, [myTsapId]);
+
+  useEffect(() => { void loadServerSearches(); }, [loadServerSearches]);
 
   /* ---------- fetch (debounced) ---------- */
   const load = useCallback(async () => {
@@ -308,22 +411,17 @@ export default function MatchesAdvanced() {
     qs.set("sort", sort);
     qs.set("limit", "30");
     if (myTsapId) qs.set("viewer_id", myTsapId);
-    try {
-      const r = await fetch(`/api/search?${qs.toString()}`);
-      const d = await r.json();
-      if (id !== reqId.current) return;
-      if (r.ok && Array.isArray(d.results)) {
-        setRows(d.results);
-        setTotal(d.total ?? d.results.length);
-        setMsg(d.message_telugu || "");
-      } else {
-        throw new Error("bad");
-      }
-    } catch {
-      if (id !== reqId.current) return;
+    const { ok, data, errorTelugu: eTel } = await apiGet<Row>(`/api/search?${qs.toString()}`);
+    if (id !== reqId.current) return;
+    if (ok && Array.isArray(data?.results)) {
+      setRows(data!.results as Row[]);
+      setTotal(Number(data?.total ?? (data!.results as Row[]).length));
+      setMsg(String(data?.message_telugu || ""));
+      if (data?.facets && Object.keys(data.facets as Row).length) setFacets(data.facets as Row);
+    } else {
       setRows(FALLBACK);
       setTotal(FALLBACK.length);
-      setMsg("⚠️ Server nunchi results ravaledu — demo profiles chupisthunnam (filters Apply chesthe malli try avutundi)");
+      setMsg(`⚠️ ${eTel || "Server nunchi results ravaledu"} — demo profiles chupisthunnam (filters Apply chesthe malli try avutundi)`);
     }
     setLoading(false);
   }, [filters, sort, myTsapId]);
@@ -335,37 +433,31 @@ export default function MatchesAdvanced() {
 
   /* ---------- actions ---------- */
   const toggleSave = async (row: Row) => {
-    try {
-      const d = await fetch("/api/save", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tsap_id: myTsapId, saved_id: row.tsap_id }),
-      }).then((r) => r.json());
-      if (d.success) {
-        setSavedIds((prev) => (d.saved ? (prev.includes(row.tsap_id) ? prev : [...prev, row.tsap_id])
-                                       : prev.filter((x) => x !== row.tsap_id)));
-        setNote({ ok: true, text: d.message_telugu || "Shortlist update ayyindi" });
-      }
-    } catch {
-      setNote({ ok: false, text: "Save avvaledu — malli try cheyyandi" });
-    }
+    const { ok, data, errorTelugu: eTel, needsLogin: nl } = await apiPost<Row>("/api/save", { tsap_id: myTsapId, target_id: row.tsap_id });
+    if (nl) { setNeedsLogin(true); return; }
+    if (!ok) { setNote({ ok: false, text: eTel }); return; }
+    const saved = !!data?.saved;
+    setSavedIds((prev) => (saved ? (prev.includes(row.tsap_id) ? prev : [...prev, row.tsap_id])
+                                 : prev.filter((x) => x !== row.tsap_id)));
+    setNote({ ok: true, text: String(data?.message_telugu || "Shortlist update ayyindi") });
   };
 
-  const sendInterest = async (row: Row) => {
+  const sendInterest = async (row: Row, templateId?: string) => {
     setSending(row.tsap_id);
     setNote(null);
-    try {
-      const r = await fetch("/api/interest/send", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ from_id: myTsapId, to_id: row.tsap_id, channel: "matches_page" }),
-      });
-      const d = await r.json();
-      setNote({ ok: !!d.success, text: d.message_telugu || d.detail || "Interest pampaledu" });
-      if (d.credits_left !== undefined) {
-        setCredits(d.credits_left);
-        localStorage.setItem("tsap_credits", String(d.credits_left));
+    const { ok, data, errorTelugu: eTel, needsLogin: nl, status } = await apiPost<Row>("/api/interest/send",
+      { from_id: myTsapId, to_id: row.tsap_id, channel: "matches_page", ...(templateId ? { template_id: templateId } : {}) });
+    if (nl) { setNeedsLogin(true); setSending(""); return; }
+    if (ok) {
+      setNote({ ok: true, text: String(data?.message_telugu || "Interest pampincharu") });
+      if (data?.credits_left !== undefined) {
+        setCredits(Number(data.credits_left));
+        localStorage.setItem("tsap_credits", String(data.credits_left));
       }
-    } catch {
-      setNote({ ok: false, text: "Network problem — malli try cheyyandi" });
+    } else if (status === 402) {
+      setNote({ ok: false, text: "⚠️ Credits ayipoyayi — ₹99 → 5 profiles. Phone numbers kooda accept tho ne (consent)." });
+    } else {
+      setNote({ ok: false, text: eTel || "Interest pampaledu" });
     }
     setSending("");
   };
@@ -389,14 +481,50 @@ export default function MatchesAdvanced() {
     setNote({ ok: true, text: "🔗 Search link copy ayyindi — WhatsApp group lo pettandi (vaallu kooda ee filters tho chustharu)" });
   };
 
-  const saveSearch = () => {
+  const saveSearch = async () => {
     const active = activeChips;
     if (!active.length) { setNote({ ok: false, text: "Modata filters select cheyyandi" }); return; }
     const label = active.map((c) => c.label).join(" • ");
+    // 1) server lo save (kotha match alert WhatsApp tho vastundi)
+    if (getToken()) {
+      const serverFilters: Row = {};
+      Object.keys(filters).forEach((k) => {
+        const v = filters[k];
+        if (v === "" || v === null || v === undefined || v === false || v === 0) return;
+        if (k === "age_min" && v === 18) return;
+        if (k === "age_max" && v === 60) return;
+        serverFilters[k] = v;
+      });
+      const { ok, data, errorTelugu: eTel, needsLogin: nl } = await apiPost<Row>("/api/saved-searches",
+        { tsap_id: myTsapId, name: label.slice(0, 40), filters: serverFilters, alert: true });
+      if (nl) { setNeedsLogin(true); return; }
+      if (ok) {
+        setServerSearches((p) => [data?.search as Row, ...p].filter(Boolean));
+        setNote({ ok: true, text: `🔔 Saved! "${label}" — kotha profiles vaste WhatsApp alert vastundi (🔔 Alerts button)` });
+        return;
+      }
+      setNote({ ok: false, text: eTel || "Save avvaledu" });
+      return;
+    }
+    // 2) login ledu → local save (browser lo)
     const next = [{ label, filters: { ...filters }, sort }, ...savedSearches.filter((s) => s.label !== label)].slice(0, 8);
     setSavedSearches(next);
     localStorage.setItem(SAVED_SEARCHES_KEY, JSON.stringify(next));
-    setNote({ ok: true, text: `🔔 Search save ayyindi: ${label} — kotha matches vachinappudu digest lo vastayi` });
+    setNote({ ok: true, text: `🔔 Search save ayyindi (local): ${label} — WhatsApp alerts ki OTP login cheyyandi` });
+  };
+
+  /** Kotha matches ni WhatsApp ki pampu (saved search alerts) */
+  const sendAlerts = async () => {
+    if (!getToken()) { setNeedsLogin(true); return; }
+    const { ok, data, errorTelugu: eTel } = await apiPost<Row>(`/api/saved-searches/${myTsapId}/alerts`, {});
+    setNote(ok ? { ok: true, text: String(data?.message_telugu || "Alerts queue lo pettam") }
+               : { ok: false, text: eTel });
+    if (ok) void loadServerSearches();
+  };
+
+  const removeServerSearch = async (searchId: string) => {
+    const { ok } = await apiPost(`/api/saved-searches/${myTsapId}/${searchId}`, {});
+    if (ok) setServerSearches((p) => p.filter((x) => x.search_id !== searchId));
   };
 
   /* ---------- active filter chips ---------- */
@@ -416,6 +544,12 @@ export default function MatchesAdvanced() {
     if (filters.age_min !== 18 || filters.age_max !== 60) add("age_min", `🎂 ${filters.age_min}–${filters.age_max}y`, 18);
     if (filters.verified_only) add("verified_only", "✅ Verified", false);
     if (filters.photo_only) add("photo_only", "📸 Photo", false);
+    if (filters.salary_max) add("salary_max", `💰 ≤${Number(filters.salary_max) / 100000}L`, 0);
+    if (filters.height_min || filters.height_max) add("height_min", `📏 ${filters.height_min || "any"}–${filters.height_max || "any"}`, "");
+    if (filters.dosham) add("dosham", `🧿 Dosham: ${filters.dosham}`, "");
+    if (filters.min_completeness) add("min_completeness", `📝 ${filters.min_completeness}%+ complete`, 0);
+    if (filters.exclude_viewed) add("exclude_viewed", "🙈 Chusina vaallu teesey", false);
+    if (filters.exclude_interested) add("exclude_interested", "💌 Interest pampina vaallu teesey", false);
     return out;
   }, [filters, setF]);
 
@@ -482,6 +616,7 @@ export default function MatchesAdvanced() {
                   🧮 {row.porutham.score}/{row.porutham.max} — {row.porutham.verdict}
                 </span>
               ) : null}
+              <TrustBadge trust={row.trust} completeness={row.quality_percent} />
               {/* 🔒 Numbers ivvamu — interest pampi accept ayithe matrame exchange */}
               <span className="bg-rose-50 border border-rose-200 text-rose-800 rounded-full px-2 py-0.5"
                 title="Numbers eppudu public ga kanipinchavu">
@@ -535,14 +670,14 @@ export default function MatchesAdvanced() {
             <div className="flex-1 flex items-center gap-2 bg-white border border-gold/40 rounded-2xl px-3">
               <span className="text-[15px]">🔍</span>
               <input value={filters.q} onChange={(e) => setF("q", e.target.value)} placeholder="Peru / caste / district / job…"
-                className="flex-1 py-3 bg-transparent outline-none text-[14px]" />
+                className="flex-1 py-3 bg-transparent outline-none text-[14px]" aria-label="Peru / caste / district / job…" />
             </div>
             <button onClick={() => setSheet(true)} className="md:hidden shrink-0 px-3 py-3 rounded-2xl maroon-gradient text-white text-[12px] font-bold">
               Filters{activeChips.length ? ` ${activeChips.length}` : ""}
             </button>
             <div className="hidden md:flex items-center gap-2 shrink-0">
               <input value={myTsapId} onChange={(e) => { const v = e.target.value.toUpperCase(); setMyTsapId(v); localStorage.setItem("tsap_id", v); }}
-                className="text-[11px] font-mono bg-white border border-gold/40 rounded-full px-3 py-2 w-44" title="Mee TSAP ID" />
+                className="text-[11px] font-mono bg-white border border-gold/40 rounded-full px-3 py-2 w-44" title="Mee TSAP ID" aria-label="Text input" />
               <span className="text-[11px] bg-white border border-gold/40 rounded-full px-3 py-2">credits <b>{credits}</b></span>
             </div>
           </div>
@@ -553,6 +688,9 @@ export default function MatchesAdvanced() {
                 className={`chip shrink-0 ${sort === s.v ? "chip-on" : ""}`}>{s.l}</button>
             ))}
             <button onClick={saveSearch} className="chip shrink-0">🔔 Save search</button>
+            <button onClick={() => void sendAlerts()} className="chip shrink-0" title="Saved searches ki kotha matches WhatsApp lo">
+              📨 New-match alerts{serverSearches.length ? ` (${serverSearches.length})` : ""}
+            </button>
             <button onClick={copySearchLink} className="chip shrink-0">🔗 Share search</button>
           </div>
         </div>
@@ -574,8 +712,8 @@ export default function MatchesAdvanced() {
           </div>
           <div className="mt-3">
             <div className="text-[11px] font-bold text-ink">Age: <span className="text-maroon">{filters.age_min}–{filters.age_max}</span></div>
-            <input type="range" min={18} max={60} value={filters.age_min} onChange={(e) => setF("age_min", Math.min(parseInt(e.target.value), filters.age_max))} className="w-full accent-[#7A0C2E]" />
-            <input type="range" min={18} max={60} value={filters.age_max} onChange={(e) => setF("age_max", Math.max(parseInt(e.target.value), filters.age_min))} className="w-full accent-[#7A0C2E]" />
+            <input type="range" min={18} max={60} value={filters.age_min} onChange={(e) => setF("age_min", Math.min(parseInt(e.target.value), filters.age_max))} className="w-full accent-[#7A0C2E]" aria-label="Text input" />
+            <input type="range" min={18} max={60} value={filters.age_max} onChange={(e) => setF("age_max", Math.max(parseInt(e.target.value), filters.age_min))} className="w-full accent-[#7A0C2E]" aria-label="Text input" />
           </div>
           <div className="mt-3">
             <div className="text-[11px] font-bold text-ink">State</div>
@@ -728,7 +866,36 @@ export default function MatchesAdvanced() {
       <FilterSheet
         open={sheet} onClose={() => setSheet(false)} filters={filters} setF={setF}
         reset={() => setFilters({ ...DEFAULT_FILTERS })} onApply={() => setSheet(false)} resultsInfo={resultsInfo}
+        facets={facets}
       />
+
+      {needsLogin ? (
+        <div className="mx-auto mt-6 max-w-3xl px-4">
+          <AuthGate title="🔒 Shortlist / saved searches ki login cheyyandi"
+            note="Matches chudatam FREE (login avasaram ledu). Kani mee shortlist, kotha-match alerts, inbox — ee private data ki OTP login kavali (mee privacy koraku)." />
+        </div>
+      ) : null}
+
+      {serverSearches.length > 0 ? (
+        <div className="mx-auto mt-6 max-w-3xl px-4">
+          <div className="rounded-2xl border border-gold/40 bg-white p-3">
+            <p className="text-[12px] font-bold text-maroon">🔔 Mee saved searches ({serverSearches.length}) — kotha matches WhatsApp alerts</p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {serverSearches.map((sr) => (
+                <span key={String(sr.search_id)} className="inline-flex items-center gap-1 rounded-full bg-cream border border-gold/30 px-3 py-1 text-[11px]">
+                  {String(sr.name || "search")}
+                  {Number(sr.new_matches) > 0 ? <b className="text-emerald-700"> · {Number(sr.new_matches)} new</b> : null}
+                  <button onClick={() => void removeServerSearch(String(sr.search_id))} title="Delete"
+                    className="ml-1 text-rose-600 font-bold">✕</button>
+                </span>
+              ))}
+            </div>
+            <button onClick={() => void sendAlerts()} className="mt-2 rounded-xl bg-[#7A0C2E] px-3 py-2 text-[11px] font-bold text-white">
+              📨 Ippude kotha matches WhatsApp ki pampu
+            </button>
+          </div>
+        </div>
+      ) : null}
 
       {myPhone ? (
         <div className="fixed bottom-3 right-3 z-20 md:hidden">

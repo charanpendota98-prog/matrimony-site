@@ -7,6 +7,7 @@
  * → Entha mandi profiles ayyaru? (inventory) → WhatsApp queue ela undi? (anti-ban)
  * Ee screen chusi admin rojuki 10 nimushalalo follow-up cheyyali.
  */
+import { authHeaders, getAdminKey, setAdminKey } from "@/lib/api";
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 
@@ -19,16 +20,30 @@ export default function GrowthPage() {
   const [leads, setLeads] = useState<Stats[]>([]);
   const [busy, setBusy] = useState("");
   const [note, setNote] = useState("");
+  const [keyInput, setKeyInput] = useState("");
+  const [keySaved, setKeySaved] = useState(false);
+  const [needsAdminKey, setNeedsAdminKey] = useState(false);
+
+  useEffect(() => { try { setKeyInput(getAdminKey()); setKeySaved(Boolean(getAdminKey())); } catch { /* ignore */ } }, []);
+
+  const saveKey = () => {
+    setAdminKey(keyInput.trim());
+    setKeySaved(Boolean(keyInput.trim()));
+    setNote(keyInput.trim() ? "✅ Admin key save ayyindi — ippudu leads data vasthundi" : "⚠️ Key khali ga undi");
+    load();
+  };
 
   const load = useCallback(async () => {
     try {
       const [s, i, w, l] = await Promise.all([
-        fetch("/api/leads/stats").then((r) => r.json()),
+        fetch("/api/leads/stats", { headers: authHeaders(true) }).then((r) => r.json()),
         fetch("/api/inventory").then((r) => r.json()),
         fetch("/api/wa/status").then((r) => r.json()),
-        fetch("/api/leads?limit=30").then((r) => r.json()),
+        fetch("/api/leads?limit=30", { headers: authHeaders(true) }).then((r) => r.json()),
       ]);
       setStats(s); setInv(i); setWa(w); setLeads(l.items || []);
+      // 🐞 FIX: 403 vaste khali table chupinchadam kaadu — "admin key kavali" clear ga cheppali
+      if ((s as Stats)?.detail || (l as Stats)?.detail) setNeedsAdminKey(true); else setNeedsAdminKey(false);
     } catch {
       setNote("API reach avvaledu — backend run avutundo chusukondi");
     }
@@ -39,7 +54,7 @@ export default function GrowthPage() {
   const followup = async (id: string) => {
     setBusy(id);
     try {
-      const d = await fetch(`/api/leads/followup/${id}`, { method: "POST" }).then((r) => r.json());
+      const d = await fetch(`/api/leads/followup/${id}`, { method: "POST", headers: authHeaders(true) }).then((r) => r.json());
       setNote(d.message_telugu || "Follow-up queued");
       load();
     } catch { setNote("Follow-up pampaledu"); }
@@ -64,6 +79,24 @@ export default function GrowthPage() {
 
   return (
     <main className="min-h-screen bg-cream pb-16">
+      {/* 🔐 WAVE 9 — admin key card: /api/leads* lo phone numbers unnayi (PII) → key tho matrame */}
+      <div className="max-w-6xl mx-auto px-4 pt-4">
+        <div className={`rounded-2xl border p-4 ${needsAdminKey ? "border-rose-300 bg-rose-50" : "border-gold/30 bg-white"}`}>
+          <div className="text-[13px] font-bold text-maroon">🔐 Admin key (leads PII lock)</div>
+          <p className="mt-1 text-[12px] text-gray-700">
+            Leads list + stats lo customer phone numbers untayi — kabatti ivi <b>admin key</b> tho matrame vasthayi.
+            Server lo <code>ADMIN_KEY</code> env pettandi, ade ikkada paste cheyyandi (browser lo matrame save avutundi, server ki pampamu).
+          </p>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <input aria-label="Admin key" type="password" value={keyInput} onChange={(e) => setKeyInput(e.target.value)}
+              placeholder="ADMIN_KEY…" className="rounded-xl border border-maroon/25 px-3 py-2 text-[12px] font-mono w-64" />
+            <button onClick={saveKey} className="rounded-xl bg-[#7A0C2E] px-4 py-2 text-[12px] font-bold text-white">💾 Save key</button>
+            <button onClick={() => load()} className="rounded-xl border border-maroon/25 px-4 py-2 text-[12px] font-bold text-maroon">🔄 Reload</button>
+            {keySaved && <span className="text-[11px] text-emerald-700">✅ key save ayyindi ({(getAdminKey() || "").slice(0, 4)}••••)</span>}
+          </div>
+          {needsAdminKey && <p className="mt-2 text-[12px] font-semibold text-rose-700">⚠️ Server 403 ichindi — key save chesi malli reload cheyyandi.</p>}
+        </div>
+      </div>
       <div className="maroon-gradient text-white">
         <div className="max-w-6xl mx-auto px-4 py-8">
           <div className="text-[11px] font-bold bg-white/10 border border-white/20 rounded-full px-3 py-1 inline-block">

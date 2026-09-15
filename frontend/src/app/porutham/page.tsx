@@ -245,7 +245,7 @@ function PoruthamInner() {
                 <img
                   src={`/api/og/porutham/${encodeURIComponent(res._bride)}/${encodeURIComponent(res._groom)}.png`}
                   onError={() => setImgOk(false)}
-                  alt="Porutham report"
+                  alt="Porutham report — 10 kootalu Telugu lo"
                   className="mt-3 w-full rounded-2xl border border-gold/30"
                 />
               </div>

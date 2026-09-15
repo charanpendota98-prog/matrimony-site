@@ -864,3 +864,129 @@ def build_caption(profile: dict, tsap_id: str = "TSAP-F-2025-XXXX", score: int =
         f"📝 Register 3 min lo: {SITE}/register\n"
         f"⚠️ Number bot lo pay tarvata matrame — mosam jagratha!"
     )
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# 📢 CHANNEL LINKS (Telegram + WhatsApp) — "caste channels vadi caste related"
+# ═══════════════════════════════════════════════════════════════════════════
+# Telegram link eppudu automatic (username nunchi). WhatsApp channel/community
+# links ki real id kavali — kabatti **env** nunchi:
+#   WA_CHANNEL_LINKS = {"c_reddy_bride": "https://whatsapp.com/channel/XXXX", ...}
+#   (leda per-channel: WA_CHANNEL_C_REDDY_BRIDE=https://whatsapp.com/channel/XXXX)
+# Configure avvakapote aa channel ki whatsapp="" — message lo Telegram link matrame velthundi.
+import json as _json
+import os as _os
+
+
+def _wa_links_from_env() -> Dict[str, str]:
+    out: Dict[str, str] = {}
+    raw = (_os.getenv("WA_CHANNEL_LINKS") or "").strip()
+    if raw:
+        try:
+            obj = _json.loads(raw)
+            if isinstance(obj, dict):
+                for k, v in obj.items():
+                    link = str(v or "").strip()
+                    if link:
+                        out[str(k).strip().lower()] = link
+        except Exception:
+            pass
+    for key in CHANNELS:
+        env_key = "WA_CHANNEL_" + key.upper()
+        val = (_os.getenv(env_key) or "").strip()
+        if val:
+            out[key.lower()] = val
+    return out
+
+
+WA_CHANNEL_LINKS: Dict[str, str] = _wa_links_from_env()
+# official WhatsApp channel (iva anni messages lo pettadaniki)
+WA_OFFICIAL_LINK = (_os.getenv("WA_OFFICIAL_CHANNEL") or "").strip() or WA_CHANNEL_LINKS.get("official", "")
+
+
+def telegram_link(username: str) -> str:
+    u = (username or "").strip().lstrip("@")
+    return f"https://t.me/{u}" if u else ""
+
+
+def wa_channel_link(key: str) -> str:
+    """
+    WhatsApp channel/community link.
+      1) WA_CHANNEL_LINKS / WA_CHANNEL_<KEY> env (exact link)
+      2) WA_CHANNEL_PATTERN env (ex: "https://whatsapp.com/channel/{key}") tho auto-generate
+    Lekapote '' (message lo Telegram link matrame veltundi + support note vastundi).
+    """
+    k = (key or "").lower()
+    if not k:
+        return ""
+    exact = WA_CHANNEL_LINKS.get(k)
+    if exact:
+        return exact
+    pattern = (_os.getenv("WA_CHANNEL_PATTERN") or "").strip()
+    if pattern and ("{key}" in pattern or "{username}" in pattern):
+        c = CHANNELS.get(k) or {}
+        try:
+            return pattern.format(key=k, username=str(c.get("username", "")).lstrip("@"))
+        except Exception:
+            return ""
+    return ""
+
+
+def channel_links(key: str) -> Dict[str, object]:
+    """Okka channel ki telegram + whatsapp + name + tier."""
+    c = CHANNELS.get(key) or {}
+    return {
+        "key": key,
+        "name": c.get("name", key),
+        "tier": c.get("tier", ""),
+        "live": bool(c.get("live")),
+        "telegram": telegram_link(c.get("username", "")),
+        "whatsapp": wa_channel_link(key),
+        "hashtags": c.get("hashtags", []),
+    }
+
+
+def _gender_word(profile: Dict) -> str:
+    g = str((profile or {}).get("gender", "") or "").lower()
+    if g.startswith("bride") or "bride" in g or g in ("f", "female", "ammayi"):
+        return "bride"
+    if g.startswith("groom") or "groom" in g or g in ("m", "male", "abbaayi"):
+        return "groom"
+    return ""
+
+
+def caste_channel_links(profile: Dict, limit: int = 5) -> List[Dict[str, object]]:
+    """
+    🔎 Caste-related channel links (caste mundu, tarvata region → religion → official).
+    Order: caste(gender) → region(gender) → religion → official → special/job
+    """
+    profile = profile or {}
+    keys: List[str] = []
+    ck = resolve_caste_key(str(profile.get("caste", "") or "") + " " + str(profile.get("sub_caste", "") or ""))
+    gw = _gender_word(profile)
+    if ck:
+        for cand in (f"c_{ck}_{gw}" if gw else "", f"c_{ck}"):
+            if cand and cand in CHANNELS and cand not in keys:
+                keys.append(cand)
+    try:
+        route = route_profile(profile, max_posts=6)
+        for k in route.get("keys", []):
+            if k not in keys:
+                keys.append(k)
+    except Exception:
+        pass
+    for k in ("official",):
+        if k in CHANNELS and k not in keys:
+            keys.append(k)
+    out: List[Dict[str, object]] = []
+    for k in keys:
+        if k not in CHANNELS:
+            continue
+        link = channel_links(k)
+        # telegram lekapote (chinna channels ki username untundi but link empty) skip
+        if not link.get("telegram") and not link.get("whatsapp"):
+            continue
+        out.append(link)
+        if len(out) >= max(1, limit):
+            break
+    return out

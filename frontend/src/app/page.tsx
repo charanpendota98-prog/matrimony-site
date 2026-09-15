@@ -5,6 +5,7 @@ import { ALL_CHANNELS, CHANNEL_STATS, Channel } from "@/lib/channels";
 import Reveal from "@/components/Reveal";
 import SectionHeading from "@/components/SectionHeading";
 import { SITE_CONFIG } from "@/lib/site-config";
+import { apiGet } from "@/lib/api";
 
 const BOT = SITE_CONFIG.botUrl;
 
@@ -93,6 +94,16 @@ const TESTIMONIALS = [
 ];
 
 export default function Home() {
+  const [trustBoard, setTrustBoard] = useState<{ count: number; average_trust: number; board: Record<string, unknown>[] } | null>(null);
+  const [posture, setPosture] = useState<Record<string, unknown> | null>(null);
+
+  useEffect(() => {
+    void apiGet<{ count: number; average_trust: number; board: Record<string, unknown>[] }>("/api/trust/board?limit=6")
+      .then(({ ok, data }) => { if (ok && data) setTrustBoard(data); });
+    void apiGet<Record<string, unknown>>("/api/security/posture")
+      .then(({ ok, data }) => { if (ok && data) setPosture(data); });
+  }, []);
+
   const [searchId, setSearchId] = useState("");
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
@@ -798,6 +809,46 @@ export default function Home() {
           </div>
         </Reveal>
       </section>
+    {/* 🛡️ WAVE 9 — Trust & security (transparency: numbers policy, audit, rate limits) */}
+    <section className="max-w-7xl mx-auto px-4 py-8">
+      <SectionHeading title="🛡️ Trust & Security — numbers eppudu public kaadu"
+        subtitle="Phone numbers 🔒 lock — interest accept (consent) tho matrame exchange. Consent ledger, rate limits, audit anni open ga chupisthunnam." />
+      <div className="mt-5 grid gap-4 md:grid-cols-3">
+        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+          <p className="text-2xl font-extrabold text-emerald-900">{trustBoard ? `${trustBoard.average_trust}/100` : "—"}</p>
+          <p className="text-[13px] font-semibold text-emerald-900">Average trust score ({trustBoard?.count ?? 0} profiles)</p>
+          <p className="mt-1 text-[12px] text-emerald-800">Verify + complete profile unte score perugutundi — matches kooda ekkuva.</p>
+        </div>
+        <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4">
+          <p className="text-[13px] font-bold text-rose-900">🔒 Numbers policy</p>
+          <p className="mt-1 text-[12px] text-rose-800">{String(posture?.numbers_policy || "Phone numbers public API lo eppudu ledu (98••••••45 mask).")}</p>
+          <p className="mt-2 text-[12px] font-semibold text-rose-900">Free: 3 profiles + 3 interests · Paid: ₹99 → 5 profiles</p>
+        </div>
+        <div className="rounded-2xl border border-sky-200 bg-sky-50 p-4">
+          <p className="text-[13px] font-bold text-sky-900">🧱 Abuse protection live</p>
+          <ul className="mt-1 space-y-1 text-[12px] text-sky-900">
+            <li>🚦 Rate limit: {String(posture?.rate_limit || "sliding-window")}</li>
+            <li>🔐 Auth: {posture?.auth_enforced ? "enforced" : "dev mode (token optional)"}</li>
+            <li>🔁 Payment replay protection (idempotency)</li>
+            <li>📜 Consent ledger: numbers exchange audit trail</li>
+          </ul>
+        </div>
+      </div>
+      {trustBoard?.board?.length ? (
+        <div className="mt-4 flex flex-wrap gap-2">
+          {trustBoard.board.map((b) => (
+            <Link key={String(b.tsap_id)} href={`/search/${b.tsap_id}`}
+              className="rounded-full border border-gold/40 bg-white px-3 py-1.5 text-[11px] font-semibold text-maroon hover:bg-cream">
+              {String(b.badge_telugu || "⭐")} {String(b.tsap_id)} · {String(b.trust_score)}/100
+            </Link>
+          ))}
+        </div>
+      ) : null}
+      <p className="mt-3 text-[12px] text-gray-600">
+        Ee page load ayyaka API nunchi live data vastundi (<code>/api/trust/board</code>, <code>/api/security/posture</code>) —
+        mee profile complete chesukoni board lo top lo kanipinchandi.
+      </p>
+    </section>
     </div>
   );
 }

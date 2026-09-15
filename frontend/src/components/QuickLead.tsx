@@ -85,10 +85,10 @@ export default function QuickLead({ source = "site", compact = false }: { source
           </div>
           <input value={form.phone} inputMode="tel" placeholder="WhatsApp number (10 digit) *"
             onChange={(e) => setForm({ ...form, phone: e.target.value.replace(/\D/g, "").slice(0, 10) })}
-            className="input-mobile !bg-white/95" />
+            className="input-mobile !bg-white/95" aria-label="WhatsApp number (10 digit) *" />
           <input value={form.name} placeholder="Mee peru (optional)"
             onChange={(e) => setForm({ ...form, name: e.target.value })}
-            className="input-mobile !bg-white/95" />
+            className="input-mobile !bg-white/95" aria-label="Mee peru (optional)" />
           <div className="flex gap-2">
             {["Bride", "Groom"].map((g) => (
               <button key={g} onClick={() => setForm({ ...form, gender: g })}
@@ -100,11 +100,11 @@ export default function QuickLead({ source = "site", compact = false }: { source
           {!compact && (
             <div className="flex gap-2">
               <select value={form.state} onChange={(e) => setForm({ ...form, state: e.target.value, district: "" })}
-                className="input-mobile !bg-white/95 !text-maroon">
+                className="input-mobile !bg-white/95 !text-maroon" aria-label="Select option">
                 <option value="TS">Telangana</option><option value="AP">Andhra Pradesh</option>
               </select>
               <select value={form.district} onChange={(e) => setForm({ ...form, district: e.target.value })}
-                className="input-mobile !bg-white/95 !text-maroon">
+                className="input-mobile !bg-white/95 !text-maroon" aria-label="Select option">
                 <option value="">District (optional)</option>
                 {(DISTRICTS_BY_STATE[form.state] || []).map((d) => <option key={d} value={d}>{d}</option>)}
               </select>

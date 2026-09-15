@@ -8,12 +8,13 @@
  *   📊 Analytics  → leads, channels, referral funnel (API nunchi)
  */
 import { useCallback, useEffect, useState } from "react";
+import AuthGate from "@/components/AuthGate";
+import { apiGet, apiPost, authHeaders, getAdminKey, setAdminKey } from "@/lib/api";
 import Link from "next/link";
 
-const DEMO_PROFILES = [
-  { id: "TSAP-F-2025-1042", gender: "Bride", age: 24, caste: "Reddy", district: "Nalgonda", state: "TS", phone: "98480xxxxx", status: "Pending", credits: 3 },
-  { id: "TSAP-M-2025-1042", gender: "Groom", age: 27, caste: "Kamma", district: "Guntur", state: "AP", phone: "98481xxxxx", status: "Approved", credits: 5 },
-];
+const DEMO_PROFILES: any[] = [];
+// 🐞 FIX (F05): ee list lo mundu fake rows (98480xxxxx / 98481xxxxx fake phone numbers) unnayi —
+// admin ki nijam kaani data chupinche. Ippudu anni rows /api/admin/queue nunchi matrame.
 
 export default function AdminPage() {
   const [tab, setTab] = useState("payouts");
@@ -29,6 +30,26 @@ export default function AdminPage() {
   const [vUtr, setVUtr] = useState<Record<string, string>>({});
   const [vRevenue, setVRevenue] = useState<any>(null);
   const [stats, setStats] = useState<any>({});
+  // 🔐 WAVE 9 — admin key (X-Admin-Key) + abuse dashboard
+  const [adminKey, setAdminKeyState] = useState("");
+  const [needKey, setNeedKey] = useState(false);
+  const [abuse, setAbuse] = useState<any>(null);
+
+  useEffect(() => { setAdminKeyState(getAdminKey()); }, []);
+
+  const saveAdminKey = () => {
+    setAdminKey(adminKey.trim());
+    setNeedKey(false);
+    setFlash(adminKey.trim() ? "🔐 Admin key save ayyindi (localStorage lo — browser tarvata kooda gurtu untundi)" : "🔐 Key teesesaaru");
+  };
+
+  const loadAbuse = useCallback(async () => {
+    const { ok, data, needsAdminKey } = await apiGet<any>("/api/admin/abuse", true);
+    if (needsAdminKey) { setNeedKey(true); return; }
+    if (ok) setAbuse(data);
+  }, []);
+
+  useEffect(() => { void loadAbuse(); }, [loadAbuse]);
 
   /* ---------- loaders ---------- */
   useEffect(() => {
@@ -43,9 +64,9 @@ export default function AdminPage() {
 
   const loadQueue = useCallback((st: string) => {
     const tk = adminToken();
-    fetch(`/api/admin/payouts?status=${st}${tk ? `&token=${encodeURIComponent(tk)}` : ""}`)
-      .then((r) => r.json())
-      .then((d) => (d.success ? setQueue(d) : setFlash(d.message_telugu || "⚠️ Admin token check cheyyandi")))
+    fetch(`/api/admin/payouts?status=${st}${tk ? `&token=${encodeURIComponent(tk)}` : ""}`, { headers: authHeaders(true) })
+      .then((r) => { if (r.status === 403) setNeedKey(true); return r.json(); })
+      .then((d) => (d.success ? setQueue(d) : setFlash(d.message_telugu || "⚠️ Admin key check cheyyandi (/admin lo key pettandi)")))
       .catch(() => { });
   }, []);
 
@@ -53,11 +74,11 @@ export default function AdminPage() {
 
   const loadVendors = useCallback((st: string) => {
     const tk = adminToken();
-    fetch(`/api/admin/vendors?status=${st}${tk ? `&token=${encodeURIComponent(tk)}` : ""}`)
-      .then((r) => r.json())
-      .then((d) => (d.success ? setVQueue(d) : setFlash(d.message_telugu || "⚠️ Admin token check cheyyandi")))
+    fetch(`/api/admin/vendors?status=${st}${tk ? `&token=${encodeURIComponent(tk)}` : ""}`, { headers: authHeaders(true) })
+      .then((r) => { if (r.status === 403) setNeedKey(true); return r.json(); })
+      .then((d) => (d.success ? setVQueue(d) : setFlash(d.message_telugu || "⚠️ Admin key check cheyyandi (/admin lo key pettandi)")))
       .catch(() => { });
-    fetch(`/api/admin/vendors/revenue/summary${tk ? `?token=${encodeURIComponent(tk)}` : ""}`)
+    fetch(`/api/admin/vendors/revenue/summary${tk ? `?token=${encodeURIComponent(tk)}` : ""}`, { headers: authHeaders(true) })
       .then((r) => r.json()).then((d) => d.success && setVRevenue(d)).catch(() => { });
   }, []);
 
@@ -75,14 +96,16 @@ export default function AdminPage() {
     } else if (action === "reject") {
       q.set("reason", "admin_reject: payment/details verify avvaledu");
     }
-    const r = await fetch(`/api/admin/vendors/${id}/action?${q.toString()}`, { method: "POST" });
+    const r = await fetch(`/api/admin/vendors/${id}/action?${q.toString()}`, { method: "POST", headers: authHeaders(true) });
     const d = await r.json();
     setFlash(d.message_telugu || d.reason || "done");
     loadVendors(vStatus);
   };
   useEffect(() => {
     fetch("/api/referral/leaderboard?period=all&limit=5").then((r) => r.json()).then((d) => setBoard(d.leaderboard || [])).catch(() => { });
-    fetch("/api/leads/stats").then((r) => r.json()).then((d) => setStats((s: any) => ({ ...s, leads: d }))).catch(() => { });
+    fetch("/api/leads/stats", { headers: authHeaders(true) })
+      .then((r) => { if (r.status === 403) setNeedKey(true); return r.json(); })
+      .then((d) => setStats((s: any) => ({ ...s, leads: d }))).catch(() => { });
     fetch("/api/channels").then((r) => r.json()).then((d) => setStats((s: any) => ({ ...s, channels: d.stats }))).catch(() => { });
   }, []);
 
@@ -97,7 +120,7 @@ export default function AdminPage() {
     } else {
       q.set("reason", "admin_reject: details verify avvaledu");
     }
-    const r = await fetch(`/api/admin/payouts/${id}/action?${q.toString()}`, { method: "POST" });
+    const r = await fetch(`/api/admin/payouts/${id}/action?${q.toString()}`, { method: "POST", headers: authHeaders(true) });
     const d = await r.json();
     setFlash(d.message_telugu || d.reason || "done");
     loadQueue(status);
@@ -105,7 +128,7 @@ export default function AdminPage() {
 
   const approveProfile = async (id: string) => {
     try {
-      const r = await fetch(`/api/admin/approve/${id}`, { method: "POST" });
+      const r = await fetch(`/api/admin/approve/${id}`, { method: "POST", headers: authHeaders(true) });
       const d = await r.json();
       setProfiles((prev) => prev.map((p) => (p.id === id ? { ...p, status: "Approved" } : p)));
       setFlash(`✅ ${id} approve + auto-post queue: ${(d.auto_post_queue || []).slice(0, 3).join(", ")}`);
@@ -117,6 +140,38 @@ export default function AdminPage() {
 
   return (
     <main className="min-h-screen bg-[#FFF8E7] p-4">
+
+      {/* 🔐 WAVE 9 — ADMIN KEY + ABUSE DASHBOARD */}
+      <section className="mx-auto max-w-6xl px-4 pt-4">
+        <div className="rounded-2xl border-2 border-[#7A0C2E]/25 bg-white p-4">
+          <div className="flex flex-wrap items-end gap-2">
+            <label className="flex-1 min-w-[240px] text-[12px] font-bold text-[#7A0C2E]">
+              🔐 Admin key (X-Admin-Key) — leads / payouts / moderation / abuse ki kavali
+              <input value={adminKey} onChange={(e) => setAdminKeyState(e.target.value)} type="password"
+                placeholder="ADMIN_KEY env value (server log lo kooda untundi)"
+                className="mt-1 w-full rounded-xl border border-[#7A0C2E]/30 px-3 py-2 font-mono text-[12px]" aria-label="ADMIN_KEY env value (server log lo kooda untundi)" />
+            </label>
+            <button onClick={saveAdminKey} className="rounded-xl bg-[#7A0C2E] px-4 py-2 text-[12px] font-bold text-white">💾 Save key</button>
+            <button onClick={() => void loadAbuse()} className="rounded-xl border border-[#7A0C2E] px-4 py-2 text-[12px] font-bold text-[#7A0C2E]">🔄 Abuse refresh</button>
+          </div>
+          {needKey ? (
+            <div className="mt-3">
+              <AuthGate admin title="🔒 Admin key kavali"
+                note="PII (leads phones) + money (payouts) endpoints ippudu key tho protect chesam. Server start lo '[HARDENING] admin_key=…' line lo key untundi — leda ADMIN_KEY env lo pettandi." />
+            </div>
+          ) : null}
+          {abuse ? (
+            <div className="mt-3 grid grid-cols-2 gap-2 text-[12px] sm:grid-cols-4 lg:grid-cols-6">
+              <div className="rounded-xl bg-amber-50 p-2"><b>{abuse.rate_limited}</b><br />🚦 rate limited</div>
+              <div className="rounded-xl bg-rose-50 p-2"><b>{abuse.auth_denied}</b><br />🔒 auth denied</div>
+              <div className="rounded-xl bg-rose-50 p-2"><b>{abuse.admin_denied}</b><br />🛡️ admin denied</div>
+              <div className="rounded-xl bg-sky-50 p-2"><b>{abuse.webhook_replay}</b><br />🔁 payment replay</div>
+              <div className="rounded-xl bg-emerald-50 p-2"><b>{abuse.validation_errors}</b><br />🧹 bad inputs</div>
+              <div className="rounded-xl bg-slate-50 p-2"><b>{abuse.consent_events}</b><br />📜 consents</div>
+            </div>
+          ) : null}
+        </div>
+      </section>
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-4">
           <Link href="/" className="text-sm font-bold text-[#7A0C2E]">← Home</Link>
@@ -150,19 +205,19 @@ export default function AdminPage() {
             </h2>
             <div className="flex gap-2">
               {tab === "payouts" && (
-                <select value={status} onChange={(e) => setStatus(e.target.value)} className="rounded-full border px-3 py-1.5 text-xs">
+                <select value={status} onChange={(e) => setStatus(e.target.value)} className="rounded-full border px-3 py-1.5 text-xs" aria-label="Select option">
                   <option value="requested">requested</option><option value="paid">paid</option>
                   <option value="rejected">rejected</option><option value="">anni</option>
                 </select>
               )}
               {tab === "vendors" && (
-                <select value={vStatus} onChange={(e) => setVStatus(e.target.value)} className="rounded-full border px-3 py-1.5 text-xs">
+                <select value={vStatus} onChange={(e) => setVStatus(e.target.value)} className="rounded-full border px-3 py-1.5 text-xs" aria-label="Select option">
                   <option value="pending">pending</option><option value="active">active</option>
                   <option value="expired">expired</option><option value="rejected">rejected</option><option value="">anni</option>
                 </select>
               )}
               <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Code / Name / UPI / ID"
-                className="px-4 py-2 rounded-full bg-gray-50 border text-xs" />
+                className="px-4 py-2 rounded-full bg-gray-50 border text-xs" aria-label="Code / Name / UPI / ID" />
             </div>
           </div>
 
@@ -204,7 +259,7 @@ export default function AdminPage() {
                           {p.status === "requested" ? (
                             <div className="flex flex-col gap-1">
                               <input value={utr[p.id] || ""} onChange={(e) => setUtr({ ...utr, [p.id]: e.target.value })}
-                                placeholder="UTR / ref no" className="rounded-lg border px-2 py-1 text-xs w-36" />
+                                placeholder="UTR / ref no" className="rounded-lg border px-2 py-1 text-xs w-36" aria-label="UTR / ref no" />
                               <div className="flex gap-1">
                                 <button onClick={() => act(p.id, "approve")} className="px-3 py-1 bg-green-600 text-white rounded-full text-xs">✅ Paid</button>
                                 <button onClick={() => act(p.id, "reject")} className="px-3 py-1 bg-red-500 text-white rounded-full text-xs">❌ Reject</button>
@@ -295,7 +350,7 @@ export default function AdminPage() {
                           {v.status === "pending" ? (
                             <div className="flex flex-col gap-1">
                               <input value={vUtr[v.id] || ""} onChange={(e) => setVUtr({ ...vUtr, [v.id]: e.target.value })}
-                                placeholder="UTR / payment ref" className="rounded-lg border px-2 py-1 text-xs w-36" />
+                                placeholder="UTR / payment ref" className="rounded-lg border px-2 py-1 text-xs w-36" aria-label="UTR / payment ref" />
                               <div className="flex flex-wrap gap-1">
                                 <button onClick={() => actVendor(v.id, "approve", v.package)} className="px-3 py-1 bg-green-600 text-white rounded-full text-xs">✅ Activate</button>
                                 <button onClick={() => actVendor(v.id, "reject")} className="px-3 py-1 bg-red-500 text-white rounded-full text-xs">❌ Reject</button>

@@ -10,6 +10,8 @@
  * 5. Moderation queue preview (admin) — high severity mundu
  */
 import { useCallback, useEffect, useState } from "react";
+import AuthGate from "@/components/AuthGate";
+import { authHeaders } from "@/lib/api";
 import Link from "next/link";
 
 type Tip = { icon: string; title: string; telugu: string };
@@ -17,6 +19,7 @@ type Cat = { key: string; te: string; severity: string; desc: string };
 
 export default function SafetyPage() {
   const [tips, setTips] = useState<Tip[]>([]);
+  const [needsLogin, setNeedsLogin] = useState(false);
   const [cats, setCats] = useState<Cat[]>([]);
   const [levels, setLevels] = useState<{ level: string; telugu: string }[]>([]);
   const [report, setReport] = useState({ target_id: "", category: "fake_profile", detail: "" });
@@ -46,9 +49,9 @@ export default function SafetyPage() {
     if (!id) return;
     try {
       const [b, v, q] = await Promise.all([
-        fetch(`/api/blocks/${id}`).then((r) => r.json()),
-        fetch(`/api/verification/${id}`).then((r) => r.json()),
-        fetch("/api/moderation/queue").then((r) => r.json()),
+        fetch(`/api/blocks/${id}`, { headers: authHeaders() }).then((r) => { if (r.status === 401) setNeedsLogin(true); return r.json(); }),
+        fetch(`/api/verification/${id}`, { headers: authHeaders() }).then((r) => r.json()),
+        fetch("/api/moderation/queue", { headers: authHeaders(true) }).then((r) => r.json()),
       ]);
       setBlocks(b.items || []); setVerify(v.level ? v : null); setQueue(q);
     } catch { /* ignore */ }
@@ -157,16 +160,16 @@ export default function SafetyPage() {
             <div className="md:col-span-1">
               <label className="text-[12px] font-bold">Evarini report? (TSAP ID)</label>
               <input value={report.target_id} onChange={(e) => setReport({ ...report, target_id: e.target.value.toUpperCase() })}
-                placeholder="TSAP-M-2025-1042" className="input-mobile font-mono" />
+                placeholder="TSAP-M-2025-1042" className="input-mobile font-mono" aria-label="TSAP-M-2025-1042" />
             </div>
             <div className="md:col-span-1">
               <label className="text-[12px] font-bold">Mee TSAP ID (optional)</label>
               <input value={myId} onChange={(e) => { setMyId(e.target.value.toUpperCase()); localStorage.setItem("tsap_id", e.target.value.toUpperCase()); }}
-                placeholder="TSAP-F-2025-1042" className="input-mobile font-mono" />
+                placeholder="TSAP-F-2025-1042" className="input-mobile font-mono" aria-label="TSAP-F-2025-1042" />
             </div>
             <div className="md:col-span-1">
               <label className="text-[12px] font-bold">Category</label>
-              <select value={report.category} onChange={(e) => setReport({ ...report, category: e.target.value })} className="input-mobile">
+              <select value={report.category} onChange={(e) => setReport({ ...report, category: e.target.value })} className="input-mobile" aria-label="Select option">
                 {cats.map((c) => <option key={c.key} value={c.key}>{c.te} — {c.desc.slice(0, 40)}</option>)}
               </select>
             </div>
@@ -174,7 +177,7 @@ export default function SafetyPage() {
           <div className="mt-3">
             <label className="text-[12px] font-bold">Em jarigindi? (detail — screenshots ki proof ga pettukondi)</label>
             <textarea value={report.detail} onChange={(e) => setReport({ ...report, detail: e.target.value })}
-              rows={3} placeholder="Uda: advance ₹5,000 adigaru, registration fee ani chepparu…" className="input-mobile telugu" />
+              rows={3} placeholder="Uda: advance ₹5,000 adigaru, registration fee ani chepparu…" className="input-mobile telugu" aria-label="Uda: advance ₹5,000 adigaru, registration fee ani chepparu…" />
           </div>
           <div className="mt-3 flex flex-wrap gap-2">
             <button onClick={submitReport} disabled={busy}

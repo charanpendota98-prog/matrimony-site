@@ -106,7 +106,7 @@ export default function ChannelsPage() {
         <div className="mt-4 bg-white rounded-[1.5rem] p-4 card-shadow">
           <input value={q} onChange={e => setQ(e.target.value)}
             placeholder="🔍 Search channel — Reddy, Muslim, NRI, 2nd marriage, doctors..."
-            className="w-full p-3 rounded-xl bg-gray-50 border text-sm" />
+            className="w-full p-3 rounded-xl bg-gray-50 border text-sm" aria-label="Text input" />
           <div className="flex flex-wrap gap-2 mt-3">
             <button onClick={() => setTier("ALL")}
               className={`px-3 py-1.5 rounded-full text-xs font-bold border ${tier === "ALL" ? "maroon-gradient text-white" : "bg-white"}`}>
@@ -135,7 +135,7 @@ export default function ChannelsPage() {
               </button>
             ))}
             <label className="ml-auto flex items-center gap-2 text-[11px] font-bold">
-              <input type="checkbox" checked={onlyLive} onChange={e => setOnlyLive(e.target.checked)} />
+              <input type="checkbox" checked={onlyLive} onChange={e => setOnlyLive(e.target.checked)} aria-label="Text input" />
               LIVE matrame chupinchu
             </label>
           </div>

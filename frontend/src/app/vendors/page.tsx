@@ -108,10 +108,10 @@ export default function VendorsPage() {
           <div className="mt-3 grid md:grid-cols-2 gap-3">
             <input value={district} onChange={(e) => setDistrict(e.target.value)}
               placeholder="District / city (udaharanam: Warangal, Hyderabad, Guntur)"
-              className="input-mobile" />
+              className="input-mobile" aria-label="District / city (udaharanam: Warangal, Hyderabad, Guntur)" />
             <input value={q} onChange={(e) => setQ(e.target.value)}
               placeholder="Search (business peru, service, keywords)"
-              className="input-mobile" />
+              className="input-mobile" aria-label="Search (business peru, service, keywords)" />
           </div>
           {districts.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-1.5">

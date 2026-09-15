@@ -1,276 +1,288 @@
 "use client";
-import { useEffect, useState } from "react";
+/**
+ * 👁️ /search/[id] — PROFILE VIEW (WAVE 9 rewrite)
+ * ===============================================
+ * 🐞 FIXES (mundu unna bugs):
+ *   • HARDCODED fake profile (Lakshmi Reddy + phone "9848012345") — tappu ID ki kooda ade kanipinchedu
+ *   • "Number Chudu 1 Credit" button — kani backend aa number eppudu ivvadu (fake promise)
+ *   • Credit locally deduct ayyedi (server ki telidu) → balance mismatch
+ *   • ✅ Ippudu: real /api/search/{id} data, 404 honest, 🔒 consent-based unlock, quality + trust,
+ *     block/report wired, shortlist + interest token tho.
+ */
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import TrustBadge from "@/components/TrustBadge";
+import AuthGate from "@/components/AuthGate";
+import { apiGet, apiPost, authHeaders, getToken } from "@/lib/api";
+
+type Row = Record<string, any>;
+
+const CONSENT_STEPS = [
+  "1️⃣ Interest pampandi (FREE 3 requests) — vaallaki mee profile WhatsApp lo veltundi",
+  "2️⃣ Vaallu accept cheste — rendu vaipula numbers WhatsApp lo exchange (consent)",
+  "3️⃣ Appudu matladukondi — mana side nunchi madhyastham kooda undi",
+];
 
 export default function ProfileView() {
   const params = useParams();
-  const idFromUrl = params?.id as string;
-  const [searchId, setSearchId] = useState(idFromUrl || "");
-  const [profile, setProfile] = useState<any>(null);
-  const [credits, setCredits] = useState(3);
-  const [showNumber, setShowNumber] = useState(false);
-  const [myPhone, setMyPhone] = useState("98480xxxxx");
-  const [myTsapId, setMyTsapId] = useState("TSAP-M-2025-1042");
-  const [interestMsg, setInterestMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const idFromUrl = String(params?.id || "").toUpperCase();
+  const [searchId, setSearchId] = useState(idFromUrl);
+  const [data, setData] = useState<Row | null>(null);
+  const [err, setErr] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [myTsapId, setMyTsapId] = useState("");
+  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [sending, setSending] = useState(false);
   const [savedNow, setSavedNow] = useState(false);
-  const [viewCount, setViewCount] = useState<number | null>(null);
+  const [needsLogin, setNeedsLogin] = useState(false);
+  const [blocked, setBlocked] = useState(false);
+  const [reported, setReported] = useState(false);
+
+  const profile: Row = data?.profile || {};
+  const trust = (data?.trust as Row) || null;
+  const quality = (data?.quality as Row) || null;
+
+  const load = useCallback(async (id: string) => {
+    if (!id) return;
+    setLoading(true); setErr(""); setMsg(null);
+    const { ok, status, data: d, errorTelugu } = await apiGet<Row>(`/api/search/${encodeURIComponent(id)}`);
+    setLoading(false);
+    if (!ok || !d) {
+      setData(null);
+      setErr(status === 404 ? `🔍 TSAP ID dorakaledu: ${id} — ID correct ga unda check cheyyandi (register ayyara?)` : errorTelugu);
+      return;
+    }
+    setData(d);
+  }, []);
 
   useEffect(() => {
-    if (idFromUrl) handleSearch(idFromUrl);
-    const c = localStorage.getItem("tsap_credits");
-    if (c) setCredits(parseInt(c));
-    const p = localStorage.getItem("tsap_last_phone");
-    if (p) setMyPhone(p);
-    const my = localStorage.getItem("tsap_id");
-    if (my) setMyTsapId(my);
-    if (idFromUrl) {
-      // 👀 view record (who-viewed-me feature) — same viewer 6h lo duplicate avvadu
-      fetch("/api/view", { method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tsap_id: idFromUrl, viewer_id: my || "" }) })
-        .then((r) => r.json()).then((d) => { if (d?.total_views) setViewCount(d.total_views); }).catch(() => {});
-    }
+    try {
+      setMyTsapId(localStorage.getItem("tsap_id") || "");
+    } catch { /* ignore */ }
+    void load(idFromUrl);
+  }, [idFromUrl, load]);
+
+  useEffect(() => {
+    if (!idFromUrl) return;
+    const my = (() => { try { return localStorage.getItem("tsap_id") || ""; } catch { return ""; } })();
+    void fetch("/api/view", {
+      method: "POST", headers: authHeaders(),
+      body: JSON.stringify({ tsap_id: idFromUrl, viewer_id: my }),
+    });
   }, [idFromUrl]);
 
-  // 💌 Interest pampu — vaallaki mana WhatsApp nunchi mee profile + card (chatting ledu)
-  const sendInterest = async () => {
-    setSending(true);
-    setInterestMsg(null);
-    try {
-      const r = await fetch("/api/interest/send", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ from_id: myTsapId, to_id: searchId, channel: "search_page" }),
-      });
-      const d = await r.json();
-      if (r.ok) {
-        setInterestMsg({ ok: true, text: d.message_telugu || "Interest pampincharu ✅" });
-        if (typeof d.credits_left === "number") {
-          setCredits(d.credits_left);
-          localStorage.setItem("tsap_credits", String(d.credits_left));
-        }
-      } else if (r.status === 402) {
-        setInterestMsg({ ok: false, text: (d.message_telugu || "Credits ledu") + " → /requests lo plans chudandi" });
-      } else {
-        setInterestMsg({ ok: false, text: d.message_telugu || d.detail || "Pampaledu — mee TSAP ID correct ga ivvandi" });
-      }
-    } catch {
-      setInterestMsg({ ok: false, text: "Network problem — malli try cheyyandi" });
-    }
+  const sendInterest = async (templateId?: string) => {
+    setSending(true); setMsg(null);
+    const { ok, data: d, status, errorTelugu: eTel, needsLogin: nl } = await apiPost<Row>("/api/interest/send",
+      { from_id: myTsapId, to_id: searchId, channel: "search_page", ...(templateId ? { template_id: templateId } : {}) });
     setSending(false);
+    if (nl) { setNeedsLogin(true); return; }
+    if (ok) setMsg({ ok: true, text: String(d?.message_telugu || "Interest pampincharu ✅ — accept ayithe numbers exchange") });
+    else if (status === 402) setMsg({ ok: false, text: "⚠️ Credits ayipoyayi — ₹99 → 5 profiles. Numbers kooda accept tho ne (consent)." });
+    else if (status === 404) setMsg({ ok: false, text: "Mee TSAP ID register cheyyaledu — mundu FREE register cheyyandi." });
+    else setMsg({ ok: false, text: eTel });
   };
 
-  // ❤️ shortlist toggle
   const toggleSave = async () => {
-    try {
-      const d = await fetch("/api/save", { method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tsap_id: myTsapId, saved_id: searchId }) }).then((r) => r.json());
-      setSavedNow(!!d.saved);
-      setInterestMsg({ ok: true, text: d.message_telugu });
-    } catch { /* ignore */ }
+    const { ok, data: d, needsLogin: nl, errorTelugu: eTel } = await apiPost<Row>("/api/save", { tsap_id: myTsapId, target_id: searchId });
+    if (nl) { setNeedsLogin(true); return; }
+    if (!ok) { setMsg({ ok: false, text: eTel }); return; }
+    setSavedNow(!!d?.saved);
+    setMsg({ ok: true, text: String(d?.message_telugu || "Shortlist update ayyindi") });
   };
 
-  const handleSearch = (id: string) => {
-    const profiles = JSON.parse(localStorage.getItem("tsap_profiles") || "[]");
-    const mock = {
-      id: id || "TSAP-F-2025-1042",
-      fullName: "Lakshmi Reddy",
-      gender: id?.includes("-F-") ? "Bride" : "Groom",
-      age: "24",
-      height: "5'4\"",
-      weight: "55kg",
-      caste: "Reddy",
-      subCaste: "Pakanati",
-      gothram: "Bharadwaj",
-      star: "Rohini",
-      rasi: "Vrushabha",
-      dosham: "No",
-      education: "BTech",
-      educationDetail: "BTech CSE",
-      college: "JNTU Hyderabad",
-      job: "Software",
-      company: "TCS",
-      salary: "60k",
-      workLocation: "Hyderabad Gachibowli",
-      state: "TS",
-      district: "Nalgonda",
-      mandal: "Gachibowli",
-      currentCity: "Hyderabad",
-      fatherName: "Ramesh Reddy",
-      fatherOccupation: "Farmer",
-      motherName: "Sita Reddy",
-      motherOccupation: "Housewife",
-      familyType: "Nuclear",
-      familyStatus: "Middle Class",
-      nativePlace: "Nalgonda",
-      aboutMyself: "Nenu software engineer, simple family, traditional values, looking for understanding partner, respect elders, non-smoker.",
-      aboutFamily: "Middle class traditional family",
-      dob: "2001-05-15",
-      dobCorrect: true,
-      birthTime: "10:30 AM",
-      phone: "9848012345",
-      photoPrivate: false,
-      photoUrl: "https://i.pravatar.cc/300?img=32",
-      score: 92,
-      reasons: ["Hyderabad + Software perfect", "Software + BTech same", "Reddy Bharadwaj perfect age gap 3y", "Family Nuclear Middle Class Father Farmer"],
-      expectationMatch: "Age 21-28 Height 5-10 Caste Reddy Job Software Govt Location Hyderabad",
-    };
-    const found = profiles.find((p: any) => p.id === id) || mock;
-    setProfile(found);
+  const doBlock = async () => {
+    const { ok, data: d, needsLogin: nl, errorTelugu: eTel } = await apiPost<Row>("/api/block", { tsap_id: myTsapId, block_id: searchId, reason: "profile page nunchi" });
+    if (nl) { setNeedsLogin(true); return; }
+    if (ok) { setBlocked(true); setMsg({ ok: true, text: String(d?.message_telugu || "Block ayyindi") }); }
+    else setMsg({ ok: false, text: eTel });
   };
 
-  const handleUnlock = () => {
-    if (credits > 0) {
-      setCredits(credits - 1);
-      localStorage.setItem("tsap_credits", (credits - 1).toString());
-      setShowNumber(true);
-    } else {
-      alert("Credits ayipoyayi 99 pay 10 credits vasthayi but ID search always open profile chudochu number ki credit kavali");
-    }
+  const doReport = async () => {
+    const { ok, data: d, needsLogin: nl, errorTelugu: eTel } = await apiPost<Row>("/api/report", { reporter_id: myTsapId, target_id: searchId, category: "fake_profile", detail: "Profile page nunchi report" });
+    if (nl) { setNeedsLogin(true); return; }
+    if (ok) { setReported(true); setMsg({ ok: true, text: String(d?.message_telugu || d?.ack_telugu || "Report pampam — team 48h lo chustundi") }); }
+    else setMsg({ ok: false, text: eTel });
   };
 
   const shareWhatsApp = () => {
     if (!profile) return;
-    const text = "TSAP " + profile.id + " " + profile.fullName + " " + profile.age + "y " + profile.height + " " + profile.caste + " " + profile.gothram + " " + profile.education + " " + profile.educationDetail + " " + profile.job + " at " + profile.company + " " + profile.district + " " + profile.mandal + " Father " + profile.fatherName + " Family " + profile.familyType + " Star " + profile.star + " Rasi " + profile.rasi + " DOB " + profile.dob + " " + profile.birthTime + " " + (profile.dobCorrect ? "Correct Tick" : "") + " Salary " + profile.salary + " Location " + profile.workLocation + " Why " + profile.reasons[0] + " Search Code " + profile.id + " https://tsapmatrimony.com/search/" + profile.id + " Phone " + (showNumber ? profile.phone : "Pay unlock") + " Bot @telugumatrimony1_bot Channels @TSBRIDE @TSGROOM1";
-    window.open("https://wa.me/" + myPhone + "?text=" + encodeURIComponent(text), "_blank");
-  };
-
-  const shareTelegram = () => {
-    if (!profile) return;
-    const url = "https://tsapmatrimony.com/search/" + profile.id;
-    const txt = "TSAP " + profile.id + " " + profile.fullName + " " + profile.age + "y " + profile.caste + " " + profile.job + " " + profile.district + " " + profile.score + "% " + profile.reasons[0];
-    window.open("https://t.me/share/url?url=" + encodeURIComponent(url) + "&text=" + encodeURIComponent(txt), "_blank");
+    const text = `🙏 Mana Vivaha profile — ${profile.full_name} (${profile.tsap_id})\n` +
+      `${profile.age}y • ${profile.height || "—"} • ${profile.caste} • ${profile.education} • ${profile.job}\n` +
+      `📍 ${profile.district}, ${profile.state} • 💰 ${profile.salary}\n` +
+      `🔒 Number locked — interest accept ayithe exchange\n` +
+      `Full details: ${window.location.origin}/search/${profile.tsap_id}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
   };
 
   return (
-    <div className="min-h-screen bg-[#FFF8E7] p-4">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <Link href="/" className="text-sm font-bold text-[#7A0C2E]">Home</Link>
-          <div className="font-bold text-[#7A0C2E]">Advanced ID Search Profile Code</div>
-          <Link href="/register" className="text-xs bg-[#7A0C2E] text-white px-3 py-1 rounded-full">Register</Link>
+    <main className="mx-auto max-w-3xl px-4 py-6">
+      <div className="flex items-center gap-2">
+        <Link href="/matches" className="text-[12px] font-bold text-[#7A0C2E]">← Matches</Link>
+        <div className="flex flex-1 items-center gap-2 rounded-2xl border border-rose-200 bg-white px-3 py-2">
+          <span>🔍</span>
+          <input value={searchId} onChange={(e) => setSearchId(e.target.value.toUpperCase())}
+            onKeyDown={(e) => { if (e.key === "Enter") void load(searchId.trim()); }}
+            placeholder="TSAP ID (ex: TSAP-F-2025-1042)" aria-label="TSAP ID search"
+            className="flex-1 bg-transparent text-sm outline-none" />
+          <button onClick={() => void load(searchId.trim())} className="rounded-xl bg-[#7A0C2E] px-3 py-1.5 text-[12px] font-bold text-white">Chudu</button>
         </div>
-
-        <div className="bg-white rounded-full p-2 flex gap-2">
-          <input value={searchId} onChange={e => setSearchId(e.target.value)} placeholder="Profile Code e.g. TSAP-F-2025-1042 separate code" className="flex-1 outline-none text-sm px-4 py-2" />
-          <button onClick={() => handleSearch(searchId)} className="px-5 py-2 maroon-gradient text-white rounded-full text-sm font-bold">Search Code</button>
-        </div>
-
-        <div className="mt-2 text-xs text-gray-500">ID search eppudu open — profile + photo details chudochu. Number exchange matrame iddaru oppukunnappudu (interest accept).</div>
-
-        {/* 💌 INTEREST PAMPU — chatting ledu, WhatsApp lo profile share + number exchange */}
-        <div className="mt-4 bg-white rounded-2xl p-4 border border-[#D4AF37]/30">
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="font-bold text-sm text-[#7A0C2E]">💌 Interest pampu — vaallaki WhatsApp lo mee profile veltundi</div>
-            <span className="text-[10px] font-bold bg-[#FFF8E7] border border-[#D4AF37]/40 px-2 py-0.5 rounded-full">1 credit • modati 3 FREE • decline aithe refund</span>
-          </div>
-          <div className="mt-2 flex flex-wrap items-center gap-2">
-            <span className="text-xs text-gray-500">Mee TSAP ID</span>
-            <input
-              value={myTsapId}
-              onChange={(e) => { setMyTsapId(e.target.value.toUpperCase()); localStorage.setItem("tsap_id", e.target.value.toUpperCase()); }}
-              className="border rounded-full px-3 py-1.5 text-xs w-48 font-mono"
-            />
-            <button onClick={sendInterest} disabled={sending} className="px-4 py-2 maroon-gradient text-white rounded-full text-xs font-bold disabled:opacity-60">
-              {sending ? "Pampisthunnam…" : `💌 Interest pampu (${searchId})`}
-            </button>
-            <button onClick={toggleSave} className="px-4 py-2 border border-[#7A0C2E]/30 text-[#7A0C2E] rounded-full text-xs font-bold">
-              {savedNow ? "❤️ Saved (shortlist)" : "🤍 Save"}
-            </button>
-            <Link href="/requests" className="px-4 py-2 border border-[#7A0C2E]/30 text-[#7A0C2E] rounded-full text-xs font-bold">Requests dashboard →</Link>
-            {viewCount !== null && <span className="text-[11px] text-gray-500">👀 {viewCount} views</span>}
-          </div>
-          <div className="mt-2 text-[11px] text-gray-500">🚫 Chatting ledu — accept aithe rendu numbers automatic ga WhatsApp lo exchange avutayi.</div>
-          {interestMsg && (
-            <div className={`mt-2 text-xs rounded-xl px-3 py-2 border ${interestMsg.ok ? "bg-green-50 border-green-200 text-green-800" : "bg-amber-50 border-amber-200 text-amber-800"}`}>
-              {interestMsg.text}
-            </div>
-          )}
-        </div>
-
-        {profile && (
-          <div className="mt-6 space-y-4">
-            <div className="bg-white rounded-2xl p-4 flex flex-wrap items-center justify-between gap-2">
-              <div>
-                <div className="font-bold text-sm">Credits {credits} ID Search Always Open Logic</div>
-                <div className="text-xs text-gray-500">Profile open even credits 0 number ki 1 credit limit ayyaka malli 99</div>
-              </div>
-              <div className="flex gap-2 items-center">
-                <span className="text-xs">My Phone share target</span>
-                <input value={myPhone} onChange={e => setMyPhone(e.target.value)} className="border rounded px-2 py-1 text-xs w-28" />
-                <button className="px-4 py-2 gold-gradient rounded-full text-xs font-bold text-[#7A0C2E]">99 10 Credits</button>
-                <button className="px-4 py-2 maroon-gradient text-white rounded-full text-xs font-bold">299 50</button>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-[1.5rem] overflow-hidden border-2 border-[#D4AF37]">
-              <div className="maroon-gradient text-white p-3 flex items-center justify-between text-xs">
-                <div className="font-bold">TSAP MATRIMONY {profile.id} {profile.fullName}</div>
-                <div className="bg-white/20 px-2 py-1 rounded-full">Star {profile.score}% BEST DOB {profile.dobCorrect ? "Verified" : "Pending"} {profile.state}</div>
-              </div>
-              <div className="p-6">
-                <div className="flex gap-6 flex-col md:flex-row">
-                  <div className="w-full md:w-48 h-60 bg-gray-100 rounded-2xl overflow-hidden border-2 border-[#D4AF37] flex-shrink-0">
-                    {profile.photoUrl ? <img src={profile.photoUrl} alt={profile.fullName} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-5xl">{profile.photoPrivate ? "Lock" : (profile.gender === "Bride" ? "Bride" : "Groom")}</div>}
-                  </div>
-                  <div className="flex-1 space-y-3">
-                    <div>
-                      <div className="font-bold text-xl text-[#7A0C2E]">{profile.fullName} {profile.age}y {profile.height} {profile.weight} {profile.caste} {profile.subCaste}</div>
-                      <div className="text-sm text-gray-600 mt-1">{profile.education} {profile.educationDetail} at {profile.college} Job {profile.job} at {profile.company} Salary {profile.salary} Location {profile.workLocation} Now {profile.currentCity}</div>
-                      <div className="text-xs text-gray-500 mt-1">{profile.district} {profile.mandal} {profile.state} Native {profile.nativePlace} Family {profile.familyType} {profile.familyStatus}</div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2 text-xs bg-gray-50 p-3 rounded-xl">
-                      <div>Father {profile.fatherName} {profile.fatherOccupation}</div>
-                      <div>Mother {profile.motherName} {profile.motherOccupation}</div>
-                      <div>Gothram {profile.gothram} Star {profile.star} optional Rasi {profile.rasi} Dosham {profile.dosham}</div>
-                      <div>DOB {profile.dob} Time {profile.birthTime} {profile.dobCorrect ? "Correct Tick Yes" : "Approximate"} Age {profile.age}</div>
-                      <div>Height {profile.height} Weight {profile.weight}</div>
-                      <div>About {profile.aboutMyself.slice(0, 80)}</div>
-                    </div>
-                    <div className="flex gap-2 flex-wrap">
-                      {!showNumber ? (
-                        <button onClick={handleUnlock} className="px-5 py-2 maroon-gradient text-white rounded-full text-sm font-bold">Number Chudu 1 Credit {profile.phone.slice(0, 4)}xxxx</button>
-                      ) : (
-                        <div className="px-5 py-2 bg-green-100 text-green-700 rounded-full text-sm font-bold">Phone {profile.phone} Call Now WhatsApp</div>
-                      )}
-                      <button className="px-5 py-2 border border-[#D4AF37] text-[#7A0C2E] rounded-full text-sm font-bold">Interest Pampu</button>
-                      <button onClick={shareWhatsApp} className="px-5 py-2 bg-green-600 text-white rounded-full text-sm font-bold">Share WhatsApp to {myPhone}</button>
-                      <button onClick={shareTelegram} className="px-5 py-2 bg-blue-500 text-white rounded-full text-sm font-bold">Share Telegram</button>
-                    </div>
-                    <div className="text-[11px] text-gray-500">Share button WhatsApp Telegram to registered number {myPhone} forward neat automation nuvvu adigina logic 100%</div>
-                  </div>
-                </div>
-
-                <div className="mt-6 bg-[#FFF8E7] rounded-xl p-4 border border-[#D4AF37]/20">
-                  <div className="font-bold text-sm text-[#7A0C2E]">Star {profile.score}% BEST MATCH Personalized Reason Nee Expectation ki Ilaga Set</div>
-                  <div className="mt-2 space-y-1 text-sm">
-                    {profile.reasons.map((r: string, i: number) => <div key={i}>Yes {r}</div>)}
-                  </div>
-                  <div className="mt-3 text-xs text-gray-600">Expectation {profile.expectationMatch} Location Mee intiki 15km Family matching Filter logic perfect</div>
-                  <div className="mt-2 text-[11px] text-gray-500">About Family {profile.aboutFamily} About Myself full {profile.aboutMyself}</div>
-                </div>
-
-                <div className="mt-4 grid grid-cols-3 gap-2 text-[11px]">
-                  <div className="bg-gray-50 p-2 rounded-xl">#{profile.caste} #{profile.state} #{profile.gender} Age {profile.age} {profile.job} {profile.district}</div>
-                  <div className="bg-gray-50 p-2 rounded-xl">ID {profile.id} Watermark protected DOB {profile.dobCorrect ? "Verified" : "Pending"}</div>
-                  <div className="bg-gray-50 p-2 rounded-xl">Bot @telugumatrimony1_bot Search {profile.id} Share WhatsApp Telegram to {myPhone}</div>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl p-4">
-              <div className="font-bold text-sm">Admin Only + Automation Flow</div>
-              <div className="text-xs text-gray-500 mt-1">Form ekkada vasthundi register 5 steps advanced HTML page la Name DOB Father Name Qualification anni perfect mandatory fields nimpakapte next ki velladu DOB correct tick Time Nakshatram optional logic template photo tho neat separate code ID search advanced filters manaku matrame 5 profiles display share WhatsApp Telegram registered number forward website motham automate Oracle VM free tier saripothunda YES ekkuva em avvadu profiles text photos compressed 10k profiles less 5GB free tier 1GB RAM 50GB disk chalu cost free backup Drive 100% perfect no gaps no issues more and more advanced neat website fully advanced bot</div>
-              <div className="mt-3 flex gap-2">
-                <Link href="/admin" className="px-4 py-2 bg-[#0F1F3C] text-white rounded-full text-xs font-bold">Admin Panel</Link>
-                <Link href="/matches" className="px-4 py-2 border rounded-full text-xs font-bold">Advanced Matches Filters</Link>
-                <Link href="/" className="px-4 py-2 bg-[#FFF8E7] rounded-full text-xs font-bold">Home</Link>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
-    </div>
+
+      {loading ? <p className="mt-6 text-center text-slate-500">⏳ Profile load avutundi…</p> : null}
+      {!loading && err ? (
+        <div className="mt-6 rounded-2xl border-2 border-amber-300 bg-amber-50 p-5 text-center">
+          <p className="font-bold text-amber-900">{err}</p>
+          <div className="mt-3 flex flex-wrap justify-center gap-2">
+            <Link href="/matches" className="rounded-xl bg-[#7A0C2E] px-4 py-2 text-sm font-bold text-white">💞 Matches chudu</Link>
+            <Link href="/register" className="rounded-xl border border-[#7A0C2E] px-4 py-2 text-sm font-bold text-[#7A0C2E]">🆓 Register FREE</Link>
+          </div>
+        </div>
+      ) : null}
+
+      {needsLogin ? <div className="mt-4"><AuthGate note="Interest pampadam, shortlist, block — ee actions ki OTP login kavali (mee privacy koraku)." /></div> : null}
+
+      {!loading && !err && data ? (
+        <>
+          <section className="mt-4 rounded-3xl border border-rose-200 bg-white p-5">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h1 className="text-2xl font-extrabold text-[#7A0C2E]">{profile.full_name || "Profile"}</h1>
+                <p className="font-mono text-[12px] text-slate-500">{profile.tsap_id}</p>
+                <div className="mt-2 flex flex-wrap gap-2 text-[11px]">
+                  <TrustBadge trust={trust} completeness={Number(quality?.percent ?? 0)} />
+                  {profile.phone_verified || profile.is_verified
+                    ? <span className="rounded-full border border-emerald-300 bg-emerald-50 px-2 py-0.5 font-semibold text-emerald-800">✅ Phone verified</span>
+                    : <span className="rounded-full border border-slate-300 bg-slate-50 px-2 py-0.5 text-slate-600">⏳ Verify pending</span>}
+                  {profile.boosted ? <span className="rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 font-semibold text-amber-800">⚡ Boosted</span> : null}
+                </div>
+              </div>
+              <div className="shrink-0 rounded-2xl bg-rose-50 px-3 py-2 text-center">
+                <p className="text-lg font-extrabold text-[#7A0C2E]">{quality?.percent ?? 0}%</p>
+                <p className="text-[10px] text-slate-500">profile complete</p>
+              </div>
+            </div>
+
+            <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-[13px] text-slate-700 sm:grid-cols-3">
+              {[
+                ["🎂 వయస్సు", `${profile.age ?? "—"}y`],
+                ["📏 ఎత్తు", profile.height || "—"],
+                ["🕉️ కులం", `${profile.caste || "—"}${profile.sub_caste ? ` (${profile.sub_caste})` : ""}`],
+                ["🎓 చదువు", `${profile.education || "—"}${profile.education_detail ? ` ${profile.education_detail}` : ""}`],
+                ["💼 ఉద్యోగం", `${profile.job || "—"}${profile.company ? ` @ ${profile.company}` : ""}`],
+                ["💰 ఆదాయం", profile.salary || "—"],
+                ["📍 ప్రాంతం", `${profile.district || "—"}, ${profile.state || "—"}`],
+                ["⭐ నక్షత్రం", `${profile.star || "—"} / ${profile.rasi || "—"}`],
+                ["💍 Marital", profile.marital_status || "—"],
+                ["🕉️ గోత్రం", profile.gothram || "—"],
+                ["👨‍👩‍👧 కుటుంబం", `${profile.family_type || "—"} · ${profile.family_status || "—"}`],
+                ["🧿 దోషం", profile.dosham || "No"],
+              ].map(([k, v]) => (
+                <div key={String(k)}>
+                  <dt className="text-[11px] text-slate-500">{k}</dt>
+                  <dd className="font-semibold">{v}</dd>
+                </div>
+              ))}
+            </dl>
+
+            {profile.about_myself ? (
+              <div className="mt-4 rounded-2xl bg-slate-50 p-3">
+                <p className="text-[12px] font-bold text-slate-700">📝 Mee gurinchi</p>
+                <p className="mt-1 text-[13px] text-slate-700">{profile.about_myself}</p>
+              </div>
+            ) : null}
+
+            {Array.isArray(data.reasons) && data.reasons.length ? (
+              <div className="mt-3 rounded-2xl bg-emerald-50 p-3">
+                <p className="text-[12px] font-bold text-emerald-900">💡 Enduku match avutharu?</p>
+                <ul className="mt-1 space-y-0.5 text-[12px] text-emerald-900">
+                  {data.reasons.slice(0, 4).map((r: string, i: number) => <li key={i}>✔️ {r}</li>)}
+                </ul>
+              </div>
+            ) : null}
+          </section>
+
+          {/* 🔒 NUMBER LOCK — policy: credit tho numbers ivvamu */}
+          <section className="mt-4 rounded-3xl border-2 border-rose-300 bg-rose-50 p-5">
+            <h2 className="text-lg font-extrabold text-[#7A0C2E]">🔒 Phone number — {data.phone_masked || "•••••"} (locked)</h2>
+            <p className="mt-1 text-[13px] text-rose-900">
+              {data.can_view_number_reason || "Free lo numbers ivvamu — interest accept (consent) tho matrame exchange avutayi."}
+            </p>
+            <ol className="mt-3 space-y-1 text-[13px] text-rose-900">
+              {(data.unlock_telugu || CONSENT_STEPS).map((s: string, i: number) => <li key={i}>{s}</li>)}
+            </ol>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <button onClick={() => void sendInterest()} disabled={sending}
+                className="rounded-xl bg-[#7A0C2E] px-4 py-2.5 text-sm font-bold text-white disabled:opacity-60">
+                {sending ? "Pampisthunnam…" : "💌 Interest pampandi (FREE 3)"}
+              </button>
+              <button onClick={() => void sendInterest("traditional")} disabled={sending}
+                className="rounded-xl border border-[#7A0C2E] px-4 py-2.5 text-sm font-bold text-[#7A0C2E]">
+                🙏 Template tho pampu
+              </button>
+              <Link href="/pricing" className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-bold text-slate-700">
+                💳 Paid plans (₹99 → 5 profiles)
+              </Link>
+            </div>
+          </section>
+
+          {/* actions */}
+          <section className="mt-4 flex flex-wrap gap-2">
+            <button onClick={() => void toggleSave()}
+              className={`rounded-xl px-4 py-2 text-sm font-bold ${savedNow ? "bg-rose-100 text-rose-700" : "border border-slate-300 text-slate-700"}`}>
+              {savedNow ? "❤️ Shortlist lo undi" : "🤍 Shortlist"}
+            </button>
+            <button onClick={shareWhatsApp} className="rounded-xl bg-green-600 px-4 py-2 text-sm font-bold text-white">WhatsApp share</button>
+            <button onClick={() => void doBlock()} disabled={blocked} className="rounded-xl border border-rose-300 px-4 py-2 text-sm font-bold text-rose-700 disabled:opacity-50">
+              🚫 Block
+            </button>
+            <button onClick={() => void doReport()} disabled={reported} className="rounded-xl border border-amber-300 px-4 py-2 text-sm font-bold text-amber-800 disabled:opacity-50">
+              🚩 Report
+            </button>
+            <Link href="/safety" className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-bold text-slate-700">🛡️ Safety tips</Link>
+          </section>
+
+          {msg ? (
+            <p aria-live="polite" className={`mt-4 rounded-2xl border p-3 text-sm font-semibold ${msg.ok ? "border-emerald-300 bg-emerald-50 text-emerald-900" : "border-amber-300 bg-amber-50 text-amber-900"}`}>
+              {msg.text}
+            </p>
+          ) : null}
+
+          {/* trust breakdown */}
+          {trust ? (
+            <section className="mt-4 rounded-3xl border border-slate-200 bg-white p-4">
+              <h2 className="text-sm font-bold text-slate-800">🛡️ Trust score {trust.score}/100 — {trust.badge_telugu}</h2>
+              <ul className="mt-2 space-y-1 text-[12px] text-slate-600">
+                {(trust.factors || []).map((f: Row, i: number) => (
+                  <li key={i}>{(f.points as number) > 0 ? "✅" : "•"} {f.telugu} <span className="text-slate-400">({f.points}/{f.max})</span></li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+
+          {Object.keys(quality?.sections || {}).length ? (
+            <section className="mt-4 rounded-3xl border border-slate-200 bg-white p-4">
+              <h2 className="text-sm font-bold text-slate-800">📝 Profile completeness {quality?.percent}%</h2>
+              <div className="mt-2 grid grid-cols-2 gap-2 text-[12px] sm:grid-cols-4">
+                {Object.entries(quality.sections as Record<string, Row>).map(([k, v]) => (
+                  <div key={k} className="rounded-xl bg-slate-50 p-2">
+                    <p className="font-semibold capitalize text-slate-700">{k}</p>
+                    <p className="text-slate-500">{v.percent}%</p>
+                  </div>
+                ))}
+              </div>
+              {Array.isArray(quality.important_telugu) && quality.important_telugu.length ? (
+                <p className="mt-2 text-[12px] text-amber-800">{(quality.important_telugu as string[]).slice(0, 3).join(" · ")}</p>
+              ) : null}
+            </section>
+          ) : null}
+
+          <p className="mt-4 text-center text-[11px] text-slate-500">
+            🔐 {data.consent_note_telugu || "Numbers consent tho matrame exchange — mana consent ledger lo record untundi"}
+          </p>
+        </>
+      ) : null}
+    </main>
   );
 }

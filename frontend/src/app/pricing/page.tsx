@@ -264,7 +264,7 @@ export default function PricingPage() {
             <li>✅ Auto-renewal ledu • Hidden charges ledu</li>
           </ul>
           <div className="mt-3 text-[11px] opacity-75">
-            Support: {SITE_CONFIG.supportPhone} • {SITE_CONFIG.supportEmail}
+            Support: {SITE_CONFIG.supportPhoneDisplay} • {SITE_CONFIG.supportEmail}
           </div>
         </div>
         <div className="rounded-2xl border border-gray-200 bg-white p-5">
@@ -303,7 +303,7 @@ export default function PricingPage() {
         <div className="mt-4 flex flex-wrap gap-3 justify-center">
           <Link href="/register" className="rounded-xl bg-[#7A0C2E] text-white px-5 py-2.5 font-bold text-sm">Register FREE →</Link>
           <Link href="/channels" className="rounded-xl bg-white/70 text-[#7A0C2E] px-5 py-2.5 font-bold text-sm border border-[#7A0C2E]/20">52 Channels chudandi</Link>
-          <a href={`https://wa.me/${SITE_CONFIG.supportWhatsapp}`} className="rounded-xl bg-white/70 text-[#7A0C2E] px-5 py-2.5 font-bold text-sm border border-[#7A0C2E]/20">WhatsApp lo adagandi</a>
+          <a href={SITE_CONFIG.supportLink} className="rounded-xl bg-white/70 text-[#7A0C2E] px-5 py-2.5 font-bold text-sm border border-[#7A0C2E]/20">WhatsApp lo adagandi</a>
         </div>
       </section>
 
