@@ -189,8 +189,10 @@ try:
     pool_from_env = wa_pool.get_pool()
     check("publisher env nunchi WA_INSTANCES chaduvutundi", len(pool_from_env.instances) == 2,
           [i.name for i in pool_from_env.instances])
-    check("publisher._wa_lane — priority 0 = requests", publisher._wa_lane({"priority": 0, "kind": "interest"}) == "requests"
-          and publisher._wa_lane({"priority": 1}) == "post")
+    check("publisher._wa_lane — W21 lanes (otp/personal/channels)", publisher._wa_lane({"priority": 0, "kind": "otp"}) == "otp"
+          and publisher._wa_lane({"priority": 0, "kind": "interest_accepted"}) == "personal"
+          and publisher._wa_lane({"priority": 1}) == "channels"
+          and publisher._wa_lane({"priority": 0, "kind": "post"}) == "channels")
     check("dead_letters + requeue functions unnai", callable(publisher.dead_letters) and callable(publisher.requeue_dead))
 
     publisher.WA_QUEUE.clear()

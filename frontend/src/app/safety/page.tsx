@@ -11,6 +11,7 @@
  */
 import { useCallback, useEffect, useState } from "react";
 import AuthGate from "@/components/AuthGate";
+import { Duo, duo } from "@/lib/duo";
 import { authHeaders } from "@/lib/api";
 import Link from "next/link";
 
@@ -115,7 +116,7 @@ export default function SafetyPage() {
           <div className="text-[11px] font-bold bg-white/10 border border-white/20 rounded-full px-3 py-1 inline-block">
             🛡️ Trust & Safety • Mana Vivaha
           </div>
-          <h1 className="mt-3 text-2xl md:text-4xl font-bold">Mee safety mana responsibility</h1>
+          <h1 className="mt-3 text-2xl md:text-4xl font-bold"><Duo en="Your safety is our responsibility" te="మీ భద్రత మా బాధ్యత" /></h1>
           <p className="mt-2 text-[13px] md:text-sm opacity-90 telugu max-w-3xl">
             Matrimony lo andaru manchi vallu kaaru — kaabatti manam mundu jagratha. Report/block 2 clicks lo,
             verification badge tho nijamaina profiles matrame mundu kanipistayi. 🚫 Chatting ledu — spam ki chot ledu.

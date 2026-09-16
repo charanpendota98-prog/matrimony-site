@@ -4,28 +4,39 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { CHANNEL_STATS } from "@/lib/channels";
 import { SITE_CONFIG } from "@/lib/site-config";
+import { useSession, logout } from "@/lib/auth";
+import { apiGet } from "@/lib/api";
+import { Duo, duo } from "@/lib/duo";
 
-const NAV: { href: string; label: string; xl?: boolean }[] = [
-  { href: "/", label: "Home" },
-  { href: "/channels", label: "Channels" },
-  { href: "/pricing", label: "Pricing 💰" },
-  { href: "/vendors", label: "Vendors 🏪" },
-  { href: "/porutham", label: "Porutham 💍", xl: true },
-  { href: "/safety", label: "Safety 🛡️", xl: true },
-  { href: "/requests", label: "Requests 💌" },
-  { href: "/growth", label: "Growth 📈" },
-  { href: "/castes", label: "Castes" },
-  { href: "/matches", label: "Matches" },
-  { href: "/stories", label: "Stories 💑" },
-  { href: "/referral", label: "Referral" },
-  { href: "/bureau", label: "Bureau" },
-  { href: "/admin", label: "Admin" },
+const NAV: { href: string; en: string; te: string; icon: string; xl?: boolean }[] = [
+  { href: "/", en: "Home", te: "హోమ్", icon: "🏠" },
+  { href: "/channels", en: "Channels", te: "ఛానళ్లు", icon: "📢" },
+  { href: "/pricing", en: "Pricing", te: "ధరలు", icon: "💰" },
+  { href: "/vendors", en: "Vendors", te: "వెండర్లు", icon: "🏪" },
+  { href: "/porutham", en: "Porutham", te: "పొరుతం", icon: "💍", xl: true },
+  { href: "/safety", en: "Safety", te: "భద్రత", icon: "🛡️", xl: true },
+  { href: "/requests", en: "Requests", te: "రిక్వెస్టులు", icon: "💌" },
+  { href: "/growth", en: "Growth", te: "గ్రోత్", icon: "📈" },
+  { href: "/castes", en: "Castes", te: "కులాలు", icon: "🪔" },
+  { href: "/matches", en: "Matches", te: "సంబంధాలు", icon: "💘" },
+  { href: "/stories", en: "Stories", te: "కథలు", icon: "💑" },
+  { href: "/referral", en: "Referral", te: "రెఫరల్", icon: "🤝" },
+  { href: "/bureau", en: "Bureau", te: "బ్యూరో", icon: "🏛️" },
+  { href: "/admin", en: "Admin", te: "అడ్మిన్", icon: "🔐" },
 ];
 
 export default function SiteHeader() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  // 🔐 WAVE 13 — persistent session chip (login ayithe eppudu kanipisthundi)
+  const { tsapId, token, ready } = useSession();
+  const [sessionOk, setSessionOk] = useState(false);
+  useEffect(() => {
+    if (!ready || !token) { setSessionOk(false); return; }
+    apiGet<{ valid?: boolean }>("/api/auth/verify").then(({ ok, data }) =>
+      setSessionOk(!!(ok && (data as { valid?: boolean } | null)?.valid)));
+  }, [ready, token]);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -67,13 +78,14 @@ export default function SiteHeader() {
             <Link
               key={n.href}
               href={n.href}
+              title={duo(n.en, n.te)}
               className={`${n.xl ? "hidden xl:inline-flex" : ""} px-3.5 py-2 rounded-full text-[13px] font-semibold transition ${
                 isActive(n.href)
                   ? "bg-maroon text-white shadow-soft"
                   : "text-ink/75 hover:text-maroon hover:bg-maroon-soft"
               }`}
             >
-              {n.label}
+              {n.icon} {n.en}
             </Link>
           ))}
         </nav>
@@ -84,19 +96,32 @@ export default function SiteHeader() {
             href="/search/TSAP-M-2025-1042"
             className="hidden md:inline-flex px-3.5 py-2 text-[13px] font-semibold border border-maroon/30 text-maroon rounded-full hover:bg-maroon-soft transition"
           >
-            ID Search
+            <Duo en="ID Search" te="వెతకండి" />
           </Link>
-          <Link
-            href="/login"
-            className="hidden sm:inline-flex px-3.5 py-2 text-[13px] font-semibold border border-maroon/30 text-maroon rounded-full hover:bg-maroon-soft transition"
-          >
-            📱 Login
-          </Link>
+          {ready && tsapId && sessionOk ? (
+            <span className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 text-[13px] font-semibold border border-emerald-300 bg-emerald-50 text-emerald-800 rounded-full">
+              👤 {tsapId.length > 14 ? `${tsapId.slice(0, 9)}…${tsapId.slice(-4)}` : tsapId}
+              <button
+                onClick={() => { logout(); window.location.href = "/"; }}
+                className="ml-1 rounded-full bg-emerald-200 px-2 py-0.5 text-[11px] font-bold hover:bg-emerald-300"
+                aria-label="Logout"
+              >
+                ⎋
+              </button>
+            </span>
+          ) : (
+            <Link
+              href="/login"
+              className="hidden sm:inline-flex px-3.5 py-2 text-[13px] font-semibold border border-maroon/30 text-maroon rounded-full hover:bg-maroon-soft transition"
+            >
+              📱 <Duo en="Login" te="లాగిన్" />
+            </Link>
+          )}
           <Link
             href="/register"
             className="px-4 py-2.5 rounded-full text-[13px] font-bold maroon-gradient text-white shadow-soft hover:shadow-brand transition"
           >
-            Register FREE
+            <Duo en="Register FREE" te="ఉచిత నమోదు" />
           </Link>
           <button
             aria-label="Menu"
@@ -140,7 +165,7 @@ export default function SiteHeader() {
                 isActive(n.href) ? "bg-maroon text-white" : "text-ink/80 hover:bg-white"
               }`}
             >
-              {n.label}
+              {n.icon} <Duo en={n.en} te={n.te} />
             </Link>
           ))}
           <div className="flex gap-2 pt-2">
@@ -148,7 +173,7 @@ export default function SiteHeader() {
               href="/search/TSAP-M-2025-1042"
               className="flex-1 text-center px-4 py-3 rounded-xl border border-maroon/25 text-maroon text-sm font-bold"
             >
-              ID Search
+              <Duo en="ID Search" te="వెతకండి" />
             </Link>
             <a
               href={SITE_CONFIG.botUrl}

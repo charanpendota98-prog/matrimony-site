@@ -5,8 +5,10 @@
  * Public list + logged-in users story submit + like.
  */
 import { useEffect, useState } from "react";
+import { Duo, duo } from "@/lib/duo";
 import Link from "next/link";
 import { apiGet, apiPost, TSAP_KEY } from "@/lib/api";
+import FeaturedStories from "@/components/FeaturedStories";
 
 type Story = {
   story_id: string;
@@ -61,7 +63,9 @@ export default function StoriesClient() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
-      <h1 className="text-3xl font-extrabold text-rose-900">💑 Success Stories</h1>
+      <h1 className="text-3xl font-extrabold text-rose-900">💑 <Duo en="Success Stories" te="విజయగాథలు" /></h1>
+      <div className="mt-4"><FeaturedStories limit={6} /></div>
+      <h2 className="mt-8 text-xl font-extrabold text-rose-900">💬 <Duo en="Community stories" te="మీ కథలు" /></h2>
       <p className="mt-1 text-gray-600">
         Mana Vivaha dwara kalisina jantalu 🎉 — meeku kooda ilanti sambandham kavali ante{" "}
         <Link href="/register" className="font-semibold text-rose-700 underline">3 min lo register</Link> (modati 3 FREE).

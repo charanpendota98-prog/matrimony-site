@@ -210,6 +210,11 @@ def save_state() -> Dict:
                 "clicks": CLICKS[-2000:]}
         with open(STATE_FILE, "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False)
+        try:  # 🌊 WAVE 19 — partner wallets/stats kooda persist (attach/process mutates them)
+            from refpartners import _save as _partner_save
+            _partner_save()
+        except Exception:
+            pass
         return {"ok": True, "path": STATE_FILE}
     except Exception as e:
         return {"ok": False, "error": str(e)[:120]}
@@ -285,7 +290,12 @@ def find_referrer(code: str, all_users: List[Dict]) -> Optional[Dict]:
         for u in all_users:
             if str(u.get("phone", "")).strip() == p_up:
                 return u
-    return None
+    # 🌊 WAVE 19 — referral partners (charan108 style IDs)
+    try:
+        from refpartners import find_partner_by_code
+        return find_partner_by_code(probe)
+    except Exception:
+        return None
 
 
 def validate_referral(code: str, all_users: List[Dict]) -> Dict:
@@ -423,6 +433,9 @@ def process_referral_payment(referred_user: Dict, referrer_code: str, plan_amoun
     st["lifetime_earned"] = round(float(st.get("lifetime_earned", 0)) + commission, 2)
     ref["wallet"] = st["wallet"]
     st["paid_count"] = int(st.get("paid_count", 0)) + 1
+    # 🌊 WAVE 20 — join paid-ness source of truth (dashboards + ledger anni ikkadi nunchi)
+    referred_user["has_paid"] = True
+    referred_user.setdefault("first_paid_at", _now())
     if st.get("paid_today_date") != _today():
         st["paid_today_date"] = _today()
         st["paid_today"] = 0
@@ -541,7 +554,8 @@ def payout_request(user: Dict, amount: int, method: str = "upi", upi_id: str = "
     if amount > float(st.get("wallet", 0)):
         return {"ok": False, "reason": "insufficient_wallet", "wallet": st["wallet"],
                 "message_telugu": "⚠️ Wallet lo ₹%s matrame undi — ₹%d adagalev" % (st["wallet"], amount)}
-    if any(p.get("tsap_id") == user.get("tsap_id") and p.get("status") == "requested" for p in PAYOUTS):
+    _me = user.get("tsap_id") or user.get("partner_id")
+    if any((p.get("tsap_id") or p.get("partner_id")) == _me and p.get("status") == "requested" for p in PAYOUTS):
         return {"ok": False, "reason": "pending_exists",
                 "message_telugu": "⏳ Mee pata payout request inka process lo undi — adi ayyaka malli adagandi"}
     if method == "upi":
@@ -555,7 +569,7 @@ def payout_request(user: Dict, amount: int, method: str = "upi", upi_id: str = "
             return {"ok": False, "reason": "bad_bank",
                     "message_telugu": "⚠️ Bank details sari ga ivvandi (holder + account no + IFSC)"}
     req = {
-        "id": _next_id("PAY"), "tsap_id": user.get("tsap_id"),
+        "id": _next_id("PAY"), "tsap_id": user.get("tsap_id"), "partner_id": user.get("partner_id", ""),
         "name": user.get("full_name") or user.get("name", ""),
         "code": _code_of(user), "amount": amount, "method": method,
         "upi_id": (upi_id or "").strip() if method == "upi" else "",
@@ -584,6 +598,13 @@ def payout_action(request_id: str, action: str, all_users: List[Dict], utr: str 
     if req["status"] != "requested":
         return {"ok": False, "reason": "already_%s" % req["status"]}
     user = next((u for u in all_users if u.get("tsap_id") == req["tsap_id"]), None)
+    if not user and req.get("partner_id"):
+        # 🌊 WAVE 21 — partner payout: user table lo undadu, partner registry lo
+        try:
+            from refpartners import get_partner
+            user = get_partner(req["partner_id"])
+        except Exception:
+            user = None
     if not user:
         return {"ok": False, "reason": "user_not_found"}
     st = stats_of(user)
@@ -610,8 +631,59 @@ def payout_action(request_id: str, action: str, all_users: List[Dict], utr: str 
     else:
         return {"ok": False, "reason": "bad_action"}
     user["referral_stats"] = st
+    try:
+        if user.get("partner_id"):
+            from refpartners import _save as _partner_save
+            _partner_save()
+    except Exception:
+        pass
     save_state()
     return {"ok": True, "request": req, "wallet": st.get("wallet"), "message_telugu": msg}
+
+
+def pay_wallet_full(code: str, all_users: List[Dict], utr: str = "",
+                    method: str = "upi", note: str = "") -> Dict:
+    """🌊 WAVE 21 — ADMIN manual pay: PhonePe/bank lo amount pampaka → wallet 0.
+    Full wallet ni paid_out ki move + ledger + payout record (UTR audit). User + partner."""
+    if not (utr or "").strip():
+        return {"ok": False, "reason": "utr_required",
+                "message_telugu": "⚠️ UTR/reference ivvakunda wallet zero cheyyakoodadu (audit ki)"}
+    ref = find_referrer(code, all_users)
+    if not ref:
+        return {"ok": False, "reason": "referrer_not_found",
+                "message_telugu": "⚠️ Referrer dorakaledu"}
+    st = stats_of(ref)
+    amt = round(float(st.get("wallet", 0) or 0), 2)
+    if amt <= 0:
+        return {"ok": False, "reason": "wallet_empty",
+                "message_telugu": "ℹ️ Wallet already ₹0 — pay cheyyadaniki emi ledu"}
+    me = ref.get("tsap_id") or ref.get("partner_id")
+    if any((x.get("tsap_id") or x.get("partner_id")) == me and x.get("status") == "requested" for x in PAYOUTS):
+        return {"ok": False, "reason": "pending_exists",
+                "message_telugu": "⏳ Payout request already pending lo undi — danne approve/reject cheyyandi"}
+    req = {"id": _next_id("PAY"), "tsap_id": ref.get("tsap_id"), "partner_id": ref.get("partner_id", ""),
+           "name": ref.get("full_name") or ref.get("name", ""),
+           "code": _code_of(ref), "amount": amt, "method": (method or "upi").lower(),
+           "upi_id": "", "bank": {}, "status": "paid", "requested_at": _now(),
+           "utr": utr.strip(), "paid_at": _now(), "paid_by": "admin",
+           "note": ("admin_pay_full:" + str(note or "")).strip(":"),
+           "eta_days": 0, "tier": st.get("tier", "BRONZE")}
+    PAYOUTS.append(req)
+    st["wallet"] = 0
+    ref["wallet"] = 0
+    st["paid_out"] = round(float(st.get("paid_out", 0)) + amt, 2)
+    st.setdefault("ledger", []).append({"id": _next_id("PA"), "at": _now(), "type": "payout_manual_full",
+                                        "amount": -amt, "note": "%s → UTR %s (wallet 0)" % (req["id"], utr.strip())})
+    ref["referral_stats"] = st
+    try:
+        if ref.get("partner_id"):
+            from refpartners import _save as _partner_save
+            _partner_save()
+    except Exception:
+        pass
+    save_state()
+    return {"ok": True, "request": req, "wallet": 0, "paid": amt,
+            "message_telugu": "✅ ₹%s manual pay (UTR %s) — wallet ₹0 ayyindi" % (amt, utr.strip())}
 
 
 def payout_queue(status: str = "requested") -> Dict:
@@ -676,7 +748,10 @@ def referral_dashboard(user: Dict, all_users: List[Dict], limit_recent: int = 10
         "tiers": TIERS,
         "recent_registrations": [{"tsap_id": u.get("tsap_id"), "name": u.get("full_name") or u.get("name", ""),
                                   "joined": u.get("referred_at", ""),
-                                  "paid": u in paid_regs} for u in regs[-limit_recent:]][::-1],
+                                  "paid": u in paid_regs,
+                                  "commission": round(sum(float(l.get("amount", 0) or 0) for l in st.get("ledger", [])
+                                                        if l.get("type") == "commission" and l.get("from") == u.get("tsap_id")), 2)}
+                                 for u in regs[-limit_recent:]][::-1],
         "ledger": list(reversed(st.get("ledger", [])))[:20],
         "payouts": [mask_payout(p) for p in list(reversed(payouts_mine))[:10]],
         "wallet_can_withdraw": float(st.get("wallet", 0)) >= MIN_PAYOUT,
@@ -737,7 +812,8 @@ def _urlenc(text: str) -> str:
 
 # ------------------------------------------------------------------ leaderboard
 def get_leaderboard(all_users: List[Dict], limit: int = 10, period: str = "all") -> List[Dict]:
-    """Top referrers — full_name use (pata bug fix), period: all | week | month."""
+    """Top referrers — full_name use (pata bug fix), period: all | week | month.
+    WAVE 24 — partners kuda board lo (same rules)."""
     cutoff = None
     if period == "week":
         cutoff = (datetime.utcnow() - timedelta(days=7)).isoformat()
@@ -764,6 +840,31 @@ def get_leaderboard(all_users: List[Dict], limit: int = 10, period: str = "all")
             "tier": tier_of(int(st.get("paid_count", 0)))["key"],
             "icon": tier_of(int(st.get("paid_count", 0)))["icon"],
         })
+    try:
+        from refpartners import PARTNERS as _P19
+        for u in _P19:
+            st = u.get("referral_stats") or {}
+            if not st.get("paid_count"):
+                continue
+            earned = float(st.get("lifetime_earned", 0) or 0)
+            if cutoff:
+                entries = [l for l in st.get("ledger", [])
+                           if l.get("type") in ("commission", "milestone") and str(l.get("at", "")) >= cutoff]
+                if not entries:
+                    continue
+                earned = sum(float(l.get("amount", 0)) for l in entries)
+            rows.append({
+                "name": u.get("name") or "Partner",
+                "code": u.get("partner_id", ""), "tsap_id": "",
+                "partner_id": u.get("partner_id", ""),
+                "refers": int(st.get("registrations", 0) or 0),
+                "paid": int(st.get("paid_count", 0)),
+                "earned": round(earned, 2),
+                "tier": tier_of(int(st.get("paid_count", 0)))["key"],
+                "icon": tier_of(int(st.get("paid_count", 0)))["icon"],
+            })
+    except Exception:
+        pass
     rows.sort(key=lambda r: (r["paid"], r["earned"], r["refers"]), reverse=True)
     for i, r in enumerate(rows[:limit], 1):
         r["rank"] = i

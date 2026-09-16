@@ -37,10 +37,16 @@ DEFAULT_COOLDOWNS = {"down": 300, "auth": 3600, "rate_limited": 600, "soft": 60}
 
 
 class WAInstance:
-    def __init__(self, name: str, url: str, lane: str = "both", daily_cap: int = 60, token: str = ""):
+    LANE_MAP = {"post": "channels", "requests": "personal",  # legacy compat
+                "otp": "otp", "channels": "channels", "personal": "personal", "both": "both"}
+
+    def __init__(self, name: str, url: str, lane: str = "both", daily_cap: int = 60, token: str = "",
+                 number: str = "", paused: bool = False):
         self.name = name
         self.url = (url or "").rstrip("/")
-        self.lane = lane if lane in ("both", "post", "requests") else "both"
+        self.lane = self.LANE_MAP.get((lane or "both").strip().lower(), "both")
+        self.number = "".join(ch for ch in str(number or "") if ch.isdigit())  # display + admin
+        self.paused = bool(paused)
         self.daily_cap = int(daily_cap or 60)
         self.token = token or ""
         # health
@@ -60,6 +66,9 @@ class WAInstance:
         return max(0, self.daily_cap - self.sent_today)
 
     def available(self, now: float, lane: str = "both") -> bool:
+        lane = self.LANE_MAP.get((lane or "both").strip().lower(), "both")
+        if self.paused:
+            return False
         if not self.configured or now < self.cooldown_until:
             return False
         if self.status in ("auth",):
@@ -70,7 +79,10 @@ class WAInstance:
 
     def as_dict(self, now: Optional[float] = None) -> Dict:
         now = now or time.time()
+        _n = self.number
+        _mask = ("XXXXXX" + _n[-4:]) if len(_n) >= 10 else _n
         return {"name": self.name, "url": self.url, "lane": self.lane, "daily_cap": self.daily_cap,
+                "number_masked": _mask, "paused": self.paused,
                 "sent_today": self.sent_today, "capacity_left": self.capacity_left(),
                 "total_sent": self.total_sent, "status": self.status, "failures": self.fail_count,
                 "last_error": self.last_error, "last_used": self.last_used,
@@ -85,7 +97,8 @@ def instances_from_env() -> List[WAInstance]:
         try:
             for i, d in enumerate(json.loads(raw)):
                 out.append(WAInstance(d.get("name", "wa%d" % (i + 1)), d.get("url", ""),
-                                      d.get("lane", "both"), d.get("daily_cap", 60), d.get("token", "")))
+                                      d.get("lane", "both"), d.get("daily_cap", 60), d.get("token", ""),
+                                      d.get("number", ""), d.get("paused", False)))
         except Exception:
             pass
     if not out:
@@ -111,6 +124,12 @@ class WAPool:
         try:
             if os.path.exists(self.state_file):
                 data = json.load(open(self.state_file)) or {}
+                for d in data.get("config") or []:   # admin-added numbers restore
+                    if not any(i.name == d.get("name") for i in self.instances):
+                        self.instances.append(WAInstance(
+                            d.get("name", "waX"), d.get("url", ""), d.get("lane", "both"),
+                            d.get("daily_cap", 60), d.get("token", ""),
+                            d.get("number", ""), d.get("paused", False)))
                 if data.get("day") == self.day:
                     for inst in self.instances:
                         s = (data.get("instances") or {}).get(inst.name) or {}
@@ -122,6 +141,9 @@ class WAPool:
     def save_state(self) -> None:
         try:
             payload = {"day": self.day, "updated_at": time.strftime("%Y-%m-%d %H:%M:%S"),
+                       "config": [{"name": i.name, "url": i.url, "lane": i.lane,
+                                   "daily_cap": i.daily_cap, "token": i.token,
+                                   "number": i.number, "paused": i.paused} for i in self.instances],
                        "instances": {i.name: {"sent_today": i.sent_today, "total_sent": i.total_sent,
                                               "status": i.status, "last_error": i.last_error}
                                      for i in self.instances}}
@@ -142,9 +164,10 @@ class WAPool:
             self.save_state()
 
     # ---------------------------------------------------------------- health
-    def order(self, lane: str = "post") -> List[WAInstance]:
+    def order(self, lane: str = "channels") -> List[WAInstance]:
         self._roll_day()
         now = self._clock()
+        lane = WAInstance.LANE_MAP.get((lane or "channels").strip().lower(), "channels")
         pool = [i for i in self.instances if lane == "both" or i.lane in ("both", lane)] or list(self.instances)
         # 🎯 ee lane ki dedicated number mundu (requests number requests ki), tarvata load balance
         return sorted(pool, key=lambda i: (i.lane != lane and lane != "both",
@@ -156,11 +179,12 @@ class WAPool:
         return {"instances": [i.as_dict(now) for i in self.instances],
                 "configured": len([i for i in self.instances if i.configured]),
                 "available": len([i for i in self.instances if i.available(now)]),
-                "post_order": [i.name for i in self.order("post")],
-                "requests_order": [i.name for i in self.order("requests")],
+                "otp_order": [i.name for i in self.order("otp")],
+                "channels_order": [i.name for i in self.order("channels")],
+                "personal_order": [i.name for i in self.order("personal")],
                 "total_sent_today": sum(i.sent_today for i in self.instances),
-                "failover": "instance 1 fail aithe ventane instance 2 → 3 (same message duplicate avvadu)",
-                "recommended": "3 numbers: 2 posting (load+risk split) + 1 requests/backup number",
+                "failover": "purpose number down ayithe 'both' backup number ventane (duplicate avvadu)",
+                "recommended": "3 numbers: OTP (fast) + Channels (posts) + Personal (DMs) + 1 both-backup (optional)",
                 "recent": self.last_delivery[-10:]}
 
     def note_success(self, inst: WAInstance) -> None:
@@ -241,6 +265,54 @@ class WAPool:
         return {"ok": False, "instance": "", "attempts": attempts,
                 "error": "anni WhatsApp instances fail ayyayi",
                 "hint": "bridge QR scan + WA_INSTANCES urls check cheyyandi"}
+
+    # ------------------------------------------------------- 🌊 WAVE 19 admin manage
+    def add_instance(self, name: str, url: str, lane: str = "both", daily_cap: int = 60,
+                     token: str = "", number: str = "") -> Dict:
+        name = (name or "").strip() or ("wa%d" % (len(self.instances) + 1))
+        if any(i.name == name for i in self.instances):
+            return {"success": False, "reason": "duplicate",
+                    "message_telugu": f"⚠️ {name} already undi — vere name ivvandi"}
+        inst = WAInstance(name, url, lane, daily_cap, token, number)
+        self.instances.append(inst)
+        self.save_state()
+        return {"success": True, "name": name, "lane": inst.lane,
+                "message_telugu": f"✅ {name} ({inst.lane}) add ayyindi"}
+
+    def update_instance(self, name: str, **kw) -> Dict:
+        inst = next((i for i in self.instances if i.name == name), None)
+        if not inst:
+            return {"success": False, "reason": "not_found",
+                    "message_telugu": "⚠️ Number dorakaledu"}
+        if "url" in kw and kw["url"] is not None:
+            inst.url = str(kw["url"]).rstrip("/")
+            inst.status = "ok" if inst.url else "no_url"
+        if "lane" in kw and kw["lane"]:
+            inst.lane = WAInstance.LANE_MAP.get(str(kw["lane"]).strip().lower(), inst.lane)
+        if "daily_cap" in kw and kw["daily_cap"]:
+            inst.daily_cap = max(1, int(kw["daily_cap"]))
+        if "token" in kw and kw["token"] is not None:
+            inst.token = str(kw["token"])
+        if "number" in kw and kw["number"] is not None:
+            inst.number = "".join(ch for ch in str(kw["number"]) if ch.isdigit())
+        if "paused" in kw:
+            inst.paused = bool(kw["paused"])
+            if not inst.paused and inst.status == "paused":
+                inst.status = "ok" if inst.configured else "no_url"
+        if inst.paused:
+            inst.status = "paused"
+        self.save_state()
+        return {"success": True, "name": name, "instance": inst.as_dict(),
+                "message_telugu": f"✅ {name} update ayyindi"}
+
+    def remove_instance(self, name: str) -> Dict:
+        before = len(self.instances)
+        self.instances = [i for i in self.instances if i.name != name]
+        if len(self.instances) == before:
+            return {"success": False, "reason": "not_found",
+                    "message_telugu": "⚠️ Number dorakaledu"}
+        self.save_state()
+        return {"success": True, "message_telugu": f"🗑️ {name} teesesam"}
 
     def dead_letter(self, item: Dict, attempts: List[Dict]) -> Dict:
         """3 tries ayyaka kooda fail → dead-letter (admin alert + tarvata manual/bulk retry)."""
