@@ -139,7 +139,13 @@ def publish_status() -> Dict:
 # MESSAGE BUILDERS
 # ---------------------------------------------------------------------------
 def build_whatsapp_text(profile: Dict, tsap_id: str, score: int = 92) -> str:
-    """WhatsApp formatting (*bold* — Telegram ** kadu)."""
+    """WhatsApp formatting (*bold* — Telegram ** kadu). 🔒 WAVE 12 MASKED (name/number ledu)."""
+    from smart12 import build_masked_whatsapp  # lazy: cycle-safe
+    return build_masked_whatsapp(profile or {}, tsap_id, score)
+
+
+def _build_whatsapp_text_legacy(profile: Dict, tsap_id: str, score: int = 92) -> str:
+    """Legacy full-detail builder (unused — reference kosam)."""
     r = route_profile(profile)
     reasons = "\n".join(f"✅ {x['telugu']}" for x in r["reasons"][:3])
     return (

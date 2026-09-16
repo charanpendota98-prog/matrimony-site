@@ -38,6 +38,8 @@ export default function ProfileView() {
   const [needsLogin, setNeedsLogin] = useState(false);
   const [blocked, setBlocked] = useState(false);
   const [reported, setReported] = useState(false);
+  const [unlocked, setUnlocked] = useState("");
+  const [unlocking, setUnlocking] = useState(false);
 
   const profile: Row = data?.profile || {};
   const trust = (data?.trust as Row) || null;
@@ -82,6 +84,21 @@ export default function ProfileView() {
     else if (status === 402) setMsg({ ok: false, text: "⚠️ Credits ayipoyayi — ₹99 → 5 profiles. Numbers kooda accept tho ne (consent)." });
     else if (status === 404) setMsg({ ok: false, text: "Mee TSAP ID register cheyyaledu — mundu FREE register cheyyandi." });
     else setMsg({ ok: false, text: eTel });
+  };
+
+  const doUnlock = async () => {
+    if (!myTsapId) { setNeedsLogin(true); return; }
+    setUnlocking(true); setMsg(null);
+    const { ok, data: d, needsLogin: nl, errorTelugu: eTel } = await apiPost<Row>("/api/unlock",
+      { viewer_id: myTsapId, target_id: searchId });
+    setUnlocking(false);
+    if (nl) { setNeedsLogin(true); return; }
+    if (ok && d?.success) {
+      setUnlocked(String(d.phone || ""));
+      setMsg({ ok: true, text: String(d.message_telugu || "✅ Number unlock ayyindi!") });
+    } else {
+      setMsg({ ok: false, text: String((d as Row)?.message_telugu || eTel) });
+    }
   };
 
   const toggleSave = async () => {
@@ -212,6 +229,16 @@ export default function ProfileView() {
             <ol className="mt-3 space-y-1 text-[13px] text-rose-900">
               {(data.unlock_telugu || CONSENT_STEPS).map((s: string, i: number) => <li key={i}>{s}</li>)}
             </ol>
+            {unlocked ? (
+              <div className="mt-4 rounded-2xl bg-emerald-600 p-4 text-center text-white">
+                <p className="text-[12px] opacity-90">✅ Unlock ayyindi — gauravamga matladandi 🙏</p>
+                <p className="mt-1 text-2xl font-extrabold tracking-wider">{unlocked}</p>
+                <div className="mt-2 flex justify-center gap-2">
+                  <a href={`tel:${unlocked}`} className="rounded-xl bg-white px-4 py-2 text-sm font-bold text-emerald-700">📞 Call</a>
+                  <a href={`https://wa.me/91${unlocked}`} target="_blank" rel="noreferrer" className="rounded-xl bg-emerald-900 px-4 py-2 text-sm font-bold text-white">💬 WhatsApp</a>
+                </div>
+              </div>
+            ) : null}
             <div className="mt-4 flex flex-wrap gap-2">
               <button onClick={() => void sendInterest()} disabled={sending}
                 className="rounded-xl bg-[#7A0C2E] px-4 py-2.5 text-sm font-bold text-white disabled:opacity-60">
@@ -221,6 +248,16 @@ export default function ProfileView() {
                 className="rounded-xl border border-[#7A0C2E] px-4 py-2.5 text-sm font-bold text-[#7A0C2E]">
                 🙏 Template tho pampu
               </button>
+              {unlocked ? (
+                <a href={`tel:${unlocked}`} className="rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white">
+                  📞 {unlocked} — Call
+                </a>
+              ) : (
+                <button onClick={() => void doUnlock()} disabled={unlocking}
+                  className="rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-60">
+                  {unlocking ? "Unlocking…" : "📞 Number Unlock (1 credit)"}
+                </button>
+              )}
               <Link href="/pricing" className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-bold text-slate-700">
                 💳 Paid plans (₹99 → 5 profiles)
               </Link>

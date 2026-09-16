@@ -82,6 +82,7 @@ from interest import (
 from card_generator import generate_id as _gen_id
 from porutham import compute_porutham, porutham_line, norm_nakshatra, norm_rasi
 import topmatch, safety, preview, bot_pool, wa_pool
+import smart12 as S12  # 🔒 WAVE 12: masked captions + unlock/entitlement + ₹500 assisted
 from interest import ADDONS, RENEWALS, is_addon, get_addon, get_renewal, plan_list_with_free, addon_list, renewal_offer
 from channels_config import post_targets, caste_channel_links, channel_links, WA_OFFICIAL_LINK
 # 🎁 WAVE 10 — register avvagane "3 profiles + caste channel links" WhatsApp ki
@@ -3667,3 +3668,201 @@ def boost_buy(payload: dict, request: Request = None):
             "boosted": A11.is_boosted(u),
             "message_telugu": (f"{pack['label']} active! ⚡" if order["status"] == "paid"
                                else f"Order {order_id} — ₹{pack['price']} pay cheyyandi")}
+
+
+# ============================================================================
+# 🔒 WAVE 12 — SMART REVEAL (masked channels + unlock + ₹500 assisted console)
+# ============================================================================
+@app.post("/api/link-telegram")
+def api_link_telegram(payload: dict):
+    """🔗 Bot /link — Telegram chat_id ni profile tho link (personal delivery kosam)."""
+    d = payload or {}
+    u = _find_user(str(d.get("tsap_id", "")).upper())
+    if not u:
+        raise HTTPException(404, "ID dorakaledu — website login lo mee TSAP ID chudandi")
+    u["telegram_chat_id"] = str(d.get("chat_id", ""))
+    u["telegram_linked_at"] = datetime.utcnow().isoformat()
+    return {"success": True, "tsap_id": u["tsap_id"],
+            "message_telugu": f"✅ Link ayyindi! {u['tsap_id']} — ippudu /unlock, /mylist vadachu"}
+
+
+@app.post("/api/unlock")
+def api_unlock(payload: dict):
+    """
+    🔓 Number unlock — entitled ayithe FREE, lekapothe 1 credit cut.
+    Credits 0 ayithe paywall (₹99 top-up / ₹500 assisted).
+    """
+    d = payload or {}
+    viewer = _find_user(str(d.get("viewer_id", "")).upper())
+    target = _find_user(str(d.get("target_id", "")).upper())
+    if not viewer:
+        raise HTTPException(404, "Mee profile dorakaledu — /link tho link cheyyandi")
+    if not target:
+        raise HTTPException(404, f"ID dorakaledu: {d.get('target_id', '')}")
+    res = S12.unlock_number(viewer, target)
+    if res.get("success"):
+        res["target"] = {"tsap_id": target["tsap_id"],
+                         "name": S12.first_masked(target.get("full_name", "")),
+                         "age": target.get("age"), "caste": target.get("caste")}
+    return res
+
+
+@app.get("/api/unlocks/{viewer_id}")
+def api_my_unlocks(viewer_id: str):
+    """📋 Naa unlocked list — MASKED (full number per-unlock matrame, logged)."""
+    me = _find_user(viewer_id.upper())
+    if not me:
+        raise HTTPException(404, "Profile dorakaledu")
+    out = S12.my_unlocks(me["tsap_id"], DB_USERS)
+    out["credits"] = me.get("credits", 0)
+    return out
+
+
+# --- ₹500 assisted orders (admin) --------------------------------------------
+@app.post("/api/admin/assist-orders")
+def api_assist_create(payload: dict, request: Request):
+    require_admin(request)
+    d = payload or {}
+    buyer = _find_user(str(d.get("buyer_id", "")).upper())
+    if not buyer:
+        raise HTTPException(404, f"Buyer ID dorakaledu: {d.get('buyer_id', '')}")
+    order = S12.create_order(buyer["tsap_id"], int(d.get("amount", S12.ASSISTED_PRICE) or S12.ASSISTED_PRICE),
+                             str(d.get("note", "")))
+    return {"success": True, "order": order,
+            "message_telugu": f"✅ Order {order['id']} — ₹{order['amount']} (UTR vachhaka paid cheyyandi)"}
+
+
+@app.get("/api/admin/assist-orders")
+def api_assist_list(request: Request, status: str = ""):
+    require_admin(request)
+    items = [o for o in S12.ORDERS if not status or o.get("status") == status]
+    return {"success": True, "count": len(items), "orders": list(reversed(items))}
+
+
+@app.post("/api/admin/assist-orders/{order_id}/paid")
+def api_assist_paid(order_id: str, payload: dict, request: Request):
+    require_admin(request)
+    res = S12.mark_order_paid(order_id, str((payload or {}).get("utr", "")))
+    if not res.get("success"):
+        raise HTTPException(400, res.get("message_telugu"))
+    return res
+
+
+@app.post("/api/admin/assist-orders/{order_id}/profiles")
+def api_assist_attach(order_id: str, payload: dict, request: Request):
+    require_admin(request)
+    ids = [str(x).upper() for x in (payload or {}).get("profile_ids", [])]
+    missing = [i for i in ids if not _find_user(i)]
+    if missing:
+        raise HTTPException(404, f"IDs dorakalevu: {', '.join(missing)}")
+    res = S12.attach_order_profiles(order_id, ids)
+    if not res.get("success"):
+        raise HTTPException(400, res.get("message_telugu"))
+    return res
+
+
+# --- 🎯 Match & Send console (admin) ------------------------------------------
+@app.get("/api/admin/match-send/copy-list")
+def api_copy_list(request: Request, buyer: str = "", ids: str = "", order_id: str = ""):
+    """📋 Admin 1-click copy — `NAME -- NUMBER` lines (manual paste kosam). ADMIN-ONLY."""
+    require_admin(request)
+    b = _find_user(buyer.upper())
+    if not b:
+        raise HTTPException(404, f"Buyer ID dorakaledu: {buyer}")
+    wanted = [x.strip().upper() for x in (ids or "").split(",") if x.strip()]
+    targets = [_find_user(i) for i in wanted]
+    if not targets or any(t is None for t in targets):
+        raise HTTPException(404, "Konni IDs dorakalevu — list sari chudandi")
+    text = S12.build_copy_list(b, targets, order_id)
+    return {"success": True, "count": len(targets), "text": text}
+
+
+@app.get("/api/admin/match-send/{buyer_id}")
+def api_match_send(buyer_id: str, request: Request, limit: int = 20, min_score: int = 0):
+    """
+    🎯 Buyer ID → perfect matches (score sort) + delivery readiness.
+    ADMIN-ONLY (full phones untayi — copy-list/verify kosam).
+    """
+    require_admin(request)
+    me = _find_user(buyer_id.upper())
+    if not me:
+        raise HTTPException(404, f"Buyer ID dorakaledu: {buyer_id}")
+    pool = [u for u in DB_USERS if u.get("tsap_id") != me["tsap_id"]
+            and not safety.is_blocked(me["tsap_id"], u.get("tsap_id", ""), DB_BLOCKS)
+            and not u.get("is_banned")]
+    gf = A11.filter_same_gothram(me, pool)
+    rows = topmatch.find_top_matches_v2(me, gf["kept"], limit=min(limit, 100), min_score=min_score)
+    rows.sort(key=lambda r: (A11.boost_rank_key(r.get("profile", {})), r.get("score", 0)), reverse=True)
+    out = []
+    for r in rows:
+        prof = r.pop("profile")
+        r.update({"full_name": prof.get("full_name"), "phone": prof.get("phone", ""),
+                  "age": prof.get("age"), "gender": prof.get("gender"), "caste": prof.get("caste"),
+                  "sub_caste": prof.get("sub_caste", ""), "district": prof.get("district"),
+                  "state": prof.get("state"), "education": prof.get("education"),
+                  "job": prof.get("job"), "salary": prof.get("salary", ""),
+                  "marital_status": prof.get("marital_status", ""), "star": prof.get("star", ""),
+                  "height": prof.get("height", ""),
+                  "verification": safety.verification_badge(prof)["level"],
+                  "phone_verified": bool(prof.get("phone_verified") or prof.get("is_verified")),
+                  "has_photo": bool(prof.get("photo_urls"))})
+        out.append(r)
+    return {"buyer": {"tsap_id": me["tsap_id"], "name": me.get("full_name"),
+                      "phone": me.get("phone", ""), "credits": me.get("credits", 0),
+                      "telegram_chat_id": me.get("telegram_chat_id", ""),
+                      "telegram_linked": bool(me.get("telegram_chat_id"))},
+            "count": len(out), "gothram_skipped": len(gf["skipped_ids"]),
+            "results": out,
+            "message_telugu": f"🎯 {len(out)} perfect matches — select chesi Telegram/WhatsApp ki pampandi"}
+
+
+@app.post("/api/admin/match-send/deliver")
+async def api_match_deliver(payload: dict, request: Request):
+    """
+    📩 1-click personal delivery — buyer Telegram DM + WhatsApp.
+    Grant (STRICT: ee profiles mathrame) + send + copy-list — anni okesari.
+    """
+    require_admin(request)
+    d = payload or {}
+    buyer = _find_user(str(d.get("buyer_id", "")).upper())
+    if not buyer:
+        raise HTTPException(404, f"Buyer ID dorakaledu: {d.get('buyer_id', '')}")
+    ids = [str(x).upper() for x in d.get("profile_ids", [])]
+    targets = [_find_user(i) for i in ids]
+    if not targets or any(t is None for t in targets):
+        raise HTTPException(404, "Konni profile IDs dorakalevu")
+    order_id = str(d.get("order_id", "") or "")
+    via = str(d.get("via", "both") or "both").lower()
+    if order_id:
+        o = S12.get_order(order_id)
+        if not o:
+            raise HTTPException(404, f"Order dorakaledu: {order_id}")
+        if o["status"] not in ("paid", "delivered"):
+            raise HTTPException(400, "⚠️ Order paid kakapothe deliver cheyyakoodadu — mundhu UTR confirm")
+        o["profile_ids"] = ids
+        o["via"] = [via]
+    for pid in ids:
+        S12.grant_unlock(buyer["tsap_id"], pid,
+                         via=("assisted" if order_id else "admin_gift"), order_id=order_id)
+    res = await S12.deliver_personal(buyer, targets, via=via, order_id=order_id)
+    if order_id and res.get("ok"):
+        S12.get_order(order_id)["status"] = "delivered"
+        S12.get_order(order_id)["delivered_at"] = S12._now_iso()
+        S12._persist()
+    res.update({"success": True, "buyer_id": buyer["tsap_id"], "delivered": len(ids),
+                "order_id": order_id})
+    return res
+
+
+@app.post("/api/admin/link-telegram")
+def api_admin_link_tg(payload: dict, request: Request):
+    """🔗 Admin manual link — buyer /myid chepthe ikkada link (DM delivery kosam)."""
+    require_admin(request)
+    d = payload or {}
+    u = _find_user(str(d.get("buyer_id", "")).upper())
+    if not u:
+        raise HTTPException(404, "Buyer ID dorakaledu")
+    u["telegram_chat_id"] = str(d.get("chat_id", ""))
+    u["telegram_linked_at"] = datetime.utcnow().isoformat()
+    return {"success": True, "tsap_id": u["tsap_id"], "telegram_chat_id": u["telegram_chat_id"],
+            "message_telugu": "✅ Telegram link ayyindi — personal DM ready"}

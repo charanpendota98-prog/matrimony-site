@@ -9,6 +9,7 @@
  */
 import { useCallback, useEffect, useState } from "react";
 import AuthGate from "@/components/AuthGate";
+import MatchSend from "@/components/MatchSend";
 import { apiGet, apiPost, authHeaders, getAdminKey, setAdminKey } from "@/lib/api";
 import Link from "next/link";
 
@@ -181,7 +182,7 @@ export default function AdminPage() {
 
         <div className="flex flex-wrap gap-2 mb-4">
           {[["payouts", "💰 Referral Payouts (live)"], ["vendors", "🏪 Vendor Ads (live)"],
-            ["profiles", "👥 Profiles"], ["analytics", "📊 Analytics"]].map(([k, l]) => (
+            ["matchsend", "🎯 Match & Send (₹500)"], ["profiles", "👥 Profiles"], ["analytics", "📊 Analytics"]].map(([k, l]) => (
             <button key={k} onClick={() => setTab(k)}
               className={`px-5 py-2 rounded-full text-sm font-bold ${tab === k ? "maroon-gradient text-white" : "bg-white border"}`}>{l}</button>
           ))}
@@ -220,6 +221,14 @@ export default function AdminPage() {
                 className="px-4 py-2 rounded-full bg-gray-50 border text-xs" aria-label="Code / Name / UPI / ID" />
             </div>
           </div>
+
+          {/* ---------------- MATCH & SEND (₹500 assisted) ---------------- */}
+          {tab === "matchsend" && (
+            <>
+              <h2 className="font-bold text-[#7A0C2E] mt-2">🎯 Match &amp; Send — buyer ID → perfect matches → personal Telegram/WhatsApp</h2>
+              <MatchSend />
+            </>
+          )}
 
           {/* ---------------- PAYOUTS ---------------- */}
           {tab === "payouts" && (

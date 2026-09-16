@@ -76,26 +76,82 @@ def help_text() -> str:
         "🙏 Mana Vivaha Bot — HELP\n\n"
         "• /start — kottha register (3 min)\n"
         "• /search TSAP-F-1042 — ID tho profile chudandi\n"
+        "• /unlock TSAP-F-1042 — number unlock (1 credit)\n"
+        "• /mylist — mee unlocked numbers list\n"
+        "• /balance — mee credits + plan\n"
+        "• /pay — payment ela (UPI/call)\n"
+        "• /link MEE-TSAP-ID — Telegram link (unlock/delivery kosam)\n"
         "• /myid — mee Telegram ID (support ki kavali)\n"
         "• /cancel — form cancel\n\n"
         "💰 Modati 3 profiles + 3 interests FREE\n"
-        "₹99 → 5 profiles (decline ayithe refund)\n\n"
+        "₹99 → 5 profiles (decline ayithe refund)\n"
+        "₹500 → assisted: mana team meeke 5 profiles personal ga pampisthundi\n\n"
         f"🌐 Website: {SITE_URL}\n"
         "🕙 Support: 10AM–7PM Telugu lo"
     )
 
 
 def format_id_search(profile: dict) -> str:
-    """ID search result card (numbers eppudu ledu — privacy)."""
+    """ID search result card — 🔒 WAVE 12: name masked + number eppudu ledu."""
+    from smart12 import mask_name  # lazy: cycle-safe
     p = profile or {}
+    tid = p.get('tsap_id', '—')
     return (
-        f"🔎 {p.get('tsap_id','—')} — {p.get('full_name','—')}\n"
+        f"🔎 {tid} — {mask_name(p.get('full_name',''))}\n"
         f"{p.get('gender','')} · {p.get('age','')} yrs · {p.get('caste','')}\n"
         f"🎓 {p.get('education','—')} · 💼 {p.get('job','—')}\n"
         f"📍 {p.get('district','—')}, {p.get('state','TS')}\n"
         f"⭐ {p.get('star','—')} · గోత్రం: {p.get('gothram','—')}\n\n"
+        f"📞 Number kavali ante: /unlock {tid} (1 credit)\n"
         f"Interest pampalante website {SITE_URL}/matches lo login cheyyandi 💌"
     )
+
+
+# ── WAVE 12 pure formatters (network lekunda test avvachu) ───────────────────
+def unlock_result_text(data: dict) -> str:
+    """POST /api/unlock response → user message."""
+    d = data or {}
+    if d.get("success"):
+        chg = " (FREE — already unlocked 🙂)" if not d.get("charged") else f" (1 credit cut — migilindi: {d.get('credits_left',0)})"
+        return (f"✅ Number unlock ayyindi{chg}\n📞 `{d.get('phone','—')}`\n"
+                f"📝 Gauravamga matladandi — all the best! 💍")
+    if d.get("reason") == "no_credits":
+        return ("⚠️ Credits ayipoyayi!\n" + str(d.get("message_telugu","")) + "\n\n/pay — payment ela cheyyalo chudandi 🙏")
+    return "⚠️ " + str(d.get("message_telugu") or d.get("detail") or "unlock avvaledu — ID sari chudandi")
+
+
+def mylist_text(data: dict) -> str:
+    """GET /api/unlocks response → masked list + hint."""
+    d = data or {}
+    items = d.get("profiles", []) or []
+    if not items:
+        return ("📋 Mee unlocked list khaali 🙂\n\nChannel lo nachina ID ni /unlock TSAP-F-1042 ani pampandi (1 credit).\n"
+                "Leda ₹500 assisted — mana team meeke 5 profiles personal ga pampisthundi (/pay).")
+    lines = [f"📋 Mee unlocked profiles ({len(items)}):", ""]
+    for i, p in enumerate(items, 1):
+        lines.append(f"{i}. {p.get('name_masked','—')} — {p.get('phone_masked','')} "
+                     f"({p.get('tsap_id','')} · {p.get('caste','')})")
+    lines += ["", "Full number kavali ante: /unlock <ID> (already unlocked — free 🙂)"]
+    return "\n".join(lines)
+
+
+def balance_text(credits: int, plan: str = "FREE") -> str:
+    return (f"💰 Mee balance: *{credits}* credits\n📦 Plan: {plan}\n\n"
+            f"1 credit = 1 number unlock 📞\nAyipothe /pay lo top-up cheyochu 🙏")
+
+
+def pay_text() -> str:
+    import os as _os
+    upi = _os.getenv("PAY_UPI_ID", "manavivaha@upi")
+    call = _os.getenv("SUPPORT_CALL_NUMBER", "")
+    lines = ["💳 Payment ela cheyyali:", "",
+             f"1️⃣ UPI: `{upi}` (note lo mee TSAP ID pettandi)",
+             "2️⃣ Screenshot + TSAP ID ni support ki pampandi",
+             "3️⃣ 10 min lo credits add (10AM–7PM)"]
+    if call:
+        lines.append(f"\n📞 Direct call: {call} (₹500 assisted kooda call lone book cheyochu)")
+    lines.append("\n💰 ₹99=5 · ₹199=12 · ₹299=25 · ₹500=assisted 5 (personal)")
+    return "\n".join(lines)
 
 
 # Telugu keyboards
@@ -197,6 +253,101 @@ async def cmd_search(message: Message):
         await message.answer(format_id_search(prof if isinstance(prof, dict) else {"tsap_id": tsap_id}))
     except Exception as e:  # noqa: BLE001
         await message.answer(f"⚠️ Search ippudu work avvatledu — website lo chudandi: {SITE_URL}/matches\n({str(e)[:60]})")
+
+
+@dp.message(Command("unlock"))
+async def cmd_unlock(message: Message):
+    """🔓 /unlock TSAP-F-1042 — 1 credit tho number reveal (bot lo link ayina ID tho)."""
+    parts = str(message.text or "").strip().split()
+    if len(parts) < 2:
+        await message.answer("🔓 Ela: /unlock TSAP-F-1042\n(Channel post lo ID untundi — 1 credit = 1 number 📞)")
+        return
+    target = parts[1].upper()
+    sess = user_sessions.get(message.from_user.id, {})
+    viewer = sess.get("tsap_id", "")
+    if not viewer:
+        await message.answer("🙏 Mundu mee profile link cheyyandi: /link MEE-TSAP-ID\n(ID website login lo / register SMS lo untundi)",
+                             parse_mode="Markdown")
+        return
+    import aiohttp
+    api_base = os.getenv("API_BASE", "http://localhost:8000")
+    try:
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10)) as s:
+            async with s.post(f"{api_base}/api/unlock",
+                              json={"viewer_id": viewer, "target_id": target}) as resp:
+                data = await resp.json()
+        await message.answer(unlock_result_text(data if isinstance(data, dict) else {}), parse_mode="Markdown")
+    except Exception as e:  # noqa: BLE001
+        await message.answer(f"⚠️ Unlock ippudu work avvatledu — website lo try cheyyandi: {SITE_URL}/matches\n({str(e)[:60]})")
+
+
+@dp.message(Command("mylist"))
+async def cmd_mylist(message: Message):
+    sess = user_sessions.get(message.from_user.id, {})
+    viewer = sess.get("tsap_id", "")
+    if not viewer:
+        await message.answer("🙏 Mundu /link MEE-TSAP-ID cheyyandi — appudu mee unlocked list chupistham")
+        return
+    import aiohttp
+    api_base = os.getenv("API_BASE", "http://localhost:8000")
+    try:
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10)) as s:
+            async with s.get(f"{api_base}/api/unlocks/{viewer}") as resp:
+                data = await resp.json()
+        await message.answer(mylist_text(data if isinstance(data, dict) else {}))
+    except Exception as e:  # noqa: BLE001
+        await message.answer(f"⚠️ List load avvaledu ({str(e)[:60]}) — /help chudandi")
+
+
+@dp.message(Command("balance"))
+async def cmd_balance(message: Message):
+    sess = user_sessions.get(message.from_user.id, {})
+    viewer = sess.get("tsap_id", "")
+    if not viewer:
+        await message.answer("🙏 Mundu /link MEE-TSAP-ID cheyyandi")
+        return
+    import aiohttp
+    api_base = os.getenv("API_BASE", "http://localhost:8000")
+    try:
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10)) as s:
+            async with s.get(f"{api_base}/api/credits/{viewer}") as resp:
+                data = await resp.json() if resp.status == 200 else {}
+        await message.answer(balance_text(int(data.get("credits", 0)), str(data.get("plan", "FREE"))),
+                             parse_mode="Markdown")
+    except Exception as e:  # noqa: BLE001
+        await message.answer(f"⚠️ Balance load avvaledu ({str(e)[:60]})")
+
+
+@dp.message(Command("pay"))
+async def cmd_pay(message: Message):
+    await message.answer(pay_text(), parse_mode="Markdown")
+
+
+@dp.message(Command("link"))
+async def cmd_link(message: Message):
+    """🔗 /link TSAP-F-1042 — Telegram ni profile tho link (personal delivery + unlock kosam)."""
+    parts = str(message.text or "").strip().split()
+    if len(parts) < 2:
+        await message.answer("🔗 Ela: /link MEE-TSAP-ID\n(ID website login lo untundi — link ayithe personal profiles + unlock ivvachu 🙂)")
+        return
+    tsap_id = parts[1].upper()
+    import aiohttp
+    api_base = os.getenv("API_BASE", "http://localhost:8000")
+    try:
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10)) as s:
+            async with s.post(f"{api_base}/api/link-telegram",
+                              json={"tsap_id": tsap_id,
+                                    "chat_id": str(message.from_user.id)}) as resp:
+                data = await resp.json()
+        if resp.status == 200 and isinstance(data, dict) and data.get("success") is not False:
+            user_sessions[message.from_user.id] = {**user_sessions.get(message.from_user.id, {}),
+                                                   "tsap_id": tsap_id}
+            await message.answer(f"✅ Link ayyindi! {tsap_id} ↔ Telegram\n\nIppudu:\n• /unlock <ID> — number reveal (1 credit)\n• /mylist — unlocked list\n• /balance — credits",
+                                 parse_mode="Markdown")
+        else:
+            await message.answer(f"⚠️ {(data or {}).get('message_telugu') or 'ID dorakaledu — sari chudandi'}")
+    except Exception as e:  # noqa: BLE001
+        await message.answer(f"⚠️ Link avvaledu ({str(e)[:60]}) — website lo try cheyyandi")
 
 
 @dp.message(F.text.in_(["👰 Bride", "🤵 Groom"]))

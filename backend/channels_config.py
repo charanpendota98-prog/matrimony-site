@@ -848,22 +848,13 @@ def build_hashtags(profile: dict, keys: list | None = None) -> str:
 
 
 def build_caption(profile: dict, tsap_id: str = "TSAP-F-2025-XXXX", score: int = 92) -> str:
-    """Ready-to-post Telegram caption (photo card + footer + CTA)."""
-    r = route_profile(profile)
-    reasons = "\n".join(f"• {x['telugu']}" for x in r["reasons"][:4])
-    return (
-        f"🆔 {tsap_id} | ⭐ {score}% BEST MATCH\n"
-        f"👤 {profile.get('full_name','—')} • {profile.get('age','—')}y • {profile.get('height','—')} • {profile.get('caste','—')}\n"
-        f"🎓 {profile.get('education','—')} • 💼 {profile.get('job','—')} • 📍 {profile.get('district','—')}, {resolve_state(profile.get('state','TS'))}\n"
-        f"🌟 {profile.get('gothram','—')} gothram • {profile.get('star','—')} nakshatram\n"
-        f"\n✅ Enduku set avutharu:\n{reasons}\n"
-        f"\n{r['hashtags']}\n"
-        f"━━━━━━━━━━━━━━━\n"
-        f"🤖 Bot: {BOT_USERNAME} (Modati 3 FREE)\n"
-        f"🔍 ID Search: {SITE}/search/{tsap_id}\n"
-        f"📝 Register 3 min lo: {SITE}/register\n"
-        f"⚠️ Number bot lo pay tarvata matrame — mosam jagratha!"
-    )
+    """Ready-to-post Telegram caption — 🔒 WAVE 12 MASKED (number ❌ full-name ❌ surname ❌).
+
+    Teaser matrame + unlock CTA. Full number: bot /unlock (1 credit) leda ₹500 assisted.
+    NOTE: ID/score/bot/register/safety substrings intact (old tests green).
+    """
+    from smart12 import build_masked_caption  # lazy: cycle-safe
+    return build_masked_caption(profile or {}, tsap_id, score)
 
 
 # ═══════════════════════════════════════════════════════════════════════════
