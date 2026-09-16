@@ -5,6 +5,7 @@ import SiteFooter from "@/components/SiteFooter";
 import StickyCTA from "@/components/StickyCTA";
 import { CHANNEL_STATS } from "@/lib/channels";
 import PWA from "@/components/PWA";
+import SupportWidget from "@/components/SupportWidget";
 
 const SITE = process.env.SITE_URL || "https://manavivaha.in";
 
@@ -71,6 +72,7 @@ export default function RootLayout({
         <SiteFooter />
         <StickyCTA />
         <PWA />
+        <SupportWidget />
       </body>
     </html>
   );
