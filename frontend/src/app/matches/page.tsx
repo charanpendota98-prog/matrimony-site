@@ -20,6 +20,8 @@ import QuickLead from "@/components/QuickLead";
 import TrustBadge from "@/components/TrustBadge";
 import AuthGate from "@/components/AuthGate";
 import { apiGet, apiPost, getToken } from "@/lib/api";
+import { firstName } from "@/lib/names";
+import AdSlot from "@/components/AdSlot";
 
 type Row = Record<string, any>;
 const SAVED_SEARCHES_KEY = "tsap_saved_searches_v1";
@@ -463,7 +465,7 @@ export default function MatchesAdvanced() {
   };
 
   const shareText = (row: Row) =>
-    `🙏 ${SITE_CONFIG.brandName} profile — ${row.full_name} (${row.tsap_id})\n` +
+    `🙏 ${SITE_CONFIG.brandName} profile — ${firstName(row.full_name)} (${row.tsap_id})\n` +
     `👉 ${row.age}y • ${row.caste} • ${row.education} • ${row.job}${row.company ? " @ " + row.company : ""}\n` +
     `📍 ${row.district}, ${row.state} • 💰 ${row.salary} • ⭐ ${row.star || "—"}\n` +
     `Full details: ${SITE_CONFIG.siteUrl || "https://manavivaha.in"}/search/${row.tsap_id}`;
@@ -578,7 +580,7 @@ export default function MatchesAdvanced() {
             <div className="flex items-start gap-2">
               <div className="min-w-0 flex-1">
                 <div className="font-bold text-[15px] text-ink truncate">
-                  {row.full_name}
+                  {firstName(row.full_name)}
                   {row.verification === "id" || row.id_verified ? <span className="ml-1 text-[11px]" title="ID verified — full trust">🏅</span>
                     : row.verification === "photo" || row.photo_verified ? <span className="ml-1 text-[11px]" title="Photo verified">📸✅</span>
                     : (row.phone_verified || row.verification === "phone") ? <span className="ml-1 text-[11px] text-emerald-700" title="Phone verified">✅</span> : null}
@@ -769,6 +771,7 @@ export default function MatchesAdvanced() {
           <button onClick={() => setSheet(true)} className="mt-3 w-full py-2.5 rounded-xl gold-gradient text-maroon text-[12px] font-bold">
             ➕ Inka ekkuva filters (caste 43, edu, salary…)
           </button>
+          <div className="mt-3"><AdSlot slot="matches_sidebar" district={filters.district || ""} state={filters.state || ""} /></div>
         </aside>
 
         {/* ---------- results ---------- */}
@@ -780,6 +783,7 @@ export default function MatchesAdvanced() {
           )}
 
           <div className="mb-3"><QuickLead source="matches_page" /></div>
+          <div className="mb-3 md:hidden"><AdSlot slot="matches_sidebar" district={filters.district || ""} state={filters.state || ""} /></div>
 
           <div className="maroon-gradient text-white rounded-[1.5rem] p-4">
             <div className="font-bold text-[14px] telugu">🚫 Chatting ledu — 💌 Interest pampu, accept aithe WhatsApp lo numbers exchange</div>

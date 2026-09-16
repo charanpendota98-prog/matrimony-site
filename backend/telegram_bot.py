@@ -92,12 +92,12 @@ def help_text() -> str:
 
 
 def format_id_search(profile: dict) -> str:
-    """ID search result card — 🔒 WAVE 12: name masked + number eppudu ledu."""
-    from smart12 import mask_name  # lazy: cycle-safe
+    """ID search result card — WAVE 13: FIRST NAME visible, surname hidden, number eppudu ledu."""
+    from smart12 import first_name_of  # lazy: cycle-safe
     p = profile or {}
     tid = p.get('tsap_id', '—')
     return (
-        f"🔎 {tid} — {mask_name(p.get('full_name',''))}\n"
+        f"🔎 {tid} — {first_name_of(p.get('full_name',''))}\n"
         f"{p.get('gender','')} · {p.get('age','')} yrs · {p.get('caste','')}\n"
         f"🎓 {p.get('education','—')} · 💼 {p.get('job','—')}\n"
         f"📍 {p.get('district','—')}, {p.get('state','TS')}\n"

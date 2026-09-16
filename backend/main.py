@@ -83,6 +83,8 @@ from card_generator import generate_id as _gen_id
 from porutham import compute_porutham, porutham_line, norm_nakshatra, norm_rasi
 import topmatch, safety, preview, bot_pool, wa_pool
 import smart12 as S12  # 🔒 WAVE 12: masked captions + unlock/entitlement + ₹500 assisted
+import astro as AST      # 🪐 WAVE 13: 36-guna + dosha + jathakam
+import ads as ADS        # 📢 WAVE 13: vendor ad campaigns
 from interest import ADDONS, RENEWALS, is_addon, get_addon, get_renewal, plan_list_with_free, addon_list, renewal_offer
 from channels_config import post_targets, caste_channel_links, channel_links, WA_OFFICIAL_LINK
 # 🎁 WAVE 10 — register avvagane "3 profiles + caste channel links" WhatsApp ki
@@ -1671,6 +1673,14 @@ async def interest_send(payload: dict, request: Request = None):
             "success": False, "reason": "same_gothram", "gothram": g11,
             "message_telugu": g11["verdict_telugu"]})
 
+    # 🛡️ WAVE 13: same surname (inti-peru) → interest auto-block (okka inti — pelli kudadhu)
+    s13 = {"blocked": False} if from_id == to_id else S12.same_surname_check(frm, to)
+    if s13.get("blocked"):
+        abuse_log("same_surname_interest_block", f"{from_id}→{to_id}")
+        return JSONResponse(status_code=400, content={
+            "success": False, "reason": "same_surname", "surname": s13,
+            "message_telugu": s13["verdict_telugu"]})
+
     expire_old(DB_INTERESTS)
     # 💬 ready-made Telugu template (optional)
     _tpl = str(d.get("template_id", "")).strip()
@@ -1933,12 +1943,12 @@ def demo_seed(request: Request = None):
              company="Deloitte", salary="10L", height="5'5\"", weight="56kg", district="Vijayawada", state="AP",
              gothram="Kasyapa", star="Ashwini", rasi="Mesha", phone="9848022222", family_type="Joint",
              family_status="Upper Middle", marital_status="Pelli Kaledu", is_verified=True),
-        dict(prefer_id="TSAP-M-2025-1042", gender="Groom", full_name="Kiran Kumar Reddy", age=29, caste="Reddy",
+        dict(prefer_id="TSAP-M-2025-1042", gender="Groom", full_name="Kiran Kumar Verma", age=29, caste="Reddy",
              sub_caste="Deshathi", education="MBBS", education_detail="MD", job="Doctor", company="Apollo",
              salary="2L+/mo", height="5'10\"", weight="74kg", district="Nalgonda", state="TS", gothram="Vasishta",
              star="Mrigasira", rasi="Dhanu", phone="9848033333", family_type="Nuclear",
              family_status="Middle Class", marital_status="Pelli Kaledu", is_verified=True),
-        dict(prefer_id="TSAP-M-2025-4042", gender="Groom", full_name="Arjun Chowdary", age=31, caste="Kamma",
+        dict(prefer_id="TSAP-M-2025-4042", gender="Groom", full_name="Arjun Nandan", age=31, caste="Kamma",
              sub_caste="", education="MS", education_detail="USA", job="Product Manager", company="Amazon",
              salary="40L", height="5'11\"", weight="78kg", district="Guntur", state="AP", gothram="Kaundinya",
              star="Bharani", rasi="Simha", phone="9848044444", family_type="Nuclear",
@@ -1995,7 +2005,7 @@ def demo_seed(request: Request = None):
              height="5'9\"", weight="80kg", district="Hyderabad", state="TS", gothram="Kaundinya",
              star="Magha", rasi="Simha", phone="9848050505", family_type="Joint", family_status="Rich",
              marital_status="Pelli Kaledu", is_verified=True),
-        dict(gender="Groom", full_name="Sai Krishna Brahmin", age=28, caste="Brahmin", sub_caste="Niyogi",
+        dict(gender="Groom", full_name="Sai Krishna Sharma", age=28, caste="Brahmin", sub_caste="Niyogi",
              education="MBA", education_detail="Finance", job="Software Engineer", company="Microsoft",
              salary="45L", height="5'10\"", weight="75kg", district="Tirupati", state="AP",
              gothram="Bharadwaj", star="Shravana", rasi="Makara", phone="9848060606", family_type="Nuclear",
@@ -2711,6 +2721,7 @@ def api_match_score(a: str, b: str):
     res["other"] = {"tsap_id": other.get("tsap_id"), "full_name": other.get("full_name"),
                     "verification": safety.verification_badge(other)}
     res["gothram"] = A11.gothram_check(me, other)   # 🛡️ WAVE 11: score tho paatu gothram verdict
+    res["surname"] = S12.same_surname_check(me, other)   # 🛡️ WAVE 13: surname verdict kooda
     return res
 
 
@@ -2725,7 +2736,8 @@ def api_match_score_raw(payload: dict):
 
 
 @app.get("/api/top-matches/{tsap_id}")
-def api_top_matches(tsap_id: str, limit: int = 10, min_score: int = 65, include_same_gothram: int = 0):
+def api_top_matches(tsap_id: str, limit: int = 10, min_score: int = 65, include_same_gothram: int = 0,
+                      include_same_surname: int = 0):
     """Top matches 2.0 — mutual bonus tho rank, blocked/banned/same-gothram teesestham, boosted first."""
     me = _find_user(tsap_id)
     if not me:
@@ -2737,6 +2749,11 @@ def api_top_matches(tsap_id: str, limit: int = 10, min_score: int = 65, include_
     if not include_same_gothram:
         gf = A11.filter_same_gothram(me, pool)
         pool, g11skip = gf["kept"], gf["skipped_ids"]
+    # 🛡️ WAVE 13: same-surname auto-filter (?include_same_surname=1 tho chudochu)
+    s13skip = []
+    if not include_same_surname:
+        sf = S12.filter_same_surname(me, pool)
+        pool, s13skip = sf["kept"], sf["skipped_ids"]
     rows = topmatch.find_top_matches_v2(me, pool, limit=limit, min_score=min_score)
     # ⚡ WAVE 11: boosted profiles first (pay chesinavallaki value)
     rows.sort(key=lambda r: (A11.boost_rank_key(r.get("profile", {})), r.get("score", 0)), reverse=True)
@@ -2759,10 +2776,12 @@ def api_top_matches(tsap_id: str, limit: int = 10, min_score: int = 65, include_
         out.append(r)
     return {"tsap_id": tsap_id, "count": len(out), "mutual_matches": len([x for x in out if x.get("mutual", {}).get("both_like")]),
             "gothram_skipped": len(g11skip), "gothram_skipped_ids": g11skip[:10],
+            "surname_skipped": len(s13skip), "surname_skipped_ids": s13skip[:10],
             "results": out,
-            "message_telugu": "%d top matches — mutthu (mutual) matches: %d%s" % (
+            "message_telugu": "%d top matches — mutthu (mutual) matches: %d%s%s" % (
                 len(out), len([x for x in out if x.get("mutual", {}).get("both_like")]),
-                f" · 🚫 same-gothram {len(g11skip)} skip" if g11skip else "")}
+                f" · 🚫 same-gothram {len(g11skip)} skip" if g11skip else "",
+                f" · 🚫 same-surname {len(s13skip)} skip" if s13skip else "")}
 
 
 # ============================================================================
@@ -3778,7 +3797,8 @@ def api_copy_list(request: Request, buyer: str = "", ids: str = "", order_id: st
 
 
 @app.get("/api/admin/match-send/{buyer_id}")
-def api_match_send(buyer_id: str, request: Request, limit: int = 20, min_score: int = 0):
+def api_match_send(buyer_id: str, request: Request, limit: int = 20, min_score: int = 0,
+                     include_same_surname: int = 0):
     """
     🎯 Buyer ID → perfect matches (score sort) + delivery readiness.
     ADMIN-ONLY (full phones untayi — copy-list/verify kosam).
@@ -3791,7 +3811,12 @@ def api_match_send(buyer_id: str, request: Request, limit: int = 20, min_score: 
             and not safety.is_blocked(me["tsap_id"], u.get("tsap_id", ""), DB_BLOCKS)
             and not u.get("is_banned")]
     gf = A11.filter_same_gothram(me, pool)
-    rows = topmatch.find_top_matches_v2(me, gf["kept"], limit=min(limit, 100), min_score=min_score)
+    sf = S12.filter_same_surname(me, gf["kept"])
+    if not include_same_surname:
+        kept = sf["kept"]
+    else:
+        kept = gf["kept"]
+    rows = topmatch.find_top_matches_v2(me, kept, limit=min(limit, 100), min_score=min_score)
     rows.sort(key=lambda r: (A11.boost_rank_key(r.get("profile", {})), r.get("score", 0)), reverse=True)
     out = []
     for r in rows:
@@ -3812,6 +3837,7 @@ def api_match_send(buyer_id: str, request: Request, limit: int = 20, min_score: 
                       "telegram_chat_id": me.get("telegram_chat_id", ""),
                       "telegram_linked": bool(me.get("telegram_chat_id"))},
             "count": len(out), "gothram_skipped": len(gf["skipped_ids"]),
+            "surname_skipped": len(sf["skipped_ids"]), "surname_skipped_ids": sf["skipped_ids"][:10],
             "results": out,
             "message_telugu": f"🎯 {len(out)} perfect matches — select chesi Telegram/WhatsApp ki pampandi"}
 
@@ -3866,3 +3892,182 @@ def api_admin_link_tg(payload: dict, request: Request):
     u["telegram_linked_at"] = datetime.utcnow().isoformat()
     return {"success": True, "tsap_id": u["tsap_id"], "telegram_chat_id": u["telegram_chat_id"],
             "message_telugu": "✅ Telegram link ayyindi — personal DM ready"}
+
+
+# ============================================================================
+# 🪐 WAVE 13 — ASTROLOGY (36-guna + dosha + jathakam/pandit)
+# ============================================================================
+@app.get("/api/astro/guna")
+def api_guna(bride_id: str = "", groom_id: str = ""):
+    """🪐 36-guna jathakam porutham — 2 profile IDs (gender auto-detect + swap)."""
+    a = _find_user(bride_id.upper()) if bride_id else None
+    b = _find_user(groom_id.upper()) if groom_id else None
+    if not a or not b:
+        raise HTTPException(404, "Rendu profile IDs ivvandi (bride_id + groom_id)")
+    bride, groom = a, b
+    if a.get("gender") == "Groom" and b.get("gender") == "Bride":
+        bride, groom = b, a
+    elif a.get("gender") == b.get("gender"):
+        raise HTTPException(400, "Bride + Groom rendu veru genders ayi undali")
+    res = AST.guna_milan(bride.get("star", ""), bride.get("rasi", ""),
+                          groom.get("star", ""), groom.get("rasi", ""))
+    res["bride_id"] = bride.get("tsap_id")
+    res["groom_id"] = groom.get("tsap_id")
+    return res
+
+
+@app.get("/api/astro/dosha/{tsap_id}")
+def api_dosha(tsap_id: str):
+    """🔍 Dosha screening — profile ki dosham unda/leda (honest flags)."""
+    u = _find_user(tsap_id.upper())
+    if not u:
+        raise HTTPException(404, "Profile dorakaledu")
+    res = AST.dosha_screening(u)
+    res["tsap_id"] = u["tsap_id"]
+    return res
+
+
+@app.post("/api/astro/jathakam/upload")
+async def api_jathakam_upload(file: UploadFile = File(...), tsap_id: str = Form("")):
+    """📜 Jathakam upload (photo/PDF, max 8MB) → pandit queue."""
+    u = _find_user(tsap_id.strip().upper())
+    if not u:
+        raise HTTPException(404, "TSAP ID dorakaledu — mundu register")
+    ext = (file.filename or "").split(".")[-1].lower()
+    if ext not in {"jpg", "jpeg", "png", "webp", "pdf"}:
+        raise HTTPException(400, "Jathakam photo (JPG/PNG) leda PDF matrame")
+    data = await file.read()
+    if len(data) > 8 * 1024 * 1024:
+        raise HTTPException(413, "File 8MB kanna ekkuva — compress chesi pampandi")
+    if len(data) < 1024:
+        raise HTTPException(400, "File khaali — malli upload cheyyandi")
+    os.makedirs("/tmp/jathakam", exist_ok=True)
+    name = f"{u['tsap_id']}-{datetime.utcnow().strftime('%y%m%d%H%M%S')}.{ext}"
+    with open(f"/tmp/jathakam/{name}", "wb") as f:
+        f.write(data)
+    j = AST.submit_jathakam(u["tsap_id"], name, "pdf" if ext == "pdf" else "photo")
+    return {"success": True, "jathakam_id": j["id"],
+            "message_telugu": f"✅ Jathakam vachindi ({j['id']}) — pandit verify chesaka 🪐 badge vastundi 🙏"}
+
+
+@app.get("/api/admin/astro/queue")
+def api_astro_queue(request: Request, status: str = ""):
+    require_admin(request)
+    items = [j for j in AST.JATHAKAMS if not status or j.get("status") == status]
+    return {"success": True, "count": len(items), "items": list(reversed(items))}
+
+
+@app.post("/api/admin/astro/verify/{jid}")
+def api_astro_verify(jid: str, payload: dict, request: Request):
+    require_admin(request)
+    d = payload or {}
+    res = AST.verify_jathakam(jid, bool(d.get("ok", True)), str(d.get("note", "")))
+    if not res.get("success"):
+        raise HTTPException(404, res.get("message_telugu"))
+    j = res["jathakam"]
+    u = _find_user(j["tsap_id"])
+    if u and j["status"] == "verified":
+        u["jathakam_verified"] = True
+    elif u:
+        u["jathakam_verified"] = False
+    return res
+
+
+@app.get("/api/admin/astro/stats")
+def api_astro_stats(request: Request):
+    require_admin(request)
+    return {"success": True, **AST.astro_stats(DB_USERS)}
+
+
+# ============================================================================
+# 📢 WAVE 13 — VENDOR ADS (campaigns + targeting + slots)
+# ============================================================================
+@app.get("/api/ads/rates")
+def api_ads_rates():
+    """💰 Public ad rates (vendor ki mundhe telustundi)."""
+    return {"success": True, "rates": ADS.RATES, "slots": ADS.SLOTS, "slot_telugu": ADS.SLOT_TE}
+
+
+@app.post("/api/ads/quote")
+def api_ads_quote(payload: dict):
+    d = payload or {}
+    q = ADS.quote(str(d.get("level", "")), int(d.get("days", 0) or 0),
+                  d.get("districts") or [], d.get("slots") or [], bool(d.get("video_url")))
+    if not q.get("ok"):
+        raise HTTPException(400, q.get("message_telugu"))
+    return {"success": True, **q}
+
+
+@app.get("/api/ads")
+def api_ads_serve(slot: str = "matches_sidebar", district: str = "", state: str = ""):
+    """🎯 Targeted ad serve (slot + user district/state). No ad → house promo signal."""
+    return ADS.serve(slot, district, state)
+
+
+@app.post("/api/ads/{cid}/click")
+def api_ads_click(cid: str):
+    return ADS.track_click(cid)
+
+
+@app.post("/api/vendors/{vendor_id}/campaigns")
+def api_vendor_campaign_create(vendor_id: str, payload: dict, request: Request):
+    """📢 Vendor campaign request (payment + admin approve tarvata live)."""
+    require_vendor(request, vendor_id)
+    import vendors as VND
+    v = next((x for x in VND.VENDORS if x.get("id") == vendor_id), None)
+    if not v:
+        raise HTTPException(404, "Vendor dorakaledu")
+    d = payload or {}
+    res = ADS.create_campaign(vendor_id, str(d.get("title", "")), str(d.get("level", "")),
+                              int(d.get("days", 0) or 0), d.get("districts") or [],
+                              str(d.get("state", "")), d.get("slots") or [],
+                              str(d.get("image_url", "")), str(d.get("banner_url", "")),
+                              str(d.get("video_url", "")), str(d.get("offer", "")),
+                              str(d.get("link", "")))
+    if not res.get("success"):
+        raise HTTPException(400, res.get("message_telugu"))
+    return res
+
+
+@app.get("/api/vendors/{vendor_id}/campaigns")
+def api_vendor_campaigns(vendor_id: str, request: Request):
+    require_vendor(request, vendor_id)
+    items = ADS.vendor_campaigns(vendor_id)
+    return {"success": True, "count": len(items),
+            "campaigns": list(reversed(items)),
+            "totals": {"impressions": sum(int(c.get("impressions", 0) or 0) for c in items),
+                       "clicks": sum(int(c.get("clicks", 0) or 0) for c in items),
+                       "spent": sum(int(c.get("amount", 0) or 0) for c in items if c.get("utr"))}}
+
+
+@app.get("/api/admin/ads")
+def api_admin_ads(request: Request, status: str = ""):
+    require_admin(request)
+    items = [c for c in ADS.CAMPAIGNS if not status or c.get("status") == status]
+    return {"success": True, "count": len(items), "campaigns": list(reversed(items))}
+
+
+@app.post("/api/admin/ads/{cid}/approve")
+def api_admin_ads_approve(cid: str, payload: dict, request: Request):
+    require_admin(request)
+    d = payload or {}
+    res = ADS.approve_campaign(cid, str(d.get("utr", "")), int(d.get("days", 0) or 0))
+    if not res.get("success"):
+        raise HTTPException(400, res.get("message_telugu"))
+    return res
+
+
+@app.post("/api/admin/ads/{cid}/action")
+def api_admin_ads_action(cid: str, payload: dict, request: Request):
+    require_admin(request)
+    d = payload or {}
+    res = ADS.campaign_action(cid, str(d.get("action", "")), str(d.get("reason", "")))
+    if not res.get("success"):
+        raise HTTPException(400, res.get("message_telugu"))
+    return res
+
+
+@app.get("/api/admin/ads/stats")
+def api_admin_ads_stats(request: Request):
+    require_admin(request)
+    return {"success": True, **ADS.ads_stats()}

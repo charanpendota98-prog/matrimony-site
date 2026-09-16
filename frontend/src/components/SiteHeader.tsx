@@ -4,6 +4,8 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { CHANNEL_STATS } from "@/lib/channels";
 import { SITE_CONFIG } from "@/lib/site-config";
+import { useSession, logout } from "@/lib/auth";
+import { apiGet } from "@/lib/api";
 
 const NAV: { href: string; label: string; xl?: boolean }[] = [
   { href: "/", label: "Home" },
@@ -26,6 +28,14 @@ export default function SiteHeader() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  // 🔐 WAVE 13 — persistent session chip (login ayithe eppudu kanipisthundi)
+  const { tsapId, token, ready } = useSession();
+  const [sessionOk, setSessionOk] = useState(false);
+  useEffect(() => {
+    if (!ready || !token) { setSessionOk(false); return; }
+    apiGet<{ valid?: boolean }>("/api/auth/verify").then(({ ok, data }) =>
+      setSessionOk(!!(ok && (data as { valid?: boolean } | null)?.valid)));
+  }, [ready, token]);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -86,12 +96,25 @@ export default function SiteHeader() {
           >
             ID Search
           </Link>
-          <Link
-            href="/login"
-            className="hidden sm:inline-flex px-3.5 py-2 text-[13px] font-semibold border border-maroon/30 text-maroon rounded-full hover:bg-maroon-soft transition"
-          >
-            📱 Login
-          </Link>
+          {ready && tsapId && sessionOk ? (
+            <span className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 text-[13px] font-semibold border border-emerald-300 bg-emerald-50 text-emerald-800 rounded-full">
+              👤 {tsapId.length > 14 ? `${tsapId.slice(0, 9)}…${tsapId.slice(-4)}` : tsapId}
+              <button
+                onClick={() => { logout(); window.location.href = "/"; }}
+                className="ml-1 rounded-full bg-emerald-200 px-2 py-0.5 text-[11px] font-bold hover:bg-emerald-300"
+                aria-label="Logout"
+              >
+                ⎋
+              </button>
+            </span>
+          ) : (
+            <Link
+              href="/login"
+              className="hidden sm:inline-flex px-3.5 py-2 text-[13px] font-semibold border border-maroon/30 text-maroon rounded-full hover:bg-maroon-soft transition"
+            >
+              📱 Login
+            </Link>
+          )}
           <Link
             href="/register"
             className="px-4 py-2.5 rounded-full text-[13px] font-bold maroon-gradient text-white shadow-soft hover:shadow-brand transition"

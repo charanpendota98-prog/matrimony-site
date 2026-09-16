@@ -82,9 +82,9 @@ prof = {"full_name": "Lakshmi Reddy", "gender": "Bride", "age": 24, "height": "5
         "state": "TS", "gothram": "Bharadwaj", "star": "Rohini", "phone": "9848012345"}
 cap = CC.build_caption(prof, "TSAP-F-2025-5775", 92)
 check("B1 caption: full name ledu", "Lakshmi Reddy" not in cap)
-check("B2 caption: surname ledu", "Reddy" not in cap.replace("Reddy", "") or True)  # placeholder, real check below
-check("B3 caption: surname word ledu", " Reddy" not in cap and "Reddy " not in cap.replace("Reddy", "X", 0) or "R•••y" in cap, cap[:200])
-check("B4 caption: masked name undi", "L•••••i" in cap, cap[:200])
+check("B2 caption: FIRST NAME visible (W13)", "\U0001F470 Lakshmi \u2022" in cap, cap[:200])
+check("B3 caption: surname name-line lo ledu", "Lakshmi R" not in cap, cap.split(chr(10))[1])
+check("B4 caption: full-name string ekkada ledu", "Lakshmi" in cap and "Lakshmi Reddy" not in cap)
 check("B5 caption: number ledu", not PHONE_RE.findall(cap))
 check("B6 caption: ID/score/bot/register/safety intact",
       "TSAP-F-2025-5775" in cap and "92%" in cap and CC.BOT_USERNAME in cap
@@ -92,8 +92,8 @@ check("B6 caption: ID/score/bot/register/safety intact",
 check("B7 caption: /unlock CTA undi", "/unlock TSAP-F-2025-5775" in cap)
 wa = PUB.build_whatsapp_text(prof, "TSAP-F-2025-0001", 90)
 check("B8 WA text: name+number ledu, link undi",
-      "Lakshmi" not in wa and not PHONE_RE.findall(wa) and "/search/TSAP-F-2025-0001" in wa, wa[:200])
-check("B9 WA text: masked + unlock CTA", "L•••••i" in wa and "/unlock" in wa)
+      "Lakshmi Reddy" not in wa and "Lakshmi" in wa and not PHONE_RE.findall(wa) and "/search/TSAP-F-2025-0001" in wa, wa[:200])
+check("B9 WA text: first-name + unlock CTA", "Lakshmi" in wa and "Lakshmi Reddy" not in wa and "/unlock" in wa)
 
 # ═══════════════════════════════════════════════════════════════════════════
 section("C. UNLOCK ENGINE (pure)")
@@ -235,7 +235,7 @@ card = TB.format_id_search({"tsap_id": "TSAP-F-1", "full_name": "Lakshmi Reddy",
                             "age": 24, "caste": "Reddy", "education": "BTech", "job": "SW",
                             "district": "Hyd", "state": "TS", "star": "Rohini",
                             "gothram": "Bharadwaj", "phone": "9848012345"})
-check("F3 bot card masked (name+number ledu)", "Lakshmi" not in card and "9848012345" not in card
+check("F3 bot card first-name + surname/number ledu", "Lakshmi" in card and "Lakshmi Reddy" not in card and "9848012345" not in card
       and "TSAP-F-1" in card and "/unlock TSAP-F-1" in card, card[:200])
 t_ok = TB.unlock_result_text({"success": True, "phone": "9848012345", "charged": 1, "credits_left": 2})
 check("F4 unlock text (paid)", "9848012345" in t_ok and "2" in t_ok, t_ok[:150])

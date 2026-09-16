@@ -15,6 +15,7 @@ import { useParams } from "next/navigation";
 import TrustBadge from "@/components/TrustBadge";
 import AuthGate from "@/components/AuthGate";
 import { apiGet, apiPost, authHeaders, getToken } from "@/lib/api";
+import { firstName } from "@/lib/names";
 
 type Row = Record<string, any>;
 
@@ -125,7 +126,7 @@ export default function ProfileView() {
 
   const shareWhatsApp = () => {
     if (!profile) return;
-    const text = `🙏 Mana Vivaha profile — ${profile.full_name} (${profile.tsap_id})\n` +
+    const text = `🙏 Mana Vivaha profile — ${firstName(profile.full_name)} (${profile.tsap_id})\n` +
       `${profile.age}y • ${profile.height || "—"} • ${profile.caste} • ${profile.education} • ${profile.job}\n` +
       `📍 ${profile.district}, ${profile.state} • 💰 ${profile.salary}\n` +
       `🔒 Number locked — interest accept ayithe exchange\n` +
@@ -165,7 +166,7 @@ export default function ProfileView() {
           <section className="mt-4 rounded-3xl border border-rose-200 bg-white p-5">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <h1 className="text-2xl font-extrabold text-[#7A0C2E]">{profile.full_name || "Profile"}</h1>
+                <h1 className="text-2xl font-extrabold text-[#7A0C2E]">{myTsapId && profile.tsap_id === myTsapId ? (profile.full_name || "Profile") : firstName(profile.full_name)}</h1>
                 <p className="font-mono text-[12px] text-slate-500">{profile.tsap_id}</p>
                 <div className="mt-2 flex flex-wrap gap-2 text-[11px]">
                   <TrustBadge trust={trust} completeness={Number(quality?.percent ?? 0)} />

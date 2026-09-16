@@ -144,7 +144,7 @@ def build_masked_caption(profile: Dict, tsap_id: str = "TSAP-F-2025-XXXX",
     icon = "👰" if g == "Bride" else ("🤵" if g == "Groom" else "💍")
     return (
         f"🆔 {tsap_id} | ⭐ {score}% BEST MATCH\n"
-        f"{icon} {mask_name(profile.get('full_name', ''))} • {profile.get('age', '—')}y • "
+        f"{icon} {first_name_of(profile.get('full_name', ''))} • {profile.get('age', '—')}y • "
         f"{profile.get('height', '—')} • {profile.get('caste', '—')}\n"
         f"🎓 {profile.get('education', '—')} • 💼 {profile.get('job', '—')} • "
         f"📍 {profile.get('district', '—')}\n"
@@ -170,7 +170,7 @@ def build_masked_whatsapp(profile: Dict, tsap_id: str = "TSAP-F-2025-XXXX",
         f"💍 *MANA VIVAHA* — TS-AP Telugu Matrimony\n"
         f"🆔 *{tsap_id}*  |  ⭐ *{score}% BEST MATCH*\n"
         f"━━━━━━━━━━━━━━━━\n"
-        f"👤 *{mask_name(profile.get('full_name', ''))}* ({profile.get('age', '—')} yrs)\n"
+        f"👤 *{first_name_of(profile.get('full_name', ''))}* ({profile.get('age', '—')} yrs)\n"
         f"📍 {profile.get('district', '—')}, {profile.get('state', 'TS')}\n"
         f"💍 Caste: {profile.get('caste', '—')}  |  Gothram: {profile.get('gothram', '—')}\n"
         f"🎓 {profile.get('education', '—')}  |  💼 {profile.get('job', '—')}\n"
@@ -258,7 +258,7 @@ def my_unlocks(viewer_id: str, users: List[Dict]) -> Dict:
     items = []
     for tid, meta in box.items():
         u = by_id.get(tid, {})
-        items.append({"tsap_id": tid, "name_masked": mask_name(u.get("full_name", "")),
+        items.append({"tsap_id": tid, "name_masked": first_name_of(u.get("full_name", "")),
                       "age": u.get("age", "—"), "caste": u.get("caste", "—"),
                       "district": u.get("district", "—"),
                       "phone_masked": mask_phone(u.get("phone", "")),
@@ -427,3 +427,61 @@ async def deliver_personal(buyer: Dict, targets: List[Dict], via: str = "both",
             "copy_list": copy_list,
             "message_telugu": ("✅ Personal delivery success" if ok else
                                "🧪 Dry-run/preview — tokens/link ledu, kindi copy-list tho manual ga pampandi")}
+
+
+# ---------------------------------------------------------------------------
+# 7. FIRST-NAME DISPLAY + SAME-SURNAME GUARD (WAVE 13)
+# ---------------------------------------------------------------------------
+# Public chotla FIRST NAME kanipisthundi (nammakam + privacy balance),
+# surname eppudu hidden. Kani backend lo SAME SURNAME ayithe match vaddu
+# (okka inti-peru — pelli kudadhu, sampradayam). Gothram guard lanti logic.
+
+def first_name_of(full_name: str) -> str:
+    """'Lakshmi Reddy' → 'Lakshmi' — public display (surname hidden)."""
+    parts = str(full_name or "").strip().split()
+    return parts[0] if parts else "—"
+
+
+def surname_of(full_name: str) -> str:
+    """'Lakshmi Reddy' → 'Reddy' · single-word peru → '' (surname teliyadu)."""
+    parts = str(full_name or "").strip().split()
+    return parts[-1] if len(parts) >= 2 else ""
+
+
+def norm_surname(s: str) -> str:
+    """Case/space/dot proof: ' Reddy.' → 'reddy'."""
+    return "".join(ch for ch in str(s or "").lower() if ch.isalnum())
+
+
+def same_surname_check(a: Dict, b: Dict) -> Dict:
+    """
+    Same-surname → blocked (pelli kudadhu).
+    Okariki surname lekapothe → block kadu + unknown_side warning (gothram pattern).
+    """
+    sa = norm_surname(surname_of((a or {}).get("full_name", "")))
+    sb = norm_surname(surname_of((b or {}).get("full_name", "")))
+    if not sa or not sb:
+        missing = "a" if not sa else ("b" if not sb else "both")
+        return {"same": False, "blocked": False, "unknown_side": True, "missing": missing,
+                "reason": "surname_unknown",
+                "verdict_telugu": "⚠️ Okariki inti-peru (surname) ledu — admin/pandit confirm cheyyandi"}
+    same = (sa == sb)
+    nm = surname_of(a.get("full_name", ""))
+    return {"same": same, "blocked": same, "a_surname": nm,
+            "b_surname": surname_of(b.get("full_name", "")),
+            "reason": "same_surname" if same else "surname_ok",
+            "verdict_telugu": ("🚫 Okka inti-peru (%s) — pelli kudadhu (sampradayam). Vere profiles chudandi 🙏" % nm
+                               if same else "✅ Inti-peru veru — surname paranga OK")}
+
+
+def filter_same_surname(me: Dict, pool: list) -> Dict:
+    """Pool nunchi same-surname profiles teesey (suggestions/matches kosam)."""
+    kept, skipped = [], []
+    for u in (pool or []):
+        if (u or {}).get("tsap_id") == (me or {}).get("tsap_id"):
+            kept.append(u)
+            continue
+        c = same_surname_check(me, u)
+        (skipped if c.get("blocked") else kept).append(u)
+    ids = [u.get("tsap_id") for u in skipped]
+    return {"kept": kept, "skipped_ids": ids, "skipped_count": len(ids)}
