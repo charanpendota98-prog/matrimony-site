@@ -36,6 +36,12 @@ export default function MatchSend() {
   const [fVerified, setFVerified] = useState(false);
   const [fPhoto, setFPhoto] = useState(false);
   const [fQ, setFQ] = useState("");
+  // 🌊 W19 server-side strict filters (backend pre-filters before topmatch)
+  const [fReligion, setFReligion] = useState("");
+  const [fState, setFState] = useState("");
+  const [fJob, setFJob] = useState("");
+  const [fSalary, setFSalary] = useState("");
+  const [fNri, setFNri] = useState(""); // "" | "only" | "exclude"
   // selection + order + deliver
   const [sel, setSel] = useState<Record<string, boolean>>({});
   const [orders, setOrders] = useState<Row[]>([]);
@@ -51,8 +57,21 @@ export default function MatchSend() {
     const id = buyerId.trim().toUpperCase();
     if (!id) { setFlash("⚠️ Buyer TSAP ID ivvandi"); return; }
     setLoading(true); setFlash(""); setData(null); setSel({}); setDeliverRes(null); setCopyList("");
+    const qs = new URLSearchParams();
+    qs.set("age_min", String(fAgeMin)); qs.set("age_max", String(fAgeMax));
+    if (fCaste) qs.set("castes", fCaste);
+    if (fDistrict) qs.set("districts", fDistrict);
+    if (fMarital) qs.set("marital", fMarital);
+    if (fReligion) qs.set("religion", fReligion);
+    if (fState) qs.set("state", fState);
+    if (fJob) qs.set("jobs", fJob);
+    if (fSalary) qs.set("salary_min", fSalary);
+    if (fPhoto) qs.set("photo_only", "true");
+    if (fVerified) qs.set("verified_only", "true");
+    if (fNri === "only") qs.set("nri_only", "true");
+    if (fNri === "exclude") qs.set("nri_exclude", "true");
     try {
-      const r = await fetch(withToken(`/api/admin/match-send/${encodeURIComponent(id)}?limit=100&min_score=0`),
+      const r = await fetch(withToken(`/api/admin/match-send/${encodeURIComponent(id)}?limit=100&min_score=0&${qs.toString()}`),
         { headers: authHeaders(true) });
       const d = await r.json();
       if (!r.ok) { setFlash(d.detail || "Load fail ayyindi"); return; }
@@ -241,11 +260,28 @@ export default function MatchSend() {
               </select>
               <label className="flex items-center gap-1"><input type="checkbox" checked={fVerified} onChange={(e) => setFVerified(e.target.checked)} /> ✅ verified</label>
               <label className="flex items-center gap-1"><input type="checkbox" checked={fPhoto} onChange={(e) => setFPhoto(e.target.checked)} /> 📸 photo</label>
+              <select value={fReligion} onChange={(e) => setFReligion(e.target.value)} aria-label="Religion" className="rounded-lg border px-2 py-1">
+                <option value="">Religion: anni</option><option>Hindu</option><option>Muslim</option><option>Christian</option>
+              </select>
+              <select value={fState} onChange={(e) => setFState(e.target.value)} aria-label="State" className="rounded-lg border px-2 py-1">
+                <option value="">State: anni</option><option>TS</option><option>AP</option>
+              </select>
+              <input value={fJob} onChange={(e) => setFJob(e.target.value)} placeholder="Job (Software/Doctor…)"
+                aria-label="Job" className="w-32 rounded-lg border px-2 py-1" />
+              <input value={fSalary} onChange={(e) => setFSalary(e.target.value.replace(/\D/g, ""))} placeholder="Min salary ₹"
+                aria-label="Min salary" inputMode="numeric" className="w-24 rounded-lg border px-2 py-1" />
+              <select value={fNri} onChange={(e) => setFNri(e.target.value)} aria-label="NRI" className="rounded-lg border px-2 py-1">
+                <option value="">✈️ NRI: anni</option><option value="only">✈️ NRI ONLY</option><option value="exclude">NRI vaddu</option>
+              </select>
+              <button onClick={() => void load()} disabled={loading}
+                className="rounded-lg bg-[#7A0C2E] px-3 py-1 font-bold text-white disabled:opacity-60">
+                🔃 Filters apply
+              </button>
               <input value={fQ} onChange={(e) => setFQ(e.target.value)} placeholder="Search: name/job/ID…"
                 aria-label="Search" className="min-w-[140px] flex-1 rounded-lg border px-2 py-1" />
             </div>
             <div className="mt-2 flex items-center gap-2 text-xs">
-              <b className="text-[#7A0C2E]">{filtered.length}/{results.length} profiles</b>
+              <b className="text-[#7A0C2E]">{filtered.length}/{results.length} profiles</b>{data.filters_skipped ? <span className="text-gray-500"> · 🔍 {data.filters_skipped} server-filter skip</span> : null}
               <button onClick={() => selectAll(true)} className="rounded-full bg-gray-200 px-3 py-1">☑️ anni select</button>
               <button onClick={() => selectAll(false)} className="rounded-full bg-gray-200 px-3 py-1">⬜ clear</button>
               <b>Selected: {selIds.length}</b>

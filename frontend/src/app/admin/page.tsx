@@ -16,6 +16,8 @@ import PayConsole from "@/components/PayConsole";
 import OffersConsole from "@/components/OffersConsole";
 import ContentConsole from "@/components/ContentConsole";
 import ChannelsConsole from "@/components/ChannelsConsole";
+import WANumbersConsole from "@/components/WANumbersConsole";
+import ReferralReport from "@/components/ReferralReport";
 import { apiGet, apiPost, authHeaders, getAdminKey, setAdminKey } from "@/lib/api";
 import Link from "next/link";
 import { Duo, duo } from "@/lib/duo";
@@ -283,6 +285,7 @@ export default function AdminPage() {
             <>
               <h2 className="font-bold text-[#7A0C2E] mt-2">📡 Channels — links map + bulk import + smart poster</h2>
               <ChannelsConsole />
+              <WANumbersConsole />
             </>
           )}
 
@@ -302,6 +305,7 @@ export default function AdminPage() {
           {/* ---------------- PAYOUTS ---------------- */}
           {tab === "payouts" && (
             <>
+              <ReferralReport />
               <p className="text-xs text-gray-500 mt-2 telugu">
                 ₹50 per paying referral (first payment) + 10% repeat + tier extra. UPI copy → PhonePe deep link → pay → UTR pettandi → approve.
                 Reject chesthe wallet ki malli credit avutundi (automatic).

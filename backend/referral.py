@@ -210,6 +210,11 @@ def save_state() -> Dict:
                 "clicks": CLICKS[-2000:]}
         with open(STATE_FILE, "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False)
+        try:  # 🌊 WAVE 19 — partner wallets/stats kooda persist (attach/process mutates them)
+            from refpartners import _save as _partner_save
+            _partner_save()
+        except Exception:
+            pass
         return {"ok": True, "path": STATE_FILE}
     except Exception as e:
         return {"ok": False, "error": str(e)[:120]}
@@ -285,7 +290,12 @@ def find_referrer(code: str, all_users: List[Dict]) -> Optional[Dict]:
         for u in all_users:
             if str(u.get("phone", "")).strip() == p_up:
                 return u
-    return None
+    # 🌊 WAVE 19 — referral partners (charan108 style IDs)
+    try:
+        from refpartners import find_partner_by_code
+        return find_partner_by_code(probe)
+    except Exception:
+        return None
 
 
 def validate_referral(code: str, all_users: List[Dict]) -> Dict:
@@ -541,7 +551,8 @@ def payout_request(user: Dict, amount: int, method: str = "upi", upi_id: str = "
     if amount > float(st.get("wallet", 0)):
         return {"ok": False, "reason": "insufficient_wallet", "wallet": st["wallet"],
                 "message_telugu": "⚠️ Wallet lo ₹%s matrame undi — ₹%d adagalev" % (st["wallet"], amount)}
-    if any(p.get("tsap_id") == user.get("tsap_id") and p.get("status") == "requested" for p in PAYOUTS):
+    _me = user.get("tsap_id") or user.get("partner_id")
+    if any((p.get("tsap_id") or p.get("partner_id")) == _me and p.get("status") == "requested" for p in PAYOUTS):
         return {"ok": False, "reason": "pending_exists",
                 "message_telugu": "⏳ Mee pata payout request inka process lo undi — adi ayyaka malli adagandi"}
     if method == "upi":
@@ -555,7 +566,7 @@ def payout_request(user: Dict, amount: int, method: str = "upi", upi_id: str = "
             return {"ok": False, "reason": "bad_bank",
                     "message_telugu": "⚠️ Bank details sari ga ivvandi (holder + account no + IFSC)"}
     req = {
-        "id": _next_id("PAY"), "tsap_id": user.get("tsap_id"),
+        "id": _next_id("PAY"), "tsap_id": user.get("tsap_id"), "partner_id": user.get("partner_id", ""),
         "name": user.get("full_name") or user.get("name", ""),
         "code": _code_of(user), "amount": amount, "method": method,
         "upi_id": (upi_id or "").strip() if method == "upi" else "",

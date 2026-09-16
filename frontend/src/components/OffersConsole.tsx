@@ -44,6 +44,13 @@ export default function OffersConsole() {
     setFlash(d.message_telugu || d.detail || "done");
     if (r.ok) { setF({ ...f, code: "", title: "" }); void load(); }
   };
+  const del = async (code: string) => {
+    if (!confirm(`${code} — promo code ni permanent ga teeseyala?`)) return;
+    const r = await fetch(withToken(`/api/admin/offers/${encodeURIComponent(code)}`), { method: "DELETE", headers: H() });
+    const d = await r.json();
+    setFlash(d.message_telugu || d.detail || "done");
+    void load();
+  };
   const toggle = async (code: string) => {
     const r = await fetch(withToken(`/api/admin/offers/${code}/toggle`), { method: "POST", headers: H() });
     const d = await r.json();
@@ -86,7 +93,10 @@ export default function OffersConsole() {
             <span>{o.title}</span>
             <span className="text-green-700 font-bold">{o.pct_off ? `${o.pct_off}%` : `₹${o.flat_off}`} OFF</span>
             <span className="text-gray-500">{(o.applies_to || []).join(",")} {o.valid_to ? `• till ${o.valid_to}` : ""} • used {o.used || 0}/{o.max_uses || 0}</span>
-            <button onClick={() => void toggle(o.code)} className="ml-auto rounded-lg bg-gray-800 text-white px-3 py-1 text-[11px] font-bold">ON/OFF</button>
+            <span className="ml-auto flex gap-1">
+              <button onClick={() => void toggle(o.code)} className="rounded-lg bg-gray-800 text-white px-3 py-1 text-[11px] font-bold">ON/OFF</button>
+              <button onClick={() => void del(o.code)} className="rounded-lg border border-rose-300 px-2 py-1 text-[11px] font-bold text-rose-700">🗑️</button>
+            </span>
           </div>
         ))}
         {!items.length && <p className="text-xs text-gray-400">Live offers levu — presets ON cheyyandi.</p>}

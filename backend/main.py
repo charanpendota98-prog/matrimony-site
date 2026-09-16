@@ -27,6 +27,7 @@ from referral import (
     mask_payout as referral_mask_payout,
     tier_of as referral_tier_of, MILESTONES as REFERRAL_MILESTONES, TIERS as REFERRAL_TIERS,
 )  # noqa: E402
+import refpartners as RP19  # noqa: E402  # 🌊 WAVE 19 — referral partners
 from vendors import (                                                        # 🏪 vendor ads + promotions
     register_vendor, activate_vendor, reject_vendor, expire_due_vendors, vendors_directory,
     ad_rotation, track_vendor_click, vendor_lead, promo_post, vendor_dashboard,
@@ -1277,6 +1278,71 @@ def referral_payout(tsap_id: str, amount: int, method: str = "upi", upi_id: str 
     return {"success": True, **res}
 
 
+@app.post("/api/referral/partner/register")
+def referral_partner_register(payload: dict):
+    """🤝🌊 WAVE 19 — Partner profile create (name/phone/phonepe/address/state/district) → ID + link + sheet."""
+    d = payload or {}
+    res = RP19.register_partner(str(d.get("name", "")), str(d.get("phone", "")),
+                                str(d.get("phonepe", "")), str(d.get("address", "")),
+                                str(d.get("state", "")), str(d.get("district", "")))
+    if not res.get("success"):
+        raise HTTPException(400, res.get("message_telugu"))
+    RP19.record_click(res["partner_id"])  # self-view counts as first touch (funnel start)
+    return res
+
+
+@app.get("/api/referral/partner/{pid}")
+def referral_partner_public(pid: str):
+    """🤝 Partner dashboard (public-safe): link + joins + earnings."""
+    res = RP19.partner_public(pid, DB_USERS)
+    if not res.get("success"):
+        raise HTTPException(404, res.get("message_telugu"))
+    return res
+
+
+@app.post("/api/referral/partner/click/{pid}")
+def referral_partner_click(pid: str):
+    """🤝 Partner link click tracking."""
+    RP19.record_click(pid)
+    track_click(pid, "partner_link")
+    return {"success": True, "partner_id": pid}
+
+
+@app.post("/api/referral/partner/payout")
+def referral_partner_payout(payload: dict):
+    """🤝 Partner payout request (wallet → UPI/bank, min ₹100). No login — phone OTP verify."""
+    d = payload or {}
+    p = RP19.get_partner(str(d.get("partner_id", "")))
+    if not p:
+        raise HTTPException(404, "⚠️ Partner ID dorakaledu")
+    phone = "".join(ch for ch in str(d.get("phone", "")) if ch.isdigit())
+    if phone != p.get("phone") or phone not in VERIFIED_PHONES:
+        raise HTTPException(401, "🔒 Register chesina number tho OTP verify cheyyandi (mundu /api/otp/send + verify)")
+    res = payout_request(p, int(d.get("amount", 0) or 0), method=str(d.get("method", "upi")),
+                         upi_id=str(d.get("upi_id", "")), bank=d.get("bank"),
+                         note="partner:" + p["partner_id"])
+    if not res.get("ok"):
+        raise HTTPException(400, res.get("message_telugu"))
+    return {"success": True, **res}
+
+
+@app.get("/api/admin/referrals/report")
+def admin_referrals_report(request: Request):
+    """🤝🌊 WAVE 19 ADMIN — evariki entha + evari referral lo evaru (partners + users, earning sort)."""
+    require_admin(request)
+    return RP19.admin_report(DB_USERS)
+
+
+@app.get("/api/admin/referrals/partners.csv")
+def admin_referrals_csv(request: Request):
+    """🤝 ADMIN — partners SHEET download (Excel/Sheets-ready CSV)."""
+    require_admin(request)
+    from fastapi.responses import FileResponse
+    if not os.path.exists(RP19.CSV_FILE):
+        raise HTTPException(404, "Partners inka leru — sheet khali")
+    return FileResponse(RP19.CSV_FILE, media_type="text/csv", filename="referral_partners.csv")
+
+
 @app.get("/api/referral/{tsap_id}/payouts")
 def referral_payouts(tsap_id: str, request: Request = None):
     """Mee payout history — request → paid/rejected + UTR."""
@@ -1991,6 +2057,52 @@ def wa_reset_day(request: Request = None):
     """Test tip: ee roju counters reset (caps fresh). Production lo vaddu."""
     require_admin(request)   # 🛡️ WAVE 9: admin key lekunda 403 (PII/money/)
     return {"ok": True, **WA_ENGINE.reset_today()}
+
+
+@app.get("/api/admin/wa/numbers")
+def admin_wa_numbers(request: Request):
+    """📱🌊 WAVE 19 ADMIN — 3 numbers health (otp/channels/personal lanes + orders + caps)."""
+    require_admin(request)
+    h = wa_pool.wa_health()
+    return {"success": True, **h,
+            "lanes_telugu": {"otp": "🔑 OTP number (OTP lu matrame, fast 25–60s)",
+                             "channels": "📢 Channels number (posts, 120–170s gaps)",
+                             "personal": "💬 Personal number (interest/referral DMs, 60–120s)",
+                             "both": "🛟 Backup (purpose number down ayithe)"}}
+
+
+@app.post("/api/admin/wa/numbers")
+def admin_wa_number_add(payload: dict, request: Request):
+    """📱 ADMIN — number add (name, bridge url, lane, cap, token, number)."""
+    require_admin(request)
+    d = payload or {}
+    if not str(d.get("url", "")).strip():
+        raise HTTPException(400, "Bridge URL ivvandi (http://wa-otp:3000 lanti)")
+    return wa_pool.get_pool().add_instance(
+        str(d.get("name", "")), str(d.get("url", "")), str(d.get("lane", "both")),
+        int(d.get("daily_cap", 60) or 60), str(d.get("token", "")), str(d.get("number", "")))
+
+
+@app.post("/api/admin/wa/numbers/{name}")
+def admin_wa_number_update(name: str, payload: dict, request: Request):
+    """📱 ADMIN — number update/pause/resume (url/lane/cap/token/number/paused)."""
+    require_admin(request)
+    d = payload or {}
+    kw = {k: d[k] for k in ("url", "lane", "daily_cap", "token", "number", "paused") if k in d}
+    res = wa_pool.get_pool().update_instance(name, **kw)
+    if not res.get("success"):
+        raise HTTPException(404, res.get("message_telugu"))
+    return res
+
+
+@app.delete("/api/admin/wa/numbers/{name}")
+def admin_wa_number_delete(name: str, request: Request):
+    """📱 ADMIN — number remove."""
+    require_admin(request)
+    res = wa_pool.get_pool().remove_instance(name)
+    if not res.get("success"):
+        raise HTTPException(404, res.get("message_telugu"))
+    return res
 
 
 @app.post("/api/demo/seed")
@@ -3693,10 +3805,6 @@ def admin_vendor_revenue(token: str = "", request: Request = None):
     return {"success": True, **vendor_revenue()}
 
 
-if __name__=="__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
-
 @app.get("/api/welcome-pack/{tsap_id}")
 def welcome_pack_get(tsap_id: str, request: Request = None):
     """
@@ -4123,10 +4231,15 @@ def api_copy_list(request: Request, buyer: str = "", ids: str = "", order_id: st
 
 @app.get("/api/admin/match-send/{buyer_id}")
 def api_match_send(buyer_id: str, request: Request, limit: int = 20, min_score: int = 0,
-                     include_same_surname: int = 0, include_age_block: int = 0, nri_only: int = 0):
+                     include_same_surname: int = 0, include_age_block: int = 0, nri_only: int = 0,
+                     age_min: int = 0, age_max: int = 0, castes: str = "", districts: str = "",
+                     state: str = "", religion: str = "", education: str = "", jobs: str = "",
+                     salary_min: int = 0, marital: str = "", children: str = "",
+                     photo_only: int = 0, verified_only: int = 0, nri_exclude: int = 0):
     """
     🎯 Buyer ID → perfect matches (score sort) + delivery readiness.
     ADMIN-ONLY (full phones untayi — copy-list/verify kosam).
+    🌊 WAVE 19: advanced server filters — anni pass ayina suitable matches matrame.
     """
     require_admin(request)
     me = _find_user(buyer_id.upper())
@@ -4148,6 +4261,62 @@ def api_match_send(buyer_id: str, request: Request, limit: int = 20, min_score: 
         kept, a14skip = af["kept"], af["skipped_ids"]
     if nri_only:
         kept = [c for c in kept if _is_nri(c)]
+    if nri_exclude:
+        kept = [c for c in kept if not _is_nri(c)]
+    # 🌊 WAVE 19 — ADVANCED FILTERS (strict: anni match ayithe matrame suitable)
+    _fstate = (state or "").strip()
+    _frel = (religion or "").strip()
+    _fmari = [x.strip() for x in (marital or "").split(",") if x.strip()]
+    _fkids = (children or "").strip()
+    _fcastes = [x.strip().lower() for x in (castes or "").split(",") if x.strip()]
+    _fdists = [x.strip().lower() for x in (districts or "").split(",") if x.strip()]
+    _fedu = [x.strip().lower() for x in (education or "").split(",") if x.strip()]
+    _fjobs = [x.strip().lower() for x in (jobs or "").split(",") if x.strip()]
+
+    def _sal_num(v):
+        try:
+            return float(str(v).replace(",", "").strip().split()[0])
+        except Exception:
+            return 0.0
+
+    _f19skip = 0
+
+    def _f19_ok(c):
+        try:
+            _age = int(c.get("age", 0) or 0)
+        except Exception:
+            _age = 0
+        if age_min and _age and _age < age_min:
+            return False
+        if age_max and _age and _age > age_max:
+            return False
+        if _fcastes and str(c.get("caste", "")).lower() not in _fcastes:
+            return False
+        if _fdists and str(c.get("district", "")).lower() not in _fdists:
+            return False
+        if _fstate and str(c.get("state", "")) != _fstate:
+            return False
+        if _frel and str(c.get("religion", "")) != _frel:
+            return False
+        if _fedu and str(c.get("education", "")).lower() not in _fedu:
+            return False
+        if _fjobs and str(c.get("job", "")).lower() not in _fjobs:
+            return False
+        if salary_min and _sal_num(c.get("salary", 0)) < salary_min:
+            return False
+        if _fmari and str(c.get("marital_status", "")) not in _fmari:
+            return False
+        if _fkids and str(c.get("children", "None")) != _fkids:
+            return False
+        if photo_only and not (c.get("has_photo") or c.get("photo_url")):
+            return False
+        if verified_only and not (c.get("phone_verified") or c.get("is_verified")):
+            return False
+        return True
+
+    _before = len(kept)
+    kept = [c for c in kept if _f19_ok(c)]
+    _f19skip = _before - len(kept)
     rows = topmatch.find_top_matches_v2(me, kept, limit=min(limit, 100), min_score=min_score)
     rows.sort(key=lambda r: (A11.boost_rank_key(r.get("profile", {})), r.get("score", 0)), reverse=True)
     rows = MP.rerank_profession(me, rows)     # 🌊 WAVE 14: profession affinity first
@@ -4175,9 +4344,10 @@ def api_match_send(buyer_id: str, request: Request, limit: int = 20, min_score: 
             "count": len(out), "gothram_skipped": len(gf["skipped_ids"]),
             "surname_skipped": len(sf["skipped_ids"]), "surname_skipped_ids": sf["skipped_ids"][:10],
             "age_skipped": len(a14skip), "age_skipped_ids": a14skip[:10],
-            "nri_only": bool(nri_only),
+            "nri_only": bool(nri_only), "nri_excluded": bool(nri_exclude),
+            "filters_skipped": _f19skip,
             "results": out,
-            "message_telugu": f"🎯 {len(out)} perfect matches — select chesi Telegram/WhatsApp ki pampandi" + (" · ✈️ NRI-only" if nri_only else "")}
+            "message_telugu": f"🎯 {len(out)} perfect matches — select chesi Telegram/WhatsApp ki pampandi" + (" · ✈️ NRI-only" if nri_only else "") + (f" · 🔍 filters {_f19skip} skip" if _f19skip else "")}
 
 
 @app.post("/api/admin/match-send/deliver")
@@ -4518,6 +4688,33 @@ def api_admin_offers_seed(payload: dict, request: Request):
                              int(d.get("max_uses", 1000) or 1000))
 
 
+@app.get("/api/promo/apply")
+def api_promo_apply(code: str = "", purpose: str = "credits", plan: str = "S_99", user: str = ""):
+    """🎟️ Promo preview — pay ki mundu discount chudu (public, no charge)."""
+    from interest import get_plan
+    try:
+        amount = int(get_plan(plan).get("price", 0))
+    except Exception:
+        amount = 0
+    if amount <= 0:
+        raise HTTPException(400, "Plan sari ledhu")
+    res = PP.validate_offer((code or "").strip(), purpose.strip().lower() or "credits", amount, user)
+    if not res.get("ok"):
+        raise HTTPException(400, res.get("message_telugu"))
+    return {"success": True, **res, "plan": plan, "amount": amount,
+            "message_telugu": f"🎉 {res.get('code')}: ₹{amount} → ₹{res['final_amount']} (−₹{res['discount']})"}
+
+
+@app.delete("/api/admin/offers/{code}")
+def api_admin_offer_delete(code: str, request: Request):
+    """🎟️ ADMIN — promo/offer delete."""
+    require_admin(request)
+    res = PP.delete_offer(code)
+    if not res.get("success"):
+        raise HTTPException(404, res.get("message_telugu"))
+    return res
+
+
 @app.post("/api/admin/offers/{code}/toggle")
 def api_admin_offer_toggle(code: str, request: Request):
     require_admin(request)
@@ -4758,3 +4955,10 @@ def api_admin_poster_gaps(payload: dict, request: Request):
     os.environ["WA_MAX_GAP"] = str(mx)
     return {"success": True, "gaps": {"min_gap": mn, "max_gap": mx},
             "message_telugu": f"✅ Random gap {mn}–{mx} sec set ayyindi (server restart varaku; permanent ki env lo pettandi)"}
+
+
+if __name__ == "__main__":
+    import sys
+    import uvicorn
+    _port = int(sys.argv[1]) if len(sys.argv) > 1 else 8000
+    uvicorn.run(app, host="0.0.0.0", port=_port)

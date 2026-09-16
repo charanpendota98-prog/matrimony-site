@@ -313,9 +313,18 @@ async def _wa_send_via_instance(inst, item: Dict, cfg: Dict) -> Dict:
                     "error": f"{type(e).__name__}: {e}"[:150]}
 
 
+# 🌊 WAVE 19 — purpose → number lane (3 separate numbers + both-backup)
+OTP_KINDS = {"otp"}
+CHANNEL_KINDS = {"post", "channel_post", "promo", "ad", "offer", "status_poster"}
+
+
 def _wa_lane(item: Dict) -> str:
-    """priority 0 = interest/request (fast lane) → requests lane; migilinavi post lane."""
-    return "requests" if int(item.get("priority", 1)) == 0 else "post"
+    kind = str(item.get("kind", "")).lower()
+    if kind in OTP_KINDS:
+        return "otp"
+    if kind in CHANNEL_KINDS or int(item.get("priority", 1)) >= 1:
+        return "channels"
+    return "personal"
 
 
 def _wa_pick_instance(item: Dict):
@@ -351,7 +360,8 @@ async def _wa_deliver(item: Dict, cfg: Dict) -> Dict:
         try:
             wa_pool.engine_for(res["instance"]).record_send(item.get("target"), ok=True,
                                                             detail=res.get("kind", ""),
-                                                            priority=item.get("priority", 1))
+                                                            priority=item.get("priority", 1),
+                                                            kind=str(item.get("kind", "")))
         except Exception:
             pass
     return res

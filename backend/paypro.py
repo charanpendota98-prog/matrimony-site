@@ -114,7 +114,7 @@ def seed_festivals(valid_from: str = "", valid_to: str = "", max_uses: int = 100
 def create_offer(code: str, title: str, pct_off: int = 0, flat_off: int = 0,
                  applies_to: Optional[List[str]] = None, valid_from: str = "",
                  valid_to: str = "", max_uses: int = 100, min_amount: int = 0,
-                 festival: str = "") -> Dict:
+                 festival: str = "", usable_once: bool = True) -> Dict:
     code = str(code or "").strip().upper()
     if len(code) < 3:
         return {"success": False, "message_telugu": "⚠️ Code 3+ chars undali"}
@@ -125,7 +125,8 @@ def create_offer(code: str, title: str, pct_off: int = 0, flat_off: int = 0,
     o = {"code": code, "title": title or code, "pct_off": int(pct_off or 0),
          "flat_off": int(flat_off or 0), "applies_to": applies_to or ["credits"],
          "valid_from": valid_from or "", "valid_to": valid_to or "",
-         "max_uses": int(max_uses or 1), "used": 0, "min_amount": int(min_amount or 0),
+         "max_uses": int(max_uses or 1), "used": 0, "usable_once": bool(usable_once),
+         "used_by": [], "min_amount": int(min_amount or 0),
          "festival": festival or "", "active": True, "created_at": _now()}
     OFFERS.append(o)
     _persist()
@@ -136,7 +137,19 @@ def get_offer(code: str) -> Optional[Dict]:
     return next((o for o in OFFERS if o.get("code") == str(code or "").strip().upper()), None)
 
 
-def validate_offer(code: str, purpose: str, amount: int) -> Dict:
+def delete_offer(code: str) -> Dict:
+    """ADMIN: offer/promo delete (used history stays in pay orders)."""
+    global OFFERS
+    code = (code or "").strip().upper()
+    before = len(OFFERS)
+    OFFERS = [o for o in OFFERS if str(o.get("code", "")).upper() != code]
+    if len(OFFERS) == before:
+        return {"success": False, "message_telugu": "⚠️ Offer code dorakaledu"}
+    _persist()
+    return {"success": True, "message_telugu": f"🗑️ {code} delete ayyindi"}
+
+
+def validate_offer(code: str, purpose: str, amount: int, user_id: str = "") -> Dict:
     """Code valid aa? → {ok, final_amount, discount, reason}."""
     if not code:
         return {"ok": True, "code": "", "final_amount": amount, "discount": 0}
@@ -150,6 +163,9 @@ def validate_offer(code: str, purpose: str, amount: int) -> Dict:
         return {"ok": False, "reason": "expired", "message_telugu": "⚠️ Offer expire ayyindi"}
     if int(o.get("used", 0)) >= int(o.get("max_uses", 1)):
         return {"ok": False, "reason": "exhausted", "message_telugu": "⚠️ Offer limit ayipoyindi"}
+    if o.get("usable_once", True) and user_id and str(user_id).strip().upper() in [str(x).upper() for x in (o.get("used_by") or [])]:
+        return {"ok": False, "reason": "already_used",
+                "message_telugu": "⚠️ Ee code ni meeru already vadaru (okkasari matrame)"}
     if purpose not in (o.get("applies_to") or []):
         return {"ok": False, "reason": "not_applicable",
                 "message_telugu": f"⚠️ Ee offer {purpose} ki apply kadu"}
@@ -180,10 +196,12 @@ def active_offers() -> List[Dict]:
     return out
 
 
-def _consume_offer(code: str) -> None:
+def _consume_offer(code: str, user_id: str = "") -> None:
     o = get_offer(code) if code else None
     if o:
         o["used"] = int(o.get("used", 0)) + 1
+        if user_id and str(user_id).strip().upper() not in [str(x).upper() for x in (o.get("used_by") or [])]:
+            o.setdefault("used_by", []).append(str(user_id).strip().upper())
         _persist()
 
 
@@ -231,7 +249,7 @@ def create_pay_order(tsap_id: str, purpose: str, ref: str, offer_code: str = "")
     exp = _expected_amount(purpose, ref)
     if not exp.get("ok"):
         return {"success": False, "message_telugu": exp.get("message_telugu")}
-    off = validate_offer(offer_code, purpose.lower(), exp["amount"])
+    off = validate_offer(offer_code, purpose.lower(), exp["amount"], tsap_id)
     if not off.get("ok"):
         return {"success": False, "message_telugu": off.get("message_telugu")}
     _SEQ += 1
@@ -346,7 +364,7 @@ def verify_payment(pay_order_id: str, rzp_order_id: str, payment_id: str,
     po["receipt"] = receipt
     RECEIPTS[payment_id] = receipt
     if po.get("offer_code"):
-        _consume_offer(po["offer_code"])
+        _consume_offer(po["offer_code"], po.get("tsap_id", ""))
     _persist()
     return {"success": True, "receipt": receipt, "message_telugu": receipt["detail"]}
 
@@ -373,7 +391,7 @@ def confirm_manual(pay_order_id: str, utr: str) -> Dict:
                "paid_at": po["paid_at"], "detail": done.get("message_telugu")}
     po["receipt"] = receipt
     if po.get("offer_code"):
-        _consume_offer(po["offer_code"])
+        _consume_offer(po["offer_code"], po.get("tsap_id", ""))
     _persist()
     return {"success": True, "receipt": receipt, "message_telugu": receipt["detail"]}
 
