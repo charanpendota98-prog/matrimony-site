@@ -21,6 +21,8 @@ export default function AdsConsole() {
   const [stats, setStats] = useState<Row | null>(null);
   const [utr, setUtr] = useState<Record<string, string>>({});
   const [flash, setFlash] = useState("");
+  const [editing, setEditing] = useState<string>("");
+  const [ed, setEd] = useState<Row>({});
 
   const load = async (st: string) => {
     try {
@@ -40,6 +42,28 @@ export default function AdsConsole() {
         body: JSON.stringify({ utr: u }) });
     const d = await r.json();
     setFlash(d.message_telugu || d.detail || "done");
+    void load(status);
+  };
+  const startEdit = (c: Row) => {
+    setEditing(c.id);
+    setEd({ title: c.title || "", offer: c.offer || "", days: String(c.days || ""),
+      districts: (c.districts || []).join(","), state: c.state || "",
+      slots: (c.slots || []).join(","), start: String(c.start || "").slice(0, 10),
+      end: String(c.end || "").slice(0, 10), link: c.link || "" });
+  };
+  const saveEdit = async (id: string) => {
+    const body: Row = { title: ed.title, offer: ed.offer, link: ed.link, state: ed.state };
+    if (ed.days) body.days = Number(ed.days);
+    if (ed.districts !== undefined) body.districts = String(ed.districts || "").split(",").map((x: string) => x.trim()).filter(Boolean);
+    if (ed.slots !== undefined) body.slots = String(ed.slots || "").split(",").map((x: string) => x.trim()).filter(Boolean);
+    if (ed.start) body.start = ed.start;
+    if (ed.end) body.end = ed.end;
+    const r = await fetch(withToken(`/api/admin/ads/${id}/update`),
+      { method: "POST", headers: { ...authHeaders(true), "Content-Type": "application/json" },
+        body: JSON.stringify(body) });
+    const d = await r.json();
+    setFlash(d.message_telugu || d.detail || "done");
+    if (r.ok) setEditing("");
     void load(status);
   };
   const act = async (id: string, action: string) => {
@@ -106,6 +130,26 @@ export default function AdsConsole() {
                 <td className="p-2"><b className="text-[#7A0C2E]">₹{c.amount}</b><div className="text-[10px] text-gray-500">{c.days}d · ₹{c.per_day}/d</div></td>
                 <td className="p-2 text-[10px]">👁️ {c.impressions} · 🖱️ {c.clicks}</td>
                 <td className="p-2">
+                  <button onClick={() => (editing === c.id ? setEditing("") : startEdit(c))}
+                    className="mb-1 rounded-full bg-blue-600 px-3 py-1 text-white">✏️ Edit</button>
+                  {editing === c.id ? (
+                    <div className="mb-2 rounded-xl border bg-blue-50/50 p-2 space-y-1 min-w-[220px]">
+                      <input value={ed.title || ""} onChange={(e) => setEd({ ...ed, title: e.target.value })} placeholder="Title" aria-label="Title" className="w-full rounded border px-2 py-1" />
+                      <input value={ed.offer || ""} onChange={(e) => setEd({ ...ed, offer: e.target.value })} placeholder="Offer" aria-label="Offer" className="w-full rounded border px-2 py-1" />
+                      <div className="flex gap-1">
+                        <input value={ed.days || ""} onChange={(e) => setEd({ ...ed, days: e.target.value })} placeholder="days" aria-label="Days" inputMode="numeric" className="w-16 rounded border px-2 py-1" />
+                        <input value={ed.state || ""} onChange={(e) => setEd({ ...ed, state: e.target.value })} placeholder="state" aria-label="State" className="w-16 rounded border px-2 py-1" />
+                      </div>
+                      <input value={ed.districts || ""} onChange={(e) => setEd({ ...ed, districts: e.target.value })} placeholder="districts (csv)" aria-label="Districts" className="w-full rounded border px-2 py-1" />
+                      <input value={ed.slots || ""} onChange={(e) => setEd({ ...ed, slots: e.target.value })} placeholder="slots (csv)" aria-label="Slots" className="w-full rounded border px-2 py-1" />
+                      <div className="flex gap-1">
+                        <input value={ed.start || ""} onChange={(e) => setEd({ ...ed, start: e.target.value })} placeholder="start YYYY-MM-DD" aria-label="Start" className="w-full rounded border px-2 py-1" />
+                        <input value={ed.end || ""} onChange={(e) => setEd({ ...ed, end: e.target.value })} placeholder="end YYYY-MM-DD" aria-label="End" className="w-full rounded border px-2 py-1" />
+                      </div>
+                      <input value={ed.link || ""} onChange={(e) => setEd({ ...ed, link: e.target.value })} placeholder="link" aria-label="Link" className="w-full rounded border px-2 py-1" />
+                      <button onClick={() => void saveEdit(c.id)} className="rounded-full bg-green-600 px-3 py-1 text-white">💾 Save</button>
+                    </div>
+                  ) : null}
                   {c.status === "pending" ? (
                     <div className="flex flex-col gap-1">
                       <input value={utr[c.id] || ""} onChange={(e) => setUtr({ ...utr, [c.id]: e.target.value })}

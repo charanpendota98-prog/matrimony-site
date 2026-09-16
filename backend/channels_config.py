@@ -748,6 +748,15 @@ def route_profile(profile: dict, max_posts: int = MAX_POSTS) -> dict:
         ordered.append(("ap_bride" if gender == "Bride" else "ap_groom", "region+gender"))
     else:
         ordered.append(("nri_global", "region=Other/NRI"))
+    # 🌊 WAVE 14 — NRI (TS/AP abroad): home-state channel + NRI global hub kooda.
+    try:
+        from matchpro import detect_nri as _detect_nri
+        _nri = _detect_nri(str(profile.get("country", "")), str(profile.get("work_location", "")),
+                           str(profile.get("current_city", "")), state)
+        if (_nri.get("is_nri") or profile.get("is_nri")) and state in ("TS", "AP"):
+            ordered.append(("nri_global", "NRI member"))
+    except Exception:
+        pass
 
     # L2 — religion + L3 caste
     if religion == "Hindu":

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ALL_CHANNELS, CHANNEL_STATS, Channel } from "@/lib/channels";
 import Reveal from "@/components/Reveal";
 import AdSlot from "@/components/AdSlot";
+import OffersBanner from "@/components/OffersBanner";
 import SectionHeading from "@/components/SectionHeading";
 import { SITE_CONFIG } from "@/lib/site-config";
 import { apiGet } from "@/lib/api";
@@ -271,6 +272,11 @@ export default function Home() {
       {/* ================= SPONSORED (targeted ads) ================= */}
       <section className="max-w-7xl mx-auto px-4 pt-4">
         <AdSlot slot="home_hero" />
+      </section>
+
+      {/* ================= FESTIVAL OFFERS ================= */}
+      <section className="max-w-7xl mx-auto px-4 pt-3">
+        <OffersBanner />
       </section>
 
       {/* ================= STATS ================= */}

@@ -12,6 +12,8 @@ import AuthGate from "@/components/AuthGate";
 import MatchSend from "@/components/MatchSend";
 import AstroConsole from "@/components/AstroConsole";
 import AdsConsole from "@/components/AdsConsole";
+import PayConsole from "@/components/PayConsole";
+import OffersConsole from "@/components/OffersConsole";
 import { apiGet, apiPost, authHeaders, getAdminKey, setAdminKey } from "@/lib/api";
 import Link from "next/link";
 
@@ -184,7 +186,7 @@ export default function AdminPage() {
 
         <div className="flex flex-wrap gap-2 mb-4">
           {[["payouts", "💰 Referral Payouts (live)"], ["vendors", "🏪 Vendor Ads (live)"],
-            ["matchsend", "🎯 Match & Send (₹500)"], ["astro", "🪐 Astro"], ["ads", "📢 Ads"], ["profiles", "👥 Profiles"], ["analytics", "📊 Analytics"]].map(([k, l]) => (
+            ["matchsend", "🎯 Match & Send (₹500)"], ["astro", "🪐 Astro"], ["ads", "📢 Ads"], ["pay", "💳 Payments"], ["offers", "🎉 Offers"], ["profiles", "👥 Profiles"], ["analytics", "📊 Analytics"]].map(([k, l]) => (
             <button key={k} onClick={() => setTab(k)}
               className={`px-5 py-2 rounded-full text-sm font-bold ${tab === k ? "maroon-gradient text-white" : "bg-white border"}`}>{l}</button>
           ))}
@@ -245,6 +247,22 @@ export default function AdminPage() {
             <>
               <h2 className="font-bold text-[#7A0C2E] mt-2">📢 Ad campaigns — approve → district/state LIVE</h2>
               <AdsConsole />
+            </>
+          )}
+
+          {/* ---------------- PAYMENTS ---------------- */}
+          {tab === "pay" && (
+            <>
+              <h2 className="font-bold text-[#7A0C2E] mt-2">💳 Safe-Pay orders — Razorpay auto / UPI-UTR confirm</h2>
+              <PayConsole />
+            </>
+          )}
+
+          {/* ---------------- OFFERS ---------------- */}
+          {tab === "offers" && (
+            <>
+              <h2 className="font-bold text-[#7A0C2E] mt-2">🎉 Festival offers — codes + dates + caps</h2>
+              <OffersConsole />
             </>
           )}
 

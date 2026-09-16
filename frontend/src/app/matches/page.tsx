@@ -38,6 +38,7 @@ const DEFAULT_FILTERS: Row = {
   gender: "", q: "", caste: "", district: "", state: "", job: "", education: "",
   salary_min: 0, salary_max: 0, marital_status: "", religion: "", age_min: 18, age_max: 60,
   verified_only: false, photo_only: false,
+  nri_only: false, profession_first: false,   // 🌊 WAVE 14 — NRI + profession-first
   // 🆕 WAVE 9 advanced filters
   height_min: "", height_max: "", dosham: "", min_completeness: 0,
   exclude_viewed: false, exclude_interested: false,
@@ -244,6 +245,10 @@ function FilterSheet({
               className={`chip justify-center ${filters.verified_only ? "chip-on" : ""}`}>✅ Verified only</button>
             <button onClick={() => setF("photo_only", !filters.photo_only)}
               className={`chip justify-center ${filters.photo_only ? "chip-on" : ""}`}>📸 Photo unnavi</button>
+            <button onClick={() => setF("nri_only", !filters.nri_only)}
+              className={`chip justify-center ${filters.nri_only ? "chip-on" : ""}`}>✈️ NRI only</button>
+            <button onClick={() => setF("profession_first", !filters.profession_first)}
+              className={`chip justify-center ${filters.profession_first ? "chip-on" : ""}`}>💼 Naa profession first</button>
           </div>
 
           {/* 🆕 WAVE 9 — advanced filters (height / max salary / dosham / completeness / exclude) */}
@@ -400,7 +405,7 @@ export default function MatchesAdvanced() {
     const id = ++reqId.current;
     setLoading(true);
     const qs = new URLSearchParams();
-    const skip: Row = { age_min: 18, age_max: 60, salary_min: 0, verified_only: false, photo_only: false };
+    const skip: Row = { age_min: 18, age_max: 60, salary_min: 0, verified_only: false, photo_only: false, nri_only: false, profession_first: false };
     Object.keys(filters).forEach((k) => {
       const v = filters[k];
       if (v === "" || v === null || v === undefined) return;
@@ -546,6 +551,8 @@ export default function MatchesAdvanced() {
     if (filters.age_min !== 18 || filters.age_max !== 60) add("age_min", `🎂 ${filters.age_min}–${filters.age_max}y`, 18);
     if (filters.verified_only) add("verified_only", "✅ Verified", false);
     if (filters.photo_only) add("photo_only", "📸 Photo", false);
+    if (filters.nri_only) add("nri_only", "✈️ NRI", false);
+    if (filters.profession_first) add("profession_first", "💼 Profession-first", false);
     if (filters.salary_max) add("salary_max", `💰 ≤${Number(filters.salary_max) / 100000}L`, 0);
     if (filters.height_min || filters.height_max) add("height_min", `📏 ${filters.height_min || "any"}–${filters.height_max || "any"}`, "");
     if (filters.dosham) add("dosham", `🧿 Dosham: ${filters.dosham}`, "");
@@ -601,6 +608,8 @@ export default function MatchesAdvanced() {
             <div className="mt-1.5 text-[12px] text-gray-700 leading-relaxed">
               {row.age}y • {row.height || "—"} • <b>{row.caste}</b>{row.sub_caste ? ` (${row.sub_caste})` : ""}<br />
               🎓 {row.education}{row.education_detail ? ` ${row.education_detail}` : ""} • 💼 {row.job}{row.company ? ` @ ${row.company}` : ""}<br />
+              {row.is_nri ? <span className="inline-block text-[11px] font-bold bg-sky-100 text-sky-800 px-2 py-0.5 rounded-full mr-1">✈️ NRI{row.country && row.country !== "India" ? ` • ${row.country}` : ""}</span> : null}
+              {row.profession_label ? <span className="inline-block text-[11px] font-bold bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full">{row.profession_label}</span> : null}<br />
               📍 {row.district}, {row.state}{row.work_location ? ` • work: ${row.work_location}` : ""} • 💰 {row.salary}
             </div>
 

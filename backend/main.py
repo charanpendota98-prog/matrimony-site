@@ -85,6 +85,26 @@ import topmatch, safety, preview, bot_pool, wa_pool
 import smart12 as S12  # 🔒 WAVE 12: masked captions + unlock/entitlement + ₹500 assisted
 import astro as AST      # 🪐 WAVE 13: 36-guna + dosha + jathakam
 import ads as ADS        # 📢 WAVE 13: vendor ad campaigns
+import matchpro as MP      # 🌊 WAVE 14: age-rule + profession + NRI
+
+
+def _is_nri(u: Dict) -> bool:  # 🌊 WAVE 14 adapter: stored flag + detect_nri fallback
+    try:
+        u = u or {}
+        if u.get("is_nri"):
+            return True
+        return bool(MP.detect_nri(str(u.get("country", "")), str(u.get("work_location", "")),
+                                   str(u.get("current_city", "")), str(u.get("state", ""))).get("is_nri"))
+    except Exception:
+        return False
+
+
+def _prof_label(u: Dict) -> str:  # 🌊 WAVE 14 adapter: job_group → Telugu label
+    try:
+        return MP.GROUP_TE.get(MP.job_group(u or {}), "")
+    except Exception:
+        return ""
+import paypro as PP        # 🌊 WAVE 14: safe-pay + festival offers
 from interest import ADDONS, RENEWALS, is_addon, get_addon, get_renewal, plan_list_with_free, addon_list, renewal_offer
 from channels_config import post_targets, caste_channel_links, channel_links, WA_OFFICIAL_LINK
 # 🎁 WAVE 10 — register avvagane "3 profiles + caste channel links" WhatsApp ki
@@ -457,6 +477,7 @@ async def register(
     sisters_married: str = Form(""),
     moola_nakshatram: str = Form("No"),
     religion: str = Form("Hindu"),
+    country: str = Form(""),
     college: str = Form(""),
     experience: str = Form(""),
     work_type: str = Form(""),
@@ -493,6 +514,7 @@ async def register(
     state = req_choice(state, "state", ["TS", "AP", "KA", "MH", "Other"])
     district = req_text(district, "district", 2, 40)
     email = req_text(email, "email", 0, 80, required=False)
+    country = req_text(country, "country", 0, 60, required=False) or "India"
     if age < 18: raise HTTPException(400, "Age must be 18+ (Bride) / 21+ (Groom)")
 
     # 2. ID Gen
@@ -549,6 +571,8 @@ async def register(
         "sisters_married": sisters_married,
         "moola_nakshatram": moola_nakshatram,
         "religion": religion,
+        "country": country,
+        "is_nri": _is_nri({"state": state, "country": country, "work_location": work_location, "current_city": current_city}),
         "college": college,
         "experience": experience,
         "work_type": work_type,
@@ -889,6 +913,9 @@ def search_profile(tsap_id: str, viewer_id: Optional[str] = None):
     # 🔒 PRIVACY FIX: mundu ikkada FULL user dict (phone + email + encrypted) return ayyedi — leak!
     #    Ippudu contact details teesesi matrame (numbers ivvamu).
     pub = dict(safe_user(user))
+    pub["is_nri"] = _is_nri(user)              # 🌊 WAVE 14 — NRI badge
+    pub["country"] = user.get("country", "India")
+    pub["profession_label"] = _prof_label(user)
     pub["radius"] = user.get("radius", "")
     pub["about_myself"] = user.get("about_myself", "")
     pub["family_details"] = user.get("family_details", "")
@@ -1681,6 +1708,14 @@ async def interest_send(payload: dict, request: Request = None):
             "success": False, "reason": "same_surname", "surname": s13,
             "message_telugu": s13["verdict_telugu"]})
 
+    # 🌊 WAVE 14: AGE RULE — groom kante bride 1-day pedda ayina interest block.
+    a14 = {"blocked": False} if from_id == to_id else MP.age_rule_check(frm, to)
+    if a14.get("blocked"):
+        abuse_log("age_rule_interest_block", f"{from_id}→{to_id}")
+        return JSONResponse(status_code=400, content={
+            "success": False, "reason": "age_rule", "age_rule": a14,
+            "message_telugu": "🙏 " + a14.get("verdict_telugu", "")})
+
     expire_old(DB_INTERESTS)
     # 💬 ready-made Telugu template (optional)
     _tpl = str(d.get("template_id", "")).strip()
@@ -2322,6 +2357,7 @@ def advanced_search(
     marital_status: Optional[str] = None, verified_only: bool = False, photo_only: bool = False,
     religion: Optional[str] = None, q: Optional[str] = None,
     sort: str = "score", viewer_id: Optional[str] = None, limit: int = 30, offset: int = 0,
+    nri_only: bool = False, profession_first: bool = False,
     salary_max: int = 0, height_min: str = "", height_max: str = "", dosham: Optional[str] = None,
     star: Optional[str] = None, min_completeness: int = 0, exclude_viewed: bool = False,
     exclude_interested: bool = False, with_facets: bool = False,
@@ -2374,6 +2410,8 @@ def advanced_search(
         items = [u for u in items if str(u.get("marital_status", "")).lower() == marital_status.lower()]
     if religion:
         items = [u for u in items if str(u.get("religion", "Hindu")).lower() == religion.lower()]
+    if nri_only:                                    # 🌊 WAVE 14 — NRI-only browse
+        items = [u for u in items if _is_nri(u)]
     if verified_only:
         items = [u for u in items if u.get("is_verified") or u.get("phone_verified")]
     if photo_only:
@@ -2426,6 +2464,9 @@ def advanced_search(
         row["company"] = u.get("company", "")
         row["sub_caste"] = u.get("sub_caste", "")
         row["moola_nakshatram"] = u.get("moola_nakshatram", "No")
+        row["is_nri"] = _is_nri(u)
+        row["profession_label"] = _prof_label(u)
+        row["country"] = u.get("country", "India")
         badge = safety.verification_badge(u)
         row["verification"] = badge["level"]
         row["verification_telugu"] = badge["telugu"]
@@ -2460,6 +2501,8 @@ def advanced_search(
         out.sort(key=lambda x: -int(((x.get("porutham") or {}).get("score") or 0)))
     elif sort == "boosted":
         out.sort(key=lambda x: (not x.get("boosted"), -int(x.get("score", 0) or 0)))
+    if profession_first and viewer:                 # 🌊 WAVE 14 — profession affinity first
+        out = MP.rerank_profession(viewer, out)
 
     return {
         "total": len(out), "count": len(out[offset:offset + limit]), "offset": offset, "limit": limit,
@@ -2722,6 +2765,7 @@ def api_match_score(a: str, b: str):
                     "verification": safety.verification_badge(other)}
     res["gothram"] = A11.gothram_check(me, other)   # 🛡️ WAVE 11: score tho paatu gothram verdict
     res["surname"] = S12.same_surname_check(me, other)   # 🛡️ WAVE 13: surname verdict kooda
+    res["age_rule"] = MP.age_rule_check(me, other)            # 🌊 WAVE 14: vayasu verdict kooda
     return res
 
 
@@ -2737,7 +2781,7 @@ def api_match_score_raw(payload: dict):
 
 @app.get("/api/top-matches/{tsap_id}")
 def api_top_matches(tsap_id: str, limit: int = 10, min_score: int = 65, include_same_gothram: int = 0,
-                      include_same_surname: int = 0):
+                      include_same_surname: int = 0, include_age_block: int = 0, nri_only: int = 0):
     """Top matches 2.0 — mutual bonus tho rank, blocked/banned/same-gothram teesestham, boosted first."""
     me = _find_user(tsap_id)
     if not me:
@@ -2754,9 +2798,17 @@ def api_top_matches(tsap_id: str, limit: int = 10, min_score: int = 65, include_
     if not include_same_surname:
         sf = S12.filter_same_surname(me, pool)
         pool, s13skip = sf["kept"], sf["skipped_ids"]
+    # 🌊 WAVE 14: AGE RULE auto-filter (?include_age_block=1) + NRI-only (?nri_only=1)
+    a14skip = []
+    if not include_age_block:
+        af = MP.filter_age_ok(me, pool)
+        pool, a14skip = af["kept"], af["skipped_ids"]
+    if nri_only:
+        pool = [c for c in pool if _is_nri(c)]
     rows = topmatch.find_top_matches_v2(me, pool, limit=limit, min_score=min_score)
     # ⚡ WAVE 11: boosted profiles first (pay chesinavallaki value)
     rows.sort(key=lambda r: (A11.boost_rank_key(r.get("profile", {})), r.get("score", 0)), reverse=True)
+    rows = MP.rerank_profession(me, rows)     # 🌊 WAVE 14: profession affinity first
     out = []
     for r in rows:
         prof = r.pop("profile")
@@ -2773,15 +2825,21 @@ def api_top_matches(tsap_id: str, limit: int = 10, min_score: int = 65, include_
         r["voice_url"] = prof.get("voice_url", "")
         r["has_voice"] = bool(prof.get("voice_url"))
         r["gothram_ok"] = not A11.gothram_check(me, prof).get("same", False)
+        r["is_nri"] = _is_nri(prof)
+        r["profession_label"] = _prof_label(prof)
         out.append(r)
     return {"tsap_id": tsap_id, "count": len(out), "mutual_matches": len([x for x in out if x.get("mutual", {}).get("both_like")]),
             "gothram_skipped": len(g11skip), "gothram_skipped_ids": g11skip[:10],
             "surname_skipped": len(s13skip), "surname_skipped_ids": s13skip[:10],
+            "age_skipped": len(a14skip), "age_skipped_ids": a14skip[:10],
+            "nri_only": bool(nri_only),
             "results": out,
-            "message_telugu": "%d top matches — mutthu (mutual) matches: %d%s%s" % (
+            "message_telugu": "%d top matches — mutthu (mutual) matches: %d%s%s%s%s" % (
                 len(out), len([x for x in out if x.get("mutual", {}).get("both_like")]),
                 f" · 🚫 same-gothram {len(g11skip)} skip" if g11skip else "",
-                f" · 🚫 same-surname {len(s13skip)} skip" if s13skip else "")}
+                f" · 🚫 same-surname {len(s13skip)} skip" if s13skip else "",
+                f" · 🚫 age-rule {len(a14skip)} skip" if a14skip else "",
+                " · ✈️ NRI-only" if nri_only else "")}
 
 
 # ============================================================================
@@ -3798,7 +3856,7 @@ def api_copy_list(request: Request, buyer: str = "", ids: str = "", order_id: st
 
 @app.get("/api/admin/match-send/{buyer_id}")
 def api_match_send(buyer_id: str, request: Request, limit: int = 20, min_score: int = 0,
-                     include_same_surname: int = 0):
+                     include_same_surname: int = 0, include_age_block: int = 0, nri_only: int = 0):
     """
     🎯 Buyer ID → perfect matches (score sort) + delivery readiness.
     ADMIN-ONLY (full phones untayi — copy-list/verify kosam).
@@ -3816,8 +3874,16 @@ def api_match_send(buyer_id: str, request: Request, limit: int = 20, min_score: 
         kept = sf["kept"]
     else:
         kept = gf["kept"]
+    # 🌊 WAVE 14: AGE RULE auto-filter (?include_age_block=1) + NRI-only (?nri_only=1)
+    a14skip = []
+    if not include_age_block:
+        af = MP.filter_age_ok(me, kept)
+        kept, a14skip = af["kept"], af["skipped_ids"]
+    if nri_only:
+        kept = [c for c in kept if _is_nri(c)]
     rows = topmatch.find_top_matches_v2(me, kept, limit=min(limit, 100), min_score=min_score)
     rows.sort(key=lambda r: (A11.boost_rank_key(r.get("profile", {})), r.get("score", 0)), reverse=True)
+    rows = MP.rerank_profession(me, rows)     # 🌊 WAVE 14: profession affinity first
     out = []
     for r in rows:
         prof = r.pop("profile")
@@ -3830,7 +3896,9 @@ def api_match_send(buyer_id: str, request: Request, limit: int = 20, min_score: 
                   "height": prof.get("height", ""),
                   "verification": safety.verification_badge(prof)["level"],
                   "phone_verified": bool(prof.get("phone_verified") or prof.get("is_verified")),
-                  "has_photo": bool(prof.get("photo_urls"))})
+                  "has_photo": bool(prof.get("photo_urls")),
+                  "is_nri": _is_nri(prof),
+                  "profession_label": _prof_label(prof)})
         out.append(r)
     return {"buyer": {"tsap_id": me["tsap_id"], "name": me.get("full_name"),
                       "phone": me.get("phone", ""), "credits": me.get("credits", 0),
@@ -3838,8 +3906,10 @@ def api_match_send(buyer_id: str, request: Request, limit: int = 20, min_score: 
                       "telegram_linked": bool(me.get("telegram_chat_id"))},
             "count": len(out), "gothram_skipped": len(gf["skipped_ids"]),
             "surname_skipped": len(sf["skipped_ids"]), "surname_skipped_ids": sf["skipped_ids"][:10],
+            "age_skipped": len(a14skip), "age_skipped_ids": a14skip[:10],
+            "nri_only": bool(nri_only),
             "results": out,
-            "message_telugu": f"🎯 {len(out)} perfect matches — select chesi Telegram/WhatsApp ki pampandi"}
+            "message_telugu": f"🎯 {len(out)} perfect matches — select chesi Telegram/WhatsApp ki pampandi" + (" · ✈️ NRI-only" if nri_only else "")}
 
 
 @app.post("/api/admin/match-send/deliver")
@@ -4071,3 +4141,175 @@ def api_admin_ads_action(cid: str, payload: dict, request: Request):
 def api_admin_ads_stats(request: Request):
     require_admin(request)
     return {"success": True, **ADS.ads_stats()}
+
+
+# ============================================================================
+#  🌊 WAVE 14 — META (religion→caste) + SAFE-PAY (Razorpay) + FESTIVAL OFFERS
+# ============================================================================
+@app.get("/api/meta/religions")
+def api_meta_religions():
+    return {"success": True, "religions": MP.RELIGIONS}
+
+
+@app.get("/api/meta/castes")
+def api_meta_castes(religion: str = "Hindu"):
+    info = MP.castes_for(religion)
+    return {"success": True, **info,
+            "message_telugu": f"🙏 {info['religion']} — {len(info['castes'])} kulalu/groups (A–Z)"}
+
+
+@app.get("/api/pay/config")
+def api_pay_config():
+    """Public: Razorpay key_id (publishable) + plans + active offers. Secret NEVER."""
+    return {"success": True, **PP.pay_config(), "plans": plan_list_with_free(),
+            "offers": PP.active_offers()}
+
+
+@app.post("/api/pay/order")
+def api_pay_order(payload: dict):
+    """Create pay order — amount SERVER computes (client amount trust cheyyam)."""
+    d = payload or {}
+    res = PP.create_pay_order(str(d.get("tsap_id", "")).upper(), str(d.get("purpose", "credits")),
+                              str(d.get("ref", "")), str(d.get("offer_code", "") or ""))
+    if not res.get("success"):
+        raise HTTPException(400, res.get("message_telugu"))
+    return res
+
+
+@app.post("/api/pay/verify")
+def api_pay_verify(payload: dict):
+    """Razorpay verify → signature OK ayithe ONLY fulfill. Idempotent."""
+    d = payload or {}
+    res = PP.verify_payment(str(d.get("order_id", "") or d.get("pay_order_id", "")),
+                            str(d.get("razorpay_order_id", "")), str(d.get("razorpay_payment_id", "")),
+                            str(d.get("razorpay_signature", "")))
+    if not res.get("success"):
+        raise HTTPException(400, res.get("message_telugu"))
+    return res
+
+
+@app.get("/api/pay/status/{order_id}")
+def api_pay_status(order_id: str):
+    po = PP.get_pay_order(order_id)
+    if not po:
+        raise HTTPException(404, "Order dorakaledu")
+    safe = {k: v for k, v in po.items() if k not in ("signature", "payment_id")}
+    return {"success": True, "order": safe}
+
+
+@app.get("/api/admin/payments")
+def api_admin_payments(request: Request, status: str = ""):
+    require_admin(request)
+    items = [o for o in PP.PAY_ORDERS if not status or o.get("status") == status]
+    return {"success": True, "count": len(items), "orders": list(reversed(items)),
+            "stats": PP.pay_stats()}
+
+
+@app.post("/api/admin/payments/{order_id}/confirm")
+def api_admin_pay_confirm(order_id: str, payload: dict, request: Request):
+    """Manual-UPI fallback: admin UTR verify chesi confirm → fulfill."""
+    require_admin(request)
+    res = PP.confirm_manual(order_id, str((payload or {}).get("utr", "")))
+    if not res.get("success"):
+        raise HTTPException(400, res.get("message_telugu"))
+    return res
+
+
+@app.get("/api/offers/active")
+def api_offers_active():
+    """Public: live festival offers (homepage banner ki)."""
+    offers = PP.active_offers()
+    return {"success": True, "offers": offers,
+            "message_telugu": f"🎉 {len(offers)} festival offers live!"}
+
+
+@app.post("/api/admin/offers")
+def api_admin_offer_create(payload: dict, request: Request):
+    require_admin(request)
+    d = payload or {}
+    applies = d.get("applies_to") or ["credits"]
+    if isinstance(applies, str):
+        applies = [a.strip() for a in applies.split(",") if a.strip()]
+    res = PP.create_offer(str(d.get("code", "")), str(d.get("title", "")),
+                          pct_off=int(d.get("pct_off", 0) or 0), flat_off=int(d.get("flat_off", 0) or 0),
+                          applies_to=applies, valid_from=str(d.get("valid_from", "") or ""),
+                          valid_to=str(d.get("valid_to", "") or ""),
+                          max_uses=int(d.get("max_uses", 100) or 100),
+                          min_amount=int(d.get("min_amount", 0) or 0),
+                          festival=str(d.get("festival", "") or ""))
+    if not res.get("success"):
+        raise HTTPException(400, res.get("message_telugu"))
+    return res
+
+
+@app.post("/api/admin/offers/seed")
+def api_admin_offers_seed(payload: dict, request: Request):
+    require_admin(request)
+    d = payload or {}
+    return PP.seed_festivals(str(d.get("valid_from", "") or ""), str(d.get("valid_to", "") or ""),
+                             int(d.get("max_uses", 1000) or 1000))
+
+
+@app.post("/api/admin/offers/{code}/toggle")
+def api_admin_offer_toggle(code: str, request: Request):
+    require_admin(request)
+    o = PP.get_offer(code)
+    if not o:
+        raise HTTPException(404, "Offer dorakaledu")
+    o["active"] = not o.get("active", True)
+    PP._persist()
+    return {"success": True, "offer": o,
+            "message_telugu": f"✅ {o['code']} {'ON' if o['active'] else 'OFF'}"}
+
+
+@app.post("/api/admin/ads/{cid}/update")
+def api_admin_ads_update(cid: str, payload: dict, request: Request):
+    """ADMIN: campaign dates/districts/days/content edit."""
+    require_admin(request)
+    res = ADS.update_campaign(cid, payload or {})
+    if not res.get("success"):
+        raise HTTPException(400, res.get("message_telugu"))
+    return res
+
+
+# ============================================================================
+#  🌊 WAVE 14 — BOT /matches (personal top-3, Telugu text + structured)
+# ============================================================================
+@app.get("/api/bot/matches")
+def api_bot_matches(tsap_id: str, limit: int = 3):
+    """Telegram bot /matches command ki: age-rule + profession-first top-3."""
+    me = _find_user(tsap_id.upper())
+    if not me:
+        raise HTTPException(404, "TSAP ID dorakaledu — /register tho link cheyyandi")
+    pool = [u for u in DB_USERS if u.get("tsap_id") != me["tsap_id"] and not u.get("is_banned")
+            and not safety.is_blocked(tsap_id.upper(), u.get("tsap_id", ""), DB_BLOCKS)]
+    gf = A11.filter_same_gothram(me, pool)
+    sf = S12.filter_same_surname(me, gf["kept"])
+    af = MP.filter_age_ok(me, sf["kept"])
+    rows = topmatch.find_top_matches_v2(me, af["kept"], limit=10, min_score=60)
+    rows = MP.rerank_profession(me, rows)[:max(1, min(int(limit or 3), 5))]
+    lines = [f"💘 <b>Mee top-{len(rows)} matches</b> (vayasu custom + profession-first)"]
+    cards = []
+    for i, r in enumerate(rows, 1):
+        prof = r.get("profile", {})
+        nm = str(prof.get("full_name", "?")).split()[0]
+        job = _prof_label(prof)
+        nri = " ✈️NRI" if _is_nri(prof) else ""
+        lines.append(f"{i}. <b>{nm}</b> • {prof.get('age')}y • {prof.get('caste', '')} • {prof.get('district', '')}{nri}")
+        lines.append(f"   {job} • score {r.get('score')} — /view {prof.get('tsap_id', '')}")
+        cards.append({"tsap_id": prof.get("tsap_id"), "name": nm, "age": prof.get("age"),
+                      "caste": prof.get("caste"), "district": prof.get("district"),
+                      "profession": job, "is_nri": _is_nri(prof),
+                      "score": r.get("score"), "phone_hidden": True})
+    lines.append("📞 Number kavali — premium tho unlock cheyyandi 🙏")
+    return {"success": True, "for": tsap_id.upper(), "count": len(cards),
+            "text": "\n".join(lines), "matches": cards,
+            "skipped": {"gothram": len(gf["skipped_ids"]), "surname": len(sf["skipped_ids"]),
+                        "age": len(af["skipped_ids"])},
+            "message_telugu": f"💘 Mee top-{len(cards)} matches ready!"}
+
+
+@app.get("/api/admin/offers")
+def api_admin_offers_list(request: Request):
+    require_admin(request)
+    return {"success": True, "count": len(PP.OFFERS), "offers": list(reversed(PP.OFFERS))}

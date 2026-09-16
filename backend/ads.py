@@ -162,6 +162,48 @@ def approve_campaign(cid: str, utr: str, days_override: int = 0) -> Dict:
             "message_telugu": f"✅ {cid} LIVE — {days} days ({c['start'][:10]} → {c['end'][:10]})"}
 
 
+def update_campaign(cid: str, patch: Dict) -> Dict:
+    """🌊 WAVE 14 — ADMIN edit: title/offer/dates/districts/state/days/media/link.
+    Active campaign days extend cheste end date auto-recompute. Re-quote ivvadu
+    (money matter kabatti amount manual ga admin approve lo fix)."""
+    c = get_campaign(cid)
+    if not c:
+        return {"success": False, "message_telugu": "⚠️ Campaign dorakaledu"}
+    d = patch or {}
+    for k in ("title", "offer", "state", "image_url", "banner_url", "video_url", "link"):
+        if d.get(k) is not None and str(d.get(k)).strip() != "":
+            c[k] = str(d[k]).strip()[:300]
+    if isinstance(d.get("districts"), list):
+        c["districts"] = [str(x).strip() for x in d["districts"] if str(x).strip()][:20]
+    if isinstance(d.get("slots"), list):
+        c["slots"] = [str(x).strip() for x in d["slots"] if str(x).strip()][:10]
+    if d.get("start"):
+        try:
+            datetime.fromisoformat(str(d["start"])[:19]); c["start"] = str(d["start"])[:19]
+        except ValueError:
+            return {"success": False, "message_telugu": "⚠️ start date format tappu (YYYY-MM-DD)"}
+    ndays = d.get("days")
+    if ndays:
+        try:
+            c["days"] = max(1, int(ndays))
+        except (ValueError, TypeError):
+            return {"success": False, "message_telugu": "⚠️ days number ivvandi"}
+        if c.get("status") == "active" and c.get("start"):
+            try:
+                st = datetime.fromisoformat(c["start"][:19])
+                c["end"] = _iso(st + timedelta(days=c["days"]))
+            except ValueError:
+                pass
+    if d.get("end"):
+        try:
+            datetime.fromisoformat(str(d["end"])[:19]); c["end"] = str(d["end"])[:19]
+        except ValueError:
+            return {"success": False, "message_telugu": "⚠️ end date format tappu (YYYY-MM-DD)"}
+    _persist()
+    return {"success": True, "campaign": c,
+            "message_telugu": f"✅ {cid} update ayyindi ({(c.get('start') or '?')[:10]} → {(c.get('end') or '?')[:10]} • {c.get('days')} days)"}
+
+
 def campaign_action(cid: str, action: str, reason: str = "") -> Dict:
     c = get_campaign(cid)
     if not c:

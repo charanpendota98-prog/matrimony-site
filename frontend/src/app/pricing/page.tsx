@@ -9,6 +9,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { SITE_CONFIG } from "@/lib/site-config";
+import PayBox from "@/components/PayBox";
+import OffersBanner from "@/components/OffersBanner";
 
 type Plan = {
   code: string; price: number; profiles: number; label: string; telugu: string;
@@ -110,6 +112,7 @@ export default function PricingPage() {
         </div>
         {live && <div className="mt-2 text-[11px] text-green-700">✅ Live pricing (server nunchi)</div>}
       </div>
+      <div className="mt-4"><OffersBanner /></div>
 
       {/* VALUE LADDER STRIP */}
       <div className="mt-6 grid grid-cols-2 md:grid-cols-5 gap-2 text-center text-xs">
@@ -155,10 +158,14 @@ export default function PricingPage() {
                 <ul className="mt-3 space-y-1.5 text-xs text-gray-700">
                   {(p.perks || []).map((k) => <li key={k} className="telugu">✅ {k}</li>)}
                 </ul>
-                <Link href={p.price === 0 ? "/register" : `/requests#plans`}
-                  className={`mt-4 block text-center rounded-xl py-2.5 font-bold text-sm ${p.price === 0 ? "bg-gray-100 text-[#7A0C2E]" : "gold-gradient text-[#7A0C2E]"}`}>
-                  {p.price === 0 ? "Free ga start cheyyandi" : `₹${p.price} — ee plan teesukondi`}
-                </Link>
+                {p.price === 0 ? (
+                  <Link href="/register"
+                    className="mt-4 block text-center rounded-xl py-2.5 font-bold text-sm bg-gray-100 text-[#7A0C2E]">
+                    Free ga start cheyyandi
+                  </Link>
+                ) : (
+                  <div className="mt-4"><PayBox planCode={p.code} price={p.price} label={p.label} /></div>
+                )}
               </div>
             );
           })}

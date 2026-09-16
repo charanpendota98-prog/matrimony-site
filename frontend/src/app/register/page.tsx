@@ -46,7 +46,7 @@ const DEFAULT_FORM: Record<string, any> = {
   father_name: "", father_occupation: "", mother_name: "", mother_occupation: "",
   brothers: "0", brothers_married: "0", sisters: "0", sisters_married: "0",
   family_type: "Nuclear", family_status: "Middle Class", family_values: "Traditional",
-  native_place: "", state: "TS", district: "", mandal: "", current_city: "", pincode: "",
+  native_place: "", state: "TS", district: "", mandal: "", current_city: "", country: "India", pincode: "",
   phone: "", email: "", photo_private: true, about_myself: "",
   expectations: "", exp_age_min: "", exp_age_max: "", exp_job: "", exp_location: "", exp_caste: "",
   physical_status: "Normal", body_type: "Average", complexion: "Fair", blood_group: "",
@@ -185,7 +185,22 @@ function Wizard() {
   const topRef = useRef<HTMLDivElement>(null);
   const voiceRef = useRef<any>(null);
 
-  const set = (k: string, v: any) => {
+    // 🌊 WAVE 14 — religion → castes (A–Z) backend nunchi (fallback: static CASTES)
+  const [casteOpts, setCasteOpts] = useState<string[]>(CASTES);
+  useEffect(() => {
+    let live = true;
+    fetch(`/api/meta/castes?religion=${encodeURIComponent(f.religion || "Hindu")}`)
+      .then((r) => r.json()).then((d) => {
+        if (live && d?.success && Array.isArray(d.castes) && d.castes.length) {
+          setCasteOpts(d.castes);
+          if (f.caste && !d.castes.includes(f.caste)) set("caste", "");
+        }
+      }).catch(() => setCasteOpts(CASTES));
+    return () => { live = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [f.religion]);
+
+const set = (k: string, v: any) => {
     setF((prev) => ({ ...prev, [k]: v }));
     setErrs([]);
   };
@@ -426,7 +441,7 @@ function Wizard() {
         "education", "education_detail", "college", "job", "company", "salary", "experience", "work_type",
         "work_location", "father_name", "father_occupation", "mother_name", "mother_occupation", "brothers",
         "brothers_married", "sisters", "sisters_married", "family_type", "family_status", "family_values",
-        "native_place", "state", "district", "mandal", "current_city", "pincode", "phone", "email",
+        "native_place", "state", "district", "mandal", "current_city", "country", "pincode", "phone", "email",
         "about_myself", "expectations", "exp_age_min", "exp_age_max", "exp_job", "exp_location", "exp_caste",
         "physical_status", "body_type", "complexion", "blood_group", "referral_code",
       ];
@@ -891,9 +906,9 @@ function Wizard() {
           {/* ---------------- STEP 2 ---------------- */}
           {step === 2 && (
             <>
-              <ChipGroup label="Caste" required searchable
-                options={CASTES.map((c) => ({ v: c }))} value={f.caste} onChange={(v) => set("caste", v)}
-                hint="43 caste channels unnayi — mee caste channel lo profile post avutundi" />
+              <ChipGroup label={`Caste — ${f.religion || "Hindu"} (${casteOpts.length})`} required searchable
+                options={casteOpts.map((c) => ({ v: c }))} value={f.caste} onChange={(v) => set("caste", v)}
+                hint={`${f.religion || "Hindu"} kulalu A–Z — mee caste channel lo profile post avutundi`} />
               <TextField label="Sub caste" optional value={f.sub_caste} onChange={(v) => set("sub_caste", v)}
                 placeholder="Pakanati / Deshathi / Telaga…" />
               <TextField label="Gothram" optional value={f.gothram} onChange={(v) => set("gothram", v)}
@@ -948,6 +963,7 @@ function Wizard() {
               <div className="grid grid-cols-1 gap-3">
                 <TextField label="Mandal / Area" optional value={f.mandal} onChange={(v) => set("mandal", v)} placeholder="Miryalaguda" />
                 <TextField label="Current city" optional value={f.current_city} onChange={(v) => set("current_city", v)} placeholder="Hyderabad" />
+                <TextField label="Country" optional value={f.country} onChange={(v) => set("country", v)} placeholder="India / USA / UK / UAE…" hint="🌍 India kakapothe NRI ✈️ — NRI section lo kooda kanipistharu" />
                 <TextField label="Pincode" optional value={f.pincode} onChange={(v) => set("pincode", v)} inputMode="numeric" placeholder="500032" />
                 <TextField label="Native place" optional value={f.native_place} onChange={(v) => set("native_place", v)} placeholder="Nalgonda" />
               </div>
