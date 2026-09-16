@@ -235,6 +235,7 @@ function Wizard() {
   const [otpMsg, setOtpMsg] = useState("");
   const [phoneOk, setPhoneOk] = useState(false);
   const [refLocked, setRefLocked] = useState("");
+  const [refInfo, setRefInfo] = useState<any>(null);
   const [result, setResult] = useState<any>(null);
   // 🎁 WAVE 10 — "register avvagane WhatsApp ki 3 profiles + caste channel links"
   const [packResend, setPackResend] = useState<{ busy: boolean; msg: string }>({ busy: false, msg: "" });
@@ -268,14 +269,46 @@ const set = (k: string, v: any) => {
     fetch("/api/free-plan").then((r) => r.json()).then(setClarity).catch(() => { });
   }, []);
 
-  /* ---------- referral auto-lock (?ref=LAK42) ---------- */
+  /* ---------- 🤝🌊 WAVE 20 — smart referral: ?ref → backup restore → click → validate ---------- */
   useEffect(() => {
-    const ref = (params?.get("ref") || "").trim().toUpperCase();
-    if (ref) {
-      setRefLocked(ref);
-      setF((prev) => ({ ...prev, referral_code: ref }));
-    }
+    let ref = (params?.get("ref") || "").trim().toUpperCase();
+    try {
+      // backup: /r/ nunchi vachi malli vachina — code povatledu (30 days memory)
+      if (!ref) ref = (localStorage.getItem("tsap_ref_from_link") || "").trim().toUpperCase();
+      else localStorage.setItem("tsap_ref_from_link", ref);
+    } catch { /* ignore */ }
+    if (!ref) return;
+    setRefLocked(ref);
+    setF((prev) => ({ ...prev, referral_code: ref }));
+    // click funnel: /r/ already track chesunte malli kaadu (session dedupe)
+    try {
+      if (sessionStorage.getItem("tsap_click_fired") === ref) {
+        fetch(`/api/referral/validate/${encodeURIComponent(ref)}`).then((r) => r.json())
+          .then((d) => { if (d?.ok) setRefInfo(d); }).catch(() => { });
+        return;
+      }
+      sessionStorage.setItem("tsap_click_fired", ref);
+    } catch { /* ignore */ }
+    fetch(`/api/referral/click/${encodeURIComponent(ref)}?source=register_direct`, { method: "POST" })
+      .then((r) => r.json())
+      .then((d) => {
+        if (d?.valid_code && d?.referrer_name) setRefInfo({ ok: true, referrer_name: d.referrer_name, bonus_credits: d.bonus_credits });
+      }).catch(() => { });
   }, [params]);
+
+  // manual code type → live validate (debounced)
+  useEffect(() => {
+    const code = (f.referral_code || "").trim().toUpperCase();
+    if (!code || code === refLocked) return;
+    const t = setTimeout(() => {
+      fetch(`/api/referral/validate/${encodeURIComponent(code)}`).then((r) => r.json())
+        .then((d) => {
+          if (d?.ok) { setRefLocked(code); setRefInfo(d); try { localStorage.setItem("tsap_ref_from_link", code); } catch { /* ignore */ } }
+          else setRefInfo({ ok: false, message_telugu: d?.message_telugu });
+        }).catch(() => { });
+    }, 600);
+    return () => clearTimeout(t);
+  }, [f.referral_code]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* ---------- draft resume ---------- */
   useEffect(() => {
@@ -919,8 +952,14 @@ const set = (k: string, v: any) => {
 
         {refLocked && (
           <div className="mb-4 bg-emerald-50 border border-emerald-200 rounded-2xl px-4 py-3 text-[12px] text-emerald-900">
-            🤝 <b>{refLocked}</b> referral code lock ayyindi — mee friend ki ₹50 + meeku <b>+1 credit FREE</b>.
-            {" "}Register FREE (3 profiles free) — tarvata mee ₹99 plan thisukunte aa ₹50 mee friend wallet ki veltundi.
+            🤝 <b>{refInfo?.referrer_name ? `${refInfo.referrer_name} garu` : "Mee friend"}</b> dwara vacharu
+            (<b>{refLocked}</b> lock ✅) — vaallaki ₹50 + meeku <b>+{refInfo?.bonus_credits || 1} credit FREE</b>.
+            {" "}Register FREE (3 profiles free) — tarvata mee ₹99 plan thisukunte aa ₹50 vaalla wallet ki veltundi.
+          </div>
+        )}
+        {refInfo && refInfo.ok === false && (
+          <div className="mb-4 bg-amber-50 border border-amber-300 rounded-2xl px-4 py-3 text-[12px] text-amber-900">
+            ⚠️ {refInfo.message_telugu || "Ee code dorakaledu"} — code lekunda register avvachu, leda kindha sari code veyyandi.
           </div>
         )}
 
@@ -1208,6 +1247,20 @@ const set = (k: string, v: any) => {
                   value={f.exp_caste} onChange={(v) => set("exp_caste", v)} />
                 <TextField label="Free text expectations" optional value={f.expectations} onChange={(v) => set("expectations", v)}
                   placeholder="Govt job / business / respects elders…" />
+              </div>
+
+              <div className="bg-emerald-50/60 rounded-2xl border border-emerald-200 p-4">
+                <label className="text-[13px] font-bold text-emerald-900">🤝 Referral code (friend/partner ichara?)</label>
+                <input value={f.referral_code}
+                  onChange={(e) => set("referral_code", e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, "").slice(0, 20))}
+                  placeholder="Ex: charan519 / LAK42 (optional)"
+                  aria-label="Referral code"
+                  className="input-mobile mt-2 font-mono tracking-wide" />
+                <div className="hint mt-1">
+                  {refLocked
+                    ? <>✅ <b>{refLocked}</b> lock ayyindi — meeku +{refInfo?.bonus_credits || 1} credit FREE 🎁</>
+                    : "Code unte meeku +1 credit FREE + vaallaki ₹50. Link tho vachunte automatic fill avutundi."}
+                </div>
               </div>
 
               <label className="flex items-start gap-3 bg-white rounded-2xl border border-gold/30 p-4">

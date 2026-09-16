@@ -2,7 +2,7 @@
 🤝🌊 WAVE 19 — REFERRAL PARTNERS (agents/brokers with own ID + link + sheet)
 ===============================================================================
 Website → Refer → profile create (name, phone, PhonePe number, address, state, district)
- → ID generate (ex: charan108) + link (/register?ref=charan108)
+ → ID generate (ex: charan108) + link (/r/charan108 — short, click-tracked)
  → link tho open chesthe register daggara referral code AUTO-FILL (existing ?ref= flow)
  → join + payment commissions vallaki (same ₹50 rule, wallet + payouts)
  → anni data manaki: JSON + **referral_partners.csv SHEET** + admin report.
@@ -120,7 +120,7 @@ def register_partner(name: str, phone: str, phonepe: str = "", address: str = ""
     p = {"partner_id": pid, "name": name, "full_name": name, "phone": phone,
          "phonepe": phonepe_d or phone, "address": (address or "").strip()[:200],
          "state": state, "district": district,
-         "referral_code": pid, "link": f"{base_url}/register?ref={pid}",
+         "referral_code": pid, "link": f"{base_url}/r/{pid}",
          "created_at": _now(), "clicks": 0, "wallet": 0,
          "referral_stats": {"clicks": 0, "registrations": 0, "total": 0, "paid_count": 0,
                             "wallet": 0, "lifetime_earned": 0, "pending_payout": 0,
@@ -147,6 +147,8 @@ def partner_public(pid: str, users: Optional[List[Dict]] = None) -> Dict[str, An
         return {"success": False, "reason": "not_found",
                 "message_telugu": "⚠️ Partner ID dorakaledu"}
     st = p.get("referral_stats", {})
+    _ledger = st.get("ledger", []) or []
+    _paid_ids = {l.get("from") for l in _ledger if l.get("type") == "commission" and l.get("from")}
     joins = []
     if users is not None:
         for u in users:
@@ -154,7 +156,8 @@ def partner_public(pid: str, users: Optional[List[Dict]] = None) -> Dict[str, An
                 joins.append({"tsap_id": u.get("tsap_id", ""),
                               "name": (str(u.get("full_name", "")).split() or [""])[0],
                               "at": u.get("referred_at", ""),
-                              "paid": bool(u.get("has_paid", False))})
+                              # has_paid flag + ledger fallback (pata data ki kuda correct)
+                              "paid": bool(u.get("has_paid", False)) or u.get("tsap_id") in _paid_ids})
     return {"success": True, "partner_id": p["partner_id"], "name": p["name"],
             "link": p.get("link", ""), "clicks": p.get("clicks", 0),
             "registrations": st.get("registrations", 0), "paid_count": st.get("paid_count", 0),

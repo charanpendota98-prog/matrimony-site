@@ -149,10 +149,24 @@ export default function PartnerRegisterPage() {
         </div>
         {dash?.success ? (
           <div className="mt-3 grid grid-cols-2 gap-2 text-center text-[12px]">
+            <div className="rounded-xl bg-cream p-2"><b>{dash.clicks ?? 0}</b><br />👆 Clicks</div>
             <div className="rounded-xl bg-cream p-2"><b>{dash.registrations}</b><br />Joins</div>
             <div className="rounded-xl bg-cream p-2"><b>{dash.paid_count}</b><br />Paid</div>
             <div className="rounded-xl bg-emerald-50 p-2"><b>₹{dash.wallet}</b><br />Wallet</div>
-            <div className="rounded-xl bg-emerald-50 p-2"><b>₹{dash.lifetime_earned}</b><br />Earned</div>
+            <div className="rounded-xl bg-emerald-50 p-2 col-span-2"><b>₹{dash.lifetime_earned}</b><br />Lifetime earned</div>
+            {dash.link ? (
+              <div className="col-span-2 flex gap-2 justify-center">
+                <button onClick={() => void copy(String(dash.link))}
+                  className="rounded-full bg-[#7A0C2E] text-white px-4 py-2 text-[12px] font-bold">
+                  {copied ? "copied ✓" : "🔗 Link copy"}
+                </button>
+                <a href={`https://wa.me/?text=${encodeURIComponent(`Mana Vivaha lo register avvandi — naa link tho join ayithe meeku +1 credit FREE 🎁 ${dash.link}`)}`}
+                  target="_blank" rel="noreferrer"
+                  className="rounded-full bg-[#25D366] text-white px-4 py-2 text-[12px] font-bold">
+                  📲 WhatsApp share
+                </a>
+              </div>
+            ) : null}
             {Array.isArray(dash.joins) && dash.joins.length ? (
               <div className="col-span-2 text-left rounded-xl bg-white border border-slate-200 p-2">
                 <b>Joins:</b> {dash.joins.map((j: any) => `${j.name || ""} (${j.tsap_id})${j.paid ? " 💰" : ""}`).join(" · ")}

@@ -433,6 +433,9 @@ def process_referral_payment(referred_user: Dict, referrer_code: str, plan_amoun
     st["lifetime_earned"] = round(float(st.get("lifetime_earned", 0)) + commission, 2)
     ref["wallet"] = st["wallet"]
     st["paid_count"] = int(st.get("paid_count", 0)) + 1
+    # 🌊 WAVE 20 — join paid-ness source of truth (dashboards + ledger anni ikkadi nunchi)
+    referred_user["has_paid"] = True
+    referred_user.setdefault("first_paid_at", _now())
     if st.get("paid_today_date") != _today():
         st["paid_today_date"] = _today()
         st["paid_today"] = 0

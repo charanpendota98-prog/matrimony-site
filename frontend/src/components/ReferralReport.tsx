@@ -19,6 +19,21 @@ export default function ReferralReport() {
   const [data, setData] = useState<Row | null>(null);
   const [q, setQ] = useState("");
   const [flash, setFlash] = useState("");
+  const [openId, setOpenId] = useState("");
+  const [ledger, setLedger] = useState<Row | null>(null);
+  const [ledgerBusy, setLedgerBusy] = useState(false);
+
+  const openLedger = async (id: string) => {
+    if (openId === id) { setOpenId(""); setLedger(null); return; }
+    setOpenId(id); setLedger(null); setLedgerBusy(true);
+    try {
+      const d = await fetch(withToken(`/api/admin/referrals/ledger?code=${encodeURIComponent(id)}`),
+        { headers: authHeaders(true) }).then((r) => r.json());
+      if (d?.success) setLedger(d);
+      else setFlash(d.detail || "Ledger fail");
+    } catch { setFlash("API error"); }
+    setLedgerBusy(false);
+  };
 
   const load = useCallback(async () => {
     try {
@@ -57,8 +72,35 @@ export default function ReferralReport() {
           <div key={`${r.kind}:${r.id}`} className="rounded-xl border border-slate-200 p-2.5 text-[12px]">
             <div className="flex flex-wrap items-center gap-2">
               <b>{r.kind === "partner" ? "🤝" : "👤"} {String(r.name)} <span className="font-mono text-gray-500">· {String(r.id)}</span></b>
+              <button onClick={() => void openLedger(String(r.id))}
+                className="rounded-lg border border-[#7A0C2E]/40 px-2 py-0.5 text-[11px] font-bold text-maroon">
+                {openId === String(r.id) ? "▲ close" : "📒 ledger"}
+              </button>
               <span className="ml-auto font-bold text-emerald-700">₹{r.wallet} wallet · ₹{r.lifetime_earned} earned</span>
             </div>
+            {openId === String(r.id) ? (
+              <div className="mt-2 rounded-lg bg-cream/70 border border-gold/25 p-2">
+                {ledgerBusy ? <div className="text-[11px] text-gray-500">⏳ ledger loading…</div>
+                  : ledger && ledger.id === String(r.id) ? (
+                    <div className="space-y-1">
+                      {(ledger.joins || []).map((j: Row) => (
+                        <div key={String(j.tsap_id)} className="flex flex-wrap items-center gap-2 text-[11px] bg-white rounded-lg px-2 py-1.5 border border-slate-100">
+                          <b>{String(j.name || "")}</b>
+                          <span className="font-mono text-gray-500">{String(j.tsap_id)}</span>
+                          <span className="text-gray-500">{String(j.joined || "").slice(0, 10)}</span>
+                          <span className={`ml-auto font-bold ${j.paid ? "text-emerald-700" : "text-amber-700"}`}>{String(j.status)}</span>
+                        </div>
+                      ))}
+                      {!(ledger.joins || []).length ? <div className="text-[11px] text-gray-500">Joins levu.</div> : null}
+                      <div className="text-[11px] text-gray-600 pt-1">
+                        Wallet ₹{ledger.wallet} · Earned ₹{ledger.lifetime_earned} · Paid-out ₹{ledger.paid_out}
+                        {Number(ledger.pending_payout) ? ` · ⏳ ₹${ledger.pending_payout} pending` : ""}
+                        {" "}— chusi kindha payout queue lo UTR tho approve cheyyandi.
+                      </div>
+                    </div>
+                  ) : <div className="text-[11px] text-gray-500">Ledger load kaledu.</div>}
+              </div>
+            ) : null}
             <div className="text-gray-600">
               {r.district}{r.state ? `, ${r.state}` : ""} · {r.registrations} joins · {r.paid_count} paid
               {Number(r.pending_payout) ? ` · ⏳ ₹${r.pending_payout} pending` : ""} · paid out ₹{r.paid_out}

@@ -23,6 +23,7 @@ from referral import (
     share_kit as referral_share_kit,
     payout_request, payout_action, payout_queue, track_click, referral_terms_telugu,
     reverse_referral_payment, load_state as referral_load_state, stats_of as referral_stats_of,
+    find_referrer as referral_find_referrer, _code_of as referral_code_of,
     referrer_join_text, referrer_commission_text, referee_welcome_text,
     mask_payout as referral_mask_payout,
     tier_of as referral_tier_of, MILESTONES as REFERRAL_MILESTONES, TIERS as REFERRAL_TIERS,
@@ -1251,9 +1252,16 @@ def referral_click(code: str, source: str = "link"):
     """/r/<code> link click — funnel tracking (clicks → registrations → payments)."""
     st = track_click(code, source)
     known = validate_referral(code, DB_USERS)
+    kind = "user"
+    try:
+        if RP19.get_partner(code):
+            RP19.record_click(code)
+            kind = "partner"
+    except Exception:
+        pass
     return {"success": True, **st, "valid_code": known.get("ok", False),
             "referrer_name": known.get("referrer_name", ""),
-            "bonus_credits": known.get("bonus_credits", 0)}
+            "bonus_credits": known.get("bonus_credits", 0), "kind": kind}
 
 
 @app.get("/api/referral/validate/{code}")
@@ -1332,6 +1340,44 @@ def admin_referrals_report(request: Request):
     require_admin(request)
     return RP19.admin_report(DB_USERS)
 
+
+
+@app.get("/api/admin/referrals/ledger")
+def admin_referrals_ledger(code: str = "", request: Request = None):
+    """🤝🌊 WAVE 20 — ADMIN per-join commission drilldown: evaru join, eppudu,
+    pay chesara, commission entha, wallet/paid status. Manual payout ki mundhu chuse ledger."""
+    require_admin(request)
+    probe = (code or "").strip()
+    if not probe:
+        raise HTTPException(400, "code ivvandi (?code=CHARAN519)")
+    ref = referral_find_referrer(probe, DB_USERS)
+    if not ref:
+        raise HTTPException(404, "⚠️ Referrer dorakaledu")
+    is_partner = bool(ref.get("partner_id"))
+    rcode = ref.get("partner_id") if is_partner else referral_code_of(ref)
+    st = referral_stats_of(ref)
+    ledger = st.get("ledger", []) or []
+    # joins under this referrer
+    joins = []
+    for u in DB_USERS:
+        rb = str(u.get("referred_by", "") or "")
+        if rb.lower() != str(rcode).lower():
+            continue
+        comm = [l for l in ledger if l.get("type") == "commission" and l.get("from") == u.get("tsap_id")]
+        earned = round(sum(float(l.get("amount", 0) or 0) for l in comm), 2)
+        joins.append({"tsap_id": u.get("tsap_id", ""), "name": u.get("full_name") or u.get("name", ""),
+                      "phone_masked": ("••••••" + str(u.get("phone", ""))[-2:]) if u.get("phone") else "",
+                      "joined": u.get("referred_at", ""), "paid": bool(comm),
+                      "commission": earned,
+                      "status": ("💰 ₹%s commission" % earned) if comm else "⏳ pay cheyyaledu — commission pending"})
+    joins.sort(key=lambda j: j["joined"] or "", reverse=True)
+    return {"success": True, "kind": "partner" if is_partner else "user",
+            "id": rcode, "name": ref.get("full_name") or ref.get("name", ""),
+            "wallet": st.get("wallet", 0), "lifetime_earned": st.get("lifetime_earned", 0),
+            "pending_payout": st.get("pending_payout", 0), "paid_out": st.get("paid_out", 0),
+            "registrations": len(joins), "paid_count": sum(1 for j in joins if j["paid"]),
+            "joins": joins,
+            "message_telugu": "📒 %s joins — chusi payout queue lo manual approve cheyyandi" % len(joins)}
 
 @app.get("/api/admin/referrals/partners.csv")
 def admin_referrals_csv(request: Request):
