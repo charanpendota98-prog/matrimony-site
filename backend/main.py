@@ -59,6 +59,7 @@ from publisher import (dead_letters, requeue_dead,
 )
 from wa_antiban import ENGINE as WA_ENGINE
 # 🛡️ WAVE 9 — hardening layer (auth tokens, admin key, rate limit, validation, abuse ledger)
+import db_store as DBSTORE  # noqa: E402  # 🌊 WAVE 22 — core DB persistence
 from hardening import (
     auth_enforced, require_owner, require_admin, rate_limit_hit, too_many,
     apply_security_headers, posture as security_posture, abuse_snapshot, abuse_log,
@@ -140,8 +141,27 @@ async def _startup_publisher():
     wa = st["whatsapp_queue"]["antiban"]
     print(f"[PUBLISHER] worker={ok} | telegram={'ready' if st['telegram']['configured'] else 'dry-run'} "
           f"| whatsapp={st['whatsapp']['mode']} | live_channels={st['telegram']['live_channels']}")
+    if not os.getenv("TSAP_API_KEY", "").strip():
+        print("[AUTH] ⚠️ TSAP_API_KEY ledu — Telegram bot automation private API ki 401 (API+bot env lo same key pettandi)")
     print(f"[WHATSAPP-ANTIBAN] telegram mundu → whatsapp tarvata | gap={wa['random_gap']} | "
           f"cap={wa['daily_cap']}/day (today {wa['warmup_cap_today']}) | hour {wa['active_hours_ist'][0]}–{wa['active_hours_ist'][1]} IST")
+    # 🌊 WAVE 22 — restart aina data povatledu: disk nunchi users/interests/payments restore
+    try:
+        _snap = DBSTORE.load()
+        if _snap.get("users"):
+            DB_USERS.extend(_snap["users"])
+            DB_INTERESTS.extend(_snap.get("interests", []))
+            DB_PAYMENTS.extend(_snap.get("payments", []))
+            DB_OTPS.update(_snap.get("otps", {}))
+            for _ph in _snap.get("verified_phones", []):
+                VERIFIED_PHONES.add(_ph)
+            DB_VIEWS.extend(_snap.get("views", []))
+            DB_SAVES.extend(_snap.get("saves", []))
+            DB_DIGEST.extend(_snap.get("digest", []))
+            print("[DB] restored %d users, %d interests, %d payments from disk" % (
+                len(DB_USERS), len(DB_INTERESTS), len(DB_PAYMENTS)))
+    except Exception as e:
+        print("[DB] restore skip:", str(e)[:80])
     # demo/launch inventory: empty DB aithe (dev/preview lo) ventane profiles — site khali ga kanipinchadu
     if str(os.getenv("DEMO_SEED_ENABLED", "true")).lower() in ("1", "true", "yes", "on") and not DB_USERS:
         try:
@@ -283,6 +303,13 @@ async def _security_middleware(request: Request, call_next):
         return resp
     response = await call_next(request)
     try:
+        # 🌊 WAVE 22 — mutation autosave (debounced 5s, 2xx only)
+        if request.method in ("POST", "PUT", "PATCH", "DELETE") and 200 <= response.status_code < 300:
+            DBSTORE.save(DBSTORE.snapshot(DB_USERS, DB_INTERESTS, DB_PAYMENTS, DB_OTPS,
+                                           VERIFIED_PHONES, DB_VIEWS, DB_SAVES, DB_DIGEST))
+    except Exception:
+        pass
+    try:
         apply_security_headers(response.headers)
         if _priv and request.method == "GET":
             response.headers.setdefault("Cache-Control", "no-store, no-cache, must-revalidate, private")
@@ -302,7 +329,7 @@ app.add_middleware(
     allow_origins=_CORS_ORIGINS,
     allow_origin_regex=r"https://([a-z0-9-]+\.)?(e2b\.app|e2b\.dev|manavivaha\.in)$",
     allow_credentials=True,
-    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],  # 🌊 W22: admin DELETE/PUT cross-origin fix
     allow_headers=["*"],
 )
 
@@ -4185,12 +4212,21 @@ def boost_buy(payload: dict, request: Request = None):
 # 🔒 WAVE 12 — SMART REVEAL (masked channels + unlock + ₹500 assisted console)
 # ============================================================================
 @app.post("/api/link-telegram")
-def api_link_telegram(payload: dict):
-    """🔗 Bot /link — Telegram chat_id ni profile tho link (personal delivery kosam)."""
+def api_link_telegram(payload: dict, request: Request = None):
+    """🔗 Bot /link — Telegram chat_id ni profile tho link (personal delivery kosam).
+    🌊 WAVE 22 — hijack fix: production lo automation key + phone last-4 match tappanidi."""
     d = payload or {}
     u = _find_user(str(d.get("tsap_id", "")).upper())
     if not u:
         raise HTTPException(404, "ID dorakaledu — website login lo mee TSAP ID chudandi")
+    last4 = "".join(ch for ch in str(d.get("phone_last4", "")) if ch.isdigit())[-4:]
+    if auth_enforced():
+        if not is_automation(request):
+            raise HTTPException(401, "🔒 Bot nunchi matrame link avutundi")
+        if len(last4) != 4 or not str(u.get("phone", "")).endswith(last4):
+            raise HTTPException(400, "⚠️ Phone last-4 digits tappu — /link ID LAST4 (register chesina numberivi)")
+    elif last4 and not str(u.get("phone", "")).endswith(last4):
+        raise HTTPException(400, "⚠️ Phone last-4 digits tappu")
     u["telegram_chat_id"] = str(d.get("chat_id", ""))
     u["telegram_linked_at"] = datetime.utcnow().isoformat()
     return {"success": True, "tsap_id": u["tsap_id"],
@@ -4198,13 +4234,16 @@ def api_link_telegram(payload: dict):
 
 
 @app.post("/api/unlock")
-def api_unlock(payload: dict):
+def api_unlock(payload: dict, request: Request = None):
     """
     🔓 Number unlock — entitled ayithe FREE, lekapothe 1 credit cut.
     Credits 0 ayithe paywall (₹99 top-up / ₹500 assisted).
+    🌊 WAVE 22 — IDOR fix: viewer token match (website) leda automation key (bot) tappanidi.
     """
     d = payload or {}
-    viewer = _find_user(str(d.get("viewer_id", "")).upper())
+    _vid = str(d.get("viewer_id", "")).upper()
+    require_owner(request, _vid)
+    viewer = _find_user(_vid)
     target = _find_user(str(d.get("target_id", "")).upper())
     if not viewer:
         raise HTTPException(404, "Mee profile dorakaledu — /link tho link cheyyandi")
@@ -4219,8 +4258,9 @@ def api_unlock(payload: dict):
 
 
 @app.get("/api/unlocks/{viewer_id}")
-def api_my_unlocks(viewer_id: str):
+def api_my_unlocks(viewer_id: str, request: Request = None):
     """📋 Naa unlocked list — MASKED (full number per-unlock matrame, logged)."""
+    require_owner(request, viewer_id)  # 🌊 WAVE 22 — IDOR fix
     me = _find_user(viewer_id.upper())
     if not me:
         raise HTTPException(404, "Profile dorakaledu")

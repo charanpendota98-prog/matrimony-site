@@ -24,6 +24,12 @@ BOT_TOKEN = os.getenv("BOT_TOKEN", "YOUR_BOT_TOKEN_HERE")
 ADMIN_CHAT_ID = os.getenv("ADMIN_CHAT_ID", "123456789")
 SITE_URL = os.getenv("SITE_URL", "https://manavivaha.in")
 
+
+def _api_headers() -> dict:
+    """🌊 WAVE 22 — bot → API automation auth (TSAP_API_KEY same env, rendu chotla)."""
+    _k = os.getenv("TSAP_API_KEY", "").strip()
+    return {"X-Api-Key": _k} if _k else {}
+
 # ── import-safe bot (token lekapoina / wrong format ayina crash kadu) ─────────
 bot = None
 BOT_ERROR = ""
@@ -255,7 +261,7 @@ async def cmd_search(message: Message):
     api_base = os.getenv("API_BASE", "http://localhost:8000")
     try:
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=8)) as sess:
-            async with sess.get(f"{api_base}/api/search/{tsap_id}") as resp:
+            async with sess.get(f"{api_base}/api/search/{tsap_id}", headers=_api_headers()) as resp:
                 if resp.status != 200:
                     await message.answer(f"⚠️ {tsap_id} dorakaledu — ID sari chudandi")
                     return
@@ -273,7 +279,8 @@ async def _do_unlock(message: Message, viewer: str, target: str):
     try:
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10)) as s:
             async with s.post(f"{api_base}/api/unlock",
-                              json={"viewer_id": viewer, "target_id": target}) as resp:
+                              json={"viewer_id": viewer, "target_id": target},
+                              headers=_api_headers()) as resp:
                 data = await resp.json()
         await message.answer(unlock_result_text(data if isinstance(data, dict) else {}), parse_mode="Markdown")
     except Exception as e:  # noqa: BLE001
@@ -309,7 +316,7 @@ async def cmd_mylist(message: Message):
     api_base = os.getenv("API_BASE", "http://localhost:8000")
     try:
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10)) as s:
-            async with s.get(f"{api_base}/api/unlocks/{viewer}") as resp:
+            async with s.get(f"{api_base}/api/unlocks/{viewer}", headers=_api_headers()) as resp:
                 data = await resp.json()
         await message.answer(mylist_text(data if isinstance(data, dict) else {}))
     except Exception as e:  # noqa: BLE001
@@ -327,7 +334,7 @@ async def cmd_balance(message: Message):
     api_base = os.getenv("API_BASE", "http://localhost:8000")
     try:
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10)) as s:
-            async with s.get(f"{api_base}/api/credits/{viewer}") as resp:
+            async with s.get(f"{api_base}/api/credits/{viewer}", headers=_api_headers()) as resp:
                 data = await resp.json() if resp.status == 200 else {}
         await message.answer(balance_text(int(data.get("credits", 0)), str(data.get("plan", "FREE"))),
                              parse_mode="Markdown")
@@ -345,16 +352,22 @@ async def cmd_link(message: Message):
     """🔗 /link TSAP-F-1042 — Telegram ni profile tho link (personal delivery + unlock kosam)."""
     parts = str(message.text or "").strip().split()
     if len(parts) < 2:
-        await message.answer("🔗 Ela: /link MEE-TSAP-ID\n(ID website login lo untundi — link ayithe personal profiles + unlock ivvachu 🙂)")
+        await message.answer("🔗 Ela: /link MEE-TSAP-ID LAST4\n(ID website login lo untundi · LAST4 = register chesina numberivi last 4 digits)\nLink ayithe personal profiles + unlock ivvachu 🙂")
         return
     tsap_id = parts[1].upper()
+    last4 = "".join(ch for ch in (parts[2] if len(parts) > 2 else "") if ch.isdigit())[-4:]
+    if len(last4) != 4:
+        await message.answer("🔐 Security kosam numberivi last 4 digits kuda ivvandi:\n/link %s 1234" % tsap_id)
+        return
     import aiohttp
     api_base = os.getenv("API_BASE", "http://localhost:8000")
     try:
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10)) as s:
             async with s.post(f"{api_base}/api/link-telegram",
                               json={"tsap_id": tsap_id,
-                                    "chat_id": str(message.from_user.id)}) as resp:
+                                    "chat_id": str(message.from_user.id),
+                                    "phone_last4": last4},
+                              headers=_api_headers()) as resp:
                 data = await resp.json()
         if resp.status == 200 and isinstance(data, dict) and data.get("success") is not False:
             _sess = {**user_sessions.get(message.from_user.id, {}), "tsap_id": tsap_id}
