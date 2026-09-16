@@ -305,9 +305,14 @@ export default function ReferralPage() {
             {(dash?.recent_registrations || []).length === 0 && <div className="mt-2 text-xs text-gray-500">Inka evaru register avvaledu — mee link share cheyyandi 🙂</div>}
             <div className="mt-2 space-y-1 text-xs">
               {(dash?.recent_registrations || []).map((r: any) => (
-                <div key={r.tsap_id} className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2">
-                  <span className="font-mono">{r.tsap_id}</span>
-                  <span className={r.paid ? "text-green-600 font-bold" : "text-gray-500"}>{r.paid ? "PAID ₹50 ✅" : "registered"}</span>
+                <div key={r.tsap_id} className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2 gap-2">
+                  <div className="min-w-0">
+                    <div className="font-bold text-[13px] truncate">{r.name || r.tsap_id}</div>
+                    <div className="font-mono text-[10px] text-gray-500">{r.tsap_id} · {String(r.joined || "").slice(0, 10)}</div>
+                  </div>
+                  <span className={`shrink-0 text-[11px] ${r.paid ? "text-green-600 font-bold" : "text-amber-600"}`}>
+                    {r.paid ? `💰 ₹${r.commission ?? 50} ✅` : "⏳ pay pending"}
+                  </span>
                 </div>
               ))}
             </div>

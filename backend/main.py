@@ -21,7 +21,7 @@ from referral import (
     generate_referral_code, process_referral_payment, get_leaderboard, parse_referral_type,
     ensure_referrer_profile, validate_referral, attach_referral, referral_dashboard,
     share_kit as referral_share_kit,
-    payout_request, payout_action, payout_queue, track_click, referral_terms_telugu,
+    payout_request, payout_action, payout_queue, pay_wallet_full, track_click, referral_terms_telugu,
     reverse_referral_payment, load_state as referral_load_state, stats_of as referral_stats_of,
     find_referrer as referral_find_referrer, _code_of as referral_code_of,
     referrer_join_text, referrer_commission_text, referee_welcome_text,
@@ -1442,6 +1442,19 @@ def admin_payout_action(request_id: str, action: str, utr: str = "", reason: str
     res = payout_action(request_id, action, DB_USERS, utr=utr, reason=reason)
     if not res.get("ok"):
         return JSONResponse(status_code=400, content={"success": False, **res})
+    return {"success": True, **res}
+
+
+@app.post("/api/admin/referrals/pay-full")
+def admin_pay_wallet_full(payload: dict, request: Request):
+    """🌊 WAVE 21 — ADMIN manual pay: PhonePe/bank lo amount pampaka → wallet ₹0.
+    Body: {code, utr, method?, note?}. User + partner iddariki."""
+    require_admin(request)
+    d = payload or {}
+    res = pay_wallet_full(str(d.get("code", "")), DB_USERS, utr=str(d.get("utr", "")),
+                          method=str(d.get("method", "upi")), note=str(d.get("note", "")))
+    if not res.get("ok"):
+        raise HTTPException(400, res.get("message_telugu"))
     return {"success": True, **res}
 
 
@@ -4983,7 +4996,9 @@ def api_admin_poster(request: Request):
             "antiban": st.get("antiban", {}),
             "gaps": {"min_gap": cfg.get("min_gap"), "max_gap": cfg.get("max_gap"),
                      "min_gap_interest": cfg.get("min_gap_interest"),
-                     "max_gap_interest": cfg.get("max_gap_interest")},
+                     "max_gap_interest": cfg.get("max_gap_interest"),
+                     "min_gap_otp": cfg.get("min_gap_otp", 25),
+                     "max_gap_otp": cfg.get("max_gap_otp", 60)},
             "message_telugu": "📮 Smart poster — prati message ki random gap + jitter + coffee-breaks"}
 
 

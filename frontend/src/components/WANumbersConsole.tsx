@@ -25,6 +25,7 @@ const LANE_META: Record<string, { icon: string; telugu: string }> = {
 
 export default function WANumbersConsole() {
   const [data, setData] = useState<Row | null>(null);
+  const [queue, setQueue] = useState<Row | null>(null);
   const [flash, setFlash] = useState("");
   const [busy, setBusy] = useState(false);
   const [f, setF] = useState({ name: "", url: "", lane: "both", daily_cap: "60", token: "", number: "" });
@@ -33,6 +34,8 @@ export default function WANumbersConsole() {
     try {
       const d = await fetch(withToken("/api/admin/wa/numbers"), { headers: authHeaders(true) }).then((r) => r.json());
       if (d?.success) { setData(d); setFlash(""); }
+      const qst = await fetch(withToken("/api/admin/poster"), { headers: authHeaders(true) }).then((r) => r.json());
+      if (qst?.success) setQueue(qst);
       else setFlash(d.detail || "Load fail");
     } catch { setFlash("API error"); }
   }, []);
@@ -58,6 +61,17 @@ export default function WANumbersConsole() {
       </div>
       <p className="text-[11px] text-gray-500 telugu">3 separate numbers — okati down ayithe backup automatic (duplicate avvadu). Pause = temporary off.</p>
       {flash ? <p className="mt-1 text-[12px] font-medium text-maroon">{flash}</p> : null}
+      {queue ? (
+        <div className="mt-2 flex flex-wrap gap-2 text-[11px]">
+          <span className={`rounded-full px-2.5 py-1 font-bold ${queue.paused ? "bg-rose-100 text-rose-700" : queue.queue?.worker_running === false ? "bg-amber-100 text-amber-800" : "bg-emerald-100 text-emerald-800"}`}>
+            {queue.paused ? "⏸️ sender paused" : queue.queue?.worker_running === false ? "⚠️ worker off" : "🟢 sender live"}
+          </span>
+          <span className="rounded-full bg-slate-100 px-2.5 py-1">📮 queue <b>{queue.queue?.queued ?? 0}</b> (personal {queue.queue?.queued_interest ?? 0} · channels {queue.queue?.queued_channel ?? 0})</span>
+          <span className="rounded-full bg-slate-100 px-2.5 py-1">✅ sent <b>{queue.queue?.sent_total ?? 0}</b></span>
+          <span className="rounded-full bg-slate-100 px-2.5 py-1">❌ failed <b>{queue.queue?.failed_total ?? 0}</b></span>
+          <span className="rounded-full bg-slate-100 px-2.5 py-1">⏱️ gaps OTP {queue.gaps?.min_gap_otp ?? 25}–{queue.gaps?.max_gap_otp ?? 60}s · DM {queue.gaps?.min_gap_interest ?? 60}–{queue.gaps?.max_gap_interest ?? 120}s · post {queue.gaps?.min_gap ?? 120}–{queue.gaps?.max_gap ?? 170}s</span>
+        </div>
+      ) : null}
 
       <div className="mt-3 grid md:grid-cols-2 gap-2">
         {inst.map((n) => {

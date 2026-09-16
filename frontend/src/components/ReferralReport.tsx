@@ -14,14 +14,31 @@ const withToken = (url: string) => {
   const tk = adminToken();
   return tk ? `${url}${url.includes("?") ? "&" : "?"}token=${encodeURIComponent(tk)}` : url;
 };
+const H = () => ({ ...authHeaders(true), "Content-Type": "application/json" });
 
 export default function ReferralReport() {
   const [data, setData] = useState<Row | null>(null);
   const [q, setQ] = useState("");
   const [flash, setFlash] = useState("");
+  const [busy, setBusy] = useState(false);
   const [openId, setOpenId] = useState("");
   const [ledger, setLedger] = useState<Row | null>(null);
   const [ledgerBusy, setLedgerBusy] = useState(false);
+
+  const payFull = async (id: string, wallet: number) => {
+    const utr = prompt(`PhonePe/bank lo ₹${wallet} pampinara? UTR/reference ivvandi (wallet ₹0 avutundi):`);
+    if (!utr || !utr.trim()) return;
+    if (!confirm(`₹${wallet} → ${id} PAID mark + wallet ₹0? (UTR: ${utr.trim()})`)) return;
+    setBusy(true);
+    try {
+      const r = await fetch(withToken("/api/admin/referrals/pay-full"),
+        { method: "POST", headers: H(), body: JSON.stringify({ code: id, utr: utr.trim() }) });
+      const d = await r.json();
+      setFlash(d.message_telugu || d.detail || "done");
+      if (d?.success) void load();
+    } catch { setFlash("API error"); }
+    setBusy(false);
+  };
 
   const openLedger = async (id: string) => {
     if (openId === id) { setOpenId(""); setLedger(null); return; }
@@ -76,6 +93,12 @@ export default function ReferralReport() {
                 className="rounded-lg border border-[#7A0C2E]/40 px-2 py-0.5 text-[11px] font-bold text-maroon">
                 {openId === String(r.id) ? "▲ close" : "📒 ledger"}
               </button>
+              {Number(r.wallet) > 0 ? (
+                <button disabled={busy} onClick={() => void payFull(String(r.id), Number(r.wallet))}
+                  className="rounded-lg bg-emerald-700 px-2 py-0.5 text-[11px] font-bold text-white disabled:opacity-50">
+                  💸 Pay ₹{r.wallet} → zero
+                </button>
+              ) : null}
               <span className="ml-auto font-bold text-emerald-700">₹{r.wallet} wallet · ₹{r.lifetime_earned} earned</span>
             </div>
             {openId === String(r.id) ? (

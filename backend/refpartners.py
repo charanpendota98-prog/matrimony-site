@@ -153,11 +153,14 @@ def partner_public(pid: str, users: Optional[List[Dict]] = None) -> Dict[str, An
     if users is not None:
         for u in users:
             if str(u.get("referred_by", "")).lower() == p["partner_id"].lower():
+                _comm = round(sum(float(l.get("amount", 0) or 0) for l in _ledger
+                                  if l.get("type") == "commission" and l.get("from") == u.get("tsap_id")), 2)
                 joins.append({"tsap_id": u.get("tsap_id", ""),
-                              "name": (str(u.get("full_name", "")).split() or [""])[0],
+                              "name": u.get("full_name") or u.get("name", ""),
                               "at": u.get("referred_at", ""),
                               # has_paid flag + ledger fallback (pata data ki kuda correct)
-                              "paid": bool(u.get("has_paid", False)) or u.get("tsap_id") in _paid_ids})
+                              "paid": bool(u.get("has_paid", False)) or u.get("tsap_id") in _paid_ids,
+                              "commission": _comm})
     return {"success": True, "partner_id": p["partner_id"], "name": p["name"],
             "link": p.get("link", ""), "clicks": p.get("clicks", 0),
             "registrations": st.get("registrations", 0), "paid_count": st.get("paid_count", 0),

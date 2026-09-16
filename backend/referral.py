@@ -598,6 +598,13 @@ def payout_action(request_id: str, action: str, all_users: List[Dict], utr: str 
     if req["status"] != "requested":
         return {"ok": False, "reason": "already_%s" % req["status"]}
     user = next((u for u in all_users if u.get("tsap_id") == req["tsap_id"]), None)
+    if not user and req.get("partner_id"):
+        # 🌊 WAVE 21 — partner payout: user table lo undadu, partner registry lo
+        try:
+            from refpartners import get_partner
+            user = get_partner(req["partner_id"])
+        except Exception:
+            user = None
     if not user:
         return {"ok": False, "reason": "user_not_found"}
     st = stats_of(user)
@@ -624,8 +631,59 @@ def payout_action(request_id: str, action: str, all_users: List[Dict], utr: str 
     else:
         return {"ok": False, "reason": "bad_action"}
     user["referral_stats"] = st
+    try:
+        if user.get("partner_id"):
+            from refpartners import _save as _partner_save
+            _partner_save()
+    except Exception:
+        pass
     save_state()
     return {"ok": True, "request": req, "wallet": st.get("wallet"), "message_telugu": msg}
+
+
+def pay_wallet_full(code: str, all_users: List[Dict], utr: str = "",
+                    method: str = "upi", note: str = "") -> Dict:
+    """🌊 WAVE 21 — ADMIN manual pay: PhonePe/bank lo amount pampaka → wallet 0.
+    Full wallet ni paid_out ki move + ledger + payout record (UTR audit). User + partner."""
+    if not (utr or "").strip():
+        return {"ok": False, "reason": "utr_required",
+                "message_telugu": "⚠️ UTR/reference ivvakunda wallet zero cheyyakoodadu (audit ki)"}
+    ref = find_referrer(code, all_users)
+    if not ref:
+        return {"ok": False, "reason": "referrer_not_found",
+                "message_telugu": "⚠️ Referrer dorakaledu"}
+    st = stats_of(ref)
+    amt = round(float(st.get("wallet", 0) or 0), 2)
+    if amt <= 0:
+        return {"ok": False, "reason": "wallet_empty",
+                "message_telugu": "ℹ️ Wallet already ₹0 — pay cheyyadaniki emi ledu"}
+    me = ref.get("tsap_id") or ref.get("partner_id")
+    if any((x.get("tsap_id") or x.get("partner_id")) == me and x.get("status") == "requested" for x in PAYOUTS):
+        return {"ok": False, "reason": "pending_exists",
+                "message_telugu": "⏳ Payout request already pending lo undi — danne approve/reject cheyyandi"}
+    req = {"id": _next_id("PAY"), "tsap_id": ref.get("tsap_id"), "partner_id": ref.get("partner_id", ""),
+           "name": ref.get("full_name") or ref.get("name", ""),
+           "code": _code_of(ref), "amount": amt, "method": (method or "upi").lower(),
+           "upi_id": "", "bank": {}, "status": "paid", "requested_at": _now(),
+           "utr": utr.strip(), "paid_at": _now(), "paid_by": "admin",
+           "note": ("admin_pay_full:" + str(note or "")).strip(":"),
+           "eta_days": 0, "tier": st.get("tier", "BRONZE")}
+    PAYOUTS.append(req)
+    st["wallet"] = 0
+    ref["wallet"] = 0
+    st["paid_out"] = round(float(st.get("paid_out", 0)) + amt, 2)
+    st.setdefault("ledger", []).append({"id": _next_id("PA"), "at": _now(), "type": "payout_manual_full",
+                                        "amount": -amt, "note": "%s → UTR %s (wallet 0)" % (req["id"], utr.strip())})
+    ref["referral_stats"] = st
+    try:
+        if ref.get("partner_id"):
+            from refpartners import _save as _partner_save
+            _partner_save()
+    except Exception:
+        pass
+    save_state()
+    return {"ok": True, "request": req, "wallet": 0, "paid": amt,
+            "message_telugu": "✅ ₹%s manual pay (UTR %s) — wallet ₹0 ayyindi" % (amt, utr.strip())}
 
 
 def payout_queue(status: str = "requested") -> Dict:
@@ -690,7 +748,10 @@ def referral_dashboard(user: Dict, all_users: List[Dict], limit_recent: int = 10
         "tiers": TIERS,
         "recent_registrations": [{"tsap_id": u.get("tsap_id"), "name": u.get("full_name") or u.get("name", ""),
                                   "joined": u.get("referred_at", ""),
-                                  "paid": u in paid_regs} for u in regs[-limit_recent:]][::-1],
+                                  "paid": u in paid_regs,
+                                  "commission": round(sum(float(l.get("amount", 0) or 0) for l in st.get("ledger", [])
+                                                        if l.get("type") == "commission" and l.get("from") == u.get("tsap_id")), 2)}
+                                 for u in regs[-limit_recent:]][::-1],
         "ledger": list(reversed(st.get("ledger", [])))[:20],
         "payouts": [mask_payout(p) for p in list(reversed(payouts_mine))[:10]],
         "wallet_can_withdraw": float(st.get("wallet", 0)) >= MIN_PAYOUT,

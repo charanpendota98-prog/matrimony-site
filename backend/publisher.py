@@ -316,12 +316,18 @@ async def _wa_send_via_instance(inst, item: Dict, cfg: Dict) -> Dict:
 # 🌊 WAVE 19 — purpose → number lane (3 separate numbers + both-backup)
 OTP_KINDS = {"otp"}
 CHANNEL_KINDS = {"post", "channel_post", "promo", "ad", "offer", "status_poster"}
+PERSONAL_KINDS = {"saved_search_alert", "interest_to_owner", "interest_confirm",
+                  "interest_accepted", "interest_accepted_owner", "interest_declined",
+                  "referral_join", "referral_commission", "namaste_welcome",
+                  "welcome_pack_resend", "lead_followup", "vendor_lead"}
 
 
 def _wa_lane(item: Dict) -> str:
     kind = str(item.get("kind", "")).lower()
     if kind in OTP_KINDS:
         return "otp"
+    if kind in PERSONAL_KINDS:  # 🌊 WAVE 21 — personal DM eppudu personal lane (priority tho samandham ledu)
+        return "personal"
     if kind in CHANNEL_KINDS or int(item.get("priority", 1)) >= 1:
         return "channels"
     return "personal"

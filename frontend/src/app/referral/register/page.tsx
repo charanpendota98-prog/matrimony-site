@@ -168,8 +168,18 @@ export default function PartnerRegisterPage() {
               </div>
             ) : null}
             {Array.isArray(dash.joins) && dash.joins.length ? (
-              <div className="col-span-2 text-left rounded-xl bg-white border border-slate-200 p-2">
-                <b>Joins:</b> {dash.joins.map((j: any) => `${j.name || ""} (${j.tsap_id})${j.paid ? " 💰" : ""}`).join(" · ")}
+              <div className="col-span-2 text-left rounded-xl bg-white border border-slate-200 p-2 space-y-1">
+                {dash.joins.map((j: any) => (
+                  <div key={String(j.tsap_id)} className="flex items-center justify-between gap-2 text-[12px] bg-cream/60 rounded-lg px-2 py-1.5">
+                    <div className="min-w-0">
+                      <div className="font-bold truncate">{j.name || j.tsap_id}</div>
+                      <div className="font-mono text-[10px] text-gray-500">{j.tsap_id} · {String(j.at || "").slice(0, 10)}</div>
+                    </div>
+                    <span className={`shrink-0 font-bold ${j.paid ? "text-emerald-700" : "text-amber-600"}`}>
+                      {j.paid ? `💰 ₹${j.commission ?? 50}` : "⏳ pending"}
+                    </span>
+                  </div>
+                ))}
               </div>
             ) : null}
           </div>
