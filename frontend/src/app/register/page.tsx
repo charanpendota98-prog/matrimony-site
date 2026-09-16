@@ -21,6 +21,7 @@ import { useSearchParams } from "next/navigation";
 import Reveal from "@/components/Reveal";
 import { SITE_CONFIG } from "@/lib/site-config";
 import { authHeaders } from "@/lib/api";
+import { Duo, duo } from "@/lib/duo";
 import {
   BLOOD_GROUPS, BODY_TYPES, CASTES, COMPLEXIONS, DISTRICTS_BY_STATE, EDUCATIONS, FAMILY_STATUSES,
   FAMILY_TYPES, FAMILY_VALUES, HEIGHTS, JOBS, MARITAL_STATUSES, MOTHER_TONGUES, NAKSHATRAS, NAK_TO_RASI,
@@ -30,11 +31,11 @@ import {
 
 const DRAFT_KEY = "tsap_reg_draft_v3";
 const STEPS = [
-  { n: 1, label: "Basic", icon: "🙋", hint: "Mee basic details — 30 seconds" },
-  { n: 2, label: "Community", icon: "💍", hint: "Caste + star details — card ki kavali" },
-  { n: 3, label: "Education", icon: "🎓", hint: "Chaduvu + udyogam" },
-  { n: 4, label: "Family", icon: "👨‍👩‍👧", hint: "Family + contact" },
-  { n: 5, label: "Photo", icon: "📸", hint: "Photo + finish (chi-vi details)" },
+  { n: 1, label: "Basic", labelTe: "ప్రాథమిక", icon: "🙋", hint: "Mee basic details — 30 seconds" },
+  { n: 2, label: "Community", labelTe: "సామాజిక", icon: "💍", hint: "Caste + star details — card ki kavali" },
+  { n: 3, label: "Education", labelTe: "విద్య", icon: "🎓", hint: "Chaduvu + udyogam" },
+  { n: 4, label: "Family", labelTe: "కుటుంబం", icon: "👨‍👩‍👧", hint: "Family + contact" },
+  { n: 5, label: "Photo", labelTe: "ఫోటో", icon: "📸", hint: "Photo + finish (chi-vi details)" },
 ];
 
 const DEFAULT_FORM: Record<string, any> = {
@@ -774,7 +775,7 @@ const set = (k: string, v: any) => {
                 <span className="text-lg">{stepMeta.icon}</span>
                 <div className="min-w-0">
                   <div className="text-[13px] font-bold text-ink truncate">
-                    Step {step} of 5 — {stepMeta.label}
+                    Step {step} of 5 — <Duo en={stepMeta.label} te={stepMeta.labelTe || ""} />
                   </div>
                   <div className="text-[10px] text-gray-500 telugu truncate">{stepMeta.hint}</div>
                 </div>
@@ -1113,20 +1114,20 @@ const set = (k: string, v: any) => {
         <div className="max-w-3xl mx-auto px-4 py-3 flex items-center gap-3">
           {step > 1 && (
             <button onClick={back} className="px-5 py-3.5 rounded-2xl border border-maroon/25 text-maroon font-bold text-[14px]">
-              ← Back
+              ← {duo("Back", "వెనక్కి")}
             </button>
           )}
           <div className="flex-1 text-[10px] text-gray-500">
-            {step < 5 ? `Next: ${STEPS[step].label}` : "Chivari step — submit cheyyandi"}
+            {step < 5 ? `Next: ${duo(STEPS[step].label, STEPS[step].labelTe || "")}` : duo("Last step — submit", "చివరి దశ — సబ్మిట్ చేయండి")}
           </div>
           {step < 5 ? (
             <button onClick={next} className="px-7 py-3.5 rounded-2xl maroon-gradient text-white font-bold text-[15px]">
-              Next →
+              {duo("Next", "తర్వాత")} →
             </button>
           ) : (
             <button onClick={submit} disabled={busy}
               className="px-6 py-3.5 rounded-2xl gold-gradient text-maroon font-bold text-[15px] disabled:opacity-60">
-              {busy ? "Register avutund…" : "✅ Register cheyyi"}
+              {busy ? duo("Registering…", "నమోదు అవుతోంది…") : `✅ ${duo("Register now", "నమోదు చేయండి")}`}
             </button>
           )}
         </div>

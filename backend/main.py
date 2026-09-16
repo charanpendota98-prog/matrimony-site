@@ -105,6 +105,8 @@ def _prof_label(u: Dict) -> str:  # 🌊 WAVE 14 adapter: job_group → Telugu l
     except Exception:
         return ""
 import paypro as PP        # 🌊 WAVE 14: safe-pay + festival offers
+import cms as CMS            # 📝 WAVE 15: pages + stories + banners
+import chanmap as CHAN         # 📡 WAVE 15: channel links + import + coverage
 from interest import ADDONS, RENEWALS, is_addon, get_addon, get_renewal, plan_list_with_free, addon_list, renewal_offer
 from channels_config import post_targets, caste_channel_links, channel_links, WA_OFFICIAL_LINK
 # 🎁 WAVE 10 — register avvagane "3 profiles + caste channel links" WhatsApp ki
@@ -4313,3 +4315,180 @@ def api_bot_matches(tsap_id: str, limit: int = 3):
 def api_admin_offers_list(request: Request):
     require_admin(request)
     return {"success": True, "count": len(PP.OFFERS), "offers": list(reversed(PP.OFFERS))}
+
+
+# ============================================================================
+#  📝 WAVE 15 — CMS (public read + admin CRUD)
+# ============================================================================
+@app.get("/api/cms/pages")
+def api_cms_pages():
+    return {"success": True, "pages": CMS.list_pages(True)}
+
+
+@app.get("/api/cms/pages/{slug}")
+def api_cms_page(slug: str):
+    p = CMS.get_page(slug)
+    if not p or not p.get("published"):
+        raise HTTPException(404, "Page dorakaledu")
+    return {"success": True, "page": p}
+
+
+@app.get("/api/cms/stories")
+def api_cms_stories(tag: str = "", limit: int = 20):
+    return {"success": True, "stories": CMS.list_stories(tag, True, limit),
+            "tags": CMS.all_tags()}
+
+
+@app.get("/api/cms/banners")
+def api_cms_banners(page: str = ""):
+    return {"success": True, "banners": CMS.list_banners(page, False)}
+
+
+@app.get("/api/cms/tags")
+def api_cms_tags():
+    return {"success": True, "tags": CMS.all_tags()}
+
+
+@app.get("/api/admin/cms")
+def api_admin_cms(request: Request):
+    require_admin(request)
+    return {"success": True, "stats": CMS.cms_stats(),
+            "pages": CMS.list_pages(False), "stories": CMS.list_stories("", False, 100),
+            "banners": CMS.list_banners("", True)}
+
+
+@app.post("/api/admin/cms/pages")
+def api_admin_cms_page(payload: dict, request: Request):
+    require_admin(request)
+    d = payload or {}
+    res = CMS.upsert_page(str(d.get("slug", "")), str(d.get("title_en", "")), str(d.get("title_te", "")),
+                          str(d.get("body_en", "") or ""), str(d.get("body_te", "") or ""),
+                          d.get("photos"), d.get("tags"), d.get("published", True),
+                          int(d.get("order", 0) or 0))
+    if not res.get("success"):
+        raise HTTPException(400, res.get("message_telugu"))
+    return res
+
+
+@app.post("/api/admin/cms/stories")
+def api_admin_cms_story(payload: dict, request: Request):
+    require_admin(request)
+    d = payload or {}
+    res = CMS.upsert_story(str(d.get("id", "") or ""), str(d.get("groom", "")), str(d.get("bride", "")),
+                           str(d.get("photo", "") or ""), str(d.get("story_en", "") or ""),
+                           str(d.get("story_te", "") or ""), str(d.get("district", "") or ""),
+                           str(d.get("wedding_date", "") or ""), d.get("tags"),
+                           d.get("published", True))
+    if not res.get("success"):
+        raise HTTPException(400, res.get("message_telugu"))
+    return res
+
+
+@app.post("/api/admin/cms/banners")
+def api_admin_cms_banner(payload: dict, request: Request):
+    require_admin(request)
+    d = payload or {}
+    res = CMS.upsert_banner(str(d.get("id", "") or ""), str(d.get("text_en", "")), str(d.get("text_te", "") or ""),
+                            str(d.get("link", "") or ""), d.get("pages", "all"),
+                            d.get("active", True), int(d.get("order", 0) or 0))
+    if not res.get("success"):
+        raise HTTPException(400, res.get("message_telugu"))
+    return res
+
+
+@app.post("/api/admin/cms/delete")
+def api_admin_cms_delete(payload: dict, request: Request):
+    require_admin(request)
+    d = payload or {}
+    res = CMS.delete_item(str(d.get("kind", "")), str(d.get("id", "") or d.get("slug", "")))
+    if not res.get("success"):
+        raise HTTPException(400, res.get("message_telugu"))
+    return res
+
+
+@app.post("/api/admin/cms/seed")
+def api_admin_cms_seed(request: Request):
+    require_admin(request)
+    return CMS.seed_cms()
+
+
+# ============================================================================
+#  📡 WAVE 15 — CHANNEL MAPPER + SMART POSTER
+# ============================================================================
+@app.get("/api/channels/join")
+def api_channels_join():
+    """Public: Join buttons ki admin-mapped telegram/whatsapp links (active vi matrame)."""
+    return {"success": True, "links": CHAN.public_links()}
+
+
+@app.get("/api/admin/channels/map")
+def api_admin_chan_map(request: Request, tier: str = "", q: str = ""):
+    require_admin(request)
+    items = CHAN.effective()
+    if tier:
+        items = [e for e in items if e.get("tier") == tier]
+    if q:
+        ql = q.lower()
+        items = [e for e in items if ql in e.get("key", "").lower() or ql in e.get("name", "").lower()]
+    return {"success": True, "count": len(items), "channels": items}
+
+
+@app.post("/api/admin/channels/link")
+def api_admin_chan_link(payload: dict, request: Request):
+    require_admin(request)
+    d = payload or {}
+    res = CHAN.set_link(str(d.get("key", "")), str(d.get("telegram", "") or ""),
+                        str(d.get("whatsapp", "") or ""), d.get("active", True),
+                        str(d.get("note", "") or ""))
+    if not res.get("success"):
+        raise HTTPException(400, res.get("message_telugu"))
+    return res
+
+
+@app.post("/api/admin/channels/import")
+def api_admin_chan_import(payload: dict, request: Request):
+    """Bulk paste (`Label | tg-link | wa-link`) → fuzzy match → apply."""
+    require_admin(request)
+    d = payload or {}
+    res = CHAN.import_bulk(str(d.get("text", "") or ""), bool(d.get("auto_apply", False)))
+    if not res.get("success"):
+        raise HTTPException(400, res.get("message_telugu"))
+    return res
+
+
+@app.get("/api/admin/channels/coverage")
+def api_admin_chan_coverage(request: Request):
+    require_admin(request)
+    return CHAN.coverage()
+
+
+@app.get("/api/admin/poster")
+def api_admin_poster(request: Request):
+    """Smart poster: queue + random-gap config + pause state (1 screen)."""
+    require_admin(request)
+    st = wa_queue_stats()
+    cfg = dict(WA_ENGINE.cfg())
+    return {"success": True,
+            "paused": bool(WA_ENGINE.state.get("paused", False)),
+            "queue": st.get("queue", st),
+            "antiban": st.get("antiban", {}),
+            "gaps": {"min_gap": cfg.get("min_gap"), "max_gap": cfg.get("max_gap"),
+                     "min_gap_interest": cfg.get("min_gap_interest"),
+                     "max_gap_interest": cfg.get("max_gap_interest")},
+            "message_telugu": "📮 Smart poster — prati message ki random gap + jitter + coffee-breaks"}
+
+
+@app.post("/api/admin/poster/gaps")
+def api_admin_poster_gaps(payload: dict, request: Request):
+    """Jitter range tune (seconds). Safe bounds enforce."""
+    require_admin(request)
+    d = payload or {}
+    try:
+        mn = max(30, min(int(d.get("min_gap", 120)), 600))
+        mx = max(mn + 10, min(int(d.get("max_gap", 170)), 1800))
+    except (ValueError, TypeError):
+        raise HTTPException(400, "⚠️ gaps numbers ivvandi (seconds)")
+    os.environ["WA_MIN_GAP"] = str(mn)
+    os.environ["WA_MAX_GAP"] = str(mx)
+    return {"success": True, "gaps": {"min_gap": mn, "max_gap": mx},
+            "message_telugu": f"✅ Random gap {mn}–{mx} sec set ayyindi (server restart varaku; permanent ki env lo pettandi)"}

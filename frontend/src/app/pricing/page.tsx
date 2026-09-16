@@ -11,6 +11,8 @@ import Link from "next/link";
 import { SITE_CONFIG } from "@/lib/site-config";
 import PayBox from "@/components/PayBox";
 import OffersBanner from "@/components/OffersBanner";
+import BannerSlot from "@/components/BannerSlot";
+import { Duo, duo } from "@/lib/duo";
 
 type Plan = {
   code: string; price: number; profiles: number; label: string; telugu: string;
@@ -78,10 +80,10 @@ export default function PricingPage() {
       {/* HERO */}
       <div className="text-center">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#7A0C2E]/10 text-[#7A0C2E] text-xs font-bold">
-          💰 Transparent Pricing • No hidden charges • Auto-renewal ledu
+          💰 {duo("Transparent Pricing • No hidden charges • No auto-renewal", "పారదర్శక ధరలు • దాచిన ఛార్జీలు లేవు")}
         </div>
         <h1 className="mt-3 text-3xl md:text-4xl font-extrabold text-[#7A0C2E] telugu">
-          ₹99 ke Sambandham — modati 3 requests <span className="text-[#B8860B]">FREE</span>
+          <Duo en="₹99 ke Sambandham — first 3 requests" te="మొదటి 3 రిక్వెస్టులు" /> <span className="text-[#B8860B]">FREE</span>
         </h1>
         <p className="mt-2 text-sm text-gray-600 telugu max-w-3xl mx-auto">
           Register <b>100% FREE</b> → <b>3 profiles</b> chudochu + <b>3 interests</b> pampochu. Kani{" "}
@@ -113,6 +115,7 @@ export default function PricingPage() {
         {live && <div className="mt-2 text-[11px] text-green-700">✅ Live pricing (server nunchi)</div>}
       </div>
       <div className="mt-4"><OffersBanner /></div>
+      <div className="mt-3"><BannerSlot page="pricing" /></div>
 
       {/* VALUE LADDER STRIP */}
       <div className="mt-6 grid grid-cols-2 md:grid-cols-5 gap-2 text-center text-xs">
@@ -132,7 +135,7 @@ export default function PricingPage() {
 
       {/* PLAN CARDS */}
       <section className="mt-8">
-        <h2 className="text-xl font-bold text-[#7A0C2E] telugu">📦 Plans — mee budjet batti</h2>
+        <h2 className="text-xl font-bold text-[#7A0C2E] telugu">📦 <Duo en="Plans — as per your budget" te="మీ బడ్జెట్‌ను బట్టి" /></h2>
         <div className="mt-4 grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           {[free, ...paid].map((p) => {
             const isPopular = p.code === "S_199";
@@ -174,7 +177,7 @@ export default function PricingPage() {
 
       {/* COMPARISON */}
       <section className="mt-10 overflow-x-auto">
-        <h2 className="text-xl font-bold text-[#7A0C2E] telugu mb-3">📊 Compare — enduku ₹299/₹499 best</h2>
+        <h2 className="text-xl font-bold text-[#7A0C2E] telugu mb-3">📊 <Duo en="Compare — why ₹299/₹499 is best" te="ఎందుకు బెస్ట్" /></h2>
         <table className="w-full text-xs border-collapse bg-white rounded-xl overflow-hidden">
           <thead>
             <tr className="bg-[#7A0C2E] text-white">
@@ -263,7 +266,7 @@ export default function PricingPage() {
       {/* PAYMENT + TRUST */}
       <section className="mt-10 grid md:grid-cols-2 gap-4">
         <div className="rounded-2xl bg-[#7A0C2E] text-white p-5">
-          <div className="font-bold">💳 Payment & security</div>
+          <div className="font-bold">💳 <Duo en="Payment & security" te="చెల్లింపు & భద్రత" /></div>
           <ul className="mt-3 space-y-1.5 text-xs opacity-90">
             {PAY_METHODS.map((m) => <li key={m}>✅ {m}</li>)}
             <li>✅ Razorpay secure checkout (PCI-DSS)</li>
@@ -290,7 +293,7 @@ export default function PricingPage() {
 
       {/* FAQ */}
       <section className="mt-10">
-        <h2 className="text-xl font-bold text-[#7A0C2E] telugu">❓ FAQ — andaru adige prashnalu</h2>
+        <h2 className="text-xl font-bold text-[#7A0C2E] telugu">❓ <Duo en="FAQ — questions everyone asks" te="అందరూ అడిగే ప్రశ్నలు" /></h2>
         <div className="mt-3 space-y-2">
           {FAQ.map((f) => (
             <details key={f.q} className="rounded-xl border border-gray-200 bg-white p-4 open:shadow-sm">

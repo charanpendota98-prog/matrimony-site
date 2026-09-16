@@ -12,6 +12,7 @@
  */
 import { Suspense, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { Duo, duo } from "@/lib/duo";
 import { useSearchParams } from "next/navigation";
 import { NAKSHATRAS, RASIS } from "@/lib/telugu-data";
 
@@ -88,7 +89,7 @@ function PoruthamInner() {
           <div className="text-[11px] font-bold bg-white/10 border border-white/20 rounded-full px-3 py-1 inline-block">
             💍 10-Porutham • Traditional Telugu kundli match
           </div>
-          <h1 className="mt-3 text-2xl md:text-3xl font-bold">Pelli porutham full report</h1>
+          <h1 className="mt-3 text-2xl md:text-3xl font-bold"><Duo en="Marriage porutham full report" te="పెళ్లి పొరుతం పూర్తి రిపోర్ట్" /></h1>
           <p className="mt-2 text-[13px] md:text-sm opacity-90 telugu max-w-3xl">
             Rasi • Nakshatra • Gana • Yoni • Rajju • Vedha • Mahendra • Stree Deergha • Vashya • Rasi Adhipathi —
             10 porutham lu okate chota, Telugu explanation tho. Rajju/Vedha dosha unte manam mundhe warning istham.

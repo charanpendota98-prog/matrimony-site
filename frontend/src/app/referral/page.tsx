@@ -9,6 +9,7 @@
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { SITE_CONFIG } from "@/lib/site-config";
+import { Duo, duo } from "@/lib/duo";
 import { authHeaders } from "@/lib/api";
 import AuthGate from "@/components/AuthGate";
 
@@ -88,7 +89,7 @@ export default function ReferralPage() {
         <div className="max-w-6xl mx-auto px-4 py-8">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h1 className="text-2xl md:text-3xl font-extrabold telugu">🤝 Referral Program — <span className="text-[#D4AF37]">₹50 per paying referral</span></h1>
+              <h1 className="text-2xl md:text-3xl font-extrabold telugu">🤝 <Duo en="Referral Program" te="రెఫరల్ ప్రోగ్రామ్" /> — <span className="text-[#D4AF37]">{duo("₹50 per paying referral", "చెల్లించిన ప్రతి రెఫరల్‌కు ₹50")}</span></h1>
               <p className="text-xs md:text-sm opacity-90 telugu mt-1">
                 Mee friend ₹99 (leda edaina plan) pay chesthe — meeku <b>₹50</b> · vaallaki <b>+1 credit FREE</b> · repeat payments ki 10% (max ₹100) + tier bonus
                 {" "}<span className="text-[#D4AF37] font-bold">Evvaru enni aina refer cheyyochu — limit ledu, okate phone lo kooda conditions levu.</span>
@@ -217,7 +218,7 @@ export default function ReferralPage() {
         {/* SHARE KIT */}
         <section className="mt-6 bg-white rounded-3xl p-5 border border-gray-200 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="font-bold text-[#7A0C2E] telugu">📲 Share kit — WhatsApp/Status ki ready messages</h2>
+            <h2 className="font-bold text-[#7A0C2E] telugu">📲 <Duo en="Share kit — ready messages for WhatsApp/Status" te="వాట్సాప్/స్టేటస్‌కు రెడీ మెసేజ్‌లు" /></h2>
             <div className="flex gap-2 text-xs">
               <a href={`/api/referral/${tsapId}/poster.png?style=square`} className="rounded-full bg-[#7A0C2E] text-white px-3 py-1.5 font-bold">🖼️ Poster (square)</a>
               <a href={`/api/referral/${tsapId}/poster.png?style=status`} className="rounded-full bg-[#0F1F3C] text-white px-3 py-1.5 font-bold">📱 Status poster</a>
@@ -259,7 +260,7 @@ export default function ReferralPage() {
         {/* TIERS + MILESTONES */}
         <section className="mt-6 grid md:grid-cols-2 gap-4">
           <div className="bg-white rounded-3xl p-5 border border-gray-200 shadow-sm">
-            <h2 className="font-bold text-[#7A0C2E] telugu">🏆 Tiers — ekkuva refer chesthe ekkuva %</h2>
+            <h2 className="font-bold text-[#7A0C2E] telugu">🏆 <Duo en="Tiers — refer more, earn more %" te="ఎక్కువ రెఫర్ చేస్తే ఎక్కువ %" /></h2>
             <div className="mt-3 space-y-2 text-xs">
               {(dash?.tiers || []).map((t: any) => (
                 <div key={t.key} className={`flex items-center justify-between rounded-xl p-3 ${t.key === tier.key ? "bg-[#D4AF37]/20 border border-[#D4AF37]" : "bg-gray-50"}`}>
@@ -274,7 +275,7 @@ export default function ReferralPage() {
           </div>
 
           <div className="bg-white rounded-3xl p-5 border border-gray-200 shadow-sm">
-            <h2 className="font-bold text-[#7A0C2E] telugu">🎯 Milestones — auto bonus (cash + credits)</h2>
+            <h2 className="font-bold text-[#7A0C2E] telugu">🎯 <Duo en="Milestones — auto bonus (cash + credits)" te="మైలురాళ్లు — ఆటో బోనస్" /></h2>
             <div className="mt-3">
               <div className="h-3 rounded-full bg-gray-100 overflow-hidden">
                 <div className="h-3 bg-[#7A0C2E]" style={{ width: `${progress}%` }} />

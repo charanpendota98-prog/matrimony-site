@@ -2,6 +2,7 @@
 /** 📱 Login — phone OTP (real users) + demo login (seed profiles) */
 import { useState } from "react";
 import Link from "next/link";
+import { Duo, duo } from "@/lib/duo";
 import { useRouter } from "next/navigation";
 import { demoLogin, rememberSession, sendOtp, verifyOtp } from "@/lib/auth";
 import { readLocal } from "@/lib/api";
@@ -60,7 +61,7 @@ export default function LoginPage() {
 
   return (
     <main className="mx-auto max-w-md px-4 py-10">
-      <h1 className="text-2xl font-extrabold text-[#7A0C2E]">📱 Login — mee number tho</h1>
+      <h1 className="text-2xl font-extrabold text-[#7A0C2E]">📱 <Duo en="Login — with your number" te="మీ నంబర్‌తో లాగిన్" /></h1>
       <p className="mt-1 text-sm text-slate-600">
         🔒 Mee inbox, credits, shortlist — ee data meeru matrame chudagalaru (token tho protect chesam).
       </p>
@@ -105,7 +106,7 @@ export default function LoginPage() {
       </section>
 
       <section className="mt-5 rounded-2xl border border-slate-200 bg-white p-4">
-        <h2 className="text-sm font-bold text-slate-800">🎬 Demo login (preview / testing)</h2>
+        <h2 className="text-sm font-bold text-slate-800">🎬 <Duo en="Demo login (preview / testing)" te="డెమో లాగిన్" /></h2>
         <p className="text-xs text-slate-500">Demo profile ID tho login — real users ki phone OTP eh.</p>
         <div className="mt-2 flex gap-2">
           <input value={demoId} onChange={(e) => setDemoId(e.target.value.toUpperCase())}

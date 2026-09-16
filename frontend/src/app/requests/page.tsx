@@ -15,6 +15,7 @@ import { authHeaders, apiPost, getToken } from "@/lib/api";
 import Link from "next/link";
 import Reveal from "@/components/Reveal";
 import SectionHeading from "@/components/SectionHeading";
+import { Duo, duo } from "@/lib/duo";
 
 type Plan = { code: string; price: number; profiles: number; label: string; telugu: string; badge: string; per_profile: number; perks?: string[] };
 type Addon = { code: string; price: number; label: string; telugu: string; kind: string };
@@ -240,7 +241,7 @@ export default function RequestsPage() {
             <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-3 py-1 text-[11px] font-bold">
               🚫 Chatting ledu • 💌 Interest request • 🛡️ Anti-ban WhatsApp delivery
             </div>
-            <h1 className="mt-3 text-2xl md:text-4xl font-bold">Requests Dashboard</h1>
+            <h1 className="mt-3 text-2xl md:text-4xl font-bold"><Duo en="Requests Dashboard" te="రిక్వెస్ట్‌ల డాష్‌బోర్డ్" /></h1>
             <p className="mt-2 text-[13px] md:text-sm opacity-90 telugu max-w-3xl">
               Nachhina profile ki <b>Interest pampu</b> — vaallaki WhatsApp lo mee profile card veltundi.
               Vaallu <b>Accept</b> chesthe rendu numbers automatic ga exchange avutayi. <b>Decline</b> chesthe mee credit refund.
@@ -415,7 +416,7 @@ export default function RequestsPage() {
         {tab === "send" && (
           <div className="grid md:grid-cols-2 gap-5">
             <div className="bg-white rounded-2xl p-5 card-shadow border border-gold/20">
-              <SectionHeading eyebrow="1 credit = 1 profile" title="💌 Interest pampu" subtitle="Profile ID ivvandi — vaallaki mana WhatsApp nunchi mee profile + card veltundi." telugu align="left" />
+              <SectionHeading eyebrow={duo("1 credit = 1 profile", "1 క్రెడిట్ = 1 ప్రొఫైల్")} title={`💌 ${duo("Send interest", "ఇంట్రెస్ట్ పంపండి")}`} subtitle="Profile ID ivvandi — vaallaki mana WhatsApp nunchi mee profile + card veltundi." telugu align="left" />
               <div className="mt-4 space-y-3">
                 <div>
                   <label className="text-[12px] font-bold text-ink">Profile TSAP ID *</label>
@@ -552,7 +553,7 @@ export default function RequestsPage() {
         {tab === "porutham" && (
           <div className="grid md:grid-cols-2 gap-5">
             <div className="bg-white rounded-2xl p-5 card-shadow border border-gold/20">
-              <SectionHeading eyebrow="Traditional 10 poruthams" title="🔮 Kundli / Porutham check"
+              <SectionHeading eyebrow={duo("Traditional 10 poruthams", "సాంప్రదాయ 10 పొరుతాలు")} title={`🔮 ${duo("Kundli / Porutham check", "జాతక / పొరుతం చూడండి")}`}
                 subtitle="Bride + groom TSAP ID ivvandi — 10 porutham (rasi, nakshatra, gana, yoni, rajju, vedha, mahendra, stree deergha, vashya, adhipathi) calculate chestham." telugu align="left" />
               <div className="mt-4 space-y-3">
                 <input value={porA} onChange={(e) => setPorA(e.target.value.toUpperCase())} placeholder="Bride TSAP ID — TSAP-F-2025-1042"
@@ -687,7 +688,7 @@ export default function RequestsPage() {
         {/* PLANS */}
         {tab === "plans" && (
           <div>
-            <SectionHeading eyebrow="Credits" title="Plans — 1 credit = 1 profile" subtitle="₹/profile prati tier lo thaggutundi (₹20 → ₹10). Decline aithe credit refund. Razorpay live ayyaka automatic — ippudu UPI link tho." telugu align="left" />
+            <SectionHeading eyebrow={duo("Credits", "క్రెడిట్లు")} title={duo("Plans — 1 credit = 1 profile", "ప్లాన్లు — 1 క్రెడిట్ = 1 ప్రొఫైల్")} subtitle="₹/profile prati tier lo thaggutundi (₹20 → ₹10). Decline aithe credit refund. Razorpay live ayyaka automatic — ippudu UPI link tho." telugu align="left" />
             {renewal && (
               <div className="mt-3 rounded-2xl bg-cream border border-gold/30 p-3 text-[12px] text-gray-700">
                 🔁 <b>Renewal offer (pata customers):</b> ₹{renewal.price} → <b>{renewal.profiles} profiles</b> — first-time ₹99 → 5 profiles.
@@ -726,7 +727,7 @@ export default function RequestsPage() {
 
             {/* 🎁 ADD-ONS */}
             <div className="mt-6">
-              <SectionHeading eyebrow="Add-ons" title="🎁 Extra value — credits kanna" subtitle="Ivi per-item: boost, who-viewed, porutham report, verification badge." telugu align="left" />
+              <SectionHeading eyebrow={duo("Add-ons", "అదనపువి")} title={`🎁 ${duo("Extra value — beyond credits", "క్రెడిట్లకు మించి")}`} subtitle="Ivi per-item: boost, who-viewed, porutham report, verification badge." telugu align="left" />
               <div className="mt-3 grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 {addons.map((a) => (
                   <div key={a.code} className="bg-white rounded-2xl p-4 card-shadow border border-gold/25 flex flex-col">
@@ -746,7 +747,7 @@ export default function RequestsPage() {
       </div>
       {needsLogin ? (
         <div className="mt-6">
-          <AuthGate title="🔒 Mee inbox / credits / shortlist ki login cheyyandi"
+          <AuthGate title={`🔒 ${duo("Login for your inbox / credits / shortlist", "ఇన్‌బాక్స్ / క్రెడిట్లు / షార్ట్‌లిస్ట్‌కు లాగిన్ చేయండి")}`}
             note="Ee private data token tho protect chesam (vere vaallu mee inbox chudalenu). Phone OTP login 10 seconds." />
         </div>
       ) : null}

@@ -5,9 +5,11 @@ import { ALL_CHANNELS, CHANNEL_STATS, Channel } from "@/lib/channels";
 import Reveal from "@/components/Reveal";
 import AdSlot from "@/components/AdSlot";
 import OffersBanner from "@/components/OffersBanner";
+import BannerSlot from "@/components/BannerSlot";
 import SectionHeading from "@/components/SectionHeading";
 import { SITE_CONFIG } from "@/lib/site-config";
 import { apiGet } from "@/lib/api";
+import { Duo, duo } from "@/lib/duo";
 
 const BOT = SITE_CONFIG.botUrl;
 
@@ -141,13 +143,11 @@ export default function Home() {
             </div>
 
             <h1 className="mt-4 text-[32px] md:text-[46px] font-bold text-maroon leading-[1.12]">
-              Mana Vivaha lo <span className="text-gradient-gold">Sambandham</span>
-              <br />
-              manaki daggara ga, nammakam ga.
+              <Duo en="Perfect matches, close to home" te="మీ ఇంటి దగ్గరే సంబంధాలు" />
             </h1>
 
             <p className="mt-3 text-sm md:text-base text-gray-700 telugu leading-relaxed max-w-xl">
-              Telangana + Andhra Pradesh Telugu Matrimony.{" "}
+              {duo("Telangana + Andhra Pradesh Telugu Matrimony", "తెలంగాణ + ఆంధ్రప్రదేశ్ తెలుగు మ్యాట్రిమోనీ")}.{" "}
               <b>Region • Religion • 43 Castes • Special</b> — {CHANNEL_STATS.total} channels,
               okka register tho mee profile saripoyE anni chotaki auto ga veltundi.{" "}
               <b>₹99 ke Sambandham — modati 3 numbers FREE.</b>
@@ -158,7 +158,7 @@ export default function Home() {
                 href="/register"
                 className="px-6 py-3.5 rounded-full maroon-gradient text-white text-sm font-bold shadow-brand hover:shadow-brandLg transition"
               >
-                🚀 Register FREE — 3 nimushalu
+                🚀 {duo("Register FREE — 3 minutes", "3 నిమిషాల్లో ఉచిత నమోదు")}
               </Link>
               <a
                 href={BOT}
@@ -279,6 +279,11 @@ export default function Home() {
         <OffersBanner />
       </section>
 
+      {/* ================= ANNOUNCEMENTS (CMS) ================= */}
+      <section className="max-w-7xl mx-auto px-4 pt-3">
+        <BannerSlot page="home" />
+      </section>
+
       {/* ================= STATS ================= */}
       <section className="max-w-7xl mx-auto px-4 py-8">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -303,8 +308,8 @@ export default function Home() {
       <section className="max-w-7xl mx-auto px-4 py-8">
         <Reveal>
           <SectionHeading
-            eyebrow="Elaga pani chestundi"
-            title="4 steps lo sambandham — antha automatic"
+            eyebrow={duo("How it works", "ఎలా పనిచేస్తుంది")}
+            title={duo("Sambandham in 4 automatic steps", "4 దశల్లో ఆటోమేటిక్ సంబంధం")}
             subtitle="Register nunchi channel post varaku bot chusukuntundi. Nuvvu manual ga edi post cheyyakkarledu."
             telugu
           />
@@ -333,11 +338,11 @@ export default function Home() {
         <div className="rounded-3xl cream-gradient border border-gold/30 p-5 md:p-8">
           <Reveal>
             <SectionHeading
-              eyebrow="Advanced model — top matrimony sites kanna smart"
-              title="Chatting ledu. Interest pampu → WhatsApp lo number exchange"
+              eyebrow={duo("Advanced request model", "అడ్వాన్స్‌డ్ రిక్వెస్ట్ విధానం")}
+              title={duo("No chatting — interest → WhatsApp number exchange", "చాటింగ్ లేదు • ఇంట్రెస్ట్ → వాట్సాప్ నంబర్")}
               subtitle="Chat = time waste + fake ids + moderation cost. Manam consent-based request model: evaru accept cheste vaallu matrame matladukuntaru."
               telugu
-              action={{ href: "/requests", label: "💌 Requests dashboard" }}
+              action={{ href: "/requests", label: `💌 ${duo("Requests dashboard", "రిక్వెస్ట్‌లు")}` }}
             />
           </Reveal>
 
@@ -433,11 +438,11 @@ export default function Home() {
       <section className="max-w-7xl mx-auto px-4 py-8">
         <Reveal>
           <SectionHeading
-            eyebrow="Channel network"
-            title={`${CHANNEL_STATS.total} channels — mee profile saripoyE anni chotaki`}
+            eyebrow={duo("Channel network", "ఛానల్ నెట్‌వర్క్")}
+            title={`${CHANNEL_STATS.total} ${duo("channels — your profile reaches everywhere it fits", "ఛానళ్లు — మీ ప్రొఫైల్ అన్నిచోట్లకు")}`}
             subtitle="Region + Religion + Caste + Special. Okka approve = anni related channels lo post."
             telugu
-            action={{ href: "/channels", label: `Anni ${CHANNEL_STATS.total} channels` }}
+            action={{ href: "/channels", label: `${duo("All", "అన్ని")} ${CHANNEL_STATS.total} ${duo("channels", "ఛానళ్లు")}` }}
           />
         </Reveal>
 
@@ -498,11 +503,11 @@ export default function Home() {
       <section className="max-w-7xl mx-auto px-4 py-8">
         <Reveal>
           <SectionHeading
-            eyebrow="Caste-wise"
-            title={`${CHANNEL_STATS.by_tier.L3_CASTE} caste channels — 1 caste = 1 channel`}
+            eyebrow={duo("Caste-wise", "కులాల వారీగా")}
+            title={`${CHANNEL_STATS.by_tier.L3_CASTE} ${duo("caste channels — 1 caste = 1 channel", "కుల ఛానళ్లు — 1 కులం = 1 ఛానల్")}`}
             subtitle="Bride + Groom iddaru okkate channel lo — #Bride / #Groom hashtag tho filter. 5000 members dataka split cheyyamu (empty channels fail avuthayi)."
             telugu
-            action={{ href: "/channels?tier=L3_CASTE", label: "Caste list chudu" }}
+            action={{ href: "/channels?tier=L3_CASTE", label: duo("See caste list", "కులాల జాబితా") }}
           />
         </Reveal>
         <div className="mt-5 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2.5">
@@ -540,8 +545,8 @@ export default function Home() {
       <section className="max-w-7xl mx-auto px-4 py-8">
         <Reveal>
           <SectionHeading
-            eyebrow="Special respect"
-            title="Prathi okkariki separate space — dignity tho"
+            eyebrow={duo("Special respect", "ప్రత్యేక గౌరవం")}
+            title={duo("A separate space for everyone — with dignity", "అందరికీ ప్రత్యేక స్థలం — గౌరవంతో")}
             subtitle="2nd marriage, differently abled, 35+, govt jobs, doctors, NRI — prathi vallaki prathyeka channel."
             telugu
           />
@@ -575,8 +580,8 @@ export default function Home() {
       <section className="max-w-7xl mx-auto px-4 py-8">
         <Reveal>
           <SectionHeading
-            eyebrow="Pricing"
-            title="Simple ga — ₹99 ke Sambandham"
+            eyebrow={duo("Pricing", "ధరలు")}
+            title={duo("Simple — ₹99 ke Sambandham", "సులభం — ₹99 కే సంబంధం")}
             subtitle="Register FREE. Modati 3 interest requests FREE. Tarvata ₹99 → 5 profiles, ₹199 → 12, ₹299 → 25, ₹499 → 50. Prati tier ki ₹/profile thaggutundi — decline aithe credit refund."
             telugu
             align="center"
@@ -659,8 +664,8 @@ export default function Home() {
       <section className="max-w-7xl mx-auto px-4 py-8">
         <Reveal>
           <SectionHeading
-            eyebrow="Nammakam"
-            title="Families em antunnaru"
+            eyebrow={duo("Trust", "నమ్మకం")}
+            title={duo("What families say", "కుటుంబాలు ఏమంటున్నారంటే")}
             subtitle="Real reviews add avuthayi — ippatiki demo samples."
             telugu
           />
@@ -746,8 +751,8 @@ export default function Home() {
       <section className="max-w-4xl mx-auto px-4 py-8">
         <Reveal>
           <SectionHeading
-            eyebrow="Prashnalu"
-            title="Frequently asked — Telugu lo clear answers"
+            eyebrow={duo("Questions", "ప్రశ్నలు")}
+            title={duo("Frequently asked — clear answers", "తరచూ అడిగేవి — స్పష్టమైన సమాధానాలు")}
             align="center"
           />
         </Reveal>
@@ -788,7 +793,7 @@ export default function Home() {
             <div className="relative md:flex items-center justify-between gap-6">
               <div>
                 <h2 className="text-2xl md:text-3xl font-bold leading-snug">
-                  Ippude start chey — <span className="text-gradient-gold">3 nimushalu</span> chalu
+                  <Duo en="Start now — just 3 minutes" te="ఇప్పుడే మొదలుపెట్టండి — 3 నిమిషాలు చాలు" />
                 </h2>
                 <p className="mt-2 text-[13px] opacity-90 telugu max-w-xl">
                   Register FREE → profile card ready → {CHANNEL_STATS.total} channels network lo auto-post →
@@ -799,7 +804,7 @@ export default function Home() {
                     href="/register"
                     className="px-6 py-3.5 rounded-full gold-gradient text-maroon text-sm font-bold shadow-gold"
                   >
-                    🚀 Register FREE
+                    🚀 <Duo en="Register FREE" te="ఉచిత నమోదు" />
                   </Link>
                   <a
                     href={BOT}
@@ -807,7 +812,7 @@ export default function Home() {
                     rel="noreferrer"
                     className="px-6 py-3.5 rounded-full bg-white/15 border border-white/30 text-white text-sm font-bold"
                   >
-                    🤖 Bot lo register
+                    🤖 {duo("Register in Bot", "బాట్‌లో నమోదు")}
                   </a>
                 </div>
               </div>
@@ -823,7 +828,7 @@ export default function Home() {
       </section>
     {/* 🛡️ WAVE 9 — Trust & security (transparency: numbers policy, audit, rate limits) */}
     <section className="max-w-7xl mx-auto px-4 py-8">
-      <SectionHeading title="🛡️ Trust & Security — numbers eppudu public kaadu"
+      <SectionHeading title={`🛡️ ${duo("Trust & Security — numbers never public", "నమ్మకం & భద్రత — నంబర్లు ఎప్పుడూ పబ్లిక్ కావు")}`}
         subtitle="Phone numbers 🔒 lock — interest accept (consent) tho matrame exchange. Consent ledger, rate limits, audit anni open ga chupisthunnam." />
       <div className="mt-5 grid gap-4 md:grid-cols-3">
         <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
@@ -885,8 +890,8 @@ function VendorStrip() {
     <section className="max-w-7xl mx-auto px-4 py-8">
       <Reveal>
         <SectionHeading
-          eyebrow="Wedding Vendors"
-          title="🏪 Pelli ki kavalsina anni — okate chota"
+          eyebrow={duo("Wedding Vendors", "పెళ్లి వెండర్లు")}
+          title={`🏪 ${duo("Everything for your wedding — one place", "పెళ్లికి కావాల్సినవన్నీ — ఒకేచోట")}`}
           subtitle="Catering • Photography • Decorations • Function Hall • Tent House • Pandit • Jewellery • Makeup • DJ • Invitations • Cars • Planner. Verified vendors, direct WhatsApp, best rates."
           telugu
           align="center"

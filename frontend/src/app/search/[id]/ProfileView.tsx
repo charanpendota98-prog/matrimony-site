@@ -16,6 +16,7 @@ import TrustBadge from "@/components/TrustBadge";
 import AuthGate from "@/components/AuthGate";
 import { apiGet, apiPost, authHeaders, getToken } from "@/lib/api";
 import { firstName } from "@/lib/names";
+import { Duo, duo } from "@/lib/duo";
 
 type Row = Record<string, any>;
 
@@ -148,7 +149,7 @@ export default function ProfileView() {
         </div>
       </div>
 
-      {loading ? <p className="mt-6 text-center text-slate-500">⏳ Profile load avutundi…</p> : null}
+      {loading ? <p className="mt-6 text-center text-slate-500">⏳ {duo("Loading profile…", "ప్రొఫైల్ లోడ్ అవుతోంది…")}</p> : null}
       {!loading && err ? (
         <div className="mt-6 rounded-2xl border-2 border-amber-300 bg-amber-50 p-5 text-center">
           <p className="font-bold text-amber-900">{err}</p>

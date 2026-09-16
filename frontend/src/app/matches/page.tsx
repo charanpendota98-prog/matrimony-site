@@ -22,6 +22,7 @@ import AuthGate from "@/components/AuthGate";
 import { apiGet, apiPost, getToken } from "@/lib/api";
 import { firstName } from "@/lib/names";
 import AdSlot from "@/components/AdSlot";
+import { Duo, duo } from "@/lib/duo";
 
 type Row = Record<string, any>;
 const SAVED_SEARCHES_KEY = "tsap_saved_searches_v1";
@@ -669,11 +670,11 @@ export default function MatchesAdvanced() {
           </Link>
           <button onClick={() => sendInterest(row)} disabled={sending === row.tsap_id}
             className="flex-1 min-w-[140px] py-2.5 rounded-xl maroon-gradient text-white text-[12px] font-bold disabled:opacity-60">
-            {sending === row.tsap_id ? "Pampisthunnam…" : "💌 Interest (1 credit)"}
+            {sending === row.tsap_id ? duo("Sending…", "పంపిస్తున్నాం…") : `💌 ${duo("Interest (1 credit)", "ఇంట్రెస్ట్ (1 క్రెడిట్)")}`}
           </button>
           <button onClick={() => toggleSave(row)}
             className={`py-2.5 px-3 rounded-xl text-[12px] font-bold border ${saved ? "border-rose-300 bg-rose-50 text-rose-700" : "border-maroon/25 text-maroon"}`}>
-            {saved ? "❤️ Saved" : "🤍 Save"}
+            {saved ? `❤️ ${duo("Saved", "సేవ్ అయింది")}` : `🤍 ${duo("Save", "సేవ్")}`}
           </button>
           <button onClick={() => shareWhatsApp(row)} className="py-2.5 px-3 rounded-xl bg-green-600 text-white text-[12px] font-bold">WhatsApp</button>
           <button onClick={() => shareTelegram(row)} className="py-2.5 px-3 rounded-xl bg-blue-500 text-white text-[12px] font-bold">Telegram</button>
@@ -690,10 +691,10 @@ export default function MatchesAdvanced() {
       <div className="sticky top-0 z-30 bg-cream/95 backdrop-blur border-b border-gold/25 safe-top">
         <div className="max-w-6xl mx-auto px-4 py-3">
           <div className="flex items-center gap-2">
-            <Link href="/" className="text-[12px] font-bold text-maroon shrink-0">← Home</Link>
+            <Link href="/" className="text-[12px] font-bold text-maroon shrink-0">← {duo("Home", "హోమ్")}</Link>
             <div className="flex-1 flex items-center gap-2 bg-white border border-gold/40 rounded-2xl px-3">
               <span className="text-[15px]">🔍</span>
-              <input value={filters.q} onChange={(e) => setF("q", e.target.value)} placeholder="Peru / caste / district / job…"
+              <input value={filters.q} onChange={(e) => setF("q", e.target.value)} placeholder={duo("Name / caste / district / job…", "పేరు / కులం / జిల్లా / ఉద్యోగం…")}
                 className="flex-1 py-3 bg-transparent outline-none text-[14px]" aria-label="Peru / caste / district / job…" />
             </div>
             <button onClick={() => setSheet(true)} className="md:hidden shrink-0 px-3 py-3 rounded-2xl maroon-gradient text-white text-[12px] font-bold">
@@ -711,11 +712,11 @@ export default function MatchesAdvanced() {
               <button key={s.v} onClick={() => setSort(s.v)}
                 className={`chip shrink-0 ${sort === s.v ? "chip-on" : ""}`}>{s.l}</button>
             ))}
-            <button onClick={saveSearch} className="chip shrink-0">🔔 Save search</button>
+            <button onClick={saveSearch} className="chip shrink-0">🔔 {duo("Save search", "సేవ్ చేయండి")}</button>
             <button onClick={() => void sendAlerts()} className="chip shrink-0" title="Saved searches ki kotha matches WhatsApp lo">
-              📨 New-match alerts{serverSearches.length ? ` (${serverSearches.length})` : ""}
+              📨 {duo("New-match alerts", "కొత్త సంబంధాలు")} {serverSearches.length ? `(${serverSearches.length})` : ""}
             </button>
-            <button onClick={copySearchLink} className="chip shrink-0">🔗 Share search</button>
+            <button onClick={copySearchLink} className="chip shrink-0">🔗 {duo("Share search", "షేర్ చేయండి")}</button>
           </div>
         </div>
       </div>
@@ -723,11 +724,11 @@ export default function MatchesAdvanced() {
       <div className="max-w-6xl mx-auto px-4 py-4 md:grid md:grid-cols-[280px_1fr] md:gap-5 md:items-start">
         {/* ---------- desktop filter sidebar ---------- */}
         <aside className="hidden md:block bg-white rounded-[1.5rem] border border-gold/25 p-4 sticky top-[132px] max-h-[76vh] overflow-y-auto">
-          <div className="font-bold text-maroon text-[14px]">🔎 Filters ({activeChips.length})</div>
+          <div className="font-bold text-maroon text-[14px]">🔎 <Duo en="Filters" te="వడపోతలు" /> ({activeChips.length})</div>
           <button onClick={() => { setFilters({ ...DEFAULT_FILTERS }); setSort("score"); }}
-            className="mt-2 w-full py-2 rounded-xl border border-maroon/20 text-[12px] font-bold text-maroon">♻️ Reset anni</button>
+            className="mt-2 w-full py-2 rounded-xl border border-maroon/20 text-[12px] font-bold text-maroon">♻️ {duo("Reset all", "అన్నీ రీసెట్")}</button>
           <div className="mt-3">
-            <div className="text-[11px] font-bold text-ink">Evarini?</div>
+            <div className="text-[11px] font-bold text-ink"><Duo en="Whom to find?" te="ఎవరిని?" /></div>
             <div className="mt-1.5 flex flex-wrap gap-1.5">
               {[{ v: "", l: "Andaru" }, { v: "Bride", l: "👰 Brides" }, { v: "Groom", l: "🤵 Grooms" }].map((g) => (
                 <button key={g.v} onClick={() => setF("gender", g.v)} className={`chip ${filters.gender === g.v ? "chip-on" : ""}`}>{g.l}</button>

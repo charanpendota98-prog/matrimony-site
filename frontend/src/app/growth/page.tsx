@@ -10,6 +10,7 @@
 import { authHeaders, getAdminKey, setAdminKey } from "@/lib/api";
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { Duo, duo } from "@/lib/duo";
 
 type Stats = Record<string, any>;
 
@@ -102,7 +103,7 @@ export default function GrowthPage() {
           <div className="text-[11px] font-bold bg-white/10 border border-white/20 rounded-full px-3 py-1 inline-block">
             📈 Growth + Ops dashboard
           </div>
-          <h1 className="mt-3 text-2xl md:text-3xl font-bold">Site traffic → Leads → Profiles</h1>
+          <h1 className="mt-3 text-2xl md:text-3xl font-bold"><Duo en="Site traffic → Leads → Profiles" te="సందర్శకులు → లీడ్స్ → ప్రొఫైళ్లు" /></h1>
           <p className="mt-2 text-[13px] opacity-90 telugu max-w-3xl">
             Prathi visitor DB lo save avutaru (middleware tracking). Number isthe lead — mana WhatsApp follow-up tho profile ga marutaru.
             WhatsApp posts anni anti-ban gap (120–170s random) tho — ee screen lo queue status chudochu.
