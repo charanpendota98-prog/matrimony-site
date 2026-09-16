@@ -49,7 +49,7 @@ const DEFAULT_FORM: Record<string, any> = {
   brothers: "0", brothers_married: "0", sisters: "0", sisters_married: "0",
   family_type: "Nuclear", family_status: "Middle Class", family_values: "Traditional",
   native_place: "", state: "TS", district: "", mandal: "", current_city: "", country: "India", pincode: "",
-  phone: "", email: "", photo_private: true, about_myself: "",
+  phone: "", email: "", password: "", photo_private: true, about_myself: "",
   expectations: "", exp_age_min: "", exp_age_max: "", exp_job: "", exp_location: "", exp_caste: "",
   physical_status: "Normal", body_type: "Average", complexion: "Fair", blood_group: "",
   referral_code: "", consent: false,
@@ -231,6 +231,7 @@ function Wizard() {
   const [photoInfo, setPhotoInfo] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [otpCode, setOtpCode] = useState("");
+  const [showPw, setShowPw] = useState(false);
   const [otpMsg, setOtpMsg] = useState("");
   const [phoneOk, setPhoneOk] = useState(false);
   const [refLocked, setRefLocked] = useState("");
@@ -357,6 +358,7 @@ const set = (k: string, v: any) => {
       if (!f.state) e.push("State select cheyyandi");
       if (!f.district) e.push("District select cheyyandi");
       if (!/^\d{10}$/.test(String(f.phone))) e.push("10 digit mobile number ivvandi");
+      if (String(f.password || "").length < 6) e.push("🔑 Password minimum 6 characters pettandi");
     }
     if (s === 5) {
       const _ab = String(f.about_myself || "").trim();
@@ -503,7 +505,7 @@ const set = (k: string, v: any) => {
         "education", "education_detail", "college", "job", "company", "salary", "experience", "work_type",
         "work_location", "father_name", "father_occupation", "mother_name", "mother_occupation", "brothers",
         "brothers_married", "sisters", "sisters_married", "family_type", "family_status", "family_values",
-        "native_place", "state", "district", "mandal", "current_city", "country", "pincode", "phone", "email",
+        "native_place", "state", "district", "mandal", "current_city", "country", "pincode", "phone", "email", "password",
         "about_myself", "expectations", "exp_age_min", "exp_age_max", "exp_job", "exp_location", "exp_caste",
         "physical_status", "body_type", "complexion", "blood_group", "referral_code",
       ];
@@ -581,6 +583,16 @@ const set = (k: string, v: any) => {
           ) : null}
 
           <PhotoFlow tsapId={tsap} />
+
+          <div className="rounded-2xl maroon-gradient text-white p-4 flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <div className="font-bold text-[15px]">🔓 3 profiles FULL unlock — ₹99 ke Sambandham</div>
+              <div className="text-[12px] opacity-90 telugu">Register ayyaka 3 matches FREE chusaru — full details + numbers kosam ₹99 (5 profiles + boost, 30 days).</div>
+            </div>
+            <a href="/pricing" className="gold-gradient text-maroon font-bold text-[13px] px-5 py-2.5 rounded-xl whitespace-nowrap">
+              ₹99 Unlock →
+            </a>
+          </div>
 
           <div className="bg-white rounded-2xl p-4 border border-gold/30 card-shadow">
             <div className="font-bold text-maroon text-[15px]">🎁 Mee account ki enti vachindi</div>
@@ -1081,6 +1093,20 @@ const set = (k: string, v: any) => {
                 )}
                 {otpMsg && <div className="text-[11px] text-gray-600">{otpMsg}</div>}
                 <TextField label="Email" optional value={f.email} onChange={(v) => set("email", v)} inputMode="email" placeholder="name@gmail.com" />
+                <div>
+                  <label className="text-[13px] font-bold text-ink">🔑 Password <span className="text-maroon">*</span></label>
+                  <div className="relative mt-1">
+                    <input type={showPw ? "text" : "password"} value={f.password}
+                      onChange={(e) => set("password", e.target.value.slice(0, 72))}
+                      placeholder="Minimum 6 characters" autoComplete="new-password"
+                      className="input-mobile pr-16" />
+                    <button type="button" onClick={() => setShowPw(!showPw)}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-[12px] font-bold text-maroon px-2 py-1">
+                      {showPw ? "🙈 Hide" : "👁️ Show"}
+                    </button>
+                  </div>
+                  <div className="hint mt-1">Login ki number + password (OTP tho kooda login avvachu) · Marichipothe OTP tho reset ✅</div>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 gap-3">

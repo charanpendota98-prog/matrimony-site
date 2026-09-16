@@ -109,6 +109,7 @@ import cms as CMS            # 📝 WAVE 15: pages + stories + banners
 import chanmap as CHAN         # 📡 WAVE 15: channel links + import + coverage
 from interest import ADDONS, RENEWALS, is_addon, get_addon, get_renewal, plan_list_with_free, addon_list, renewal_offer
 from photo_validate import validate_photo  # 🌊 WAVE 17 — photo validation pipeline
+from otp_channels import send_otp as otp_channel_send, CHANNEL_TELUGU  # 🌊 WAVE 18 — free OTP
 from channels_config import post_targets, caste_channel_links, channel_links, WA_OFFICIAL_LINK
 # 🎁 WAVE 10 — register avvagane "3 profiles + caste channel links" WhatsApp ki
 from welcome_pack import build_welcome_pack, pack_public, channels_count as wa_links_stats
@@ -438,6 +439,7 @@ async def register(
     district: str = Form(...),
     mandal: str = Form(""),
     phone: str = Form(...),
+    password: str = Form(""),
     referral_code: str = Form(""),
     photo_private: bool = Form(False),
     expectations: str = Form(""),
@@ -506,6 +508,11 @@ async def register(
     gender = {"Male": "Groom", "Female": "Bride"}.get(gender, gender)
     age = req_int(age, "age", 21 if gender == "Groom" else 18, 70)
     phone = req_phone(phone, "phone")
+    password = (password or "").strip()
+    if password and len(password) < 6:   # 🌊 WAVE 18 — number+password login
+        raise HTTPException(400, "🔑 Password minimum 6 characters (letters + number best)")
+    if len(password) > 72:
+        raise HTTPException(400, "🔑 Password maximum 72 characters")
     full_name = req_text(full_name, "full_name", 2, 60, required=True,
                          pattern=NAME_RE, pattern_msg="⚠️ Name lo letters matrame (2-60 chars)")
     marital_status = req_choice(marital_status, "marital_status",
@@ -611,6 +618,7 @@ async def register(
         "phone_encrypted": encrypt_phone(phone),
         "phone_last4": phone[-4:],
         "phone": phone,
+        "password_hash": _hash_password(password) if password else "",
         "referral_code": my_ref_code,
         "referred_by": "",                    # attach_referral() validate chesi lock chestundi (kinda)
         "referred_by_raw": referral_code,     # form lo vachina code (audit)
@@ -2388,6 +2396,120 @@ def admin_photos_review(payload: dict, request: Request):
             "message_telugu": ("✅ Approve ayyindi" if decision == "approved" else "❌ Reject ayyindi — user ki reason vellindi")}
 
 
+# ---------------------------------------------------------------------------
+# 🌊 WAVE 18 — PASSWORD AUTH (number + password login, forgot/reset via OTP)
+# pbkdf2_hmac-sha256 + random salt (stdlib only — bcrypt dependency vaddu).
+# ---------------------------------------------------------------------------
+import hashlib as _hashlib
+import secrets as _secrets
+
+PW_LOCKS: Dict[str, Dict[str, Any]] = {}   # phone → {fails, locked_until}
+
+
+def _hash_password(pw: str) -> str:
+    salt = _secrets.token_hex(16)
+    h = _hashlib.pbkdf2_hmac("sha256", pw.encode("utf-8"), bytes.fromhex(salt), 120_000)
+    return f"pbkdf2${salt}${h.hex()}"
+
+
+def _check_password(pw: str, stored: str) -> bool:
+    try:
+        algo, salt, hexh = (stored or "").split("$")
+        if algo != "pbkdf2":
+            return False
+        h = _hashlib.pbkdf2_hmac("sha256", pw.encode("utf-8"), bytes.fromhex(salt), 120_000)
+        return _secrets.compare_digest(h.hex(), hexh)
+    except Exception:
+        return False
+
+
+def _pw_locked(phone: str) -> str:
+    rec = PW_LOCKS.get(phone) or {}
+    try:
+        if rec.get("locked_until") and datetime.fromisoformat(rec["locked_until"]) > datetime.utcnow():
+            return rec["locked_until"]
+    except Exception:
+        pass
+    return ""
+
+
+def _pw_fail(phone: str) -> int:
+    rec = PW_LOCKS.get(phone) or {"fails": 0}
+    rec["fails"] = int(rec.get("fails", 0)) + 1
+    if rec["fails"] >= 5:
+        rec["locked_until"] = (datetime.utcnow() + timedelta(minutes=15)).isoformat()
+        rec["fails"] = 0
+        abuse_log("pw_locked", phone[-4:])
+    PW_LOCKS[phone] = rec
+    return rec["fails"]
+
+
+@app.post("/api/auth/login-password")
+def auth_login_password(payload: dict):
+    """🔑 Number + password login (OTP alternative). 5 wrong → 15 min lock."""
+    d = payload or {}
+    phone = "".join(ch for ch in str(d.get("phone", "")) if ch.isdigit())
+    pw = str(d.get("password", ""))
+    if len(phone) != 10 or not pw:
+        raise HTTPException(400, "10-digit number + password ivvandi")
+    if _pw_locked(phone):
+        raise HTTPException(429, "🔒 5 sarlu tappu — 15 nimushalalo malli try cheyyandi (leda OTP tho login)")
+    u = next((x for x in DB_USERS if x.get("phone") == phone), None)
+    if not u or not u.get("password_hash") or not _check_password(pw, u["password_hash"]):
+        left = 5 - _pw_fail(phone)
+        raise HTTPException(401, f"❌ Number/Password tappu (migilindi: {max(left, 0)} tries) — leda OTP tho login cheyyandi")
+    PW_LOCKS.pop(phone, None)
+    return {"success": True, "tsap_id": u["tsap_id"], "auth_token": sign_token(u["tsap_id"]),
+            "has_account": True, "profile": safe_user(u),
+            "message_telugu": f"✅ Welcome back, {str(u.get('full_name', '')).split()[0] if str(u.get('full_name', '')).split() else ''}! 🙏"}
+
+
+@app.post("/api/auth/forgot")
+def auth_forgot(payload: dict):
+    """🔑 Forgot password — reset OTP (purpose=reset) pampistham."""
+    d = dict(payload or {})
+    d["purpose"] = "reset"
+    phone = "".join(ch for ch in str(d.get("phone", "")) if ch.isdigit())
+    if len(phone) != 10:
+        raise HTTPException(400, "10 digit mobile number ivvandi")
+    return otp_send(d)
+
+
+@app.post("/api/auth/reset")
+def auth_reset(payload: dict):
+    """🔑 Reset password — OTP verify + kotha password set."""
+    d = payload or {}
+    phone = "".join(ch for ch in str(d.get("phone", "")) if ch.isdigit())
+    code = str(d.get("code", "")).strip()
+    new_pw = str(d.get("new_password", "")).strip()
+    if len(phone) != 10 or not code:
+        raise HTTPException(400, "Number + OTP ivvandi")
+    if len(new_pw) < 6 or len(new_pw) > 72:
+        raise HTTPException(400, "🔑 Kotha password 6–72 characters undali")
+    rec = DB_OTPS.get(phone)
+    if not rec or rec.get("purpose") not in ("reset", "login"):
+        raise HTTPException(400, "Mundu reset OTP pampandi (/api/auth/forgot)")
+    try:
+        if datetime.fromisoformat(rec["expires"]) < datetime.utcnow():
+            DB_OTPS.pop(phone, None)
+            raise HTTPException(400, "OTP expire ayyindi — malli pampandi")
+    except HTTPException:
+        raise
+    except Exception:
+        pass
+    if code != rec.get("code"):
+        raise HTTPException(400, "❌ OTP tappu — malli try cheyyandi")
+    u = next((x for x in DB_USERS if x.get("phone") == phone), None)
+    if not u:
+        raise HTTPException(404, "Ee number tho account ledu — mundu register avvandi")
+    u["password_hash"] = _hash_password(new_pw)
+    u["phone_verified"] = True
+    DB_OTPS.pop(phone, None)
+    PW_LOCKS.pop(phone, None)
+    return {"success": True, "tsap_id": u["tsap_id"], "auth_token": sign_token(u["tsap_id"]),
+            "message_telugu": "✅ Password marchindi — ippudu number + password tho login cheyyandi 🔑"}
+
+
 @app.post("/api/otp/send")
 def otp_send(payload: dict):
     """
@@ -2415,18 +2537,21 @@ def otp_send(payload: dict):
         return JSONResponse(status_code=429, content={
             "success": False, "message_telugu": "⚠️ Ganta lo 5 OTP limit — 1 hour tarvata try cheyyandi (abuse protection)"})
     code = f"{random.randint(1000, 9999)}"
+    purpose = str(d.get("purpose", "login")).strip()[:16] or "login"
     DB_OTPS[phone] = {"code": code, "expires": (datetime.utcnow() + timedelta(minutes=10)).isoformat(),
-                      "tries": 0, "sent_at": datetime.utcnow().isoformat(),
+                      "tries": 0, "sent_at": datetime.utcnow().isoformat(), "purpose": purpose,
                       "history": (_hour + [datetime.utcnow().isoformat()])[-10:]}
+    # 🌊 WAVE 18 — FREE channels first (WA bridge → Telegram → SMS), dev fallback
+    ch = otp_channel_send(phone, code, DB_USERS)
+    DB_OTPS[phone]["channel"] = ch.get("channel", "dev")
     dev = str(os.getenv("OTP_DEV_MODE", "true")).lower() in ("1", "true", "yes", "on")
     out = {"success": True, "phone": f"XXXXXX{phone[-4:]}", "expires_in_min": 10,
-           "message_telugu": f"📱 OTP pampinchaam (+91 XXXXXX{phone[-4:]}). 10 nimushalalo enter cheyyandi."}
+           "channel": ch.get("channel", "dev"), "purpose": purpose,
+           "message_telugu": f"{CHANNEL_TELUGU.get(ch.get('channel', 'dev'), '')} (+91 XXXXXX{phone[-4:]}). 10 nimushalalo enter cheyyandi."}
     if dev:
         out["dev_code"] = code
-        out["message_telugu"] += f" [DEV MODE — code: {code}]"
-        out["note"] = "Production lo SMS provider (MSG91/Fast2SMS) configure cheyyandi — appudu ee code response lo raadu."
-    else:
-        out["message_telugu"] += " SMS provider configure cheyyaledu — support ki cheppandi."
+        out["message_telugu"] += f" [DEV — code: {code}]"
+        out["note"] = "Production: WHATSAPP_MODE=bridge (FREE) leda MSG91_KEY pettandi — appudu code response lo raadu."
     return out
 
 
@@ -2469,6 +2594,22 @@ def otp_verify(payload: dict):
             "quality": profile_completeness(u) if u else None,
             "message_telugu": ("✅ Number verify ayyindi — mee profile ki verified badge vasthundi"
                                if u else "✅ Number verify ayyindi — ippudu 3 nimushalalo register cheyyandi (FREE 3 profiles)")}
+
+
+@app.get("/api/home/teasers")
+def home_teasers(limit: int = 8):
+    """🏠 Homepage teaser profiles — RANDOM approved, safe_user only (blur+lock frontend lo).
+    Register/login ki push cheyyadaniki — numbers/photos-full evvamu."""
+    pool = [u for u in DB_USERS if u.get("is_approved")]
+    random.shuffle(pool)
+    rows = []
+    for u in pool[:max(1, min(int(limit or 8), 12))]:
+        r = safe_user(u)
+        r["blur"] = True
+        r["photo_url"] = ""          # teaser lo clear photo vaddu — attract kosam blur tile
+        rows.append(r)
+    return {"success": True, "count": len(rows), "teasers": rows,
+            "cta_telugu": "🔒 Full details + photo chudali ante REGISTER (FREE) — 3 nimishalalo!"}
 
 
 @app.get("/api/search")

@@ -7,6 +7,7 @@ import AdSlot from "@/components/AdSlot";
 import OffersBanner from "@/components/OffersBanner";
 import BannerSlot from "@/components/BannerSlot";
 import SectionHeading from "@/components/SectionHeading";
+import { FinalCta, ReligionsStrip, StoriesStrip, TeaserStrip } from "@/components/HomeGrowth";
 import { SITE_CONFIG } from "@/lib/site-config";
 import { apiGet } from "@/lib/api";
 import { Duo, duo } from "@/lib/duo";
@@ -303,6 +304,11 @@ export default function Home() {
           ))}
         </div>
       </section>
+
+      {/* ================= WAVE 18 GROWTH: TEASERS + STORIES + RELIGIONS ================= */}
+      <TeaserStrip />
+      <StoriesStrip />
+      <ReligionsStrip />
 
       {/* ================= HOW IT WORKS ================= */}
       <section className="max-w-7xl mx-auto px-4 py-8">
@@ -866,6 +872,7 @@ export default function Home() {
         mee profile complete chesukoni board lo top lo kanipinchandi.
       </p>
     </section>
+      <FinalCta />
     </div>
   );
 }

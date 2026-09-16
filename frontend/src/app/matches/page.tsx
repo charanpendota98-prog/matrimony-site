@@ -685,6 +685,11 @@ export default function MatchesAdvanced() {
             className="flex-1 min-w-[140px] py-2.5 rounded-xl maroon-gradient text-white text-[12px] font-bold disabled:opacity-60">
             {sending === row.tsap_id ? duo("Sending…", "పంపిస్తున్నాం…") : `💌 ${duo("Interest (1 credit)", "ఇంట్రెస్ట్ (1 క్రెడిట్)")}`}
           </button>
+          <a href={SITE_CONFIG.unlockBot(row.tsap_id)} target="_blank" rel="noreferrer"
+            title={duo("Bot opens — 1 credit tho number vastundi", "బాట్ ఓపెన్ అవుతుంది — 1 క్రెడిట్‌తో నంబర్ వస్తుంది")}
+            className="flex-1 min-w-[140px] py-2.5 rounded-xl gold-gradient text-maroon text-[12px] font-bold text-center">
+            📞 {duo("Full details + Number", "పూర్తి వివరాలు + నంబర్")}
+          </a>
           <button onClick={() => toggleSave(row)}
             className={`py-2.5 px-3 rounded-xl text-[12px] font-bold border ${saved ? "border-rose-300 bg-rose-50 text-rose-700" : "border-maroon/25 text-maroon"}`}>
             {saved ? `❤️ ${duo("Saved", "సేవ్ అయింది")}` : `🤍 ${duo("Save", "సేవ్")}`}

@@ -15,6 +15,7 @@ import { useParams } from "next/navigation";
 import TrustBadge from "@/components/TrustBadge";
 import AuthGate from "@/components/AuthGate";
 import { apiGet, apiPost, authHeaders, getToken } from "@/lib/api";
+import { SITE_CONFIG } from "@/lib/site-config";
 import { firstName } from "@/lib/names";
 import { Duo, duo } from "@/lib/duo";
 
@@ -259,10 +260,17 @@ export default function ProfileView() {
                   📞 {unlocked} — Call
                 </a>
               ) : (
+                <>
                 <button onClick={() => void doUnlock()} disabled={unlocking}
                   className="rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-60">
                   {unlocking ? "Unlocking…" : "📞 Number Unlock (1 credit)"}
                 </button>
+                <a href={SITE_CONFIG.unlockBot(profile.tsap_id)} target="_blank" rel="noreferrer"
+                  title="Bot opens — 1 credit tho number vastundi"
+                  className="rounded-xl gold-gradient px-4 py-2.5 text-sm font-bold text-maroon">
+                  📞 Full details + Number (Bot)
+                </a>
+                </>
               )}
               <Link href="/pricing" className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-bold text-slate-700">
                 💳 Paid plans (₹99 → 5 profiles)
