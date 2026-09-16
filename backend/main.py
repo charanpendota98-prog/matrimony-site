@@ -86,6 +86,8 @@ from interest import ADDONS, RENEWALS, is_addon, get_addon, get_renewal, plan_li
 from channels_config import post_targets, caste_channel_links, channel_links, WA_OFFICIAL_LINK
 # 🎁 WAVE 10 — register avvagane "3 profiles + caste channel links" WhatsApp ki
 from welcome_pack import build_welcome_pack, pack_public, channels_count as wa_links_stats
+# 🚀 WAVE 11 — ULTRA ADVANCED (gothram guard, stories, streak, push, voice, gamify, boost)
+import advanced11 as A11
 
 app = FastAPI(title="TSAP Matrimony API — Ultra Advanced", version="2.0")
 
@@ -96,6 +98,8 @@ try:
     os.makedirs("/tmp/photos", exist_ok=True)
     app.mount("/cards", StaticFiles(directory="/tmp/cards"), name="cards")
     app.mount("/photos", StaticFiles(directory="/tmp/photos"), name="photos")
+    os.makedirs("/tmp/voice", exist_ok=True)                                        # 🎙️ WAVE 11
+    app.mount("/voice", StaticFiles(directory="/tmp/voice"), name="voice")          # 🎙️ WAVE 11
 except Exception as _e:
     print("[STATIC] mount skip:", _e)
 
@@ -1657,6 +1661,15 @@ async def interest_send(payload: dict, request: Request = None):
     if to.get("is_banned"):
         raise HTTPException(400, "Ee profile moderation lo teesesaru — interest pampaleeru")
 
+    # 🛡️ WAVE 11: same gothram → interest auto-block (pelli kudadhu — sampradayam)
+    #    (self-interest/gender/duplicate ni core can_send_interest handle chestundi)
+    g11 = {"blocked": False} if from_id == to_id else A11.gothram_check(frm, to)
+    if g11.get("blocked"):
+        abuse_log("same_gothram_interest_block", f"{from_id}→{to_id} ({g11.get('a_gothram')})")
+        return JSONResponse(status_code=400, content={
+            "success": False, "reason": "same_gothram", "gothram": g11,
+            "message_telugu": g11["verdict_telugu"]})
+
     expire_old(DB_INTERESTS)
     # 💬 ready-made Telugu template (optional)
     _tpl = str(d.get("template_id", "")).strip()
@@ -2696,6 +2709,7 @@ def api_match_score(a: str, b: str):
     res["viewer"] = a
     res["other"] = {"tsap_id": other.get("tsap_id"), "full_name": other.get("full_name"),
                     "verification": safety.verification_badge(other)}
+    res["gothram"] = A11.gothram_check(me, other)   # 🛡️ WAVE 11: score tho paatu gothram verdict
     return res
 
 
@@ -2710,14 +2724,21 @@ def api_match_score_raw(payload: dict):
 
 
 @app.get("/api/top-matches/{tsap_id}")
-def api_top_matches(tsap_id: str, limit: int = 10, min_score: int = 65):
-    """Top matches 2.0 — mutual bonus tho rank, blocked/banned profiles teesestham."""
+def api_top_matches(tsap_id: str, limit: int = 10, min_score: int = 65, include_same_gothram: int = 0):
+    """Top matches 2.0 — mutual bonus tho rank, blocked/banned/same-gothram teesestham, boosted first."""
     me = _find_user(tsap_id)
     if not me:
         raise HTTPException(404, "Mee profile dorakaledu")
     pool = [u for u in DB_USERS if not safety.is_blocked(tsap_id, u.get("tsap_id", ""), DB_BLOCKS)
             and not u.get("is_banned")]
+    # 🛡️ WAVE 11: same-gothram auto-filter (?include_same_gothram=1 tho chudochu)
+    g11skip = []
+    if not include_same_gothram:
+        gf = A11.filter_same_gothram(me, pool)
+        pool, g11skip = gf["kept"], gf["skipped_ids"]
     rows = topmatch.find_top_matches_v2(me, pool, limit=limit, min_score=min_score)
+    # ⚡ WAVE 11: boosted profiles first (pay chesinavallaki value)
+    rows.sort(key=lambda r: (A11.boost_rank_key(r.get("profile", {})), r.get("score", 0)), reverse=True)
     out = []
     for r in rows:
         prof = r.pop("profile")
@@ -2730,10 +2751,17 @@ def api_top_matches(tsap_id: str, limit: int = 10, min_score: int = 65):
         r["job"] = prof.get("job")
         r["star"] = prof.get("star")
         r["verification"] = safety.verification_badge(prof)["level"]
+        r["boosted"] = A11.is_boosted(prof)
+        r["voice_url"] = prof.get("voice_url", "")
+        r["has_voice"] = bool(prof.get("voice_url"))
+        r["gothram_ok"] = not A11.gothram_check(me, prof).get("same", False)
         out.append(r)
     return {"tsap_id": tsap_id, "count": len(out), "mutual_matches": len([x for x in out if x.get("mutual", {}).get("both_like")]),
+            "gothram_skipped": len(g11skip), "gothram_skipped_ids": g11skip[:10],
             "results": out,
-            "message_telugu": "%d top matches — mutthu (mutual) matches: %d" % (len(out), len([x for x in out if x.get("mutual", {}).get("both_like")]))}
+            "message_telugu": "%d top matches — mutthu (mutual) matches: %d%s" % (
+                len(out), len([x for x in out if x.get("mutual", {}).get("both_like")]),
+                f" · 🚫 same-gothram {len(g11skip)} skip" if g11skip else "")}
 
 
 # ============================================================================
@@ -3407,3 +3435,235 @@ def channels_links(caste: str = "", gender: str = "", state: str = "", district:
     else:
         note = "📢 Mee caste channel lo daily matches — Telegram + WhatsApp rendu join avvandi"
     return {"success": True, "channels": links, "stats": wa_links_stats(), "note_telugu": note}
+
+
+# ============================================================================
+#  🚀 WAVE 11 — ULTRA ADVANCED (gothram guard · stories · streak · push ·
+#              voice · gamify · boost · support)
+# ============================================================================
+@app.get("/api/gothram/check")
+def gothram_check(a: str, b: str):
+    """🛡️ Rendu IDs madhya gothram check — same ayithe pelli kudadhu (block)."""
+    me, other = _find_user(a), _find_user(b)
+    if not me or not other:
+        raise HTTPException(404, "Rendu TSAP IDs correct ga ivvandi")
+    return {"success": True, "a": a, "b": b, **A11.gothram_check(me, other)}
+
+
+@app.post("/api/stories/submit")
+def story_submit(payload: dict, request: Request = None):
+    """💑 Pelli ayina janta success story pampu (admin approve tarvata public)."""
+    d = payload or {}
+    require_owner(request, str(d.get("tsap_id", "")))
+    u = _find_user(str(d.get("tsap_id", "")))
+    if not u:
+        raise HTTPException(404, "Mee profile dorakaledu — mundu register cheyyandi")
+    rec = A11.submit_story(str(d.get("tsap_id", "")), str(d.get("text", "")),
+                           partner_id=str(d.get("partner_id", "")),
+                           couple_names=str(d.get("couple_names", "")) or str(u.get("full_name", "")),
+                           photo_url=str(d.get("photo_url", "")),
+                           district=str(d.get("district", "")) or str(u.get("district", "")))
+    return {"success": True, "story": rec,
+            "message_telugu": "💑 Story vachindi! Admin approve (24h) ayyaka /stories page + channels lo kanipistundi 🎉"}
+
+
+@app.get("/api/stories")
+def stories_list(limit: int = 20):
+    """💑 Approved success stories (public — trust + viral, numbers ledu)."""
+    rows = A11.approved_stories(clamp_int(limit, "limit", 1, 50, 20))
+    return {"success": True, "count": len(rows), "stories": rows,
+            "share_note_telugu": "💑 Pelli ayinda? Mee story pampandi — janta photo + 2 lines chalu!"}
+
+
+@app.post("/api/stories/{story_id}/like")
+def story_like(story_id: str):
+    return {"success": True, **A11.like_story(story_id)}
+
+
+@app.post("/api/admin/stories/{story_id}/action")
+def admin_story_action(story_id: str, payload: dict = None, request: Request = None):
+    """💑 Admin: story approve/reject (approve → share text ready)."""
+    require_admin(request)
+    d = payload or {}
+    rec = A11.review_story(story_id, str(d.get("action", "")), str(d.get("note", "")))
+    out = {"success": True, "story": rec}
+    if rec.get("status") == "approved":
+        out["share_text"] = A11.story_share_text(rec)
+        out["share_note_telugu"] = "📢 Ee text official channel + WhatsApp lo forward cheyyandi"
+    return out
+
+
+@app.get("/api/support/faq")
+def support_faq(q: str = "", limit: int = 5):
+    """💬 Telugu support Q&A — ?q=price ani search (widget + bot common)."""
+    rows = A11.search_faq(q, clamp_int(limit, "limit", 1, 12, 5))
+    return {"success": True, "count": len(rows), "faqs": rows,
+            "human_telugu": "Manishitho matladali ante bot lo /help — 10AM–7PM Telugu support 🙏"}
+
+
+@app.get("/api/streak/{tsap_id}")
+def streak_get(tsap_id: str, request: Request = None):
+    """🔥 Streak status (count, best, repu bonus)."""
+    require_owner(request, tsap_id)
+    u = _find_user(tsap_id)
+    if not u:
+        raise HTTPException(404, "Mee profile dorakaledu")
+    return {"success": True, "tsap_id": tsap_id, **A11.streak_status(u)}
+
+
+@app.post("/api/streak/claim")
+def streak_claim(payload: dict, request: Request = None):
+    """🔥 Daily bonus claim — rojoo okasari (streak penchithe bonus ekkuva)."""
+    tsap_id = str((payload or {}).get("tsap_id", ""))
+    require_owner(request, tsap_id)
+    u = _find_user(tsap_id)
+    if not u:
+        raise HTTPException(404, "Mee profile dorakaledu")
+    return {"success": True, "tsap_id": tsap_id, **A11.claim_daily(u)}
+
+
+@app.get("/api/push/vapid")
+def push_vapid():
+    """🔔 VAPID public key (browser subscribe ki) — keys lekapothe preview mode."""
+    key = A11.vapid_public_key()
+    return {"success": True, "vapid_public_key": key,
+            "mode": "live-ready" if key else "preview",
+            "note_telugu": "🔔 Alerts ON cheyyandi — kotha matches vaste notification" if key
+                           else "ℹ️ VAPID keys set cheyyagane live push (ippudu queue-preview mode)"}
+
+
+@app.post("/api/push/subscribe")
+def push_subscribe(payload: dict, request: Request = None):
+    """🔔 Browser push subscribe (matches page 🔔 button nunchi)."""
+    d = payload or {}
+    tsap_id = str(d.get("tsap_id", ""))
+    require_owner(request, tsap_id)
+    if not _find_user(tsap_id):
+        raise HTTPException(404, "Mee profile dorakaledu")
+    return A11.push_subscribe(tsap_id, str(d.get("endpoint", "")),
+                              d.get("keys") or {}, ua=str(d.get("ua", "")))
+
+
+@app.post("/api/push/unsubscribe")
+def push_unsubscribe(payload: dict, request: Request = None):
+    d = payload or {}
+    tsap_id = str(d.get("tsap_id", ""))
+    if tsap_id:
+        require_owner(request, tsap_id)
+    return A11.push_unsubscribe(tsap_id=tsap_id, endpoint=str(d.get("endpoint", "")))
+
+
+@app.post("/api/push/notify/{tsap_id}")
+def push_notify(tsap_id: str, payload: dict, request: Request = None):
+    """🔔 Notify pampu — owner (self digest) leda admin (broadcast)."""
+    if not is_admin(request):
+        require_owner(request, tsap_id)
+    if not _find_user(tsap_id):
+        raise HTTPException(404, "Profile dorakaledu")
+    d = payload or {}
+    return {"tsap_id": tsap_id, **A11.push_notify(
+        tsap_id, str(d.get("title", "💍 Mana Vivaha — kotha matches!")),
+        str(d.get("body", "Meeku 2 kotha matches vachayi — chudandi!")),
+        str(d.get("url", "/matches")))}
+
+
+@app.get("/api/admin/push/queue")
+def admin_push_queue(request: Request = None):
+    require_admin(request)
+    return {"success": True, "subs": len(A11.PUSH_SUBS),
+            "queue": A11.PUSH_QUEUE[-30:][::-1],
+            "vapid_ready": bool(A11.vapid_public_key())}
+
+
+@app.post("/api/voice/upload")
+async def voice_upload(file: UploadFile = File(...), tsap_id: str = Form("")):
+    """
+    🎙️ Voice intro upload (30 sec) — phone recorder nunchi.
+    MP3/WAV/OGG/M4A, max 2MB. Matches lo ▶️ play avutundi.
+    """
+    tid = (tsap_id or "").strip()
+    u = _find_user(tid) if tid else None
+    data = await file.read()
+    chk = A11.voice_validate(file.filename or "", len(data))
+    if not chk.get("ok"):
+        raise HTTPException(400, chk["error_telugu"])
+    os.makedirs("/tmp/voice", exist_ok=True)
+    token = (tid.strip() or "tmp") + "-" + datetime.utcnow().strftime("%y%m%d%H%M%S")
+    name = f"{token}.{chk['ext']}"
+    path = f"/tmp/voice/{name}"
+    try:
+        with open(path, "wb") as f:
+            f.write(data)
+    except Exception as e:
+        raise HTTPException(500, f"Voice save avvaledu: {str(e)[:80]}")
+    url = f"/voice/{name}"
+    if u is not None:
+        u["voice_url"] = url
+        u["voice_at"] = datetime.utcnow().isoformat()
+    return {"success": True, "url": url, "tsap_id": tid, "bytes": len(data),
+            "message_telugu": f"🎙️ Voice intro upload ayyindi! Matches lo mee voice vintaru ({round(len(data)/1024)} KB)"}
+
+
+@app.get("/api/voice/{tsap_id}")
+def voice_get(tsap_id: str):
+    u = _find_user(tsap_id)
+    if not u:
+        raise HTTPException(404, "Profile dorakaledu")
+    url = str(u.get("voice_url", "") or "")
+    return {"success": True, "tsap_id": tsap_id, "voice_url": url, "has_voice": bool(url),
+            "uploaded_at": str(u.get("voice_at", "") or ""),
+            "note_telugu": "🎙️ Voice unna profiles ki 3x response (mana survey)" if url
+                           else "ℹ️ Voice intro ledu — 30 sec record chesi pampandi"}
+
+
+@app.post("/api/profile/complete-bonus/{tsap_id}")
+def complete_bonus(tsap_id: str, request: Request = None):
+    """🎮 Profile 90%+ → 2 credits FREE (okasari matrame — gamification)."""
+    require_owner(request, tsap_id)
+    u = _find_user(tsap_id)
+    if not u:
+        raise HTTPException(404, "Mee profile dorakaledu")
+    pct = profile_completeness(u)["percent"]
+    res = A11.claim_complete_bonus(u, pct)
+    return {"success": res.get("success", False), "tsap_id": tsap_id,
+            "completeness": pct, **res}
+
+
+@app.get("/api/boost/packs")
+def boost_packs():
+    """⚡ Boost packs list (B_1/B_3/B_7) + mee boost status kosam ?tsap_id=."""
+    return {"success": True, "packs": list(A11.BOOST_PACKS.values()),
+            "note_telugu": "⚡ Boost active ayithe matches + postings lo mee profile TOP lo"}
+
+
+@app.post("/api/boost/buy")
+def boost_buy(payload: dict, request: Request = None):
+    """
+    ⚡ Boost konadam — dev/demo lo ventane active, production lo payment tarvata
+    (credits/buy pattern — webhook verify ayyaka active).
+    """
+    d = payload or {}
+    tsap_id = str(d.get("tsap_id", ""))
+    require_owner(request, tsap_id)
+    u = _find_user(tsap_id)
+    if not u:
+        raise HTTPException(404, "User not found — mundu register cheyyandi")
+    pack_code = str(d.get("pack", "B_1")).upper()
+    if pack_code not in A11.BOOST_PACKS:
+        raise HTTPException(400, "Boost pack B_1 / B_3 / B_7 matrame")
+    pack = A11.BOOST_PACKS[pack_code]
+    order_id = "BST-" + datetime.utcnow().strftime("%y%m%d%H%M%S") + str(len(DB_PAYMENTS) + 1).zfill(3)
+    order = {"order_id": order_id, "tsap_id": tsap_id, "plan": pack_code, "kind": "boost",
+             "amount": pack["price"], "at": datetime.utcnow().isoformat(), "status": "created"}
+    if dev_mode():
+        eff = A11.apply_boost(u, pack_code)
+        order["status"] = "paid"
+        order["effect"] = eff["message_telugu"]
+    else:
+        order["payment_required"] = True
+        order["next_step_telugu"] = (f"💳 ₹{pack['price']} pay cheyyandi — payment vachhaka boost automatic ON. UPI: manavivaha@upi")
+    DB_PAYMENTS.append(order)
+    return {"success": True, "order": order, "boost_until": str(u.get("boost_until", "") or ""),
+            "boosted": A11.is_boosted(u),
+            "message_telugu": (f"{pack['label']} active! ⚡" if order["status"] == "paid"
+                               else f"Order {order_id} — ₹{pack['price']} pay cheyyandi")}

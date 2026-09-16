@@ -1,0 +1,368 @@
+"""
+🚀 WAVE 11 TEST SUITE — ULTRA ADVANCED (top sites kanna ekkuva)
+===============================================================
+Cover:
+  A. gothram guard (pure engine)
+  B. interest block + match/score + top-matches skip + /api/gothram/check
+  C. success stories (submit → approve → list + like + share)
+  D. support FAQ (list + search)
+  E. daily streak (claim + double-guard + gap-reset + milestones)
+  F. web push (subscribe + notify + unsubscribe + admin queue)
+  G. voice intro (validate + upload + get + serve)
+  H. profile complete bonus (gamification)
+  I. boost packs (buy + rank + extend)
+  J. telegram bot perfect (import-safe + helpers + handlers)
+  K. privacy (stories/push lo numbers eppudu ledu)
+
+Run:  WA_TEST_FAST=1 /home/user/venv/bin/python test_wave11_advanced.py
+"""
+import os
+import sys
+import re
+
+os.environ.setdefault("WA_TEST_FAST", "1")
+os.environ.setdefault("OTP_DEV_MODE", "true")
+os.environ.setdefault("WA_LONG_PAUSE_CHANCE", "0")
+os.environ.setdefault("WHATSAPP_MODE", "off")
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+PASS, FAIL, FAILED = 0, 0, []
+PHONE_RE = re.compile(r"(?<![\d•])[6-9]\d{9}(?!\d)")
+
+
+def check(name, cond, extra=None):
+    global PASS, FAIL
+    if cond:
+        PASS += 1
+        print(f"  ✅ {name}")
+    else:
+        FAIL += 1
+        FAILED.append(name)
+        print(f"  ❌ {name}" + (f"  | {str(extra)[:200]}" if extra is not None else ""))
+
+
+def section(t):
+    print(f"\n{'=' * 76}\n{t}\n{'=' * 76}")
+
+
+import advanced11 as A11
+
+# deterministic: state files reset
+for _f in (A11.STORIES_FILE, A11.PUSH_FILE):
+    try:
+        os.remove(_f)
+    except OSError:
+        pass
+A11.STORIES.clear()
+A11.PUSH_SUBS.clear()
+A11.PUSH_QUEUE.clear()
+
+from fastapi.testclient import TestClient
+import hardening as H
+import main
+
+client = TestClient(main.app, raise_server_exceptions=False)
+HDR_ADMIN = {"X-Admin-Key": H.ADMIN_KEY}
+
+# ═══════════════════════════════════════════════════════════════════════════
+section("A. GOTHRAM GUARD (pure engine)")
+# ═══════════════════════════════════════════════════════════════════════════
+a = {"gothram": "Bharadwaj"}
+b_same = {"gothram": "  bharadwaj "}
+b_diff = {"gothram": "Koundinya"}
+b_none: dict = {}
+check("A1 same gothram (case/space proof) → blocked", A11.gothram_check(a, b_same)["blocked"] is True)
+check("A2 verdict telugu (🚫 + pelli kudadhu)",
+      "🚫" in A11.gothram_check(a, b_same)["verdict_telugu"] and "kudadhu" in A11.gothram_check(a, b_same)["verdict_telugu"])
+check("A3 reason same_gothram", A11.gothram_check(a, b_same)["reason"] == "same_gothram")
+check("A4 veru gothram → OK, blocked False",
+      A11.gothram_check(a, b_diff)["blocked"] is False and "✅" in A11.gothram_check(a, b_diff)["verdict_telugu"])
+check("A5 okariki lekapothe block kadu + warning",
+      A11.gothram_check(a, b_none)["blocked"] is False and A11.gothram_check(a, b_none).get("unknown_side") is True)
+check("A6 'Bharadwaja Gothram' suffix normalize → same",
+      A11.norm_gothram("Bharadwaja Gothram") == A11.norm_gothram("bharadwaj"), A11.norm_gothram("Bharadwaja Gothram"))
+f = A11.filter_same_gothram(a, [{"tsap_id": "X1", "gothram": "Bharadwaj"},
+                              {"tsap_id": "X2", "gothram": "Kasyapa"},
+                              {"tsap_id": "X3"}])
+check("A7 filter: 1 skip + 2 kept", f["skipped_count"] == 1 and len(f["kept"]) == 2, f["skipped_ids"])
+check("A8 skipped_ids lo X1", f["skipped_ids"] == ["X1"])
+
+# ═══════════════════════════════════════════════════════════════════════════
+section("B. INTEREST BLOCK + SCORE + TOP-MATCHES + CHECK API")
+# ═══════════════════════════════════════════════════════════════════════════
+client.post("/api/demo/seed")
+BB = {"gender": "Bride", "age": "25", "height": "5'4\"", "marital_status": "Pelli Kaledu", "caste": "Reddy",
+      "education": "BTech", "job": "Software", "salary": "60k", "state": "TS", "district": "Hyderabad",
+      "phone": "9848011111", "full_name": "Wave Eleven Bride", "gothram": "Bharadwaj", "star": "Rohini", "religion": "Hindu"}
+BG_SAME = dict(BB, gender="Groom", age="29", phone="9848022222", full_name="Wave Eleven Groom Same",
+               gothram="bharadwaj", height="5'9\"")
+BG_DIFF = dict(BB, gender="Groom", age="30", phone="9848033333", full_name="Wave Eleven Groom Diff",
+               gothram="Koundinya", height="5'10\"")
+bride = client.post("/api/register", data=BB).json()
+g_same = client.post("/api/register", data=BG_SAME).json()
+g_diff = client.post("/api/register", data=BG_DIFF).json()
+BID, BTOK = bride.get("tsap_id", ""), bride.get("auth_token", "")
+G1, G1TOK = g_same.get("tsap_id", ""), g_same.get("auth_token", "")
+G2 = g_diff.get("tsap_id", "")
+check("B0 3 users register ayyaru", all([BID, G1, G2]), (BID, G1, G2))
+for _u in main.DB_USERS:
+    if _u.get("tsap_id") in (BID, G1, G2):
+        _u["is_approved"] = True   # admin approve simulate (top-matches lo kanipinchadaniki)
+
+r = client.post("/api/interest/send", json={"from_id": BID, "to_id": G1},
+                headers={"X-Tsap-Token": BTOK})
+check("B1 same-gothram interest → 400 block", r.status_code == 400, r.status_code)
+j = r.json()
+check("B2 reason same_gothram + telugu", j.get("reason") == "same_gothram" and "🚫" in j.get("message_telugu", ""), j)
+check("B3 block ayina credit cut kadu", next(u for u in main.DB_USERS if u["tsap_id"] == BID).get("credits", 0) >= 3,
+      next(u for u in main.DB_USERS if u["tsap_id"] == BID).get("credits"))
+
+r = client.post("/api/interest/send", json={"from_id": BID, "to_id": G2},
+                headers={"X-Tsap-Token": BTOK})
+check("B4 veru-gothram interest → same_gothram block kadu",
+      r.json().get("reason") != "same_gothram", (r.status_code, r.json().get("reason")))
+
+r = client.get(f"/api/gothram/check?a={BID}&b={G1}")
+check("B5 /api/gothram/check same → blocked True",
+      r.status_code == 200 and r.json().get("blocked") is True, r.json())
+r = client.get(f"/api/gothram/check?a={BID}&b={G2}")
+check("B6 /api/gothram/check diff → blocked False", r.json().get("blocked") is False, r.json())
+r = client.get("/api/gothram/check?a=NOPE&b=NOPE2")
+check("B7 unknown IDs → 404", r.status_code == 404, r.status_code)
+
+r = client.get(f"/api/match/score?a={BID}&b={G1}")
+check("B8 match/score lo gothram block verdict",
+      r.status_code == 200 and r.json().get("gothram", {}).get("blocked") is True,
+      r.json().get("gothram"))
+
+r = client.get(f"/api/top-matches/{BID}?limit=30&min_score=0")
+tj = r.json()
+ids = [x.get("tsap_id") for x in tj.get("results", [])]
+check("B9 top-matches nunchi same-gothram G1 exclude", G1 not in ids, (tj.get("gothram_skipped"), G1 in ids))
+check("B10 gothram_skipped count >= 1", tj.get("gothram_skipped", 0) >= 1, tj.get("gothram_skipped"))
+r2 = client.get(f"/api/top-matches/{BID}?limit=30&min_score=0&include_same_gothram=1")
+ids2 = [x.get("tsap_id") for x in r2.json().get("results", [])]
+check("B11 opt-in (?include_same_gothram=1) tho G1 kanipistundi", G1 in ids2, len(ids2))
+check("B12 results lo boosted/voice/gothram_ok keys",
+      all(k in (tj.get("results", [{}])[0] or {}) for k in ("boosted", "voice_url", "has_voice", "gothram_ok")) if tj.get("results") else True)
+
+# ═══════════════════════════════════════════════════════════════════════════
+section("C. SUCCESS STORIES")
+# ═══════════════════════════════════════════════════════════════════════════
+r = client.post("/api/stories/submit",
+                json={"tsap_id": BID, "text": "short"},
+                headers={"X-Tsap-Token": BTOK})
+check("C1 chinna story (<20) → 400/422", r.status_code in (400, 422), r.status_code)
+STORY_TXT = "Mana Vivaha lo kalisam — families matladukuni 3 months lo pelli chesukunnam. Chala happy ga unnam!"
+r = client.post("/api/stories/submit",
+                json={"tsap_id": BID, "text": STORY_TXT, "partner_id": G2,
+                      "couple_names": "W11 Bride ❤️ W11 Groom"},
+                headers={"X-Tsap-Token": BTOK})
+check("C2 submit 200 + pending", r.status_code == 200 and r.json()["story"]["status"] == "pending", r.status_code)
+SID = r.json()["story"]["story_id"]
+r = client.post("/api/stories/submit",
+                json={"tsap_id": BID, "text": STORY_TXT + " again"},
+                headers={"X-Tsap-Token": BTOK})
+check("C3 duplicate pending → 400", r.status_code == 400, r.status_code)
+r = client.get("/api/stories")
+check("C4 approve mundu public list lo ledu", SID not in [s["story_id"] for s in r.json().get("stories", [])])
+r = client.post("/api/admin/stories/STORY-9999/action", json={"action": "approve"},
+                headers={"X-Admin-Key": "wrong"})
+check("C5 wrong admin key → 403 (enforce) leda 400 (dev bypass + validation)",
+      r.status_code in (403, 400), r.status_code)
+r = client.post(f"/api/admin/stories/{SID}/action", json={"action": "approve"}, headers=HDR_ADMIN)
+check("C6 admin approve 200 + share_text", r.status_code == 200 and "share_text" in r.json(), r.status_code)
+check("C7 share_text lo manavivaha.in + numbers ledu",
+      "manavivaha.in" in r.json()["share_text"] and not PHONE_RE.findall(r.json()["share_text"]))
+r = client.get("/api/stories")
+check("C8 approve tarvata public list lo undi", SID in [s["story_id"] for s in r.json().get("stories", [])])
+r = client.post(f"/api/stories/{SID}/like")
+check("C9 like → likes 1", r.json().get("likes") == 1, r.json())
+r = client.post("/api/stories/STORY-9999/like")
+check("C10 fake story like → 400", r.status_code == 400, r.status_code)
+r = client.post(f"/api/admin/stories/{SID}/action", json={"action": "bogus"}, headers=HDR_ADMIN)
+check("C11 bogus action → 400", r.status_code == 400, r.status_code)
+
+# ═══════════════════════════════════════════════════════════════════════════
+section("D. SUPPORT FAQ")
+# ═══════════════════════════════════════════════════════════════════════════
+r = client.get("/api/support/faq")
+check("D1 list 200 + >=5 faqs", r.status_code == 200 and len(r.json().get("faqs", [])) >= 5, r.status_code)
+r = client.get("/api/support/faq", params={"q": "99 price free"})
+check("D2 'price' search → price answer first", r.json()["faqs"][0]["id"] == "price",
+      [f["id"] for f in r.json()["faqs"]])
+r = client.get("/api/support/faq", params={"q": "gothram same"})
+check("D3 'gothram' search → gothram answer", any(f["id"] == "gothram" for f in r.json()["faqs"]))
+r = client.get("/api/support/faq", params={"q": "xyzabcnope"})
+check("D4 teliyani q → human support fallback",
+      r.json()["faqs"][0]["id"] == "support_human", r.json()["faqs"][0]["id"])
+_faqs12 = client.get("/api/support/faq?limit=12").json()["faqs"]
+_TELUGU_WORDS = ("mee", "kavali", "cheyyandi", "vastundi", "matrame", "ayithe", "leda",
+                 "kooda", "chudandi", "pampandi", "istundi", "untundi", "avatali", "randi")
+_tel = sum(1 for f in _faqs12 if any(w in f["a"].lower() for w in _TELUGU_WORDS))
+check("D5 answers anni Telugu flavor (Tanglish, site convention)", _tel == len(_faqs12), _tel)
+
+# ═══════════════════════════════════════════════════════════════════════════
+section("E. DAILY STREAK")
+# ═══════════════════════════════════════════════════════════════════════════
+r = client.post("/api/streak/claim", json={"tsap_id": BID}, headers={"X-Tsap-Token": BTOK})
+check("E1 first claim success + bonus>=1",
+      r.status_code == 200 and r.json().get("success") and r.json().get("bonus", 0) >= 1, r.json())
+check("E2 count 1 + 🔥 telugu", r.json().get("count") == 1 and "🔥" in r.json().get("message_telugu", ""))
+cr_before = next(u for u in main.DB_USERS if u["tsap_id"] == BID).get("credits", 0)
+r = client.post("/api/streak/claim", json={"tsap_id": BID}, headers={"X-Tsap-Token": BTOK})
+cr_after = next(u for u in main.DB_USERS if u["tsap_id"] == BID).get("credits", 0)
+check("E3 rendu sari claim → already (credits peragavu)",
+      r.json().get("already") is True and cr_after == cr_before, r.json())
+r = client.get(f"/api/streak/{BID}", headers={"X-Tsap-Token": BTOK})
+check("E4 status claimed_today True + next_bonus",
+      r.json().get("claimed_today") is True and r.json().get("next_bonus", 0) >= 1, r.json())
+# pure: consecutive + gap reset + milestone
+u = {"credits": 0}
+A11.claim_daily(u, today="2026-09-10")
+A11.claim_daily(u, today="2026-09-11")
+check("E5 consecutive → count 2", u["streak_count"] == 2, u)
+A11.claim_daily(u, today="2026-09-13")
+check("E6 gap (12th miss) → reset 1", u["streak_count"] == 1, u)
+check("E7 milestone bonus table (7→5, 14→8, 30→15)",
+      (A11.streak_bonus_for(7), A11.streak_bonus_for(14), A11.streak_bonus_for(30)) == (5, 8, 15))
+u7 = {"credits": 0, "streak_count": 6, "streak_last": "2026-09-10"}
+res7 = A11.claim_daily(u7, today="2026-09-11")
+check("E8 day-7 milestone flag + msg", res7.get("milestone") is True and "7 days" in res7["message_telugu"], res7)
+
+# ═══════════════════════════════════════════════════════════════════════════
+section("F. WEB PUSH")
+# ═══════════════════════════════════════════════════════════════════════════
+r = client.get("/api/push/vapid")
+check("F1 vapid endpoint 200 + preview mode (keys levu)",
+      r.status_code == 200 and r.json().get("mode") == "preview", r.json())
+EP = "https://fcm.googleapis.com/fcm/send/w11-test-endpoint-001"
+r = client.post("/api/push/subscribe",
+                json={"tsap_id": BID, "endpoint": EP,
+                      "keys": {"p256dh": "k1", "auth": "a1"}, "ua": "test"},
+                headers={"X-Tsap-Token": BTOK})
+check("F2 subscribe success + sub_id", r.status_code == 200 and r.json().get("sub_id", "").startswith("PUSH-"), r.json())
+r = client.post("/api/push/subscribe",
+                json={"tsap_id": BID, "endpoint": EP, "keys": {}}, headers={"X-Tsap-Token": BTOK})
+check("F3 same endpoint → renewed (duplicate kadu)", r.json().get("renewed") is True
+      and len(A11.PUSH_SUBS) == 1, (r.json(), len(A11.PUSH_SUBS)))
+r = client.post(f"/api/push/notify/{BID}",
+                json={"title": "💍 2 kotha matches!", "body": "92% match vachindi — chudandi", "url": "/matches"},
+                headers={"X-Tsap-Token": BTOK})
+check("F4 notify queued 1 + preview", r.json().get("queued") == 1 and r.json().get("mode") == "preview", r.json())
+check("F5 payload lo icon + url", r.json()["payload_preview"].get("icon") == "/icons/icon-192.png"
+      and r.json()["payload_preview"].get("url") == "/matches")
+r = client.post(f"/api/push/notify/{G2}", json={"title": "t", "body": "b"}, headers=HDR_ADMIN)
+check("F6 subscription leni user → no_subscription", r.json().get("reason") == "no_subscription", r.json())
+r = client.get("/api/admin/push/queue", headers=HDR_ADMIN)
+check("F7 admin queue: subs 1 + queue 1", r.json().get("subs") == 1 and len(r.json().get("queue", [])) == 1, r.json())
+r = client.get("/api/admin/push/queue")
+check("F8 admin queue key lekunda → 403 (enforce) leda dev-bypass 200",
+      r.status_code == 403 or (r.status_code == 200 and "subs" in r.json()), r.status_code)
+r = client.post("/api/push/unsubscribe", json={"tsap_id": BID}, headers={"X-Tsap-Token": BTOK})
+check("F9 unsubscribe removed 1", r.json().get("removed") == 1, r.json())
+
+# ═══════════════════════════════════════════════════════════════════════════
+section("G. VOICE INTRO")
+# ═══════════════════════════════════════════════════════════════════════════
+check("G1 validate mp3 ok", A11.voice_validate("a.mp3", 50000)["ok"] is True)
+check("G2 validate exe reject", A11.voice_validate("a.exe", 50000)["ok"] is False)
+check("G3 validate 5MB reject", A11.voice_validate("a.mp3", 5 * 1024 * 1024)["ok"] is False)
+check("G4 validate 10 bytes reject", A11.voice_validate("a.mp3", 10)["ok"] is False)
+FAKE_MP3 = b"ID3" + b"\x00" * 8000
+r = client.post("/api/voice/upload", files={"file": ("intro.exe", FAKE_MP3, "application/octet-stream")},
+                data={"tsap_id": BID})
+check("G5 upload .exe → 400 telugu", r.status_code == 400, r.status_code)
+r = client.post("/api/voice/upload", files={"file": ("intro.mp3", FAKE_MP3, "audio/mpeg")},
+                data={"tsap_id": BID})
+check("G6 upload mp3 200 + /voice/ url", r.status_code == 200 and r.json()["url"].startswith("/voice/"), r.json())
+VURL = r.json().get("url", "")
+r = client.get(f"/api/voice/{BID}")
+check("G7 /api/voice/{id} has_voice True", r.json().get("has_voice") is True and r.json().get("voice_url") == VURL, r.json())
+r = client.get(VURL)
+check("G8 static serve /voice/... 200 audio bytes", r.status_code == 200 and len(r.content) > 1000,
+      (r.status_code, len(r.content)))
+
+# ═══════════════════════════════════════════════════════════════════════════
+section("H. PROFILE COMPLETE BONUS")
+# ═══════════════════════════════════════════════════════════════════════════
+r = client.post(f"/api/profile/complete-bonus/{BID}", headers={"X-Tsap-Token": BTOK})
+check("H1 low profile → success False + need_more",
+      r.json().get("success") is False and r.json().get("need_more", 0) > 0, r.json())
+rich = next(u for u in main.DB_USERS if u["tsap_id"] == BID)
+rich.update({"photo_urls": ["x"], "phone_verified": True, "dob": "2000-01-01", "college": "JNTU",
+             "company": "TCS", "work_location": "Hyd", "father_name": "F", "mother_name": "M",
+             "father_occupation": "Farmer", "mother_occupation": "Home", "brothers": "1", "sisters": "1",
+             "native_place": "Nalgonda", "about_myself": "x" * 40, "about_family": "good family",
+             "expectations": "kind partner", "current_city": "Hyderabad", "email": "a@b.com",
+             "weight": "60", "sub_caste": "Pakanati", "rasi": "Vrishabha"})
+r = client.post(f"/api/profile/complete-bonus/{BID}", headers={"X-Tsap-Token": BTOK})
+check("H2 90%+ → +2 credits", r.json().get("success") is True and r.json().get("bonus") == 2, r.json())
+r = client.post(f"/api/profile/complete-bonus/{BID}", headers={"X-Tsap-Token": BTOK})
+check("H3 malli claim → already", r.json().get("already") is True, r.json())
+
+# ═══════════════════════════════════════════════════════════════════════════
+section("I. BOOST PACKS")
+# ═══════════════════════════════════════════════════════════════════════════
+r = client.get("/api/boost/packs")
+packs = {p["code"]: p for p in r.json().get("packs", [])}
+check("I1 3 packs (B_1/B_3/B_7)", set(packs) == {"B_1", "B_3", "B_7"}, list(packs))
+check("I2 prices 49/99/199", [packs[k]["price"] for k in ("B_1", "B_3", "B_7")] == [49, 99, 199], packs)
+r = client.post("/api/boost/buy", json={"tsap_id": G2, "pack": "BOGUS"}, headers=HDR_ADMIN)
+check("I3 bogus pack → 400/401", r.status_code in (400, 401), r.status_code)
+r = client.post("/api/boost/buy", json={"tsap_id": G2, "pack": "B_1"})
+check("I4 dev auto: paid + boosted True",
+      r.json().get("order", {}).get("status") == "paid" and r.json().get("boosted") is True, r.json())
+until1 = r.json().get("boost_until", "")
+r = client.post("/api/boost/buy", json={"tsap_id": G2, "pack": "B_3"})
+check("I5 extend: boost_until perugutundi", r.json().get("boost_until", "") > until1, r.json().get("boost_until"))
+r = client.get(f"/api/top-matches/{BID}?limit=30&min_score=0")
+rows = r.json().get("results", [])
+g2row = next((x for x in rows if x.get("tsap_id") == G2), None)
+check("I6 boosted profile lo boosted True", bool(g2row) and g2row.get("boosted") is True, g2row)
+if rows:
+    first_boost = [x.get("boosted") for x in rows]
+    check("I7 boosted rows anni non-boosted kanna mundu",
+          first_boost == sorted(first_boost, reverse=True), first_boost)
+
+# ═══════════════════════════════════════════════════════════════════════════
+section("J. TELEGRAM BOT PERFECT")
+# ═══════════════════════════════════════════════════════════════════════════
+import telegram_bot as TB
+
+check("J1 import-safe (token lekunda kooda import)", TB is not None)
+check("J2 bot_status configured False + telugu note (token ledu)",
+      TB.bot_status()["configured"] is False and "TOKEN" in TB.bot_status()["note_telugu"], TB.bot_status())
+check("J3 parse channel ref", TB.parse_start_ref("/start ch_reddy") == {"raw": "ch_reddy", "kind": "channel", "value": "reddy"},
+      TB.parse_start_ref("/start ch_reddy"))
+check("J4 parse referral ref", TB.parse_start_ref("/start ref_1042")["kind"] == "referral")
+check("J5 parse profile ref (TSAP-)", TB.parse_start_ref("/start TSAP-F-1042")["kind"] == "profile")
+check("J6 parse plain /start", TB.parse_start_ref("/start")["kind"] == "plain")
+check("J7 help_text lo /search + /myid + Telugu",
+      "/search" in TB.help_text() and "/myid" in TB.help_text() and "₹99" in TB.help_text())
+card = TB.format_id_search({"tsap_id": "TSAP-F-1", "full_name": "T", "gender": "Bride", "age": 24,
+                            "caste": "Reddy", "education": "BTech", "job": "SW", "district": "Hyd",
+                            "state": "TS", "star": "Rohini", "gothram": "Bharadwaj",
+                            "phone": "9848012345"})
+check("J8 ID card lo number leak ledu", "9848012345" not in card and "TSAP-F-1" in card, card[:120])
+check("J9 approve keyboard callback approve_X", TB.get_approve_kb("TSAP-F-1").inline_keyboard[0][0].callback_data == "approve_TSAP-F-1")
+check("J10 reject callback kooda undi", TB.get_approve_kb("X").inline_keyboard[0][1].callback_data == "reject_X")
+n_handlers = len(TB.dp.message.handlers) + len(TB.dp.callback_query.handlers)
+check("J11 handlers >= 10 (start/help/myid/cancel/search/photo/contact/caste+callbacks)", n_handlers >= 10, n_handlers)
+
+# ═══════════════════════════════════════════════════════════════════════════
+section("K. PRIVACY — stories/push/voice lo numbers eppudu ledu")
+# ═══════════════════════════════════════════════════════════════════════════
+r = client.get("/api/stories")
+check("K1 public stories lo 10-digit numbers ledu", not PHONE_RE.findall(r.text), PHONE_RE.findall(r.text)[:3])
+r = client.get("/api/support/faq?limit=12")
+check("K2 FAQ lo numbers ledu", not PHONE_RE.findall(r.text))
+r = client.get("/api/boost/packs")
+check("K3 boost packs lo numbers ledu", not PHONE_RE.findall(r.text))
+r = client.get(f"/api/voice/{BID}")
+check("K4 voice meta lo numbers ledu", not PHONE_RE.findall(r.text), r.text[:150])
+
+print(f"\n{'=' * 76}\nRESULT: {PASS} pass / {FAIL} fail")
+if FAILED:
+    print("FAILED:", FAILED)
+    sys.exit(1)

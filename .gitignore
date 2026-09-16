@@ -38,3 +38,7 @@ backend/vendor_state.json
 # wave 9/10 runtime state (saved searches + consent ledger — machine-specific, regenerate avutundi)
 backend/saved_searches_state.json
 backend/consent_ledger_state.json
+
+# wave 11 runtime state (stories + push subs — machine-specific, regenerate avutundi)
+backend/stories_state.json
+backend/push_state.json

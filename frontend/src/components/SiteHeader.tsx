@@ -16,6 +16,7 @@ const NAV: { href: string; label: string; xl?: boolean }[] = [
   { href: "/growth", label: "Growth 📈" },
   { href: "/castes", label: "Castes" },
   { href: "/matches", label: "Matches" },
+  { href: "/stories", label: "Stories 💑" },
   { href: "/referral", label: "Referral" },
   { href: "/bureau", label: "Bureau" },
   { href: "/admin", label: "Admin" },

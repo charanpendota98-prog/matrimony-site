@@ -616,6 +616,12 @@ export default function MatchesAdvanced() {
                   🧮 {row.porutham.score}/{row.porutham.max} — {row.porutham.verdict}
                 </span>
               ) : null}
+              {/* ⚡ WAVE 11: boosted badge */}
+              {row.boosted ? (
+                <span className="bg-amber-50 border border-amber-300 text-amber-800 rounded-full px-2 py-0.5">
+                  ⚡ Boosted (top)
+                </span>
+              ) : null}
               <TrustBadge trust={row.trust} completeness={row.quality_percent} />
               {/* 🔒 Numbers ivvamu — interest pampi accept ayithe matrame exchange */}
               <span className="bg-rose-50 border border-rose-200 text-rose-800 rounded-full px-2 py-0.5"
@@ -623,6 +629,13 @@ export default function MatchesAdvanced() {
                 🔒 Number: {row.phone_masked || "•••••"} (locked)
               </span>
             </div>
+            {/* 🎙️ WAVE 11: voice intro player */}
+            {(row.voice_url || row.has_voice) ? (
+              <div className="mt-2 flex items-center gap-2 rounded-xl bg-violet-50 border border-violet-200 px-2 py-1.5">
+                <span className="text-[11px] font-bold text-violet-800 whitespace-nowrap">🎙️ Voice</span>
+                <audio controls preload="none" src={row.voice_url} className="h-8 flex-1 min-w-0" />
+              </div>
+            ) : null}
           </div>
         </div>
 

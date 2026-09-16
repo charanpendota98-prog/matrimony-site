@@ -14,6 +14,7 @@ const nextConfig = {
       { source: '/openapi.json', destination: `${backend}/openapi.json` },
       { source: '/cards/:path*', destination: `${backend}/cards/:path*` },
       { source: '/photos/:path*', destination: `${backend}/photos/:path*` },
+      { source: '/voice/:path*', destination: `${backend}/voice/:path*` },
     ];
   },
 
