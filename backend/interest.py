@@ -246,7 +246,10 @@ def safe_user(u: Optional[Dict]) -> Dict:
         "star": u.get("star", ""),
         "rasi": u.get("rasi", ""),
         "family_type": u.get("family_type", ""),
-        "photo_url": u.get("photo_url", ""),
+        "photo_url": u.get("photo_url", "") if u.get("photo_status") == "approved" else "",
+        "photo_status": u.get("photo_status", "none"),
+        "has_photo": bool(u.get("has_photo", False)),
+        "selfie_verified": bool(u.get("selfie_verified", False)),
         "verified": bool(u.get("verified", False)),
         # 🔒 CONTACT LOCK — public la kanipinchE prathi profile ki idi untundi
         "phone_masked": mask_phone(u.get("phone", "")),

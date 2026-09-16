@@ -6,7 +6,7 @@ from fastapi import FastAPI, HTTPException, Request, UploadFile, File, Form, Bod
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from typing import Any, Dict, Optional
-import os, random, json
+import os, random, json, re
 from datetime import datetime, timedelta
 
 # Import our modules
@@ -108,6 +108,7 @@ import paypro as PP        # 🌊 WAVE 14: safe-pay + festival offers
 import cms as CMS            # 📝 WAVE 15: pages + stories + banners
 import chanmap as CHAN         # 📡 WAVE 15: channel links + import + coverage
 from interest import ADDONS, RENEWALS, is_addon, get_addon, get_renewal, plan_list_with_free, addon_list, renewal_offer
+from photo_validate import validate_photo  # 🌊 WAVE 17 — photo validation pipeline
 from channels_config import post_targets, caste_channel_links, channel_links, WA_OFFICIAL_LINK
 # 🎁 WAVE 10 — register avvagane "3 profiles + caste channel links" WhatsApp ki
 from welcome_pack import build_welcome_pack, pack_public, channels_count as wa_links_stats
@@ -521,6 +522,22 @@ async def register(
     salary = req_text(salary, "salary", 1, 24)
     state = req_choice(state, "state", ["TS", "AP", "KA", "MH", "Other"])
     district = req_text(district, "district", 2, 40)
+    family_status = req_choice(family_status, "family_status",
+                               # 🌊 WAVE 17 canonical (screenshot) + legacy (old data/tests)
+                               ["Middle Class", "Upper Middle Class", "Rich / Affluent (Elite)",
+                                "Lower Middle", "Middle class", "Upper middle class", "Upper Middle",
+                                "Rich", "Affluent"],
+                               required=False, default="Middle Class")
+    _fam_map = {"Lower Middle": "Middle Class", "Middle class": "Middle Class",
+                "Upper middle class": "Upper Middle Class", "Upper Middle": "Upper Middle Class",
+                "Rich": "Rich / Affluent (Elite)", "Affluent": "Rich / Affluent (Elite)"}
+    family_status = _fam_map.get(family_status, family_status)
+    _about = (about_myself or "").strip()
+    # NOTE: empty allowed at API level (old clients/tests compat) — frontend form lo MANDATORY + counter.
+    if _about and len(_about) < 50:
+        raise HTTPException(400, "⚠️ About yourself — minimum 50 characters (మీ గురించి కనీసం 50 అక్షరాలు రాయండి)")
+    if re.search(r"(?<!\d)(?:\+?91[\s-]?)?[6-9]\d{9}(?!\d)", _about) or ("@" in _about and "." in _about.split("@")[-1]):
+        raise HTTPException(400, "🔒 About lo phone number / email pettakandi — privacy kosam numbers ivvamu (interest accept ayithe matrame exchange)")
     email = req_text(email, "email", 0, 80, required=False)
     country = req_text(country, "country", 0, 60, required=False) or "India"
     if age < 18: raise HTTPException(400, "Age must be 18+ (Bride) / 21+ (Groom)")
@@ -929,6 +946,8 @@ def search_profile(tsap_id: str, viewer_id: Optional[str] = None):
     pub["about_myself"] = user.get("about_myself", "")
     pub["family_details"] = user.get("family_details", "")
     pub["photo_urls"] = user.get("photo_urls", [])
+    pub["photo_status"] = user.get("photo_status", "none")      # 🌊 WAVE 17
+    pub["selfie_verified"] = bool(user.get("selfie_verified", False))
     return {
         "profile": pub,
         "can_view_profile": True,
@@ -2252,15 +2271,17 @@ async def photo_upload(file: UploadFile = File(...), tsap_id: str = Form("")):
     Validation: JPG/PNG/WebP, max 5 MB. Storage: /tmp/photos (docker volume) → /photos/{name} URL.
     (P0 gap fill — mundu photo preview matrame undi, real upload ledu)
     """
-    ext = (file.filename or "").split(".")[-1].lower()
-    allowed = {"jpg", "jpeg", "png", "webp", "heic", "heif"}
-    if ext not in allowed:
-        raise HTTPException(400, "Photo format JPG/PNG/WebP matrame — malli try cheyyandi")
     data = await file.read()
-    if len(data) > 5 * 1024 * 1024:
-        raise HTTPException(413, "Photo 5MB kanna peddadi undi — chinna photo pettandi (app lo ne compress avutundi)")
-    if len(data) < 1024:
-        raise HTTPException(400, "Photo khali ga undi — malli upload cheyyandi")
+    # 🌊 WAVE 17 — Layer-1 automatic validation (thappu photo iste asalu thisukovaddu)
+    verdict = validate_photo(data, file.filename or "")
+    if not verdict["ok"]:
+        raise HTTPException(422, {"reason": verdict["reason"], "en": verdict["en"],
+                                  "te": verdict["te"],
+                                  "message_telugu": f"📸 {verdict['te']}",
+                                  "checks": verdict["checks"]})
+    ext = (file.filename or "").split(".")[-1].lower()
+    if ext not in {"jpg", "jpeg", "png", "webp"}:
+        ext = {"heic": "jpg", "heif": "jpg"}.get(ext, "jpg")
     os.makedirs("/tmp/photos", exist_ok=True)
     token = (tsap_id.strip() or "tmp") + "-" + datetime.utcnow().strftime("%y%m%d%H%M%S") + "-" + str(random.randint(100, 999))
     name = f"{token}.{ 'jpg' if ext in ('heic','heif') else ext }"
@@ -2270,9 +2291,101 @@ async def photo_upload(file: UploadFile = File(...), tsap_id: str = Form("")):
             f.write(data)
     except Exception as e:
         raise HTTPException(500, f"Photo save avvaledu: {str(e)[:80]}")
+    _u = next((u for u in DB_USERS if u.get("tsap_id") == tsap_id.strip()), None) if tsap_id else None
+    if _u is not None:
+        _u["photo_url"] = f"/photos/{name}"
+        _u["photo_status"] = "pending"          # Layer-2: admin human review (top-site standard)
+        _u["photo_checks"] = verdict["checks"]
+        _u["photo_uploaded_at"] = datetime.utcnow().isoformat()
     return {"success": True, "url": f"/photos/{name}", "bytes": len(data),
             "kb": round(len(data) / 1024, 1), "path": path,
-            "message_telugu": f"📸 Photo upload ayyindi ({round(len(data)/1024)} KB)"}
+            "status": "pending", "checks": verdict["checks"],
+            "message_telugu": f"📸 Photo clear ga undi ({round(len(data)/1024)} KB) — admin approval ki vellindi ✅"}
+
+
+@app.get("/api/photo/status/{tsap_id}")
+def photo_status(tsap_id: str):
+    """📸 Photo + selfie verification status (frontend screens: validating/approved/not-approved)."""
+    u = next((x for x in DB_USERS if x.get("tsap_id") == tsap_id), None)
+    if not u:
+        raise HTTPException(404, "Profile dorakaledu")
+    return {"success": True, "tsap_id": tsap_id,
+            "photo_url": u.get("photo_url", ""), "photo_status": u.get("photo_status", "none"),
+            "photo_reason": u.get("photo_reason", ""), "photo_reason_te": u.get("photo_reason_te", ""),
+            "selfie_status": u.get("selfie_status", "none"),
+            "selfie_verified": bool(u.get("selfie_verified", False))}
+
+
+@app.post("/api/verify/selfie")
+async def verify_selfie(file: UploadFile = File(...), tsap_id: str = Form("")):
+    """🤳 Live-selfie verification upload — technical checks + admin review → trust badge."""
+    u = next((x for x in DB_USERS if x.get("tsap_id") == (tsap_id or "").strip()), None)
+    if not u:
+        raise HTTPException(404, "Profile dorakaledu — mundu register avvandi")
+    data = await file.read()
+    verdict = validate_photo(data, file.filename or "", selfie=True)
+    if not verdict["ok"]:
+        raise HTTPException(422, {"reason": verdict["reason"], "en": verdict["en"],
+                                  "te": verdict["te"],
+                                  "message_telugu": f"🤳 {verdict['te']}",
+                                  "checks": verdict["checks"]})
+    os.makedirs("/tmp/photos", exist_ok=True)
+    name = f"{u['tsap_id']}-selfie-" + datetime.utcnow().strftime("%y%m%d%H%M%S") + ".jpg"
+    with open(f"/tmp/photos/{name}", "wb") as f:
+        f.write(data)
+    u["selfie_url"] = f"/photos/{name}"
+    u["selfie_status"] = "pending"
+    u["selfie_checks"] = verdict["checks"]
+    return {"success": True, "url": u["selfie_url"], "status": "pending", "checks": verdict["checks"],
+            "message_telugu": "🤳 Selfie clear ga undi — verification ki vellindi ✅ (admin approve cheyagane badge vastundi)"}
+
+
+@app.get("/api/admin/photos/pending")
+def admin_photos_pending(request: Request):
+    """📸 ADMIN — photo + selfie moderation queue (Layer-2 human review)."""
+    require_admin(request)
+    q = []
+    for u in DB_USERS:
+        _first = str(u.get("full_name", "")).split()[0] if str(u.get("full_name", "")).split() else ""
+        if u.get("photo_status") == "pending":
+            q.append({"kind": "photo", "tsap_id": u.get("tsap_id"), "name": _first,
+                      "url": u.get("photo_url", ""), "checks": u.get("photo_checks", {}),
+                      "at": u.get("photo_uploaded_at", "")})
+        if u.get("selfie_status") == "pending":
+            q.append({"kind": "selfie", "tsap_id": u.get("tsap_id"), "name": _first,
+                      "url": u.get("selfie_url", ""), "checks": u.get("selfie_checks", {}), "at": ""})
+    return {"success": True, "count": len(q), "queue": q}
+
+
+@app.post("/api/admin/photos/review")
+def admin_photos_review(payload: dict, request: Request):
+    """📸 ADMIN — approve/reject photo or selfie (wrong-person/group/celebrity → reject)."""
+    require_admin(request)
+    d = payload or {}
+    u = next((x for x in DB_USERS if x.get("tsap_id") == str(d.get("tsap_id", ""))), None)
+    if not u:
+        raise HTTPException(404, "Profile dorakaledu")
+    kind = str(d.get("kind", "photo"))
+    decision = str(d.get("decision", ""))
+    if kind not in ("photo", "selfie") or decision not in ("approved", "rejected"):
+        raise HTTPException(400, "kind=photo/selfie, decision=approved/rejected ivvandi")
+    te_reason = str(d.get("reason_te", "") or d.get("reason", "")).strip()
+    if kind == "photo":
+        u["photo_status"] = decision
+        if decision == "approved":
+            u["has_photo"] = True
+            u["photo_urls"] = [u.get("photo_url", "")] if u.get("photo_url") else []
+            u["photo_reason"] = ""
+            u["photo_reason_te"] = ""
+        else:
+            u["has_photo"] = False
+            u["photo_reason"] = str(d.get("reason", "Photo not approved") or "Photo not approved")
+            u["photo_reason_te"] = te_reason or "ఈ ఫోటో approve kaledu — మీ clear original ఫోటో మళ్లీ పంపండి"
+    else:
+        u["selfie_status"] = decision
+        u["selfie_verified"] = (decision == "approved")
+    return {"success": True, "tsap_id": u["tsap_id"], "kind": kind, "decision": decision,
+            "message_telugu": ("✅ Approve ayyindi" if decision == "approved" else "❌ Reject ayyindi — user ki reason vellindi")}
 
 
 @app.post("/api/otp/send")

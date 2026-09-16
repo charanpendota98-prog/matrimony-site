@@ -13,7 +13,7 @@ backend/publish_log.jsonl
 publish_logs/*.jsonl
 whatsapp-bridge/session/
 cards/TSAP-*.png
-photos/
+/photos/
 backend/wa_state.json
 
 # channel setup runtime (state/reports — machine-specific)

@@ -82,7 +82,8 @@ export function heightLabel(h: string): string {
 }
 
 export const FAMILY_TYPES = ["Nuclear", "Joint"];
-export const FAMILY_STATUSES = ["Lower Middle", "Middle Class", "Upper Middle", "Rich", "Affluent"];
+// 🌊 WAVE 17 canonical (screenshot) — backend maps legacy values here
+export const FAMILY_STATUSES = ["Middle Class", "Upper Middle Class", "Rich / Affluent (Elite)"];
 export const FAMILY_VALUES = ["Traditional", "Moderate", "Liberal"];
 export const BODY_TYPES = ["Slim", "Average", "Athletic", "Heavy"];
 export const COMPLEXIONS = ["Very Fair", "Fair", "Wheatish", "Wheatish Brown", "Dark"];

@@ -18,6 +18,7 @@ export default function LoginPage() {
   const [devCode, setDevCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [demoId, setDemoId] = useState("");
+  const [keep, setKeep] = useState(true);
   const myProfiles = readLocal<Profile[]>("tsap_profiles", []);
 
   async function onSend() {
@@ -40,7 +41,7 @@ export default function LoginPage() {
     setBusy(false);
     if (!ok) { setMsg(errorTelugu); return; }
     const d = (data || {}) as { auth_token?: string; tsap_id?: string; has_account?: boolean; message_telugu?: string };
-    rememberSession(String(d.tsap_id || ""), String(d.auth_token || ""));
+    rememberSession(String(d.tsap_id || ""), String(d.auth_token || ""), keep);
     setMsg(d.message_telugu || "✅ Login ayyindi");
     if (d.has_account) setTimeout(() => router.push("/requests"), 700);
     else setTimeout(() => router.push("/register?phone=" + digits), 700);
@@ -84,7 +85,12 @@ export default function LoginPage() {
             {devCode && <p className="mt-1 text-xs text-emerald-700">DEV MODE OTP: <b>{devCode}</b> (SMS provider configure cheyyaka)</p>}
           </>
         )}
-        <p aria-live="polite" className="mt-3 min-h-[1.25rem] text-sm font-medium text-[#7A0C2E]">{msg}</p>
+        <label className="mt-3 flex items-center gap-2 text-sm font-medium text-slate-700 cursor-pointer">
+          <input type="checkbox" checked={keep} onChange={(e) => setKeep(e.target.checked)}
+            className="w-4 h-4 accent-[#7A0C2E]" />
+          ✅ <Duo en="Keep me logged in" te="లాగిన్‌లోనే ఉంచండి" />
+        </label>
+        <p aria-live="polite" className="mt-2 min-h-[1.25rem] text-sm font-medium text-[#7A0C2E]">{msg}</p>
         <div className="mt-3 flex gap-2">
           {stage === "phone" ? (
             <button onClick={onSend} disabled={busy}

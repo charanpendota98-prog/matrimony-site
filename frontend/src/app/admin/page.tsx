@@ -189,7 +189,8 @@ export default function AdminPage() {
 
         <div className="flex flex-wrap gap-2 mb-4">
           {[["payouts", duo("💰 Referral Payouts (live)", "💰 రెఫరల్ చెల్లింపులు")], ["vendors", duo("🏪 Vendor Ads (live)", "🏪 వెండర్ ప్రకటనలు")],
-            ["matchsend", duo("🎯 Match & Send (₹500)", "🎯 మ్యాచ్ & సెండ")], ["astro", duo("🪐 Astro", "🪐 జ్యోతిషం")], ["ads", duo("📢 Ads", "📢 ప్రకటనలు")], ["pay", duo("💳 Payments", "💳 చెల్లింపులు")], ["offers", duo("🎉 Offers", "🎉 ఆఫర్లు")], ["content", duo("📝 Content (CMS)", "📝 కంటెంట్")], ["channels", duo("📡 Channels + Poster", "📡 ఛానళ్లు")], ["profiles", duo("👥 Profiles", "👥 ప్రొఫైళ్లు")], ["analytics", duo("📊 Analytics", "📊 విశ్లేషణ")]].map(([k, l]) => (
+            ["matchsend", duo("🎯 Match & Send (₹500)", "🎯 మ్యాచ్ & సెండ")], ["astro", duo("🪐 Astro", "🪐 జ్యోతిషం")], ["ads", duo("📢 Ads", "📢 ప్రకటనలు")], ["pay", duo("💳 Payments", "💳 చెల్లింపులు")], ["offers", duo("🎉 Offers", "🎉 ఆఫర్లు")], ["content", duo("📝 Content (CMS)", "📝 కంటెంట్")], ["channels", duo("📡 Channels + Poster", "📡 ఛానళ్లు")], ["profiles", duo("👥 Profiles", "👥 ప్రొఫైళ్లు")], ["analytics", duo("📊 Analytics", "📊 విశ్లేషణ")],
+            ["photos", duo("📸 Photo Review", "📸 ఫోటో పరిశీలన")]].map(([k, l]) => (
             <button key={k} onClick={() => setTab(k)}
               className={`px-5 py-2 rounded-full text-sm font-bold ${tab === k ? "maroon-gradient text-white" : "bg-white border"}`}>{l}</button>
           ))}
@@ -283,6 +284,19 @@ export default function AdminPage() {
               <h2 className="font-bold text-[#7A0C2E] mt-2">📡 Channels — links map + bulk import + smart poster</h2>
               <ChannelsConsole />
             </>
+          )}
+
+          {/* ---------------- PHOTO REVIEW ---------------- */}
+          {tab === "photos" && (
+            <div className="mt-2 rounded-2xl border border-gold/30 bg-cream/50 p-5 text-center">
+              <div className="text-3xl">📸</div>
+              <h2 className="font-bold text-[#7A0C2E] mt-1">Photo + Selfie Review Queue</h2>
+              <p className="text-[12px] text-gray-600 telugu">Technical checks pass aina photos — wrong-person/group/celebrity ni reject cheyyandi.</p>
+              <Link href="/admin/photos"
+                className="mt-3 inline-block rounded-xl maroon-gradient text-white font-bold px-6 py-2.5 text-sm">
+                Open Review Queue →
+              </Link>
+            </div>
           )}
 
           {/* ---------------- PAYOUTS ---------------- */}

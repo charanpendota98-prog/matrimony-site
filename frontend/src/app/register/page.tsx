@@ -22,6 +22,7 @@ import Reveal from "@/components/Reveal";
 import { SITE_CONFIG } from "@/lib/site-config";
 import { authHeaders } from "@/lib/api";
 import { Duo, duo } from "@/lib/duo";
+import PhotoFlow from "@/components/PhotoFlow";
 import {
   BLOOD_GROUPS, BODY_TYPES, CASTES, CHILDREN_OPTIONS, COMPLEXIONS, DISTRICTS_BY_STATE, EDUCATIONS, FAMILY_STATUSES,
   FAMILY_TYPES, FAMILY_VALUES, HEIGHTS, JOBS, MARITAL_STATUSES, MOTHER_TONGUES, NAKSHATRAS, NAK_TO_RASI,
@@ -358,6 +359,9 @@ const set = (k: string, v: any) => {
       if (!/^\d{10}$/.test(String(f.phone))) e.push("10 digit mobile number ivvandi");
     }
     if (s === 5) {
+      const _ab = String(f.about_myself || "").trim();
+      if (_ab.length < 50) e.push("About yourself — minimum 50 characters (మీ గురించి కనీసం 50 అక్షరాలు రాయండి)");
+      else if (/[6-9]\d{9}|@\S+\.\S+/.test(_ab)) e.push("🔒 About lo phone number / email pettakandi — privacy kosam");
       if (!f.consent) e.push("Terms + privacy accept cheyyandi (kindha checkbox)");
     }
     return e;
@@ -575,6 +579,8 @@ const set = (k: string, v: any) => {
               </div>
             </div>
           ) : null}
+
+          <PhotoFlow tsapId={tsap} />
 
           <div className="bg-white rounded-2xl p-4 border border-gold/30 card-shadow">
             <div className="font-bold text-maroon text-[15px]">🎁 Mee account ki enti vachindi</div>
@@ -1092,8 +1098,13 @@ const set = (k: string, v: any) => {
               <Stepper label="Sisters (married)" value={f.sisters_married} onChange={(v) => set("sisters_married", v)} />
               <ChipGroup label="Family type" options={FAMILY_TYPES.map((x) => ({ v: x }))} value={f.family_type}
                 onChange={(v) => set("family_type", v)} />
-              <ChipGroup label="Family status" options={FAMILY_STATUSES.map((x) => ({ v: x }))} value={f.family_status}
-                onChange={(v) => set("family_status", v)} />
+              <PillGroup label={duo("Select family status", "కుటుంబ స్థాయి ఎంచుకోండి")}
+                options={[
+                  { v: "Middle Class", en: "Middle class", te: "మధ్య తరగతి" },
+                  { v: "Upper Middle Class", en: "Upper middle class", te: "ఎగువ మధ్య తరగతి" },
+                  { v: "Rich / Affluent (Elite)", en: "Rich / Affluent (Elite)", te: "ధనిక (ఎలైట్)" },
+                ]}
+                value={f.family_status} onChange={(v) => set("family_status", v)} />
               <ChipGroup label="Family values" options={FAMILY_VALUES.map((x) => ({ v: x }))} value={f.family_values}
                 onChange={(v) => set("family_values", v)} />
             </>
@@ -1129,14 +1140,16 @@ const set = (k: string, v: any) => {
                 value={!!f.photo_private} onChange={(v) => set("photo_private", v)} />
 
               <div>
-                <label className="text-[13px] font-bold text-ink">About me / Naa gurinchi <span className="text-[10px] text-gray-400">(optional)</span></label>
+                <label className="text-[13px] font-bold text-ink">{duo("A few words about myself", "నా గురించి కొన్ని మాటలు")} <span className="text-maroon">*</span></label>
                 <textarea value={f.about_myself} onChange={(e) => set("about_myself", e.target.value.slice(0, 600))}
                   rows={4} placeholder="Nenu simple family, software engineer… (Telugu lo kooda rayochu)"
                   className="input-mobile mt-1 telugu" />
                 <div className="mt-2 flex items-center gap-2">
                   <button type="button" onClick={startVoice}
                     className="border border-maroon/30 text-maroon font-bold text-[12px] px-3 py-2 rounded-xl">🎤 Voice tho cheppu</button>
-                  <span className="text-[10px] text-gray-500">{f.about_myself.length}/600</span>
+                  <span className={`text-[10px] font-bold ${f.about_myself.trim().length >= 50 ? "text-emerald-600" : "text-gray-500"}`}>
+                    {f.about_myself.trim().length >= 50 ? "✓ " : ""}{f.about_myself.length}/600 · {duo("Minimum 50 characters", "కనీసం 50 అక్షరాలు")}
+                  </span>
                 </div>
               </div>
 

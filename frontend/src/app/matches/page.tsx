@@ -603,6 +603,7 @@ export default function MatchesAdvanced() {
                   {row.verification === "id" || row.id_verified ? <span className="ml-1 text-[11px]" title="ID verified — full trust">🏅</span>
                     : row.verification === "photo" || row.photo_verified ? <span className="ml-1 text-[11px]" title="Photo verified">📸✅</span>
                     : (row.phone_verified || row.verification === "phone") ? <span className="ml-1 text-[11px] text-emerald-700" title="Phone verified">✅</span> : null}
+                  {row.selfie_verified ? <span className="ml-1 text-[11px]" title="Selfie verified">🤳</span> : null}
                   {row.boosted ? <span className="ml-1 text-[11px]">⚡</span> : null}
                 </div>
                 <div className="text-[11px] text-gray-500 font-mono">{row.tsap_id}</div>
