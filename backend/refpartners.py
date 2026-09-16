@@ -165,7 +165,8 @@ def partner_public(pid: str, users: Optional[List[Dict]] = None) -> Dict[str, An
                 _comm = round(sum(float(l.get("amount", 0) or 0) for l in _ledger
                                   if l.get("type") == "commission" and l.get("from") == u.get("tsap_id")), 2)
                 joins.append({"tsap_id": u.get("tsap_id", ""),
-                              "name": u.get("full_name") or u.get("name", ""),
+                              # WAVE 25 — partner view kuda first-name only (user privacy)
+                              "name": str(u.get("full_name") or u.get("name", "")).split()[0] or "—",
                               "at": u.get("referred_at", ""),
                               # has_paid flag + ledger fallback (pata data ki kuda correct)
                               "paid": bool(u.get("has_paid", False)) or u.get("tsap_id") in _paid_ids,

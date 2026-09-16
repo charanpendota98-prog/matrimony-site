@@ -274,11 +274,11 @@ check("H9 status created + no secrets", st.get("success") and st["order"]["statu
 cr0 = next(u for u in main.DB_USERS if u["tsap_id"] == GID).get("credits", 0)
 cf_noutr = client.post(f"/api/admin/payments/{PO1}/confirm", json={}, headers=HDR_ADMIN)
 check("H10 UTR lekunda confirm NO", cf_noutr.status_code == 400, cf_noutr.status_code)
-cf = client.post(f"/api/admin/payments/{PO1}/confirm", json={"utr": "UTR-W14-001"}, headers=HDR_ADMIN).json()
+cf = client.post(f"/api/admin/payments/{PO1}/confirm", json={"utr": "411111111111"}, headers=HDR_ADMIN).json()
 check("H11 UTR confirm fulfill", cf.get("success") and "success" in cf.get("message_telugu", ""), cf)
 cr1 = next(u for u in main.DB_USERS if u["tsap_id"] == GID).get("credits", 0)
 check("H12 S_99 → +5 credits", cr1 - cr0 == 5, (cr0, cr1))
-cf2 = client.post(f"/api/admin/payments/{PO1}/confirm", json={"utr": "UTR-W14-001"}, headers=HDR_ADMIN).json()
+cf2 = client.post(f"/api/admin/payments/{PO1}/confirm", json={"utr": "411111111111"}, headers=HDR_ADMIN).json()
 cr2 = next(u for u in main.DB_USERS if u["tsap_id"] == GID).get("credits", 0)
 check("H13 double-confirm idempotent", cf2.get("duplicate") is True and cr2 == cr1, (cf2, cr2))
 vf = client.post("/api/pay/verify", json={"order_id": PO2, "razorpay_order_id": "o1",
@@ -300,13 +300,20 @@ section("I. SAFE-PAY RAZORPAY (HMAC)")
 # ═══════════════════════════════════════════════════════════════════════════
 os.environ["RAZORPAY_KEY_ID"] = "rzp_test_w14key"
 os.environ["RAZORPAY_KEY_SECRET"] = "w14_secret_abc123"
+# 🌊 WAVE 25: server-side RZP order create — network stub (offline sandbox)
+import paypro as _PP14
+_PPx = _PP14._rzp_create_order
+_PP14._rzp_create_order = lambda pid, amt, label: {"ok": True, "rzp_order_id": "rzp_o_w14",
+                                                   "rzp_amount": int(amt) * 100}
 cfg2 = client.get("/api/pay/config").json()
 check("I1 keys unte razorpay mode + key_id only",
       cfg2.get("mode") == "razorpay" and cfg2.get("key_id") == "rzp_test_w14key"
       and "w14_secret" not in str(cfg2), cfg2)
 o3 = client.post("/api/pay/order", json={"tsap_id": GID, "purpose": "credits", "ref": "S_29"}).json()
 po3 = o3.get("pay_order", {})
-check("I2 razorpay order + paise", po3.get("mode") == "razorpay" and po3.get("checkout_amount_paise") == 2900, po3)
+check("I2 razorpay order + paise + server order_id",
+      po3.get("mode") == "razorpay" and po3.get("checkout_amount_paise") == 2900
+      and po3.get("rzp_order_id") == "rzp_o_w14", po3)
 PO3 = po3.get("id", "")
 
 
@@ -336,6 +343,7 @@ crd = next(u for u in main.DB_USERS if u["tsap_id"] == GID).get("credits", 0)
 check("I6 fail ayina credit add kadu", crd == crc, (crc, crd))
 st4 = client.get(f"/api/pay/status/{PO4}").json()
 check("I7 failed order stays created", st4["order"]["status"] == "created", st4["order"]["status"])
+_PP14._rzp_create_order = _PPx
 os.environ.pop("RAZORPAY_KEY_ID", None)
 os.environ.pop("RAZORPAY_KEY_SECRET", None)
 

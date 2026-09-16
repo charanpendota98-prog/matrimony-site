@@ -28,6 +28,8 @@ export default function PayBox({ planCode, price, label }: { planCode: string; p
   const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState("");
+  const [utr, setUtr] = useState("");
+  const [claimBusy, setClaimBusy] = useState(false);
 
   const myId = () => {
     try { return localStorage.getItem("tsap_id") || ""; } catch { return ""; }
@@ -50,16 +52,34 @@ export default function PayBox({ planCode, price, label }: { planCode: string; p
     setBusy(false);
   };
 
+  const submitClaim = async () => {
+    if (!order) return;
+    if (!/^\d{12}$/.test(utr.trim())) { setMsg("⚠️ UTR = 12 digits (GPay/PhonePe statement nunchi copy cheyyandi)"); return; }
+    setClaimBusy(true); setMsg("");
+    try {
+      const r = await fetch("/api/pay/claim", {
+        method: "POST", headers: { ...authHeaders(), "Content-Type": "application/json" },
+        body: JSON.stringify({ order_id: order.id, utr: utr.trim() }),
+      });
+      const d = await r.json();
+      setMsg(r.ok ? (d.message_telugu || "✅ UTR vachindi!") : (d.detail || d.message_telugu || "Claim fail"));
+      if (r.ok) { setOrder({ ...order, status: "claimed" }); setUtr(""); }
+    } catch { setMsg("Network problem — malli try cheyyandi"); }
+    setClaimBusy(false);
+  };
+
   const payNow = async () => {
     if (!order) return;
     if (order.mode !== "razorpay" || !order.key_id) {
-      setMsg(`💳 ${order.upi_id || "manavivaha@upi"} ki ₹${order.final_amount} pay chesi — UTR ni WhatsApp/support ki pampandi. Admin confirm chesaka credits add avutayi 🙏 (Order: ${order.id})`);
+      setMsg(`💳 ${order.upi_id || "manavivaha@upi"} ki ₹${order.final_amount} pay chesi — kindha UTR (12 digits) ivvandi. Admin bank statement verify chesi confirm chesthadu 🙏 (Order: ${order.id})`);
       return;
     }
     const ok = await loadRazorpay();
     if (!ok || !window.Razorpay) { setMsg("⚠️ Razorpay load avvaledu — UPI manual tho try cheyyandi"); return; }
+    if (!order.rzp_order_id) { setMsg("⚠️ Order ID ledu — kotha order create cheyyandi"); return; }
     const rzp = new window.Razorpay({
       key: order.key_id,
+      order_id: order.rzp_order_id,
       amount: order.checkout_amount_paise,
       currency: "INR",
       name: "Mana Vivaha",
@@ -117,8 +137,21 @@ export default function PayBox({ planCode, price, label }: { planCode: string; p
             {order.discount ? <span className="ml-1 text-green-700">(−₹{order.discount} {order.offer_code})</span> : null}
           </div>
           {order.mode !== "razorpay" && (
-            <div className="text-[11px] bg-white rounded-lg p-2 border">
-              💳 UPI ID: <b className="font-mono">{order.upi_id}</b> • Amount: <b>₹{order.final_amount}</b>
+            <div className="text-[11px] bg-white rounded-lg p-2 border space-y-2">
+              <div>💳 UPI ID: <b className="font-mono">{order.upi_id}</b> • Amount: <b>₹{order.final_amount}</b></div>
+              {order.status === "claimed" ? (
+                <div className="font-bold text-green-700">✅ UTR vachindi — admin verify chestunnadu, thwaralone credits add 🙏</div>
+              ) : (
+                <div className="flex gap-2">
+                  <input value={utr} onChange={(e) => setUtr(e.target.value.replace(/\D/g, "").slice(0, 12))}
+                    placeholder="12-digit UTR" inputMode="numeric"
+                    className="flex-1 rounded-lg border px-3 py-2 font-mono" aria-label="12-digit UTR" />
+                  <button onClick={submitClaim} disabled={claimBusy}
+                    className="rounded-lg bg-green-700 text-white px-3 py-2 font-bold disabled:opacity-50">
+                    {claimBusy ? "⏳…" : "UTR pampu"}
+                  </button>
+                </div>
+              )}
             </div>
           )}
           <button onClick={payNow} disabled={busy}

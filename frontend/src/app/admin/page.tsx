@@ -307,7 +307,7 @@ export default function AdminPage() {
             <>
               <ReferralReport />
               <p className="text-xs text-gray-500 mt-2 telugu">
-                ₹50 per paying referral (first payment) + 10% repeat + tier extra. UPI copy → PhonePe deep link → pay → UTR pettandi → approve.
+                ₹50 per paying referral — first payment ONLY (flat, anthe). UPI copy → PhonePe deep link → pay → UTR pettandi → approve → user transaction list lo PAID ✅
                 Reject chesthe wallet ki malli credit avutundi (automatic).
               </p>
               <div className="mt-4 overflow-x-auto">

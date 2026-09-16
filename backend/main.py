@@ -1523,8 +1523,9 @@ def referral_fraud_check(tsap_id: str, request: Request = None):
 
 
 @app.post("/api/admin/approve/{tsap_id}")
-def admin_approve(tsap_id: str):
+def admin_approve(tsap_id: str, request: Request):
     """Admin approve → auto-post to channels"""
+    require_admin(request)  # 🛡️ WAVE 25: CRITICAL FIX — auth lekunda approve = fake trust badges!
     user = next((u for u in DB_USERS if u["tsap_id"]==tsap_id), None)
     if not user: raise HTTPException(404, "Not found")
     user["is_approved"] = True
@@ -2057,10 +2058,15 @@ async def interest_respond(payload: dict, request: Request = None):
 
 
 @app.get("/api/interest/status/{request_id}")
-def interest_status(request_id: str):
+def interest_status(request_id: str, request: Request):
     rec = next((i for i in DB_INTERESTS if i["request_id"] == request_id), None)
     if not rec:
         raise HTTPException(404, "Request not found")
+    # 🛡️ WAVE 25: full names + private note — sender/receiver (leda admin) matrame
+    try:
+        require_owner(request, rec.get("from_id", ""))
+    except HTTPException:
+        require_owner(request, rec.get("to_id", ""))
     return {"request": rec,
             "steps": [
                 {"step": "Request pampincharu", "done": True},
@@ -3709,9 +3715,10 @@ def vendor_ads(slot: str = "home_top_banner", limit: int = 2, track: bool = True
 def vendor_list(category: str = "", district: str = "", city: str = "", q: str = "",
                 limit: int = 60, include_inactive: bool = False):
     """🏪 Vendor directory — category/district/city/search filters (paid-first order)."""
+    # WAVE 25: public = active-approved ONLY (pending/spam numbers leak avvakudadu)
     return {"success": True, **vendors_directory(category=category, district=district, city=city,
                                                  q=q, limit=min(max(limit, 1), 200),
-                                                 include_inactive=include_inactive)}
+                                                 include_inactive=False)}
 
 
 @app.post("/api/vendors/register")
@@ -4124,12 +4131,14 @@ def admin_push_queue(request: Request = None):
 
 
 @app.post("/api/voice/upload")
-async def voice_upload(file: UploadFile = File(...), tsap_id: str = Form("")):
+async def voice_upload(request: Request, file: UploadFile = File(...), tsap_id: str = Form("")):
     """
     🎙️ Voice intro upload (30 sec) — phone recorder nunchi.
     MP3/WAV/OGG/M4A, max 2MB. Matches lo ▶️ play avutundi.
     """
     tid = (tsap_id or "").strip()
+    if tid:
+        require_owner(request, tid)  # 🛡️ WAVE 25: vere vaalla profile ki voice spam ban
     u = _find_user(tid) if tid else None
     data = await file.read()
     chk = A11.voice_validate(file.filename or "", len(data))
@@ -4713,10 +4722,12 @@ def api_pay_config():
 
 
 @app.post("/api/pay/order")
-def api_pay_order(payload: dict):
+def api_pay_order(payload: dict, request: Request):
     """Create pay order — amount SERVER computes (client amount trust cheyyam)."""
     d = payload or {}
-    res = PP.create_pay_order(str(d.get("tsap_id", "")).upper(), str(d.get("purpose", "credits")),
+    tsap = str(d.get("tsap_id", "")).upper()
+    require_owner(request, tsap)  # 🛡️ WAVE 25: vere vaalla peruna orders vaddu
+    res = PP.create_pay_order(tsap, str(d.get("purpose", "credits")),
                               str(d.get("ref", "")), str(d.get("offer_code", "") or ""))
     if not res.get("success"):
         raise HTTPException(400, res.get("message_telugu"))
@@ -4724,10 +4735,14 @@ def api_pay_order(payload: dict):
 
 
 @app.post("/api/pay/verify")
-def api_pay_verify(payload: dict):
+def api_pay_verify(payload: dict, request: Request):
     """Razorpay verify → signature OK ayithe ONLY fulfill. Idempotent."""
     d = payload or {}
-    res = PP.verify_payment(str(d.get("order_id", "") or d.get("pay_order_id", "")),
+    oid = str(d.get("order_id", "") or d.get("pay_order_id", ""))
+    po = PP.get_pay_order(oid)
+    if po:
+        require_owner(request, po.get("tsap_id", ""))  # 🛡️ WAVE 25: mee order ke verify
+    res = PP.verify_payment(oid,
                             str(d.get("razorpay_order_id", "")), str(d.get("razorpay_payment_id", "")),
                             str(d.get("razorpay_signature", "")))
     if not res.get("success"):
@@ -4736,12 +4751,43 @@ def api_pay_verify(payload: dict):
 
 
 @app.get("/api/pay/status/{order_id}")
-def api_pay_status(order_id: str):
+def api_pay_status(order_id: str, request: Request):
     po = PP.get_pay_order(order_id)
     if not po:
         raise HTTPException(404, "Order dorakaledu")
+    require_owner(request, po.get("tsap_id", ""))  # 🛡️ WAVE 25: order enum + UTR scrape ban
     safe = {k: v for k, v in po.items() if k not in ("signature", "payment_id")}
     return {"success": True, "order": safe}
+
+
+@app.post("/api/pay/claim")
+def api_pay_claim(payload: dict, request: Request):
+    """🌊 WAVE 25 — USER submits UTR in-app (claim ≠ confirm — admin verifies statement)."""
+    d = payload or {}
+    oid = str(d.get("order_id", "") or d.get("pay_order_id", ""))
+    po = PP.get_pay_order(oid)
+    if not po:
+        raise HTTPException(404, "Order dorakaledu")
+    require_owner(request, po.get("tsap_id", ""))
+    res = PP.claim_utr(oid, po.get("tsap_id", ""), str(d.get("utr", "") or ""))
+    if not res.get("success"):
+        raise HTTPException(400, res.get("message_telugu"))
+    return res
+
+
+@app.post("/api/pay/webhook")
+async def api_pay_webhook(request: Request):
+    """🌊 WAVE 25 — Razorpay webhook: HMAC verify → auto-fulfill (signature = auth)."""
+    raw = await request.body()
+    sig = request.headers.get("X-Razorpay-Signature", "")
+    if not PP.verify_webhook_signature(raw, sig):
+        raise HTTPException(401, "Bad webhook signature")
+    try:
+        event = json.loads(raw.decode("utf-8") or "{}")
+    except Exception:
+        raise HTTPException(400, "Bad webhook body")
+    res = PP.handle_razorpay_webhook(event)
+    return {"success": bool(res.get("ok")), **res}
 
 
 @app.get("/api/admin/payments")

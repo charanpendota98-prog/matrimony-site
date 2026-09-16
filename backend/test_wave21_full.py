@@ -51,36 +51,36 @@ try:
     st["lifetime_earned"] = 200
     q = referral.payout_request(p, 100, method="upi", upi_id="pay@okhdfc")
     check("A1 partner request ok", q.get("ok"), q)
-    a = referral.payout_action(q["request"]["id"], "approve", [], utr="UTR-W21-A")
+    a = referral.payout_action(q["request"]["id"], "approve", [], utr="412121212101")
     check("A2 partner approve ok (fix)", a.get("ok"), a)
     st2 = referral.stats_of(RP19.get_partner(pid))
     check("A3 paid_out moved + wallet kept 100", st2["paid_out"] == 100 and st2["wallet"] == 100, st2)
-    check("A4 UTR audit saved", q["request"]["utr"] == "UTR-W21-A" and q["request"]["status"] == "paid")
+    check("A4 UTR audit saved", q["request"]["utr"] == "412121212101" and q["request"]["status"] == "paid")
     # user still works
     u = {"tsap_id": "TSAP-M-2021-9", "full_name": "User Pay", "referral_stats": {}}
     referral.stats_of(u)["wallet"] = 150
     q2 = referral.payout_request(u, 150, method="upi", upi_id="userpay@okhdfc")
-    a2 = referral.payout_action(q2["request"]["id"], "approve", [u], utr="UTR-W21-U")
+    a2 = referral.payout_action(q2["request"]["id"], "approve", [u], utr="412121212102")
     check("A5 user approve ok", a2.get("ok") and referral.stats_of(u)["paid_out"] == 150, a2)
     q3 = referral.payout_request(u, 100, method="upi", upi_id="userpay@okhdfc")
     check("A6 insufficient blocked", not q3.get("ok"), q3)
 
     section("B. pay-full")
-    f = referral.pay_wallet_full(pid, [], utr="UTR-W21-FULL")
+    f = referral.pay_wallet_full(pid, [], utr="412121212121")
     check("B1 pay-full ok + wallet 0", f.get("ok") and f.get("wallet") == 0 and f.get("paid") == 100, f)
     check("B2 paid_out total 200", referral.stats_of(RP19.get_partner(pid))["paid_out"] == 200)
-    check("B3 payout record paid+UTR", f["request"]["status"] == "paid" and f["request"]["utr"] == "UTR-W21-FULL")
+    check("B3 payout record paid+UTR", f["request"]["status"] == "paid" and f["request"]["utr"] == "412121212121")
     check("B4 ledger has manual entry", any(l.get("type") == "payout_manual_full"
           for l in referral.stats_of(RP19.get_partner(pid))["ledger"]))
-    f2 = referral.pay_wallet_full(pid, [], utr="UTR-X")
+    f2 = referral.pay_wallet_full(pid, [], utr="412121212103")
     check("B5 empty wallet fails", not f2.get("ok") and f2.get("reason") == "wallet_empty", f2)
-    f3 = referral.pay_wallet_full("NOPEXX999", [], utr="UTR-X")
+    f3 = referral.pay_wallet_full("NOPEXX999", [], utr="412121212103")
     check("B6 unknown code fails", not f3.get("ok"), f3)
     u2 = {"tsap_id": "TSAP-F-2021-8", "full_name": "Full User", "referral_stats": {}}
     referral.stats_of(u2)["wallet"] = 120
     f4 = referral.pay_wallet_full("TSAP-F-2021-8", [u2], utr="")
-    check("B7 UTR must (no zero without audit)", not f4.get("ok") and f4.get("reason") == "utr_required", f4)
-    f5 = referral.pay_wallet_full("TSAP-F-2021-8", [u2], utr="UTR-W21-U2")
+    check("B7 UTR must (no zero without audit)", not f4.get("ok") and f4.get("reason") == "utr_invalid", f4)
+    f5 = referral.pay_wallet_full("TSAP-F-2021-8", [u2], utr="412121212105")
     check("B8 user pay-full zeroes wallet", f5.get("ok") and referral.stats_of(u2)["wallet"] == 0, f5)
 
     section("C. joins name + commission")
@@ -89,7 +89,7 @@ try:
     referral.process_referral_payment(nb, pid, 99, [], payment_id="pw21c")
     d = RP19.partner_public(pid, [nb])
     j = d["joins"][0]
-    check("C1 partner join full name", j["name"] == "Commission Join", j)
+    check("C1 partner join first-name only (privacy)", j["name"] == "Commission", j)
     check("C2 partner join commission ₹50", j["paid"] and j["commission"] == 50, j)
     uref = {"tsap_id": "TSAP-M-2021-6", "full_name": "Ref Owner", "phone": "9210000024",
             "referral_code": "ROWN21", "referral_stats": {}}

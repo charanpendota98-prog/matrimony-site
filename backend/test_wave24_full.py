@@ -59,7 +59,7 @@ try:
     o = PP.create_pay_order("TSAP-F-2024-2", "credits", "S_99")
     check("A2 pay order created", o.get("success"), o)
     oid = o["pay_order"]["id"]
-    cm = PP.confirm_manual(oid, "UTR-W24-001")
+    cm = PP.confirm_manual(oid, "412424242401")
     check("A3 manual confirm ok", cm.get("success"), cm)
     st = referral.stats_of(ref)
     check("A4 commission fired via fulfill (wallet 50)", float(st.get("wallet", 0)) == 50, st.get("wallet"))
@@ -71,7 +71,7 @@ try:
            "credits": 0, "referred_by": "NOPEXX"}
     M.DB_USERS.append(nb2)
     o2 = PP.create_pay_order("TSAP-F-2024-3", "credits", "S_99")
-    cm2 = PP.confirm_manual(o2["pay_order"]["id"], "UTR-W24-002")
+    cm2 = PP.confirm_manual(o2["pay_order"]["id"], "412424242402")
     check("A7 bad referrer → pay still succeeds", cm2.get("success") is True, cm2)
 
     section("B. unlock race")

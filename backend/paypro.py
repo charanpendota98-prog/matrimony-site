@@ -17,13 +17,54 @@ import hashlib
 import hmac
 import json
 import os
+import re
+import threading
+from collections import defaultdict
 from datetime import datetime
 from typing import Dict, List, Optional
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PERSIST_FILE = os.path.join(BASE_DIR, "paypro14.json")
 
-PAY_ORDERS: List[Dict] = []   # our orders (pay_ord_xxx)
+PAY_ORDERS: List[Dict] = []
+
+# 🌊 WAVE 25 — PIN-TO-PIN SECURE PAY
+ORDER_EXPIRY_HOURS = 24          # pending order 24h lo pay kakapothe expire (stale confirm ban)
+UTR_RE = re.compile(r"^\d{12}$")  # UPI ref / bank UTR = 12 digits (PhonePe/GPay statement)
+_ORDER_LOCKS: Dict[str, threading.Lock] = defaultdict(threading.Lock)
+
+
+def valid_utr(utr: str) -> bool:
+    """UTR/UPI-ref = exactly 12 digits (screenshot/statement nunchi)."""
+    return bool(UTR_RE.fullmatch((utr or "").strip()))
+
+
+def _order_age_hours(po: Dict) -> float:
+    try:
+        dt = datetime.strptime(str(po.get("created_at", ""))[:19], "%Y-%m-%dT%H:%M:%S")
+        return (datetime.utcnow() - dt).total_seconds() / 3600.0
+    except Exception:
+        return 0.0
+
+
+def order_expired(po: Dict) -> bool:
+    """created/claimed order 24h datithe expire — kotha order mandatory (amount/plan drift proof)."""
+    if (po.get("status") or "") not in ("created", "claimed"):
+        return False
+    return _order_age_hours(po) > ORDER_EXPIRY_HOURS
+
+
+def utr_used_elsewhere(utr: str, exclude_order_id: str = "") -> Optional[str]:
+    """Same UTR malli vadakudadu — edo order lo paid/claimed ayyinda? → order id."""
+    u = (utr or "").strip()
+    if not u:
+        return None
+    for o in PAY_ORDERS:
+        if o.get("id") == exclude_order_id:
+            continue
+        if (o.get("utr") or o.get("claim_utr") or "").strip() == u and                 (o.get("status") in ("paid", "claimed") or o.get("utr")):
+            return o.get("id", "")
+    return None   # our orders (pay_ord_xxx)
 RECEIPTS: Dict[str, Dict] = {}  # razorpay_payment_id → receipt (idempotency)
 OFFERS: List[Dict] = []        # festival promo codes
 _SEQ = 0
@@ -243,6 +284,32 @@ def _expected_amount(purpose: str, ref: str) -> Dict:
     return {"ok": False, "message_telugu": "⚠️ purpose: credits/assisted/ads/boost matrame"}
 
 
+def _rzp_create_order(pay_order_id: str, amount_rs: int, label: str) -> Dict:
+    """🌊 WAVE 25 — Razorpay Order SERVER creates (secret backend lone).
+    Frontend ki order_id matrame → checkout → signature verify → fulfill.
+    Frontend amount/order trust CHEYYAM — anni server-side."""
+    import requests  # lazy
+    key_id = os.getenv("RAZORPAY_KEY_ID", "").strip()
+    secret = _secret()
+    if not key_id or not secret:
+        return {"ok": False, "message_telugu": "⚠️ Online pay configure kaledu (keys ledu) — UPI manual tho try cheyyandi"}
+    try:
+        r = requests.post(
+            "https://api.razorpay.com/v1/orders",
+            auth=(key_id, secret),
+            json={"amount": int(amount_rs) * 100, "currency": "INR",
+                  "receipt": pay_order_id[:40], "notes": {"pay_order": pay_order_id, "label": label[:100]}},
+            timeout=15)
+        if r.status_code not in (200, 201):
+            return {"ok": False, "message_telugu": "⚠️ Razorpay order create fail — malli try cheyyandi (dabbulu cut avvavu)"}
+        j = r.json()
+        if not j.get("id") or int(j.get("amount", 0)) != int(amount_rs) * 100:
+            return {"ok": False, "message_telugu": "⚠️ Razorpay amount mismatch — order create kaledu (safe abort)"}
+        return {"ok": True, "rzp_order_id": j["id"], "rzp_amount": int(j["amount"])}
+    except Exception:
+        return {"ok": False, "message_telugu": "⚠️ Razorpay reach avvatledu — network/malli try (UPI manual kooda undi)"}
+
+
 def create_pay_order(tsap_id: str, purpose: str, ref: str, offer_code: str = "") -> Dict:
     """Pay order create — amount server-side + offer apply + Razorpay/manual mode."""
     global _SEQ
@@ -258,8 +325,17 @@ def create_pay_order(tsap_id: str, purpose: str, ref: str, offer_code: str = "")
           "ref": ref, "amount": exp["amount"], "final_amount": off["final_amount"],
           "discount": off["discount"], "offer_code": off.get("code", ""),
           "label": exp["label"], "mode": cfg["mode"], "status": "created",
-          "rzp_order_id": "", "payment_id": "", "utr": "", "created_at": _now(),
+          "rzp_order_id": "", "rzp_amount": 0, "payment_id": "", "utr": "",
+          "claim_utr": "", "claimed_at": "", "created_at": _now(),
           "paid_at": "", "receipt": None}
+    if cfg["mode"] == "razorpay":
+        # 🌊 WAVE 25: RZP order server-side MUST succeed — lekapothe dangling order vaddu
+        rz = _rzp_create_order(po["id"], po["final_amount"], po["label"])
+        if not rz.get("ok"):
+            _SEQ -= 1
+            return {"success": False, "message_telugu": rz.get("message_telugu")}
+        po["rzp_order_id"] = rz["rzp_order_id"]
+        po["rzp_amount"] = rz["rzp_amount"]
     PAY_ORDERS.append(po)
     _persist()
     out = {"success": True, "pay_order": {k: po[k] for k in
@@ -268,9 +344,9 @@ def create_pay_order(tsap_id: str, purpose: str, ref: str, offer_code: str = "")
            "message_telugu": (f"✅ Order {po['id']} — ₹{po['final_amount']} pay cheyyandi"
                                + (f" (offer {off['code']}: -₹{off['discount']})" if off.get("code") else ""))}
     if cfg["mode"] == "razorpay":
-        # NOTE: real RZP order create checkout step lo (frontend key_id tho direct),
-        # verify daggara signature match — single source: mana pay_order final_amount.
+        # 🌊 WAVE 25: frontend checkout ee order_id tho — verify lo signature + id + amount match
         out["pay_order"]["key_id"] = cfg["key_id"]
+        out["pay_order"]["rzp_order_id"] = po["rzp_order_id"]
         out["pay_order"]["checkout_amount_paise"] = po["final_amount"] * 100
         out["next_telugu"] = "💳 Razorpay checkout lo pay chesi → /api/pay/verify ki pampandi"
     else:
@@ -365,21 +441,35 @@ def verify_payment(pay_order_id: str, rzp_order_id: str, payment_id: str,
                    signature: str) -> Dict:
     """
     Razorpay checkout response verify:
-      signature OK + pay_order match + amount sane → fulfill ONCE → receipt.
+      signature OK + pay_order match + rzp_order match + amount sane → fulfill ONCE.
       replay → old receipt (double credit NEVER).
     """
+    with _ORDER_LOCKS[str(pay_order_id or "")]:
+        return _verify_payment_locked(pay_order_id, rzp_order_id, payment_id, signature)
+
+
+def _verify_payment_locked(pay_order_id: str, rzp_order_id: str, payment_id: str,
+                           signature: str) -> Dict:
     po = get_pay_order(pay_order_id)
     if not po:
         return {"success": False, "message_telugu": "⚠️ Order dorakaledu"}
     if po.get("status") == "paid":
         return {"success": True, "duplicate": True, "receipt": po.get("receipt"),
                 "message_telugu": "✅ Ee order already paid — double charge ledu (idempotent) 🙂"}
+    if order_expired(po):
+        po["status"] = "expired"
+        _persist()
+        return {"success": False, "reason": "expired",
+                "message_telugu": "⚠️ Order expire ayyindi (24h) — kotha order create cheyyandi"}
     if payment_id and payment_id in RECEIPTS:
         old = RECEIPTS[payment_id]
         return {"success": True, "duplicate": True, "receipt": old,
                 "message_telugu": "✅ Ee payment already use ayyindi — malli credit ivvamu 🙂"}
     if pay_config()["mode"] != "razorpay":
         return {"success": False, "message_telugu": "⚠️ Online verify off (manual-UPI mode) — admin confirm chesthadu"}
+    if po.get("rzp_order_id") and rzp_order_id != po["rzp_order_id"]:
+        return {"success": False, "reason": "order_mismatch",
+                "message_telugu": "🚫 Ee payment vere order di — mana order tho match avvaledu (support ki payment ID pampandi)"}
     if not _hmac_ok(rzp_order_id, payment_id, signature):
         return {"success": False, "reason": "bad_signature",
                 "message_telugu": "🚫 Payment verify FAIL — signature mismatch (amount cut ayithe 5-7 days lo auto-refund, leda support ki payment ID pampandi)"}
@@ -402,16 +492,128 @@ def verify_payment(pay_order_id: str, rzp_order_id: str, payment_id: str,
     return {"success": True, "receipt": receipt, "message_telugu": receipt["detail"]}
 
 
+def verify_webhook_signature(raw_body: bytes, signature: str) -> bool:
+    """🌊 WAVE 25 — Razorpay webhook auth = HMAC-SHA256(raw_body, secret).
+    Signature lekunda/tappu ayithe webhook REJECT (fake fulfill ban)."""
+    secret = _secret()
+    if not secret or not raw_body or not signature:
+        return False
+    mac = hmac.new(secret.encode(), raw_body, hashlib.sha256).hexdigest()
+    return hmac.compare_digest(mac, str(signature).strip())
+
+
+def handle_razorpay_webhook(event: Dict) -> Dict:
+    """payment.captured/order.paid → auto-fulfill ONCE (idempotent).
+    Unknown events → ignore (200)."""
+    try:
+        name = str((event or {}).get("event", ""))
+        ent = ((event or {}).get("payload", {}) or {}).get("payment", {}) or {}
+        ent = (ent.get("entity", {}) or {}) if isinstance(ent, dict) else {}
+        rzp_order = str(ent.get("order_id", "") or "")
+        payment_id = str(ent.get("id", "") or "")
+        if name not in ("payment.captured", "payment.authorized", "order.paid") or not rzp_order:
+            return {"ok": True, "ignored": True}
+        po = next((o for o in PAY_ORDERS if o.get("rzp_order_id") == rzp_order), None)
+        if not po:
+            return {"ok": True, "ignored": True, "reason": "unknown_order"}
+        with _ORDER_LOCKS[po["id"]]:
+            if po.get("status") == "paid":
+                return {"ok": True, "duplicate": True, "receipt": po.get("receipt")}
+            if payment_id and payment_id in RECEIPTS:
+                return {"ok": True, "duplicate": True, "receipt": RECEIPTS[payment_id]}
+            if order_expired(po):
+                po["status"] = "expired"
+                _persist()
+                return {"ok": False, "reason": "expired"}
+            po["payment_id"] = payment_id
+            done = fulfill_order(po, payment_id, "razorpay_webhook")
+            if not done.get("ok"):
+                _persist()
+                return {"ok": False, "message_telugu": done.get("message_telugu")}
+            po["status"] = "paid"
+            po["paid_at"] = _now()
+            receipt = {"pay_order_id": po["id"], "payment_id": payment_id, "amount": po["final_amount"],
+                       "purpose": po["purpose"], "ref": po["ref"], "tsap_id": po["tsap_id"],
+                       "paid_at": po["paid_at"], "detail": done.get("message_telugu"), "via": "webhook"}
+            po["receipt"] = receipt
+            RECEIPTS[payment_id] = receipt
+            if po.get("offer_code"):
+                _consume_offer(po["offer_code"], po.get("tsap_id", ""))
+            _persist()
+            return {"ok": True, "receipt": receipt}
+    except Exception as e:
+        return {"ok": False, "reason": "error", "error": str(e)[:100]}
+
+
+def claim_utr(pay_order_id: str, tsap_id: str, utr: str) -> Dict:
+    """🌊 WAVE 25 — USER submits UTR in-app (NOT self-confirm!):
+    status → claimed → admin queue lo chusi bank statement match chesi confirm.
+    Owner route nunchi matrame (mee order ke)."""
+    po = get_pay_order(pay_order_id)
+    if not po:
+        return {"success": False, "message_telugu": "⚠️ Order dorakaledu"}
+    if str(po.get("tsap_id", "")).upper() != str(tsap_id or "").upper():
+        return {"success": False, "reason": "not_yours",
+                "message_telugu": "⚠️ Ee order meedi kadu"}
+    if po.get("status") == "paid":
+        return {"success": True, "duplicate": True,
+                "message_telugu": "✅ Already paid — credits vachayi 🙂"}
+    if order_expired(po):
+        po["status"] = "expired"
+        _persist()
+        return {"success": False, "reason": "expired",
+                "message_telugu": "⚠️ Order expire ayyindi — kotha order cheyyandi"}
+    if po.get("status") not in ("created", "claimed"):
+        return {"success": False, "message_telugu": "⚠️ Ee order confirm cheyyalem (status: %s)" % po.get("status")}
+    if not valid_utr(utr):
+        return {"success": False, "reason": "utr_invalid",
+                "message_telugu": "⚠️ UTR = 12 digits (GPay/PhonePe statement nunchi copy cheyyandi)"}
+    dup = utr_used_elsewhere(utr, exclude_order_id=po["id"])
+    if dup:
+        return {"success": False, "reason": "utr_reused",
+                "message_telugu": "🚫 Ee UTR already vere order (%s) lo use ayyindi" % dup}
+    po["claim_utr"] = utr.strip()
+    po["claimed_at"] = _now()
+    po["status"] = "claimed"
+    _persist()
+    return {"success": True, "order_id": po["id"],
+            "message_telugu": "✅ UTR vachindi! Admin bank statement verify chesi confirm chesthadu (thwaralone credits add) 🙏"}
+
+
 def confirm_manual(pay_order_id: str, utr: str) -> Dict:
-    """Admin: UPI payment vachhindi (UTR) → fulfill ONCE."""
+    """Admin: UPI payment vachhindi (UTR) → fulfill ONCE.
+    🌊 WAVE 25: lock + expiry + 12-digit UTR + reuse-block + amount sanity."""
+    with _ORDER_LOCKS[str(pay_order_id or "")]:
+        return _confirm_manual_locked(pay_order_id, utr)
+
+
+def _confirm_manual_locked(pay_order_id: str, utr: str) -> Dict:
     po = get_pay_order(pay_order_id)
     if not po:
         return {"success": False, "message_telugu": "⚠️ Order dorakaledu"}
     if po.get("status") == "paid":
         return {"success": True, "duplicate": True, "receipt": po.get("receipt"),
                 "message_telugu": "✅ Already paid — double credit ivvamu"}
-    if not (utr or "").strip():
-        return {"success": False, "message_telugu": "⚠️ UTR lekunda confirm cheyyakoodadu (audit)"}
+    if order_expired(po):
+        po["status"] = "expired"
+        _persist()
+        return {"success": False, "reason": "expired",
+                "message_telugu": "⚠️ Order expire ayyindi — user kotha order cheyyali"}
+    if po.get("status") not in ("created", "claimed"):
+        return {"success": False, "message_telugu": "⚠️ Ee order confirm cheyyalem (status: %s)" % po.get("status")}
+    utr = (utr or "").strip() or (po.get("claim_utr") or "")
+    if po.get("status") == "claimed" and not (utr or "").strip():
+        utr = po.get("claim_utr", "")
+    if not valid_utr(utr):
+        return {"success": False, "reason": "utr_invalid",
+                "message_telugu": "⚠️ UTR 12 digits undali (statement nunchi verify cheyyandi)"}
+    dup = utr_used_elsewhere(utr, exclude_order_id=po["id"])
+    if dup:
+        return {"success": False, "reason": "utr_reused",
+                "message_telugu": "🚫 FRAUD BLOCK: ee UTR already %s lo use ayyindi!" % dup}
+    if int(po.get("final_amount", 0) or 0) <= 0:
+        return {"success": False, "reason": "bad_amount",
+                "message_telugu": "⚠️ Order amount tappu — kotha order cheyyandi"}
     po["utr"] = utr.strip()
     done = fulfill_order(po, "", "manual_utr")
     if not done.get("ok"):

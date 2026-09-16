@@ -91,7 +91,7 @@ export default function ReferralPage() {
             <div>
               <h1 className="text-2xl md:text-3xl font-extrabold telugu">🤝 <Duo en="Referral Program" te="రెఫరల్ ప్రోగ్రామ్" /> — <span className="text-[#D4AF37]">{duo("₹50 per paying referral", "చెల్లించిన ప్రతి రెఫరల్‌కు ₹50")}</span></h1>
               <p className="text-xs md:text-sm opacity-90 telugu mt-1">
-                Mee friend ₹99 (leda edaina plan) pay chesthe — meeku <b>₹50</b> · vaallaki <b>+1 credit FREE</b> · repeat payments ki 10% (max ₹100) + tier bonus
+                Mee friend ₹99 (leda edaina plan ≥₹29) pay chesthe — meeku <b>₹50 flat</b> · vaallaki <b>+1 credit FREE</b> · ₹50 okkasari matrame, anthe (tiers = badges)
                 {" "}<span className="text-[#D4AF37] font-bold">Evvaru enni aina refer cheyyochu — limit ledu, okate phone lo kooda conditions levu.</span>
               </p>
             </div>
@@ -268,20 +268,20 @@ export default function ReferralPage() {
                     <div className="font-bold">{t.icon} {t.key} <span className="text-gray-500 font-normal">({t.min}+ pays)</span></div>
                     <div className="text-[11px] text-gray-500">{(t.perks || []).join(" • ")}</div>
                   </div>
-                  <div className="font-bold text-green-600">+{t.extra_pct}%</div>
+                  <div className="font-bold text-[#7A0C2E]">{t.key === tier.key ? "← mee tier" : t.icon}</div>
                 </div>
               ))}
             </div>
           </div>
 
           <div className="bg-white rounded-3xl p-5 border border-gray-200 shadow-sm">
-            <h2 className="font-bold text-[#7A0C2E] telugu">🎯 <Duo en="Milestones — auto bonus (cash + credits)" te="మైలురాళ్లు — ఆటో బోనస్" /></h2>
+            <h2 className="font-bold text-[#7A0C2E] telugu">🎯 <Duo en="Milestones — badges + recognition" te="మైలురాళ్లు — బ్యాడ్జ్‌లు" /></h2>
             <div className="mt-3">
               <div className="h-3 rounded-full bg-gray-100 overflow-hidden">
                 <div className="h-3 bg-[#7A0C2E]" style={{ width: `${progress}%` }} />
               </div>
               <div className="text-[11px] text-gray-500 mt-1">
-                {next ? `${next.need} more paying referrals → ${next.title} (₹${next.cash} + ${next.credits} credits)` : "👑 Anni milestones complete!"}
+                {next ? `${next.need} more paying referrals → ${next.title} (badge)` : "👑 Anni milestones complete!"}
               </div>
             </div>
             <div className="mt-3 space-y-2 text-xs">
@@ -325,10 +325,14 @@ export default function ReferralPage() {
               {(dash?.ledger || []).map((l: any) => (
                 <div key={l.id} className="flex items-center justify-between border-b border-gray-100 py-1.5">
                   <div>
-                    <div className="font-bold">{l.type}{l.first_payment ? " (first)" : ""}</div>
-                    <div className="text-gray-500">{l.from || l.note}</div>
+                    <div className="font-bold">
+                      {l.type === "payout_paid" ? <span className="text-green-700">✅ PAID</span> : l.type}{l.first_payment ? " (first)" : ""}
+                    </div>
+                    <div className="text-gray-500">{l.from || l.note}{l.utr ? ` · UTR ${l.utr}` : ""}</div>
                   </div>
-                  <span className={Number(l.amount) >= 0 ? "text-green-600 font-bold" : "text-red-600 font-bold"}>₹{l.amount}</span>
+                  <span className={Number(l.amount) >= 0 ? "text-green-600 font-bold" : "text-red-600 font-bold"}>
+                    {l.type === "payout_paid" ? "done" : `₹${l.amount}`}
+                  </span>
                 </div>
               ))}
             </div>
