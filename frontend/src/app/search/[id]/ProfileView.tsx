@@ -15,6 +15,9 @@ import { useParams } from "next/navigation";
 import TrustBadge from "@/components/TrustBadge";
 import AuthGate from "@/components/AuthGate";
 import { apiGet, apiPost, authHeaders, getToken } from "@/lib/api";
+import { SITE_CONFIG } from "@/lib/site-config";
+import { firstName } from "@/lib/names";
+import { Duo, duo } from "@/lib/duo";
 
 type Row = Record<string, any>;
 
@@ -38,6 +41,8 @@ export default function ProfileView() {
   const [needsLogin, setNeedsLogin] = useState(false);
   const [blocked, setBlocked] = useState(false);
   const [reported, setReported] = useState(false);
+  const [unlocked, setUnlocked] = useState("");
+  const [unlocking, setUnlocking] = useState(false);
 
   const profile: Row = data?.profile || {};
   const trust = (data?.trust as Row) || null;
@@ -84,6 +89,21 @@ export default function ProfileView() {
     else setMsg({ ok: false, text: eTel });
   };
 
+  const doUnlock = async () => {
+    if (!myTsapId) { setNeedsLogin(true); return; }
+    setUnlocking(true); setMsg(null);
+    const { ok, data: d, needsLogin: nl, errorTelugu: eTel } = await apiPost<Row>("/api/unlock",
+      { viewer_id: myTsapId, target_id: searchId });
+    setUnlocking(false);
+    if (nl) { setNeedsLogin(true); return; }
+    if (ok && d?.success) {
+      setUnlocked(String(d.phone || ""));
+      setMsg({ ok: true, text: String(d.message_telugu || "✅ Number unlock ayyindi!") });
+    } else {
+      setMsg({ ok: false, text: String((d as Row)?.message_telugu || eTel) });
+    }
+  };
+
   const toggleSave = async () => {
     const { ok, data: d, needsLogin: nl, errorTelugu: eTel } = await apiPost<Row>("/api/save", { tsap_id: myTsapId, target_id: searchId });
     if (nl) { setNeedsLogin(true); return; }
@@ -108,7 +128,7 @@ export default function ProfileView() {
 
   const shareWhatsApp = () => {
     if (!profile) return;
-    const text = `🙏 Mana Vivaha profile — ${profile.full_name} (${profile.tsap_id})\n` +
+    const text = `🙏 Mana Vivaha profile — ${firstName(profile.full_name)} (${profile.tsap_id})\n` +
       `${profile.age}y • ${profile.height || "—"} • ${profile.caste} • ${profile.education} • ${profile.job}\n` +
       `📍 ${profile.district}, ${profile.state} • 💰 ${profile.salary}\n` +
       `🔒 Number locked — interest accept ayithe exchange\n` +
@@ -130,7 +150,7 @@ export default function ProfileView() {
         </div>
       </div>
 
-      {loading ? <p className="mt-6 text-center text-slate-500">⏳ Profile load avutundi…</p> : null}
+      {loading ? <p className="mt-6 text-center text-slate-500">⏳ {duo("Loading profile…", "ప్రొఫైల్ లోడ్ అవుతోంది…")}</p> : null}
       {!loading && err ? (
         <div className="mt-6 rounded-2xl border-2 border-amber-300 bg-amber-50 p-5 text-center">
           <p className="font-bold text-amber-900">{err}</p>
@@ -148,14 +168,17 @@ export default function ProfileView() {
           <section className="mt-4 rounded-3xl border border-rose-200 bg-white p-5">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <h1 className="text-2xl font-extrabold text-[#7A0C2E]">{profile.full_name || "Profile"}</h1>
+                <h1 className="text-2xl font-extrabold text-[#7A0C2E]">{myTsapId && profile.tsap_id === myTsapId ? (profile.full_name || "Profile") : firstName(profile.full_name)}</h1>
                 <p className="font-mono text-[12px] text-slate-500">{profile.tsap_id}</p>
                 <div className="mt-2 flex flex-wrap gap-2 text-[11px]">
                   <TrustBadge trust={trust} completeness={Number(quality?.percent ?? 0)} />
                   {profile.phone_verified || profile.is_verified
                     ? <span className="rounded-full border border-emerald-300 bg-emerald-50 px-2 py-0.5 font-semibold text-emerald-800">✅ Phone verified</span>
                     : <span className="rounded-full border border-slate-300 bg-slate-50 px-2 py-0.5 text-slate-600">⏳ Verify pending</span>}
+                  {profile.selfie_verified ? <span className="rounded-full border border-emerald-300 bg-emerald-50 px-2 py-0.5 font-semibold text-emerald-800">🤳 Selfie Verified</span> : null}
                   {profile.boosted ? <span className="rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 font-semibold text-amber-800">⚡ Boosted</span> : null}
+                  {profile.is_nri ? <span className="rounded-full border border-sky-300 bg-sky-50 px-2 py-0.5 font-semibold text-sky-800">✈️ NRI{profile.country && profile.country !== "India" ? ` • ${profile.country}` : ""}</span> : null}
+                  {profile.profession_label ? <span className="rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 font-semibold text-amber-800">{profile.profession_label}</span> : null}
                 </div>
               </div>
               <div className="shrink-0 rounded-2xl bg-rose-50 px-3 py-2 text-center">
@@ -175,6 +198,7 @@ export default function ProfileView() {
                 ["📍 ప్రాంతం", `${profile.district || "—"}, ${profile.state || "—"}`],
                 ["⭐ నక్షత్రం", `${profile.star || "—"} / ${profile.rasi || "—"}`],
                 ["💍 Marital", profile.marital_status || "—"],
+                ["👶 Children • పిల్లలు", profile.children && profile.children !== "None" ? profile.children : "None • లేరు"],
                 ["🕉️ గోత్రం", profile.gothram || "—"],
                 ["👨‍👩‍👧 కుటుంబం", `${profile.family_type || "—"} · ${profile.family_status || "—"}`],
                 ["🧿 దోషం", profile.dosham || "No"],
@@ -212,6 +236,16 @@ export default function ProfileView() {
             <ol className="mt-3 space-y-1 text-[13px] text-rose-900">
               {(data.unlock_telugu || CONSENT_STEPS).map((s: string, i: number) => <li key={i}>{s}</li>)}
             </ol>
+            {unlocked ? (
+              <div className="mt-4 rounded-2xl bg-emerald-600 p-4 text-center text-white">
+                <p className="text-[12px] opacity-90">✅ Unlock ayyindi — gauravamga matladandi 🙏</p>
+                <p className="mt-1 text-2xl font-extrabold tracking-wider">{unlocked}</p>
+                <div className="mt-2 flex justify-center gap-2">
+                  <a href={`tel:${unlocked}`} className="rounded-xl bg-white px-4 py-2 text-sm font-bold text-emerald-700">📞 Call</a>
+                  <a href={`https://wa.me/91${unlocked}`} target="_blank" rel="noreferrer" className="rounded-xl bg-emerald-900 px-4 py-2 text-sm font-bold text-white">💬 WhatsApp</a>
+                </div>
+              </div>
+            ) : null}
             <div className="mt-4 flex flex-wrap gap-2">
               <button onClick={() => void sendInterest()} disabled={sending}
                 className="rounded-xl bg-[#7A0C2E] px-4 py-2.5 text-sm font-bold text-white disabled:opacity-60">
@@ -221,6 +255,23 @@ export default function ProfileView() {
                 className="rounded-xl border border-[#7A0C2E] px-4 py-2.5 text-sm font-bold text-[#7A0C2E]">
                 🙏 Template tho pampu
               </button>
+              {unlocked ? (
+                <a href={`tel:${unlocked}`} className="rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white">
+                  📞 {unlocked} — Call
+                </a>
+              ) : (
+                <>
+                <button onClick={() => void doUnlock()} disabled={unlocking}
+                  className="rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-60">
+                  {unlocking ? "Unlocking…" : "📞 Number Unlock (1 credit)"}
+                </button>
+                <a href={SITE_CONFIG.unlockBot(profile.tsap_id)} target="_blank" rel="noreferrer"
+                  title="Bot opens — 1 credit tho number vastundi"
+                  className="rounded-xl gold-gradient px-4 py-2.5 text-sm font-bold text-maroon">
+                  📞 Full details + Number (Bot)
+                </a>
+                </>
+              )}
               <Link href="/pricing" className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-bold text-slate-700">
                 💳 Paid plans (₹99 → 5 profiles)
               </Link>

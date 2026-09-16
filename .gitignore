@@ -13,7 +13,7 @@ backend/publish_log.jsonl
 publish_logs/*.jsonl
 whatsapp-bridge/session/
 cards/TSAP-*.png
-photos/
+/photos/
 backend/wa_state.json
 
 # channel setup runtime (state/reports — machine-specific)
@@ -42,3 +42,5 @@ backend/consent_ledger_state.json
 # wave 11 runtime state (stories + push subs — machine-specific, regenerate avutundi)
 backend/stories_state.json
 backend/push_state.json
+backend/refpartners19.json
+backend/referral_partners.csv

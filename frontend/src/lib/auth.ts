@@ -24,8 +24,8 @@ export function useSession(): Session {
 }
 
 /** Mee ID ni save cheyyi (register/login tarvata) */
-export function rememberSession(tsapId: string, token: string) {
-  setToken(token, tsapId);
+export function rememberSession(tsapId: string, token: string, keep = true) {
+  setToken(token, tsapId, keep);
 }
 
 export function logout() {

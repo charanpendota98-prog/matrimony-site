@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { Duo, duo } from "@/lib/duo";
 
 export default function BureauPage(){
   return (
@@ -7,8 +8,8 @@ export default function BureauPage(){
       <div className="max-w-6xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <Link href="/" className="text-sm font-bold text-[#7A0C2E]">← Home</Link>
-          <div className="font-bold text-[#7A0C2E]">🏢 Bureau — Best Advanced Offer — 3 Plans</div>
-          <Link href="/referral/register" className="text-xs bg-[#7A0C2E] text-white px-3 py-1 rounded-full">Bureau Register →</Link>
+          <div className="font-bold text-[#7A0C2E]">🏢 <Duo en="Bureau — Best Advanced Offer — 3 Plans" te="బ్యూరో — 3 ప్లాన్లు" /></div>
+          <Link href="/referral/register" className="text-xs bg-[#7A0C2E] text-white px-3 py-1 rounded-full">{duo("Bureau Register", "బ్యూరో నమోదు")} →</Link>
         </div>
 
         <div className="grid md:grid-cols-3 gap-4">

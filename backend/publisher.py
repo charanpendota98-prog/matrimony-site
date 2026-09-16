@@ -139,7 +139,13 @@ def publish_status() -> Dict:
 # MESSAGE BUILDERS
 # ---------------------------------------------------------------------------
 def build_whatsapp_text(profile: Dict, tsap_id: str, score: int = 92) -> str:
-    """WhatsApp formatting (*bold* — Telegram ** kadu)."""
+    """WhatsApp formatting (*bold* — Telegram ** kadu). 🔒 WAVE 12 MASKED (name/number ledu)."""
+    from smart12 import build_masked_whatsapp  # lazy: cycle-safe
+    return build_masked_whatsapp(profile or {}, tsap_id, score)
+
+
+def _build_whatsapp_text_legacy(profile: Dict, tsap_id: str, score: int = 92) -> str:
+    """Legacy full-detail builder (unused — reference kosam)."""
     r = route_profile(profile)
     reasons = "\n".join(f"✅ {x['telugu']}" for x in r["reasons"][:3])
     return (
@@ -307,9 +313,24 @@ async def _wa_send_via_instance(inst, item: Dict, cfg: Dict) -> Dict:
                     "error": f"{type(e).__name__}: {e}"[:150]}
 
 
+# 🌊 WAVE 19 — purpose → number lane (3 separate numbers + both-backup)
+OTP_KINDS = {"otp"}
+CHANNEL_KINDS = {"post", "channel_post", "promo", "ad", "offer", "status_poster"}
+PERSONAL_KINDS = {"saved_search_alert", "interest_to_owner", "interest_confirm",
+                  "interest_accepted", "interest_accepted_owner", "interest_declined",
+                  "referral_join", "referral_commission", "namaste_welcome",
+                  "welcome_pack_resend", "lead_followup", "vendor_lead"}
+
+
 def _wa_lane(item: Dict) -> str:
-    """priority 0 = interest/request (fast lane) → requests lane; migilinavi post lane."""
-    return "requests" if int(item.get("priority", 1)) == 0 else "post"
+    kind = str(item.get("kind", "")).lower()
+    if kind in OTP_KINDS:
+        return "otp"
+    if kind in PERSONAL_KINDS:  # 🌊 WAVE 21 — personal DM eppudu personal lane (priority tho samandham ledu)
+        return "personal"
+    if kind in CHANNEL_KINDS or int(item.get("priority", 1)) >= 1:
+        return "channels"
+    return "personal"
 
 
 def _wa_pick_instance(item: Dict):
@@ -345,7 +366,8 @@ async def _wa_deliver(item: Dict, cfg: Dict) -> Dict:
         try:
             wa_pool.engine_for(res["instance"]).record_send(item.get("target"), ok=True,
                                                             detail=res.get("kind", ""),
-                                                            priority=item.get("priority", 1))
+                                                            priority=item.get("priority", 1),
+                                                            kind=str(item.get("kind", "")))
         except Exception:
             pass
     return res

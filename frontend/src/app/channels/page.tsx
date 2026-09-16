@@ -2,8 +2,10 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ALL_CHANNELS, CHANNEL_STATS, CHANNEL_TIERS, Channel } from "@/lib/channels";
+import { Duo, duo } from "@/lib/duo";
 
 export default function ChannelsPage() {
+  const [liveLinks, setLiveLinks] = useState<Record<string, { telegram?: string; whatsapp?: string }>>({});
   const [tier, setTier] = useState<string>("ALL");
   const [wave, setWave] = useState<number | 0>(0);
   const [q, setQ] = useState("");
@@ -41,6 +43,13 @@ export default function ChannelsPage() {
 
   const liveCount = ALL_CHANNELS.filter(c => c.live).length;
 
+  // 🌊 WAVE 15 — admin-mapped links (telegram/whatsapp) merge
+  useEffect(() => {
+    fetch("/api/channels/join").then((r) => r.json()).then((d) => {
+      if (d?.success) setLiveLinks(d.links || {});
+    }).catch(() => {});
+  }, []);
+
   // 📋 Channel kit — description + 📌 pinned post + rules + share text (copy-paste to Telegram)
   const loadKit = async (key: string) => {
     try {
@@ -66,7 +75,7 @@ export default function ChannelsPage() {
 
         {/* Hero + stats */}
         <div className="maroon-gradient rounded-[1.5rem] p-6 text-white">
-          <h1 className="font-bold text-xl">📢 Mana Vivaha — Master Channel Network</h1>
+          <h1 className="font-bold text-xl">📢 <Duo en="Mana Vivaha — Master Channel Network" te="మాస్టర్ ఛానల్ నెట్‌వర్క్" /></h1>
           <p className="text-xs mt-1 opacity-90">
             One profile post → auto ga anni relevant channels lo ki. **4 main (TS/AP × Bride/Groom)** + **Muslim 4 (TS/AP × Bride/Groom)** + **Christian 4** + **caste clusters** (pedda communities ki bride/groom separate, chinna sub-castes grouped) + special — {CHANNEL_STATS.total} channels.
           </p>
@@ -88,7 +97,7 @@ export default function ChannelsPage() {
 
         {/* Router explainer */}
         <div className="mt-4 bg-white rounded-[1.5rem] p-5 card-shadow">
-          <h2 className="font-bold text-[#7A0C2E] text-sm">🤖 Bot Auto-Router — One Approve = Viral Everywhere</h2>
+          <h2 className="font-bold text-[#7A0C2E] text-sm">🤖 <Duo en="Bot Auto-Router — One Approve = Viral Everywhere" te="ఒక ఆమోదం = అన్నిచోట్లా" /></h2>
           <div className="mt-3 bg-[#FFF8E7] border border-[#D4AF37]/40 rounded-xl p-3 text-xs font-mono text-[#7A0C2E]">
             Reddy + TS + Bride + Software job →&nbsp;
             <span className="font-bold">@TSBRIDE → @manavivaha_reddy → @manavivaha_software</span>
@@ -236,8 +245,12 @@ export default function ChannelsPage() {
                     <div className="flex gap-2 mt-2">
                       {c.live ? (
                         <>
-                          <a href={c.link} target="_blank" rel="noreferrer"
+                          <a href={(liveLinks[c.key]?.telegram || c.link)} target="_blank" rel="noreferrer"
                             className="px-3 py-1.5 maroon-gradient text-white rounded-full text-[11px] font-bold">Join</a>
+                          {liveLinks[c.key]?.whatsapp ? (
+                            <a href={liveLinks[c.key].whatsapp} target="_blank" rel="noreferrer"
+                              className="px-3 py-1.5 bg-green-600 text-white rounded-full text-[11px] font-bold">WhatsApp</a>
+                          ) : null}
                           <a href={c.deepLink} target="_blank" rel="noreferrer"
                             className="px-3 py-1.5 border border-[#7A0C2E] text-[#7A0C2E] rounded-full text-[11px] font-bold">Bot tho join</a>
                           <button onClick={() => loadKit(c.key)}

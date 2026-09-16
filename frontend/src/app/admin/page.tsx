@@ -9,8 +9,18 @@
  */
 import { useCallback, useEffect, useState } from "react";
 import AuthGate from "@/components/AuthGate";
+import MatchSend from "@/components/MatchSend";
+import AstroConsole from "@/components/AstroConsole";
+import AdsConsole from "@/components/AdsConsole";
+import PayConsole from "@/components/PayConsole";
+import OffersConsole from "@/components/OffersConsole";
+import ContentConsole from "@/components/ContentConsole";
+import ChannelsConsole from "@/components/ChannelsConsole";
+import WANumbersConsole from "@/components/WANumbersConsole";
+import ReferralReport from "@/components/ReferralReport";
 import { apiGet, apiPost, authHeaders, getAdminKey, setAdminKey } from "@/lib/api";
 import Link from "next/link";
+import { Duo, duo } from "@/lib/duo";
 
 const DEMO_PROFILES: any[] = [];
 // 🐞 FIX (F05): ee list lo mundu fake rows (98480xxxxx / 98481xxxxx fake phone numbers) unnayi —
@@ -180,8 +190,9 @@ export default function AdminPage() {
         </div>
 
         <div className="flex flex-wrap gap-2 mb-4">
-          {[["payouts", "💰 Referral Payouts (live)"], ["vendors", "🏪 Vendor Ads (live)"],
-            ["profiles", "👥 Profiles"], ["analytics", "📊 Analytics"]].map(([k, l]) => (
+          {[["payouts", duo("💰 Referral Payouts (live)", "💰 రెఫరల్ చెల్లింపులు")], ["vendors", duo("🏪 Vendor Ads (live)", "🏪 వెండర్ ప్రకటనలు")],
+            ["matchsend", duo("🎯 Match & Send (₹500)", "🎯 మ్యాచ్ & సెండ")], ["astro", duo("🪐 Astro", "🪐 జ్యోతిషం")], ["ads", duo("📢 Ads", "📢 ప్రకటనలు")], ["pay", duo("💳 Payments", "💳 చెల్లింపులు")], ["offers", duo("🎉 Offers", "🎉 ఆఫర్లు")], ["content", duo("📝 Content (CMS)", "📝 కంటెంట్")], ["channels", duo("📡 Channels + Poster", "📡 ఛానళ్లు")], ["profiles", duo("👥 Profiles", "👥 ప్రొఫైళ్లు")], ["analytics", duo("📊 Analytics", "📊 విశ్లేషణ")],
+            ["photos", duo("📸 Photo Review", "📸 ఫోటో పరిశీలన")]].map(([k, l]) => (
             <button key={k} onClick={() => setTab(k)}
               className={`px-5 py-2 rounded-full text-sm font-bold ${tab === k ? "maroon-gradient text-white" : "bg-white border"}`}>{l}</button>
           ))}
@@ -199,9 +210,9 @@ export default function AdminPage() {
         <div className="bg-white rounded-[1.5rem] p-5 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="font-bold text-[#7A0C2E]">
-              {tab === "payouts" ? "💰 Referral Payout Queue — UTR tho approve (audit trail)"
-                : tab === "vendors" ? "🏪 Vendor Ads — approve (UTR) → listing live + promo post"
-                : tab === "profiles" ? "Profiles — Approve → auto-post" : "Analytics"}
+              {tab === "payouts" ? duo("💰 Referral Payout Queue — approve with UTR (audit trail)", "💰 రెఫరల్ చెల్లింపులు — UTR తో ఆమోదం")
+                : tab === "vendors" ? duo("🏪 Vendor Ads — approve (UTR) → listing live + promo post", "🏪 వెండర్ ప్రకటనలు — ఆమోదం → లైవ్")
+                : tab === "profiles" ? duo("Profiles — Approve → auto-post", "ప్రొఫైళ్లు — ఆమోదం → ఆటో-పోస్ట్") : duo("Analytics", "విశ్లేషణ")}
             </h2>
             <div className="flex gap-2">
               {tab === "payouts" && (
@@ -221,9 +232,80 @@ export default function AdminPage() {
             </div>
           </div>
 
+          {/* ---------------- MATCH & SEND (₹500 assisted) ---------------- */}
+          {tab === "matchsend" && (
+            <>
+              <h2 className="font-bold text-[#7A0C2E] mt-2">🎯 Match &amp; Send — buyer ID → perfect matches → personal Telegram/WhatsApp</h2>
+              <MatchSend />
+            </>
+          )}
+
+          {/* ---------------- ASTRO ---------------- */}
+          {tab === "astro" && (
+            <>
+              <h2 className="font-bold text-[#7A0C2E] mt-2">🪐 Astrology — 36-guna + dosha + jathakam verify</h2>
+              <AstroConsole />
+            </>
+          )}
+
+          {/* ---------------- ADS ---------------- */}
+          {tab === "ads" && (
+            <>
+              <h2 className="font-bold text-[#7A0C2E] mt-2">📢 Ad campaigns — approve → district/state LIVE</h2>
+              <AdsConsole />
+            </>
+          )}
+
+          {/* ---------------- PAYMENTS ---------------- */}
+          {tab === "pay" && (
+            <>
+              <h2 className="font-bold text-[#7A0C2E] mt-2">💳 Safe-Pay orders — Razorpay auto / UPI-UTR confirm</h2>
+              <PayConsole />
+            </>
+          )}
+
+          {/* ---------------- OFFERS ---------------- */}
+          {tab === "offers" && (
+            <>
+              <h2 className="font-bold text-[#7A0C2E] mt-2">🎉 Festival offers — codes + dates + caps</h2>
+              <OffersConsole />
+            </>
+          )}
+
+          {/* ---------------- CONTENT (CMS) ---------------- */}
+          {tab === "content" && (
+            <>
+              <h2 className="font-bold text-[#7A0C2E] mt-2">📝 Content — pages + stories + banners (code vaddu)</h2>
+              <ContentConsole />
+            </>
+          )}
+
+          {/* ---------------- CHANNELS + POSTER ---------------- */}
+          {tab === "channels" && (
+            <>
+              <h2 className="font-bold text-[#7A0C2E] mt-2">📡 Channels — links map + bulk import + smart poster</h2>
+              <ChannelsConsole />
+              <WANumbersConsole />
+            </>
+          )}
+
+          {/* ---------------- PHOTO REVIEW ---------------- */}
+          {tab === "photos" && (
+            <div className="mt-2 rounded-2xl border border-gold/30 bg-cream/50 p-5 text-center">
+              <div className="text-3xl">📸</div>
+              <h2 className="font-bold text-[#7A0C2E] mt-1">Photo + Selfie Review Queue</h2>
+              <p className="text-[12px] text-gray-600 telugu">Technical checks pass aina photos — wrong-person/group/celebrity ni reject cheyyandi.</p>
+              <Link href="/admin/photos"
+                className="mt-3 inline-block rounded-xl maroon-gradient text-white font-bold px-6 py-2.5 text-sm">
+                Open Review Queue →
+              </Link>
+            </div>
+          )}
+
           {/* ---------------- PAYOUTS ---------------- */}
           {tab === "payouts" && (
             <>
+              <ReferralReport />
               <p className="text-xs text-gray-500 mt-2 telugu">
                 ₹50 per paying referral (first payment) + 10% repeat + tier extra. UPI copy → PhonePe deep link → pay → UTR pettandi → approve.
                 Reject chesthe wallet ki malli credit avutundi (automatic).

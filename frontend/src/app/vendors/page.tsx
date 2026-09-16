@@ -10,6 +10,7 @@
  */
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { Duo, duo } from "@/lib/duo";
 
 type Cat = { key: string; en: string; te: string; icon: string; count?: number };
 type Vendor = any;
@@ -63,7 +64,7 @@ export default function VendorsPage() {
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <h1 className="text-2xl md:text-3xl font-extrabold">
-                🏪 Wedding Vendors — <span className="text-gold">pelli ki kavalsina anni okate chota</span>
+                🏪 <Duo en="Wedding Vendors" te="పెళ్లి వెండర్లు" /> — <span className="text-gold">{duo("everything for your wedding, one place", "పెళ్లికి కావాల్సినవన్నీ ఒకేచోట")}</span>
               </h1>
               <p className="text-[13px] opacity-90 mt-2 telugu max-w-3xl">
                 Catering • Photography • Decorations • Function Hall • Tent House • Pandit • Jewellery • Makeup •
@@ -129,7 +130,7 @@ export default function VendorsPage() {
             <h2 className="font-bold text-maroon text-lg">
               {cat ? `${cats.find((c) => c.key === cat)?.icon || ""} ${cats.find((c) => c.key === cat)?.en || cat}` : "Anni vendors"} — {vendors.length}
             </h2>
-            {loading && <span className="text-[11px] text-gray-500">⏳ load avutundi…</span>}
+            {loading && <span className="text-[11px] text-gray-500">⏳ {duo("loading…", "లోడ్ అవుతోంది…")}</span>}
           </div>
 
           {!loading && vendors.length === 0 && (
@@ -186,7 +187,7 @@ export default function VendorsPage() {
 
         {/* PACKAGES */}
         <section id="packages" className="mt-10">
-          <h2 className="font-bold text-maroon text-xl">💰 Ad Packages — mee business ki publicity</h2>
+          <h2 className="font-bold text-maroon text-xl">💰 <Duo en="Ad Packages — publicity for your business" te="మీ వ్యాపారానికి ప్రచారం" /></h2>
           <p className="text-[12px] text-gray-600 mt-1 telugu">
             {pkgs?.headline || "Mee business ni Mana Vivaha lo promote cheyyandi — ₹149 nunchi"}
           </p>

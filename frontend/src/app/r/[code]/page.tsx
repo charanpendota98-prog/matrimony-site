@@ -17,6 +17,7 @@ export default function ReferralLandingPage() {
   useEffect(() => {
     if (!code) return;
     localStorage.setItem("tsap_ref_from_link", code);          // backup (register page kooda chaduvutundi)
+    try { sessionStorage.setItem("tsap_click_fired", code); } catch { /* ignore */ }  // 🌊 W20 dedupe
     fetch(`/api/referral/click/${code}?source=link`, { method: "POST" })
       .then((r) => r.json())
       .then((d) => setInfo(d))

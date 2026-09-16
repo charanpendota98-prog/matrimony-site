@@ -21,33 +21,35 @@ import { useSearchParams } from "next/navigation";
 import Reveal from "@/components/Reveal";
 import { SITE_CONFIG } from "@/lib/site-config";
 import { authHeaders } from "@/lib/api";
+import { Duo, duo } from "@/lib/duo";
+import PhotoFlow from "@/components/PhotoFlow";
 import {
-  BLOOD_GROUPS, BODY_TYPES, CASTES, COMPLEXIONS, DISTRICTS_BY_STATE, EDUCATIONS, FAMILY_STATUSES,
+  BLOOD_GROUPS, BODY_TYPES, CASTES, CHILDREN_OPTIONS, COMPLEXIONS, DISTRICTS_BY_STATE, EDUCATIONS, FAMILY_STATUSES,
   FAMILY_TYPES, FAMILY_VALUES, HEIGHTS, JOBS, MARITAL_STATUSES, MOTHER_TONGUES, NAKSHATRAS, NAK_TO_RASI,
   OCCUPATIONS, PHYSICAL_STATUS, RASIS, RELIGIONS, SALARIES, WEIGHTS, WORK_TYPES,
-  ageFromDob, compressImage, maxDobFor18,
+  ageFromDob, compressImage, heightLabel, maxDobFor18,
 } from "@/lib/telugu-data";
 
 const DRAFT_KEY = "tsap_reg_draft_v3";
 const STEPS = [
-  { n: 1, label: "Basic", icon: "🙋", hint: "Mee basic details — 30 seconds" },
-  { n: 2, label: "Community", icon: "💍", hint: "Caste + star details — card ki kavali" },
-  { n: 3, label: "Education", icon: "🎓", hint: "Chaduvu + udyogam" },
-  { n: 4, label: "Family", icon: "👨‍👩‍👧", hint: "Family + contact" },
-  { n: 5, label: "Photo", icon: "📸", hint: "Photo + finish (chi-vi details)" },
+  { n: 1, label: "Basic", labelTe: "ప్రాథమిక", icon: "🙋", hint: "Mee basic details — 30 seconds" },
+  { n: 2, label: "Community", labelTe: "సామాజిక", icon: "💍", hint: "Caste + star details — card ki kavali" },
+  { n: 3, label: "Education", labelTe: "విద్య", icon: "🎓", hint: "Chaduvu + udyogam" },
+  { n: 4, label: "Family", labelTe: "కుటుంబం", icon: "👨‍👩‍👧", hint: "Family + contact" },
+  { n: 5, label: "Photo", labelTe: "ఫోటో", icon: "📸", hint: "Photo + finish (chi-vi details)" },
 ];
 
 const DEFAULT_FORM: Record<string, any> = {
   gender: "", full_name: "", dob: "", birth_time: "", age: "", height: "", weight: "",
-  marital_status: "Pelli Kaledu", religion: "Hindu", mother_tongue: "Telugu",
+  marital_status: "Pelli Kaledu", children: "", religion: "Hindu", mother_tongue: "Telugu",
   caste: "", sub_caste: "", gothram: "", star: "", rasi: "", moola_nakshatram: "No", dosham: "No",
   education: "", education_detail: "", college: "", job: "", company: "", salary: "",
   experience: "", work_type: "", work_location: "",
   father_name: "", father_occupation: "", mother_name: "", mother_occupation: "",
   brothers: "0", brothers_married: "0", sisters: "0", sisters_married: "0",
   family_type: "Nuclear", family_status: "Middle Class", family_values: "Traditional",
-  native_place: "", state: "TS", district: "", mandal: "", current_city: "", pincode: "",
-  phone: "", email: "", photo_private: true, about_myself: "",
+  native_place: "", state: "TS", district: "", mandal: "", current_city: "", country: "India", pincode: "",
+  phone: "", email: "", password: "", photo_private: true, about_myself: "",
   expectations: "", exp_age_min: "", exp_age_max: "", exp_job: "", exp_location: "", exp_caste: "",
   physical_status: "Normal", body_type: "Average", complexion: "Fair", blood_group: "",
   referral_code: "", consent: false,
@@ -127,6 +129,61 @@ function TextField({
   );
 }
 
+/* 🌊 WAVE 16 — pro pills + dropdown (screenshot-standard, Duo bilingual) */
+function PillGroup({
+  label, options, value, onChange, required, hint,
+}: {
+  label: React.ReactNode; options: { v: string; en: string; te: string }[];
+  value: string; onChange: (v: string) => void; required?: boolean; hint?: string;
+}) {
+  return (
+    <div>
+      <div className="text-[15px] font-extrabold text-ink">
+        {label} {required ? <span className="req-star">*</span> : null}
+      </div>
+      {hint && <div className="hint">{hint}</div>}
+      <div className="mt-2 grid grid-cols-2 gap-2.5" role="radiogroup" aria-label={typeof label === "string" ? label : "options"}>
+        {options.map((o) => {
+          const on = value === o.v;
+          return (
+            <button key={o.v} type="button" role="radio" aria-checked={on} onClick={() => onChange(o.v)}
+              className={`rounded-full border-[1.5px] px-4 py-3 text-[14px] transition-all active:scale-[0.98] ${
+                on ? "maroon-gradient text-white border-transparent shadow-brand font-bold"
+                   : "border-gray-300 bg-white text-ink font-medium hover:border-maroon/50"}`}>
+              <div>{o.en}</div>
+              <div className={`text-[11px] font-semibold ${on ? "text-white/85" : "text-gray-500"} telugu`}>{o.te}</div>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function SelectField({
+  label, value, onChange, required, hint, placeholder, children,
+}: {
+  label: React.ReactNode; value: string; onChange: (v: string) => void;
+  required?: boolean; hint?: string; placeholder?: string; children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <div className="text-[15px] font-extrabold text-ink">
+        {label} {required ? <span className="req-star">*</span> : null}
+      </div>
+      {hint && <div className="hint">{hint}</div>}
+      <div className="relative mt-2">
+        <select value={value} onChange={(e) => onChange(e.target.value)}
+          className={`input-mobile appearance-none pr-10 font-medium ${value ? "text-ink" : "text-gray-400"}`}>
+          <option value="">{placeholder || "Select…"}</option>
+          {children}
+        </select>
+        <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-maroon text-lg">⌄</span>
+      </div>
+    </div>
+  );
+}
+
 function Stepper({ label, value, onChange, max = 10 }: { label: string; value: string; onChange: (v: string) => void; max?: number }) {
   const n = parseInt(value || "0", 10) || 0;
   return (
@@ -174,9 +231,11 @@ function Wizard() {
   const [photoInfo, setPhotoInfo] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [otpCode, setOtpCode] = useState("");
+  const [showPw, setShowPw] = useState(false);
   const [otpMsg, setOtpMsg] = useState("");
   const [phoneOk, setPhoneOk] = useState(false);
   const [refLocked, setRefLocked] = useState("");
+  const [refInfo, setRefInfo] = useState<any>(null);
   const [result, setResult] = useState<any>(null);
   // 🎁 WAVE 10 — "register avvagane WhatsApp ki 3 profiles + caste channel links"
   const [packResend, setPackResend] = useState<{ busy: boolean; msg: string }>({ busy: false, msg: "" });
@@ -185,7 +244,22 @@ function Wizard() {
   const topRef = useRef<HTMLDivElement>(null);
   const voiceRef = useRef<any>(null);
 
-  const set = (k: string, v: any) => {
+    // 🌊 WAVE 14 — religion → castes (A–Z) backend nunchi (fallback: static CASTES)
+  const [casteOpts, setCasteOpts] = useState<string[]>(CASTES);
+  useEffect(() => {
+    let live = true;
+    fetch(`/api/meta/castes?religion=${encodeURIComponent(f.religion || "Hindu")}`)
+      .then((r) => r.json()).then((d) => {
+        if (live && d?.success && Array.isArray(d.castes) && d.castes.length) {
+          setCasteOpts(d.castes);
+          if (f.caste && !d.castes.includes(f.caste)) set("caste", "");
+        }
+      }).catch(() => setCasteOpts(CASTES));
+    return () => { live = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [f.religion]);
+
+const set = (k: string, v: any) => {
     setF((prev) => ({ ...prev, [k]: v }));
     setErrs([]);
   };
@@ -195,14 +269,46 @@ function Wizard() {
     fetch("/api/free-plan").then((r) => r.json()).then(setClarity).catch(() => { });
   }, []);
 
-  /* ---------- referral auto-lock (?ref=LAK42) ---------- */
+  /* ---------- 🤝🌊 WAVE 20 — smart referral: ?ref → backup restore → click → validate ---------- */
   useEffect(() => {
-    const ref = (params?.get("ref") || "").trim().toUpperCase();
-    if (ref) {
-      setRefLocked(ref);
-      setF((prev) => ({ ...prev, referral_code: ref }));
-    }
+    let ref = (params?.get("ref") || "").trim().toUpperCase();
+    try {
+      // backup: /r/ nunchi vachi malli vachina — code povatledu (30 days memory)
+      if (!ref) ref = (localStorage.getItem("tsap_ref_from_link") || "").trim().toUpperCase();
+      else localStorage.setItem("tsap_ref_from_link", ref);
+    } catch { /* ignore */ }
+    if (!ref) return;
+    setRefLocked(ref);
+    setF((prev) => ({ ...prev, referral_code: ref }));
+    // click funnel: /r/ already track chesunte malli kaadu (session dedupe)
+    try {
+      if (sessionStorage.getItem("tsap_click_fired") === ref) {
+        fetch(`/api/referral/validate/${encodeURIComponent(ref)}`).then((r) => r.json())
+          .then((d) => { if (d?.ok) setRefInfo(d); }).catch(() => { });
+        return;
+      }
+      sessionStorage.setItem("tsap_click_fired", ref);
+    } catch { /* ignore */ }
+    fetch(`/api/referral/click/${encodeURIComponent(ref)}?source=register_direct`, { method: "POST" })
+      .then((r) => r.json())
+      .then((d) => {
+        if (d?.valid_code && d?.referrer_name) setRefInfo({ ok: true, referrer_name: d.referrer_name, bonus_credits: d.bonus_credits });
+      }).catch(() => { });
   }, [params]);
+
+  // manual code type → live validate (debounced)
+  useEffect(() => {
+    const code = (f.referral_code || "").trim().toUpperCase();
+    if (!code || code === refLocked) return;
+    const t = setTimeout(() => {
+      fetch(`/api/referral/validate/${encodeURIComponent(code)}`).then((r) => r.json())
+        .then((d) => {
+          if (d?.ok) { setRefLocked(code); setRefInfo(d); try { localStorage.setItem("tsap_ref_from_link", code); } catch { /* ignore */ } }
+          else setRefInfo({ ok: false, message_telugu: d?.message_telugu });
+        }).catch(() => { });
+    }, 600);
+    return () => clearTimeout(t);
+  }, [f.referral_code]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* ---------- draft resume ---------- */
   useEffect(() => {
@@ -270,6 +376,8 @@ function Wizard() {
       else if (!ageFromDob(f.dob)) e.push("DOB correct ga ledu");
       if (!f.height) e.push("Height select cheyyandi");
       if (!f.marital_status) e.push("Marital status select cheyyandi");
+      if (f.marital_status && f.marital_status !== "Pelli Kaledu" && !f.children)
+        e.push("Number of children select cheyyandi (None aina sare)");
     }
     if (s === 2) {
       if (!f.caste) e.push("Caste select cheyyandi (channels ki kavali)");
@@ -283,8 +391,12 @@ function Wizard() {
       if (!f.state) e.push("State select cheyyandi");
       if (!f.district) e.push("District select cheyyandi");
       if (!/^\d{10}$/.test(String(f.phone))) e.push("10 digit mobile number ivvandi");
+      if (String(f.password || "").length < 6) e.push("🔑 Password minimum 6 characters pettandi");
     }
     if (s === 5) {
+      const _ab = String(f.about_myself || "").trim();
+      if (_ab.length < 50) e.push("About yourself — minimum 50 characters (మీ గురించి కనీసం 50 అక్షరాలు రాయండి)");
+      else if (/[6-9]\d{9}|@\S+\.\S+/.test(_ab)) e.push("🔒 About lo phone number / email pettakandi — privacy kosam");
       if (!f.consent) e.push("Terms + privacy accept cheyyandi (kindha checkbox)");
     }
     return e;
@@ -421,12 +533,12 @@ function Wizard() {
     try {
       const fd = new FormData();
       const strings = [
-        "gender", "full_name", "dob", "birth_time", "height", "weight", "marital_status", "religion",
+        "gender", "full_name", "dob", "birth_time", "height", "weight", "marital_status", "children", "religion",
         "mother_tongue", "caste", "sub_caste", "gothram", "star", "rasi", "moola_nakshatram", "dosham",
         "education", "education_detail", "college", "job", "company", "salary", "experience", "work_type",
         "work_location", "father_name", "father_occupation", "mother_name", "mother_occupation", "brothers",
         "brothers_married", "sisters", "sisters_married", "family_type", "family_status", "family_values",
-        "native_place", "state", "district", "mandal", "current_city", "pincode", "phone", "email",
+        "native_place", "state", "district", "mandal", "current_city", "country", "pincode", "phone", "email", "password",
         "about_myself", "expectations", "exp_age_min", "exp_age_max", "exp_job", "exp_location", "exp_caste",
         "physical_status", "body_type", "complexion", "blood_group", "referral_code",
       ];
@@ -502,6 +614,18 @@ function Wizard() {
               </div>
             </div>
           ) : null}
+
+          <PhotoFlow tsapId={tsap} />
+
+          <div className="rounded-2xl maroon-gradient text-white p-4 flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <div className="font-bold text-[15px]">🔓 3 profiles FULL unlock — ₹99 ke Sambandham</div>
+              <div className="text-[12px] opacity-90 telugu">Register ayyaka 3 matches FREE chusaru — full details + numbers kosam ₹99 (5 profiles + boost, 30 days).</div>
+            </div>
+            <a href="/pricing" className="gold-gradient text-maroon font-bold text-[13px] px-5 py-2.5 rounded-xl whitespace-nowrap">
+              ₹99 Unlock →
+            </a>
+          </div>
 
           <div className="bg-white rounded-2xl p-4 border border-gold/30 card-shadow">
             <div className="font-bold text-maroon text-[15px]">🎁 Mee account ki enti vachindi</div>
@@ -759,7 +883,7 @@ function Wizard() {
                 <span className="text-lg">{stepMeta.icon}</span>
                 <div className="min-w-0">
                   <div className="text-[13px] font-bold text-ink truncate">
-                    Step {step} of 5 — {stepMeta.label}
+                    Step {step} of 5 — <Duo en={stepMeta.label} te={stepMeta.labelTe || ""} />
                   </div>
                   <div className="text-[10px] text-gray-500 telugu truncate">{stepMeta.hint}</div>
                 </div>
@@ -828,8 +952,14 @@ function Wizard() {
 
         {refLocked && (
           <div className="mb-4 bg-emerald-50 border border-emerald-200 rounded-2xl px-4 py-3 text-[12px] text-emerald-900">
-            🤝 <b>{refLocked}</b> referral code lock ayyindi — mee friend ki ₹50 + meeku <b>+1 credit FREE</b>.
-            {" "}Register FREE (3 profiles free) — tarvata mee ₹99 plan thisukunte aa ₹50 mee friend wallet ki veltundi.
+            🤝 <b>{refInfo?.referrer_name ? `${refInfo.referrer_name} garu` : "Mee friend"}</b> dwara vacharu
+            (<b>{refLocked}</b> lock ✅) — vaallaki ₹50 + meeku <b>+{refInfo?.bonus_credits || 1} credit FREE</b>.
+            {" "}Register FREE (3 profiles free) — tarvata mee ₹99 plan thisukunte aa ₹50 vaalla wallet ki veltundi.
+          </div>
+        )}
+        {refInfo && refInfo.ok === false && (
+          <div className="mb-4 bg-amber-50 border border-amber-300 rounded-2xl px-4 py-3 text-[12px] text-amber-900">
+            ⚠️ {refInfo.message_telugu || "Ee code dorakaledu"} — code lekunda register avvachu, leda kindha sari code veyyandi.
           </div>
         )}
 
@@ -875,14 +1005,35 @@ function Wizard() {
                 </div>
               </div>
 
-              <ChipGroup label="Height" required options={HEIGHTS.map((h) => ({ v: h }))} value={f.height}
-                onChange={(v) => set("height", v)} />
+              <SelectField label={<Duo en="Height" te="ఎత్తు" />} required value={f.height}
+                onChange={(v) => set("height", v)} placeholder={duo("Select your height", "మీ ఎత్తు ఎంచుకోండి")}>
+                {HEIGHTS.map((h) => (<option key={h} value={h}>{heightLabel(h)}</option>))}
+              </SelectField>
               <ChipGroup label="Weight" options={WEIGHTS.map((w) => ({ v: w }))} value={f.weight}
                 onChange={(v) => set("weight", v)} />
-              <ChipGroup label="Marital status" required options={MARITAL_STATUSES.map((m) => ({ v: m }))}
-                value={f.marital_status} onChange={(v) => set("marital_status", v)} />
-              <ChipGroup label="Religion" options={RELIGIONS.map((r) => ({ v: r }))} value={f.religion}
-                onChange={(v) => set("religion", v)} />
+              <PillGroup label={<Duo en="Your marital status" te="మీ వైవాహిక స్థితి" />} required
+                value={f.marital_status}
+                onChange={(v) => { set("marital_status", v); if (v === "Pelli Kaledu") set("children", ""); }}
+                options={[
+                  { v: "Pelli Kaledu", en: "Never married", te: "పెళ్లి కాలేదు" },
+                  { v: f.gender === "Groom" ? "Widower" : "Widow",
+                    en: f.gender === "Groom" ? "Widower" : "Widow",
+                    te: f.gender === "Groom" ? "భార్య చనిపోయారు" : "భర్త చనిపోయారు" },
+                  { v: "Awaiting Divorce", en: "Awaiting divorce", te: "విడాకులు రావాల్సి ఉంది" },
+                  { v: "Divorced", en: "Divorced", te: "విడాకులు అయ్యాయి" },
+                ]} />
+              {f.marital_status && f.marital_status !== "Pelli Kaledu" ? (
+                <PillGroup label={<Duo en="Number of children" te="పిల్లల సంఖ్య" />} required
+                  value={f.children} onChange={(v) => set("children", v)}
+                  options={CHILDREN_OPTIONS.map((c) => ({
+                    v: c, en: c === "None" ? "None" : c,
+                    te: c === "None" ? "లేరు" : (c === "4+" ? "4+ మంది" : `${c} మంది`),
+                  }))} />
+              ) : null}
+              <SelectField label={<Duo en="Religion" te="మతం" />} value={f.religion}
+                onChange={(v) => set("religion", v)} placeholder={duo("Select religion", "మతం ఎంచుకోండి")}>
+                {RELIGIONS.map((r) => (<option key={r} value={r}>{r}</option>))}
+              </SelectField>
               <ChipGroup label="Mother tongue" options={MOTHER_TONGUES.map((m) => ({ v: m }))} value={f.mother_tongue}
                 onChange={(v) => set("mother_tongue", v)} />
             </>
@@ -891,9 +1042,9 @@ function Wizard() {
           {/* ---------------- STEP 2 ---------------- */}
           {step === 2 && (
             <>
-              <ChipGroup label="Caste" required searchable
-                options={CASTES.map((c) => ({ v: c }))} value={f.caste} onChange={(v) => set("caste", v)}
-                hint="43 caste channels unnayi — mee caste channel lo profile post avutundi" />
+              <ChipGroup label={`Caste — ${f.religion || "Hindu"} (${casteOpts.length})`} required searchable
+                options={casteOpts.map((c) => ({ v: c }))} value={f.caste} onChange={(v) => set("caste", v)}
+                hint={`${f.religion || "Hindu"} kulalu A–Z — mee caste channel lo profile post avutundi`} />
               <TextField label="Sub caste" optional value={f.sub_caste} onChange={(v) => set("sub_caste", v)}
                 placeholder="Pakanati / Deshathi / Telaga…" />
               <TextField label="Gothram" optional value={f.gothram} onChange={(v) => set("gothram", v)}
@@ -948,6 +1099,7 @@ function Wizard() {
               <div className="grid grid-cols-1 gap-3">
                 <TextField label="Mandal / Area" optional value={f.mandal} onChange={(v) => set("mandal", v)} placeholder="Miryalaguda" />
                 <TextField label="Current city" optional value={f.current_city} onChange={(v) => set("current_city", v)} placeholder="Hyderabad" />
+                <TextField label="Country" optional value={f.country} onChange={(v) => set("country", v)} placeholder="India / USA / UK / UAE…" hint="🌍 India kakapothe NRI ✈️ — NRI section lo kooda kanipistharu" />
                 <TextField label="Pincode" optional value={f.pincode} onChange={(v) => set("pincode", v)} inputMode="numeric" placeholder="500032" />
                 <TextField label="Native place" optional value={f.native_place} onChange={(v) => set("native_place", v)} placeholder="Nalgonda" />
               </div>
@@ -980,6 +1132,20 @@ function Wizard() {
                 )}
                 {otpMsg && <div className="text-[11px] text-gray-600">{otpMsg}</div>}
                 <TextField label="Email" optional value={f.email} onChange={(v) => set("email", v)} inputMode="email" placeholder="name@gmail.com" />
+                <div>
+                  <label className="text-[13px] font-bold text-ink">🔑 Password <span className="text-maroon">*</span></label>
+                  <div className="relative mt-1">
+                    <input type={showPw ? "text" : "password"} value={f.password}
+                      onChange={(e) => set("password", e.target.value.slice(0, 72))}
+                      placeholder="Minimum 6 characters" autoComplete="new-password"
+                      className="input-mobile pr-16" />
+                    <button type="button" onClick={() => setShowPw(!showPw)}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-[12px] font-bold text-maroon px-2 py-1">
+                      {showPw ? "🙈 Hide" : "👁️ Show"}
+                    </button>
+                  </div>
+                  <div className="hint mt-1">Login ki number + password (OTP tho kooda login avvachu) · Marichipothe OTP tho reset ✅</div>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 gap-3">
@@ -997,8 +1163,13 @@ function Wizard() {
               <Stepper label="Sisters (married)" value={f.sisters_married} onChange={(v) => set("sisters_married", v)} />
               <ChipGroup label="Family type" options={FAMILY_TYPES.map((x) => ({ v: x }))} value={f.family_type}
                 onChange={(v) => set("family_type", v)} />
-              <ChipGroup label="Family status" options={FAMILY_STATUSES.map((x) => ({ v: x }))} value={f.family_status}
-                onChange={(v) => set("family_status", v)} />
+              <PillGroup label={duo("Select family status", "కుటుంబ స్థాయి ఎంచుకోండి")}
+                options={[
+                  { v: "Middle Class", en: "Middle class", te: "మధ్య తరగతి" },
+                  { v: "Upper Middle Class", en: "Upper middle class", te: "ఎగువ మధ్య తరగతి" },
+                  { v: "Rich / Affluent (Elite)", en: "Rich / Affluent (Elite)", te: "ధనిక (ఎలైట్)" },
+                ]}
+                value={f.family_status} onChange={(v) => set("family_status", v)} />
               <ChipGroup label="Family values" options={FAMILY_VALUES.map((x) => ({ v: x }))} value={f.family_values}
                 onChange={(v) => set("family_values", v)} />
             </>
@@ -1034,14 +1205,16 @@ function Wizard() {
                 value={!!f.photo_private} onChange={(v) => set("photo_private", v)} />
 
               <div>
-                <label className="text-[13px] font-bold text-ink">About me / Naa gurinchi <span className="text-[10px] text-gray-400">(optional)</span></label>
+                <label className="text-[13px] font-bold text-ink">{duo("A few words about myself", "నా గురించి కొన్ని మాటలు")} <span className="text-maroon">*</span></label>
                 <textarea value={f.about_myself} onChange={(e) => set("about_myself", e.target.value.slice(0, 600))}
                   rows={4} placeholder="Nenu simple family, software engineer… (Telugu lo kooda rayochu)"
                   className="input-mobile mt-1 telugu" />
                 <div className="mt-2 flex items-center gap-2">
                   <button type="button" onClick={startVoice}
                     className="border border-maroon/30 text-maroon font-bold text-[12px] px-3 py-2 rounded-xl">🎤 Voice tho cheppu</button>
-                  <span className="text-[10px] text-gray-500">{f.about_myself.length}/600</span>
+                  <span className={`text-[10px] font-bold ${f.about_myself.trim().length >= 50 ? "text-emerald-600" : "text-gray-500"}`}>
+                    {f.about_myself.trim().length >= 50 ? "✓ " : ""}{f.about_myself.length}/600 · {duo("Minimum 50 characters", "కనీసం 50 అక్షరాలు")}
+                  </span>
                 </div>
               </div>
 
@@ -1051,8 +1224,12 @@ function Wizard() {
                 onChange={(v) => set("complexion", v)} />
               <ChipGroup label="Blood group" options={BLOOD_GROUPS.map((x) => ({ v: x }))} value={f.blood_group}
                 onChange={(v) => set("blood_group", v)} />
-              <ChipGroup label="Physical status" options={PHYSICAL_STATUS.map((x) => ({ v: x }))} value={f.physical_status}
-                onChange={(v) => set("physical_status", v)} />
+              <PillGroup label={<Duo en="Your physical status" te="మీ ఆరోగ్య స్థితి" />}
+                value={f.physical_status} onChange={(v) => set("physical_status", v)}
+                options={[
+                  { v: "Normal", en: "Normal", te: "సాధారణ" },
+                  { v: "Physically Challenged", en: "Physically challenged", te: "దివ్యాంగులు" },
+                ]} />
 
               <div className="bg-cream rounded-2xl border border-gold/30 p-4 space-y-3">
                 <div className="font-bold text-maroon text-[14px]">💞 Mee expectations (matches filter ki)</div>
@@ -1070,6 +1247,20 @@ function Wizard() {
                   value={f.exp_caste} onChange={(v) => set("exp_caste", v)} />
                 <TextField label="Free text expectations" optional value={f.expectations} onChange={(v) => set("expectations", v)}
                   placeholder="Govt job / business / respects elders…" />
+              </div>
+
+              <div className="bg-emerald-50/60 rounded-2xl border border-emerald-200 p-4">
+                <label className="text-[13px] font-bold text-emerald-900">🤝 Referral code (friend/partner ichara?)</label>
+                <input value={f.referral_code}
+                  onChange={(e) => set("referral_code", e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, "").slice(0, 20))}
+                  placeholder="Ex: charan519 / LAK42 (optional)"
+                  aria-label="Referral code"
+                  className="input-mobile mt-2 font-mono tracking-wide" />
+                <div className="hint mt-1">
+                  {refLocked
+                    ? <>✅ <b>{refLocked}</b> lock ayyindi — meeku +{refInfo?.bonus_credits || 1} credit FREE 🎁</>
+                    : "Code unte meeku +1 credit FREE + vaallaki ₹50. Link tho vachunte automatic fill avutundi."}
+                </div>
               </div>
 
               <label className="flex items-start gap-3 bg-white rounded-2xl border border-gold/30 p-4">
@@ -1097,20 +1288,20 @@ function Wizard() {
         <div className="max-w-3xl mx-auto px-4 py-3 flex items-center gap-3">
           {step > 1 && (
             <button onClick={back} className="px-5 py-3.5 rounded-2xl border border-maroon/25 text-maroon font-bold text-[14px]">
-              ← Back
+              ← {duo("Back", "వెనక్కి")}
             </button>
           )}
           <div className="flex-1 text-[10px] text-gray-500">
-            {step < 5 ? `Next: ${STEPS[step].label}` : "Chivari step — submit cheyyandi"}
+            {step < 5 ? `Next: ${duo(STEPS[step].label, STEPS[step].labelTe || "")}` : duo("Last step — submit", "చివరి దశ — సబ్మిట్ చేయండి")}
           </div>
           {step < 5 ? (
             <button onClick={next} className="px-7 py-3.5 rounded-2xl maroon-gradient text-white font-bold text-[15px]">
-              Next →
+              {duo("Next", "తర్వాత")} →
             </button>
           ) : (
             <button onClick={submit} disabled={busy}
               className="px-6 py-3.5 rounded-2xl gold-gradient text-maroon font-bold text-[15px] disabled:opacity-60">
-              {busy ? "Register avutund…" : "✅ Register cheyyi"}
+              {busy ? duo("Registering…", "నమోదు అవుతోంది…") : `✅ ${duo("Register now", "నమోదు చేయండి")}`}
             </button>
           )}
         </div>
