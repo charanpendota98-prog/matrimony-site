@@ -425,6 +425,7 @@ async def register(
     age: int = Form(...),
     height: str = Form(...),
     marital_status: str = Form(...),
+    children: str = Form("None"),
     caste: str = Form(...),
     sub_caste: str = Form(""),
     gothram: str = Form(""),
@@ -507,7 +508,12 @@ async def register(
     full_name = req_text(full_name, "full_name", 2, 60, required=True,
                          pattern=NAME_RE, pattern_msg="⚠️ Name lo letters matrame (2-60 chars)")
     marital_status = req_choice(marital_status, "marital_status",
-                                ["Pelli Kaledu", "Vidakuulu", "Widow/Widower", "Handicapped", "Divorced", "Widow"])
+                                # 🌊 WAVE 16 canonical + legacy (UI: Never married/Widow/Widower/Divorced/Awaiting Divorce)
+                                ["Pelli Kaledu", "Widow", "Widower", "Divorced", "Awaiting Divorce",
+                                 "Separated", "Vidakuulu", "Widow/Widower", "Handicapped"])
+    children = req_choice(children, "children", ["None", "1", "2", "3", "4+"], required=False, default="None")
+    if marital_status == "Pelli Kaledu":
+        children = "None"                       # never-married → smart force (junk reject)
     caste = req_text(caste, "caste", 2, 40)
     height = req_text(height, "height", 1, 12)
     education = req_text(education, "education", 1, 60)
@@ -540,6 +546,7 @@ async def register(
         "age": age,
         "height": height,
         "marital_status": marital_status,
+        "children": children,
         "caste": caste,
         "sub_caste": sub_caste,
         "gothram": gothram,
@@ -2356,7 +2363,8 @@ def advanced_search(
     gender: Optional[str] = None, caste: Optional[str] = None, district: Optional[str] = None,
     state: Optional[str] = None, job: Optional[str] = None, education: Optional[str] = None,
     age_min: int = 18, age_max: int = 60, salary_min: int = 0,
-    marital_status: Optional[str] = None, verified_only: bool = False, photo_only: bool = False,
+    marital_status: Optional[str] = None, children: Optional[str] = None,
+    verified_only: bool = False, photo_only: bool = False,
     religion: Optional[str] = None, q: Optional[str] = None,
     sort: str = "score", viewer_id: Optional[str] = None, limit: int = 30, offset: int = 0,
     nri_only: bool = False, profession_first: bool = False,
@@ -2410,6 +2418,8 @@ def advanced_search(
         items = [u for u in items if el in str(u.get("education", "")).lower()]
     if marital_status:
         items = [u for u in items if str(u.get("marital_status", "")).lower() == marital_status.lower()]
+    if children:
+        items = [u for u in items if str(u.get("children", "None")) == children]
     if religion:
         items = [u for u in items if str(u.get("religion", "Hindu")).lower() == religion.lower()]
     if nri_only:                                    # 🌊 WAVE 14 — NRI-only browse
@@ -2827,6 +2837,7 @@ def api_top_matches(tsap_id: str, limit: int = 10, min_score: int = 65, include_
         r["voice_url"] = prof.get("voice_url", "")
         r["has_voice"] = bool(prof.get("voice_url"))
         r["gothram_ok"] = not A11.gothram_check(me, prof).get("same", False)
+        r["children"] = prof.get("children", "None")
         r["is_nri"] = _is_nri(prof)
         r["profession_label"] = _prof_label(prof)
         out.append(r)
@@ -3894,7 +3905,8 @@ def api_match_send(buyer_id: str, request: Request, limit: int = 20, min_score: 
                   "sub_caste": prof.get("sub_caste", ""), "district": prof.get("district"),
                   "state": prof.get("state"), "education": prof.get("education"),
                   "job": prof.get("job"), "salary": prof.get("salary", ""),
-                  "marital_status": prof.get("marital_status", ""), "star": prof.get("star", ""),
+                  "marital_status": prof.get("marital_status", ""), "children": prof.get("children", "None"),
+                  "star": prof.get("star", ""),
                   "height": prof.get("height", ""),
                   "verification": safety.verification_badge(prof)["level"],
                   "phone_verified": bool(prof.get("phone_verified") or prof.get("is_verified")),

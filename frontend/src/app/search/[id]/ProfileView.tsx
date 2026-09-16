@@ -196,6 +196,7 @@ export default function ProfileView() {
                 ["📍 ప్రాంతం", `${profile.district || "—"}, ${profile.state || "—"}`],
                 ["⭐ నక్షత్రం", `${profile.star || "—"} / ${profile.rasi || "—"}`],
                 ["💍 Marital", profile.marital_status || "—"],
+                ["👶 Children • పిల్లలు", profile.children && profile.children !== "None" ? profile.children : "None • లేరు"],
                 ["🕉️ గోత్రం", profile.gothram || "—"],
                 ["👨‍👩‍👧 కుటుంబం", `${profile.family_type || "—"} · ${profile.family_status || "—"}`],
                 ["🧿 దోషం", profile.dosham || "No"],

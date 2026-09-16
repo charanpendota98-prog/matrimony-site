@@ -14,7 +14,7 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { CASTES, DISTRICTS_BY_STATE, EDUCATIONS, JOBS, MARITAL_STATUSES, RELIGIONS, SALARIES } from "@/lib/telugu-data";
+import { CASTES, CHILDREN_OPTIONS, DISTRICTS_BY_STATE, EDUCATIONS, JOBS, MARITAL_STATUSES, RELIGIONS, SALARIES } from "@/lib/telugu-data";
 import { SITE_CONFIG } from "@/lib/site-config";
 import QuickLead from "@/components/QuickLead";
 import TrustBadge from "@/components/TrustBadge";
@@ -37,7 +37,7 @@ const SORTS = [
 ];
 const DEFAULT_FILTERS: Row = {
   gender: "", q: "", caste: "", district: "", state: "", job: "", education: "",
-  salary_min: 0, salary_max: 0, marital_status: "", religion: "", age_min: 18, age_max: 60,
+  salary_min: 0, salary_max: 0, marital_status: "", children: "", religion: "", age_min: 18, age_max: 60,
   verified_only: false, photo_only: false,
   nri_only: false, profession_first: false,   // 🌊 WAVE 14 — NRI + profession-first
   // 🆕 WAVE 9 advanced filters
@@ -227,6 +227,16 @@ function FilterSheet({
               {MARITAL_STATUSES.map((m) => (
                 <button key={m} onClick={() => setF("marital_status", filters.marital_status === m ? "" : m)}
                   className={`chip ${filters.marital_status === m ? "chip-on" : ""}`}>{m}</button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="text-[13px] font-bold text-ink">{duo("Children", "పిల్లలు")}</label>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {CHILDREN_OPTIONS.map((c) => (
+                <button key={c} onClick={() => setF("children", filters.children === c ? "" : c)}
+                  className={`chip ${filters.children === c ? "chip-on" : ""}`}>{c}</button>
               ))}
             </div>
           </div>
@@ -547,6 +557,7 @@ export default function MatchesAdvanced() {
     if (filters.job) add("job", filters.job, "");
     if (filters.education) add("education", filters.education, "");
     if (filters.marital_status) add("marital_status", filters.marital_status, "");
+    if (filters.children) add("children", `👶 ${filters.children}`, "");
     if (filters.religion) add("religion", filters.religion, "");
     if (filters.salary_min) add("salary_min", `💰 ${filters.salary_min / 100000}L+`, 0);
     if (filters.age_min !== 18 || filters.age_max !== 60) add("age_min", `🎂 ${filters.age_min}–${filters.age_max}y`, 18);
@@ -618,6 +629,7 @@ export default function MatchesAdvanced() {
               <span className="bg-cream border border-gold/30 rounded-full px-2 py-0.5">⭐ {row.star || "—"} / {row.rasi || "—"}</span>
               <span className="bg-cream border border-gold/30 rounded-full px-2 py-0.5">🕉️ {row.gothram || "—"}</span>
               <span className="bg-cream border border-gold/30 rounded-full px-2 py-0.5">💍 {row.marital_status || "—"}</span>
+              {row.children && row.children !== "None" ? <span className="bg-cream border border-gold/30 rounded-full px-2 py-0.5">👶 {row.children} {duo("children", "పిల్లలు")}</span> : null}
               {row.verification_telugu ? (
                 <span className="bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-full px-2 py-0.5">
                   🛡️ {row.verification_telugu}

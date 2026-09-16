@@ -23,10 +23,10 @@ import { SITE_CONFIG } from "@/lib/site-config";
 import { authHeaders } from "@/lib/api";
 import { Duo, duo } from "@/lib/duo";
 import {
-  BLOOD_GROUPS, BODY_TYPES, CASTES, COMPLEXIONS, DISTRICTS_BY_STATE, EDUCATIONS, FAMILY_STATUSES,
+  BLOOD_GROUPS, BODY_TYPES, CASTES, CHILDREN_OPTIONS, COMPLEXIONS, DISTRICTS_BY_STATE, EDUCATIONS, FAMILY_STATUSES,
   FAMILY_TYPES, FAMILY_VALUES, HEIGHTS, JOBS, MARITAL_STATUSES, MOTHER_TONGUES, NAKSHATRAS, NAK_TO_RASI,
   OCCUPATIONS, PHYSICAL_STATUS, RASIS, RELIGIONS, SALARIES, WEIGHTS, WORK_TYPES,
-  ageFromDob, compressImage, maxDobFor18,
+  ageFromDob, compressImage, heightLabel, maxDobFor18,
 } from "@/lib/telugu-data";
 
 const DRAFT_KEY = "tsap_reg_draft_v3";
@@ -40,7 +40,7 @@ const STEPS = [
 
 const DEFAULT_FORM: Record<string, any> = {
   gender: "", full_name: "", dob: "", birth_time: "", age: "", height: "", weight: "",
-  marital_status: "Pelli Kaledu", religion: "Hindu", mother_tongue: "Telugu",
+  marital_status: "Pelli Kaledu", children: "", religion: "Hindu", mother_tongue: "Telugu",
   caste: "", sub_caste: "", gothram: "", star: "", rasi: "", moola_nakshatram: "No", dosham: "No",
   education: "", education_detail: "", college: "", job: "", company: "", salary: "",
   experience: "", work_type: "", work_location: "",
@@ -124,6 +124,61 @@ function TextField({
         className={`input-mobile mt-1 ${telugu ? "telugu" : ""}`}
       />
       {hint && <div className="hint">{hint}</div>}
+    </div>
+  );
+}
+
+/* 🌊 WAVE 16 — pro pills + dropdown (screenshot-standard, Duo bilingual) */
+function PillGroup({
+  label, options, value, onChange, required, hint,
+}: {
+  label: React.ReactNode; options: { v: string; en: string; te: string }[];
+  value: string; onChange: (v: string) => void; required?: boolean; hint?: string;
+}) {
+  return (
+    <div>
+      <div className="text-[15px] font-extrabold text-ink">
+        {label} {required ? <span className="req-star">*</span> : null}
+      </div>
+      {hint && <div className="hint">{hint}</div>}
+      <div className="mt-2 grid grid-cols-2 gap-2.5" role="radiogroup" aria-label={typeof label === "string" ? label : "options"}>
+        {options.map((o) => {
+          const on = value === o.v;
+          return (
+            <button key={o.v} type="button" role="radio" aria-checked={on} onClick={() => onChange(o.v)}
+              className={`rounded-full border-[1.5px] px-4 py-3 text-[14px] transition-all active:scale-[0.98] ${
+                on ? "maroon-gradient text-white border-transparent shadow-brand font-bold"
+                   : "border-gray-300 bg-white text-ink font-medium hover:border-maroon/50"}`}>
+              <div>{o.en}</div>
+              <div className={`text-[11px] font-semibold ${on ? "text-white/85" : "text-gray-500"} telugu`}>{o.te}</div>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function SelectField({
+  label, value, onChange, required, hint, placeholder, children,
+}: {
+  label: React.ReactNode; value: string; onChange: (v: string) => void;
+  required?: boolean; hint?: string; placeholder?: string; children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <div className="text-[15px] font-extrabold text-ink">
+        {label} {required ? <span className="req-star">*</span> : null}
+      </div>
+      {hint && <div className="hint">{hint}</div>}
+      <div className="relative mt-2">
+        <select value={value} onChange={(e) => onChange(e.target.value)}
+          className={`input-mobile appearance-none pr-10 font-medium ${value ? "text-ink" : "text-gray-400"}`}>
+          <option value="">{placeholder || "Select…"}</option>
+          {children}
+        </select>
+        <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-maroon text-lg">⌄</span>
+      </div>
     </div>
   );
 }
@@ -286,6 +341,8 @@ const set = (k: string, v: any) => {
       else if (!ageFromDob(f.dob)) e.push("DOB correct ga ledu");
       if (!f.height) e.push("Height select cheyyandi");
       if (!f.marital_status) e.push("Marital status select cheyyandi");
+      if (f.marital_status && f.marital_status !== "Pelli Kaledu" && !f.children)
+        e.push("Number of children select cheyyandi (None aina sare)");
     }
     if (s === 2) {
       if (!f.caste) e.push("Caste select cheyyandi (channels ki kavali)");
@@ -437,7 +494,7 @@ const set = (k: string, v: any) => {
     try {
       const fd = new FormData();
       const strings = [
-        "gender", "full_name", "dob", "birth_time", "height", "weight", "marital_status", "religion",
+        "gender", "full_name", "dob", "birth_time", "height", "weight", "marital_status", "children", "religion",
         "mother_tongue", "caste", "sub_caste", "gothram", "star", "rasi", "moola_nakshatram", "dosham",
         "education", "education_detail", "college", "job", "company", "salary", "experience", "work_type",
         "work_location", "father_name", "father_occupation", "mother_name", "mother_occupation", "brothers",
@@ -891,14 +948,35 @@ const set = (k: string, v: any) => {
                 </div>
               </div>
 
-              <ChipGroup label="Height" required options={HEIGHTS.map((h) => ({ v: h }))} value={f.height}
-                onChange={(v) => set("height", v)} />
+              <SelectField label={<Duo en="Height" te="ఎత్తు" />} required value={f.height}
+                onChange={(v) => set("height", v)} placeholder={duo("Select your height", "మీ ఎత్తు ఎంచుకోండి")}>
+                {HEIGHTS.map((h) => (<option key={h} value={h}>{heightLabel(h)}</option>))}
+              </SelectField>
               <ChipGroup label="Weight" options={WEIGHTS.map((w) => ({ v: w }))} value={f.weight}
                 onChange={(v) => set("weight", v)} />
-              <ChipGroup label="Marital status" required options={MARITAL_STATUSES.map((m) => ({ v: m }))}
-                value={f.marital_status} onChange={(v) => set("marital_status", v)} />
-              <ChipGroup label="Religion" options={RELIGIONS.map((r) => ({ v: r }))} value={f.religion}
-                onChange={(v) => set("religion", v)} />
+              <PillGroup label={<Duo en="Your marital status" te="మీ వైవాహిక స్థితి" />} required
+                value={f.marital_status}
+                onChange={(v) => { set("marital_status", v); if (v === "Pelli Kaledu") set("children", ""); }}
+                options={[
+                  { v: "Pelli Kaledu", en: "Never married", te: "పెళ్లి కాలేదు" },
+                  { v: f.gender === "Groom" ? "Widower" : "Widow",
+                    en: f.gender === "Groom" ? "Widower" : "Widow",
+                    te: f.gender === "Groom" ? "భార్య చనిపోయారు" : "భర్త చనిపోయారు" },
+                  { v: "Awaiting Divorce", en: "Awaiting divorce", te: "విడాకులు రావాల్సి ఉంది" },
+                  { v: "Divorced", en: "Divorced", te: "విడాకులు అయ్యాయి" },
+                ]} />
+              {f.marital_status && f.marital_status !== "Pelli Kaledu" ? (
+                <PillGroup label={<Duo en="Number of children" te="పిల్లల సంఖ్య" />} required
+                  value={f.children} onChange={(v) => set("children", v)}
+                  options={CHILDREN_OPTIONS.map((c) => ({
+                    v: c, en: c === "None" ? "None" : c,
+                    te: c === "None" ? "లేరు" : (c === "4+" ? "4+ మంది" : `${c} మంది`),
+                  }))} />
+              ) : null}
+              <SelectField label={<Duo en="Religion" te="మతం" />} value={f.religion}
+                onChange={(v) => set("religion", v)} placeholder={duo("Select religion", "మతం ఎంచుకోండి")}>
+                {RELIGIONS.map((r) => (<option key={r} value={r}>{r}</option>))}
+              </SelectField>
               <ChipGroup label="Mother tongue" options={MOTHER_TONGUES.map((m) => ({ v: m }))} value={f.mother_tongue}
                 onChange={(v) => set("mother_tongue", v)} />
             </>
@@ -1068,8 +1146,12 @@ const set = (k: string, v: any) => {
                 onChange={(v) => set("complexion", v)} />
               <ChipGroup label="Blood group" options={BLOOD_GROUPS.map((x) => ({ v: x }))} value={f.blood_group}
                 onChange={(v) => set("blood_group", v)} />
-              <ChipGroup label="Physical status" options={PHYSICAL_STATUS.map((x) => ({ v: x }))} value={f.physical_status}
-                onChange={(v) => set("physical_status", v)} />
+              <PillGroup label={<Duo en="Your physical status" te="మీ ఆరోగ్య స్థితి" />}
+                value={f.physical_status} onChange={(v) => set("physical_status", v)}
+                options={[
+                  { v: "Normal", en: "Normal", te: "సాధారణ" },
+                  { v: "Physically Challenged", en: "Physically challenged", te: "దివ్యాంగులు" },
+                ]} />
 
               <div className="bg-cream rounded-2xl border border-gold/30 p-4 space-y-3">
                 <div className="font-bold text-maroon text-[14px]">💞 Mee expectations (matches filter ki)</div>

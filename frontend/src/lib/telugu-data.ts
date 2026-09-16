@@ -69,7 +69,17 @@ export const SALARIES = ["Not specified", "1L - 2L", "2L - 4L", "4L - 6L", "6L -
 
 export const WORK_TYPES = ["Private", "Government", "Business", "Self Employed", "Not Working", "Retired"];
 
-export const MARITAL_STATUSES = ["Pelli Kaledu", "Divorced", "Widowed", "Separated"];
+// 🌊 WAVE 16 canonical (backend-accepted; register pills map to these)
+export const MARITAL_STATUSES = ["Pelli Kaledu", "Widow", "Widower", "Divorced", "Awaiting Divorce", "Separated"];
+export const CHILDREN_OPTIONS = ["None", "1", "2", "3", "4+"];
+
+// "5'6\"" → "5 ft 6 in (168 cm)" (BharatMatrimony-style pro dropdown)
+export function heightLabel(h: string): string {
+  const m = /^(\d)'(\d{1,2})"?$/.exec((h || "").trim());
+  if (!m) return h;
+  const cm = Math.round(Number(m[1]) * 30.48 + Number(m[2]) * 2.54);
+  return `${m[1]} ft ${m[2]} in (${cm} cm)`;
+}
 
 export const FAMILY_TYPES = ["Nuclear", "Joint"];
 export const FAMILY_STATUSES = ["Lower Middle", "Middle Class", "Upper Middle", "Rich", "Affluent"];
