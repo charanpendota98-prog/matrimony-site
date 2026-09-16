@@ -654,7 +654,9 @@ async def register(
         "photo_urls": ([photo_url] if photo_url else []),   # FIX: fake path valla photo_only filter ellappudu match ayyedi
         "card_url": f"/cards/{tsap_id}.png",   # web URL (card files static mount lo undi)
         "is_verified": False,
-        "phone_verified": bool(phone_verified) or (phone in VERIFIED_PHONES),
+        # 🌊 WAVE 23 — SECURITY: form nunchi phone_verified=true pampina nammamu!
+        #    OTP verify ayithe matrame VERIFIED_PHONES lo untundi (bypass closed).
+        "phone_verified": (phone in VERIFIED_PHONES),
         "is_approved": False,
         "privacy_mode": "private" if photo_private else "public",
         "credits": 3,
@@ -2471,7 +2473,7 @@ def saved_list(tsap_id: str, request: Request = None):
 # 📱 OTP VERIFY (phone) + 🔎 ADVANCED SEARCH FILTERS
 # ===========================================================================
 @app.post("/api/photo/upload")
-async def photo_upload(file: UploadFile = File(...), tsap_id: str = Form("")):
+async def photo_upload(file: UploadFile = File(...), tsap_id: str = Form(""), request: Request = None):
     """
     📸 Real photo upload — phone lo camera/gallery nunchi.
     Validation: JPG/PNG/WebP, max 5 MB. Storage: /tmp/photos (docker volume) → /photos/{name} URL.
@@ -2485,11 +2487,15 @@ async def photo_upload(file: UploadFile = File(...), tsap_id: str = Form("")):
                                   "te": verdict["te"],
                                   "message_telugu": f"📸 {verdict['te']}",
                                   "checks": verdict["checks"]})
+    # 🌊 WAVE 23 — SECURITY: tsap_id tho path traversal (../../) + vere vaalla profile ki upload — rendu block
+    _tid = re.sub(r"[^A-Z0-9-]", "", (tsap_id or "").strip().upper())[:24]
+    if _tid:
+        require_owner(request, _tid)
     ext = (file.filename or "").split(".")[-1].lower()
     if ext not in {"jpg", "jpeg", "png", "webp"}:
         ext = {"heic": "jpg", "heif": "jpg"}.get(ext, "jpg")
     os.makedirs("/tmp/photos", exist_ok=True)
-    token = (tsap_id.strip() or "tmp") + "-" + datetime.utcnow().strftime("%y%m%d%H%M%S") + "-" + str(random.randint(100, 999))
+    token = (_tid or "tmp") + "-" + datetime.utcnow().strftime("%y%m%d%H%M%S") + "-" + str(random.randint(100, 999))
     name = f"{token}.{ 'jpg' if ext in ('heic','heif') else ext }"
     path = f"/tmp/photos/{name}"
     try:
@@ -2504,7 +2510,7 @@ async def photo_upload(file: UploadFile = File(...), tsap_id: str = Form("")):
         _u["photo_checks"] = verdict["checks"]
         _u["photo_uploaded_at"] = datetime.utcnow().isoformat()
     return {"success": True, "url": f"/photos/{name}", "bytes": len(data),
-            "kb": round(len(data) / 1024, 1), "path": path,
+            "kb": round(len(data) / 1024, 1),
             "status": "pending", "checks": verdict["checks"],
             "message_telugu": f"📸 Photo clear ga undi ({round(len(data)/1024)} KB) — admin approval ki vellindi ✅"}
 
@@ -2523,11 +2529,12 @@ def photo_status(tsap_id: str):
 
 
 @app.post("/api/verify/selfie")
-async def verify_selfie(file: UploadFile = File(...), tsap_id: str = Form("")):
+async def verify_selfie(file: UploadFile = File(...), tsap_id: str = Form(""), request: Request = None):
     """🤳 Live-selfie verification upload — technical checks + admin review → trust badge."""
     u = next((x for x in DB_USERS if x.get("tsap_id") == (tsap_id or "").strip()), None)
     if not u:
         raise HTTPException(404, "Profile dorakaledu — mundu register avvandi")
+    require_owner(request, u["tsap_id"])  # 🌊 WAVE 23 — vere vaalla peru tho selfie vaddu
     data = await file.read()
     verdict = validate_photo(data, file.filename or "", selfie=True)
     if not verdict["ok"]:
@@ -3245,8 +3252,10 @@ def api_match_score_raw(payload: dict):
 
 @app.get("/api/top-matches/{tsap_id}")
 def api_top_matches(tsap_id: str, limit: int = 10, min_score: int = 65, include_same_gothram: int = 0,
-                      include_same_surname: int = 0, include_age_block: int = 0, nri_only: int = 0):
+                      include_same_surname: int = 0, include_age_block: int = 0, nri_only: int = 0,
+                      request: Request = None):
     """Top matches 2.0 — mutual bonus tho rank, blocked/banned/same-gothram teesestham, boosted first."""
+    require_owner(request, tsap_id)  # 🌊 WAVE 23 — naa match ranking naake (privacy)
     me = _find_user(tsap_id)
     if not me:
         raise HTTPException(404, "Mee profile dorakaledu")
@@ -4535,11 +4544,12 @@ def api_dosha(tsap_id: str):
 
 
 @app.post("/api/astro/jathakam/upload")
-async def api_jathakam_upload(file: UploadFile = File(...), tsap_id: str = Form("")):
+async def api_jathakam_upload(file: UploadFile = File(...), tsap_id: str = Form(""), request: Request = None):
     """📜 Jathakam upload (photo/PDF, max 8MB) → pandit queue."""
     u = _find_user(tsap_id.strip().upper())
     if not u:
         raise HTTPException(404, "TSAP ID dorakaledu — mundu register")
+    require_owner(request, u["tsap_id"])  # 🌊 WAVE 23 — vere vaalla jathakam vaddu
     ext = (file.filename or "").split(".")[-1].lower()
     if ext not in {"jpg", "jpeg", "png", "webp", "pdf"}:
         raise HTTPException(400, "Jathakam photo (JPG/PNG) leda PDF matrame")
