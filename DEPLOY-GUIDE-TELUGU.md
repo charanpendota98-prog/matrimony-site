@@ -177,6 +177,8 @@ site full run avutundi. Domain MilesWeb lone unchandi (DNS akkade).
 
 > ⚠️ AMD shape (1GB RAM) **tiskokandi** — adi chalu kadu. Ampere ARM ey best.
 > Mana Docker images (Python + Node) ARM lo perfect ga work avutayi.
+> **Saripothunda?** Mana app live lo ~200MB RAM matrame vadutundi (backend
+> ~70MB + frontend ~100MB). Free tier 24GB ante **100x headroom** — tension vaddu!
 
 **Step 2 — Reserved IP (mundu cheyandi!):**
 

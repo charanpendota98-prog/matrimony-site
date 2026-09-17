@@ -166,7 +166,7 @@ check("D7 milesweb section", "MilesWeb" in gt)
 # ===========================================================================
 section("D8 - oracle free tier")
 check("D8 oracle section", all(k in gt for k in
-      ("Oracle", "Ampere", "Ingress", "Reserved", "iptables", "manavivaha.in")))
+      ("Oracle", "Ampere", "Ingress", "Reserved", "iptables", "manavivaha.in", "200MB")))
 
 print(f"\n{'=' * 76}\nRESULT: {PASS} pass / {FAIL} fail\n{'=' * 76}")
 if FAILED:
