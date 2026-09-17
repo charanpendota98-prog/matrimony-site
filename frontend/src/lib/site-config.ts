@@ -25,6 +25,7 @@ export const SITE_CONFIG = {
   // Set cheyyakapote Telegram bot link chupistundi (fake number eppudu chupinchamu).
   botUsername: "@telugumatrimony1_bot",
   botUrl: "https://t.me/telugumatrimony1_bot",
+  unlockBot: (tsapId: string) => `https://t.me/telugumatrimony1_bot?start=unlock_${encodeURIComponent(tsapId)}`,
   supportWhatsapp: (process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP || "").trim(),
   supportPhone: (process.env.NEXT_PUBLIC_SUPPORT_PHONE || "").trim(),
   supportEmail: (process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "care@manavivaha.in").trim(),

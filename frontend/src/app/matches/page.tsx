@@ -14,12 +14,15 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { CASTES, DISTRICTS_BY_STATE, EDUCATIONS, JOBS, MARITAL_STATUSES, RELIGIONS, SALARIES } from "@/lib/telugu-data";
+import { CASTES, CHILDREN_OPTIONS, DISTRICTS_BY_STATE, EDUCATIONS, JOBS, MARITAL_STATUSES, RELIGIONS, SALARIES } from "@/lib/telugu-data";
 import { SITE_CONFIG } from "@/lib/site-config";
 import QuickLead from "@/components/QuickLead";
 import TrustBadge from "@/components/TrustBadge";
 import AuthGate from "@/components/AuthGate";
 import { apiGet, apiPost, getToken } from "@/lib/api";
+import { firstName } from "@/lib/names";
+import AdSlot from "@/components/AdSlot";
+import { Duo, duo } from "@/lib/duo";
 
 type Row = Record<string, any>;
 const SAVED_SEARCHES_KEY = "tsap_saved_searches_v1";
@@ -34,8 +37,9 @@ const SORTS = [
 ];
 const DEFAULT_FILTERS: Row = {
   gender: "", q: "", caste: "", district: "", state: "", job: "", education: "",
-  salary_min: 0, salary_max: 0, marital_status: "", religion: "", age_min: 18, age_max: 60,
+  salary_min: 0, salary_max: 0, marital_status: "", children: "", religion: "", age_min: 18, age_max: 60,
   verified_only: false, photo_only: false,
+  nri_only: false, profession_first: false,   // 🌊 WAVE 14 — NRI + profession-first
   // 🆕 WAVE 9 advanced filters
   height_min: "", height_max: "", dosham: "", min_completeness: 0,
   exclude_viewed: false, exclude_interested: false,
@@ -228,6 +232,16 @@ function FilterSheet({
           </div>
 
           <div>
+            <label className="text-[13px] font-bold text-ink">{duo("Children", "పిల్లలు")}</label>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {CHILDREN_OPTIONS.map((c) => (
+                <button key={c} onClick={() => setF("children", filters.children === c ? "" : c)}
+                  className={`chip ${filters.children === c ? "chip-on" : ""}`}>{c}</button>
+              ))}
+            </div>
+          </div>
+
+          <div>
             <label className="text-[13px] font-bold text-ink">Religion</label>
             <div className="mt-2 flex flex-wrap gap-2">
               {RELIGIONS.map((r) => (
@@ -242,6 +256,10 @@ function FilterSheet({
               className={`chip justify-center ${filters.verified_only ? "chip-on" : ""}`}>✅ Verified only</button>
             <button onClick={() => setF("photo_only", !filters.photo_only)}
               className={`chip justify-center ${filters.photo_only ? "chip-on" : ""}`}>📸 Photo unnavi</button>
+            <button onClick={() => setF("nri_only", !filters.nri_only)}
+              className={`chip justify-center ${filters.nri_only ? "chip-on" : ""}`}>✈️ NRI only</button>
+            <button onClick={() => setF("profession_first", !filters.profession_first)}
+              className={`chip justify-center ${filters.profession_first ? "chip-on" : ""}`}>💼 Naa profession first</button>
           </div>
 
           {/* 🆕 WAVE 9 — advanced filters (height / max salary / dosham / completeness / exclude) */}
@@ -398,7 +416,7 @@ export default function MatchesAdvanced() {
     const id = ++reqId.current;
     setLoading(true);
     const qs = new URLSearchParams();
-    const skip: Row = { age_min: 18, age_max: 60, salary_min: 0, verified_only: false, photo_only: false };
+    const skip: Row = { age_min: 18, age_max: 60, salary_min: 0, verified_only: false, photo_only: false, nri_only: false, profession_first: false };
     Object.keys(filters).forEach((k) => {
       const v = filters[k];
       if (v === "" || v === null || v === undefined) return;
@@ -463,7 +481,7 @@ export default function MatchesAdvanced() {
   };
 
   const shareText = (row: Row) =>
-    `🙏 ${SITE_CONFIG.brandName} profile — ${row.full_name} (${row.tsap_id})\n` +
+    `🙏 ${SITE_CONFIG.brandName} profile — ${firstName(row.full_name)} (${row.tsap_id})\n` +
     `👉 ${row.age}y • ${row.caste} • ${row.education} • ${row.job}${row.company ? " @ " + row.company : ""}\n` +
     `📍 ${row.district}, ${row.state} • 💰 ${row.salary} • ⭐ ${row.star || "—"}\n` +
     `Full details: ${SITE_CONFIG.siteUrl || "https://manavivaha.in"}/search/${row.tsap_id}`;
@@ -539,11 +557,14 @@ export default function MatchesAdvanced() {
     if (filters.job) add("job", filters.job, "");
     if (filters.education) add("education", filters.education, "");
     if (filters.marital_status) add("marital_status", filters.marital_status, "");
+    if (filters.children) add("children", `👶 ${filters.children}`, "");
     if (filters.religion) add("religion", filters.religion, "");
     if (filters.salary_min) add("salary_min", `💰 ${filters.salary_min / 100000}L+`, 0);
     if (filters.age_min !== 18 || filters.age_max !== 60) add("age_min", `🎂 ${filters.age_min}–${filters.age_max}y`, 18);
     if (filters.verified_only) add("verified_only", "✅ Verified", false);
     if (filters.photo_only) add("photo_only", "📸 Photo", false);
+    if (filters.nri_only) add("nri_only", "✈️ NRI", false);
+    if (filters.profession_first) add("profession_first", "💼 Profession-first", false);
     if (filters.salary_max) add("salary_max", `💰 ≤${Number(filters.salary_max) / 100000}L`, 0);
     if (filters.height_min || filters.height_max) add("height_min", `📏 ${filters.height_min || "any"}–${filters.height_max || "any"}`, "");
     if (filters.dosham) add("dosham", `🧿 Dosham: ${filters.dosham}`, "");
@@ -578,10 +599,11 @@ export default function MatchesAdvanced() {
             <div className="flex items-start gap-2">
               <div className="min-w-0 flex-1">
                 <div className="font-bold text-[15px] text-ink truncate">
-                  {row.full_name}
+                  {firstName(row.full_name)}
                   {row.verification === "id" || row.id_verified ? <span className="ml-1 text-[11px]" title="ID verified — full trust">🏅</span>
                     : row.verification === "photo" || row.photo_verified ? <span className="ml-1 text-[11px]" title="Photo verified">📸✅</span>
                     : (row.phone_verified || row.verification === "phone") ? <span className="ml-1 text-[11px] text-emerald-700" title="Phone verified">✅</span> : null}
+                  {row.selfie_verified ? <span className="ml-1 text-[11px]" title="Selfie verified">🤳</span> : null}
                   {row.boosted ? <span className="ml-1 text-[11px]">⚡</span> : null}
                 </div>
                 <div className="text-[11px] text-gray-500 font-mono">{row.tsap_id}</div>
@@ -599,6 +621,8 @@ export default function MatchesAdvanced() {
             <div className="mt-1.5 text-[12px] text-gray-700 leading-relaxed">
               {row.age}y • {row.height || "—"} • <b>{row.caste}</b>{row.sub_caste ? ` (${row.sub_caste})` : ""}<br />
               🎓 {row.education}{row.education_detail ? ` ${row.education_detail}` : ""} • 💼 {row.job}{row.company ? ` @ ${row.company}` : ""}<br />
+              {row.is_nri ? <span className="inline-block text-[11px] font-bold bg-sky-100 text-sky-800 px-2 py-0.5 rounded-full mr-1">✈️ NRI{row.country && row.country !== "India" ? ` • ${row.country}` : ""}</span> : null}
+              {row.profession_label ? <span className="inline-block text-[11px] font-bold bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full">{row.profession_label}</span> : null}<br />
               📍 {row.district}, {row.state}{row.work_location ? ` • work: ${row.work_location}` : ""} • 💰 {row.salary}
             </div>
 
@@ -606,6 +630,7 @@ export default function MatchesAdvanced() {
               <span className="bg-cream border border-gold/30 rounded-full px-2 py-0.5">⭐ {row.star || "—"} / {row.rasi || "—"}</span>
               <span className="bg-cream border border-gold/30 rounded-full px-2 py-0.5">🕉️ {row.gothram || "—"}</span>
               <span className="bg-cream border border-gold/30 rounded-full px-2 py-0.5">💍 {row.marital_status || "—"}</span>
+              {row.children && row.children !== "None" ? <span className="bg-cream border border-gold/30 rounded-full px-2 py-0.5">👶 {row.children} {duo("children", "పిల్లలు")}</span> : null}
               {row.verification_telugu ? (
                 <span className="bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-full px-2 py-0.5">
                   🛡️ {row.verification_telugu}
@@ -658,11 +683,16 @@ export default function MatchesAdvanced() {
           </Link>
           <button onClick={() => sendInterest(row)} disabled={sending === row.tsap_id}
             className="flex-1 min-w-[140px] py-2.5 rounded-xl maroon-gradient text-white text-[12px] font-bold disabled:opacity-60">
-            {sending === row.tsap_id ? "Pampisthunnam…" : "💌 Interest (1 credit)"}
+            {sending === row.tsap_id ? duo("Sending…", "పంపిస్తున్నాం…") : `💌 ${duo("Interest (1 credit)", "ఇంట్రెస్ట్ (1 క్రెడిట్)")}`}
           </button>
+          <a href={SITE_CONFIG.unlockBot(row.tsap_id)} target="_blank" rel="noreferrer"
+            title={duo("Bot opens — 1 credit tho number vastundi", "బాట్ ఓపెన్ అవుతుంది — 1 క్రెడిట్‌తో నంబర్ వస్తుంది")}
+            className="flex-1 min-w-[140px] py-2.5 rounded-xl gold-gradient text-maroon text-[12px] font-bold text-center">
+            📞 {duo("Full details + Number", "పూర్తి వివరాలు + నంబర్")}
+          </a>
           <button onClick={() => toggleSave(row)}
             className={`py-2.5 px-3 rounded-xl text-[12px] font-bold border ${saved ? "border-rose-300 bg-rose-50 text-rose-700" : "border-maroon/25 text-maroon"}`}>
-            {saved ? "❤️ Saved" : "🤍 Save"}
+            {saved ? `❤️ ${duo("Saved", "సేవ్ అయింది")}` : `🤍 ${duo("Save", "సేవ్")}`}
           </button>
           <button onClick={() => shareWhatsApp(row)} className="py-2.5 px-3 rounded-xl bg-green-600 text-white text-[12px] font-bold">WhatsApp</button>
           <button onClick={() => shareTelegram(row)} className="py-2.5 px-3 rounded-xl bg-blue-500 text-white text-[12px] font-bold">Telegram</button>
@@ -679,10 +709,10 @@ export default function MatchesAdvanced() {
       <div className="sticky top-0 z-30 bg-cream/95 backdrop-blur border-b border-gold/25 safe-top">
         <div className="max-w-6xl mx-auto px-4 py-3">
           <div className="flex items-center gap-2">
-            <Link href="/" className="text-[12px] font-bold text-maroon shrink-0">← Home</Link>
+            <Link href="/" className="text-[12px] font-bold text-maroon shrink-0">← {duo("Home", "హోమ్")}</Link>
             <div className="flex-1 flex items-center gap-2 bg-white border border-gold/40 rounded-2xl px-3">
               <span className="text-[15px]">🔍</span>
-              <input value={filters.q} onChange={(e) => setF("q", e.target.value)} placeholder="Peru / caste / district / job…"
+              <input value={filters.q} onChange={(e) => setF("q", e.target.value)} placeholder={duo("Name / caste / district / job…", "పేరు / కులం / జిల్లా / ఉద్యోగం…")}
                 className="flex-1 py-3 bg-transparent outline-none text-[14px]" aria-label="Peru / caste / district / job…" />
             </div>
             <button onClick={() => setSheet(true)} className="md:hidden shrink-0 px-3 py-3 rounded-2xl maroon-gradient text-white text-[12px] font-bold">
@@ -700,11 +730,11 @@ export default function MatchesAdvanced() {
               <button key={s.v} onClick={() => setSort(s.v)}
                 className={`chip shrink-0 ${sort === s.v ? "chip-on" : ""}`}>{s.l}</button>
             ))}
-            <button onClick={saveSearch} className="chip shrink-0">🔔 Save search</button>
+            <button onClick={saveSearch} className="chip shrink-0">🔔 {duo("Save search", "సేవ్ చేయండి")}</button>
             <button onClick={() => void sendAlerts()} className="chip shrink-0" title="Saved searches ki kotha matches WhatsApp lo">
-              📨 New-match alerts{serverSearches.length ? ` (${serverSearches.length})` : ""}
+              📨 {duo("New-match alerts", "కొత్త సంబంధాలు")} {serverSearches.length ? `(${serverSearches.length})` : ""}
             </button>
-            <button onClick={copySearchLink} className="chip shrink-0">🔗 Share search</button>
+            <button onClick={copySearchLink} className="chip shrink-0">🔗 {duo("Share search", "షేర్ చేయండి")}</button>
           </div>
         </div>
       </div>
@@ -712,11 +742,11 @@ export default function MatchesAdvanced() {
       <div className="max-w-6xl mx-auto px-4 py-4 md:grid md:grid-cols-[280px_1fr] md:gap-5 md:items-start">
         {/* ---------- desktop filter sidebar ---------- */}
         <aside className="hidden md:block bg-white rounded-[1.5rem] border border-gold/25 p-4 sticky top-[132px] max-h-[76vh] overflow-y-auto">
-          <div className="font-bold text-maroon text-[14px]">🔎 Filters ({activeChips.length})</div>
+          <div className="font-bold text-maroon text-[14px]">🔎 <Duo en="Filters" te="వడపోతలు" /> ({activeChips.length})</div>
           <button onClick={() => { setFilters({ ...DEFAULT_FILTERS }); setSort("score"); }}
-            className="mt-2 w-full py-2 rounded-xl border border-maroon/20 text-[12px] font-bold text-maroon">♻️ Reset anni</button>
+            className="mt-2 w-full py-2 rounded-xl border border-maroon/20 text-[12px] font-bold text-maroon">♻️ {duo("Reset all", "అన్నీ రీసెట్")}</button>
           <div className="mt-3">
-            <div className="text-[11px] font-bold text-ink">Evarini?</div>
+            <div className="text-[11px] font-bold text-ink"><Duo en="Whom to find?" te="ఎవరిని?" /></div>
             <div className="mt-1.5 flex flex-wrap gap-1.5">
               {[{ v: "", l: "Andaru" }, { v: "Bride", l: "👰 Brides" }, { v: "Groom", l: "🤵 Grooms" }].map((g) => (
                 <button key={g.v} onClick={() => setF("gender", g.v)} className={`chip ${filters.gender === g.v ? "chip-on" : ""}`}>{g.l}</button>
@@ -769,6 +799,7 @@ export default function MatchesAdvanced() {
           <button onClick={() => setSheet(true)} className="mt-3 w-full py-2.5 rounded-xl gold-gradient text-maroon text-[12px] font-bold">
             ➕ Inka ekkuva filters (caste 43, edu, salary…)
           </button>
+          <div className="mt-3"><AdSlot slot="matches_sidebar" district={filters.district || ""} state={filters.state || ""} /></div>
         </aside>
 
         {/* ---------- results ---------- */}
@@ -780,6 +811,7 @@ export default function MatchesAdvanced() {
           )}
 
           <div className="mb-3"><QuickLead source="matches_page" /></div>
+          <div className="mb-3 md:hidden"><AdSlot slot="matches_sidebar" district={filters.district || ""} state={filters.state || ""} /></div>
 
           <div className="maroon-gradient text-white rounded-[1.5rem] p-4">
             <div className="font-bold text-[14px] telugu">🚫 Chatting ledu — 💌 Interest pampu, accept aithe WhatsApp lo numbers exchange</div>

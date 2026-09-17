@@ -7,8 +7,8 @@ vallu manaku pay chestharu, kabatti manam ₹50 istham referal vallaki."**
 Design goals:
   * ఎవరికైనా ₹50 — referred friend **modati payment** (₹29/₹99/₹199/₹299/₹499 — edaina) chesthe
   * Referee (kotha user) ki kooda **bonus credits** — "andariki bestga"
-  * Repeat payments ki 10% (cap ₹100) — loyal referrers ki passive income
-  * Tiers (BRONZE → ELITE): extra % + badges — top referrers ni motivate cheyyadam
+  * Repeat payments ki commission LEDU — ₹50 okkasari matrame (first payment) — WAVE 25 rule
+  * Tiers (BRONZE → ELITE): BADGES matrame (extra % ledu) — recognition kosam
   * Milestones: 3 / 10 / 25 / 50 paying referrals → cash + credits (AUTO credit — manual ledu)
   * Anti-fraud: self-referral block, one-referral-lock, daily cap, duplicate phone/UPI, refund clawback
   * Payouts: wallet → ₹100 min → UPI/bank request → admin approve → UTR (audit trail)
@@ -24,6 +24,8 @@ import os
 import random
 import re
 import string
+import threading
+from collections import defaultdict
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional
 
@@ -32,8 +34,8 @@ REFERRAL_VERSION = "2.0"
 
 FIRST_PAY_COMMISSION = 50          # ₹50 — modati payment (edi aina) ki flat
 MIN_QUALIFYING_AMOUNT = 29         # ₹29 kanna thakkuva unte count cheyyadu
-REPEAT_COMMISSION_PCT = 0.10       # tarvata payments ki 10%
-REPEAT_COMMISSION_CAP = 100        # okka payment ki max ₹100
+REPEAT_COMMISSION_PCT = 0.0        # 🌊 WAVE 25: repeat ki commission LEDU (₹50 first-payment-only)
+REPEAT_COMMISSION_CAP = 0          # retired — compat kosam uncham
 REFEREE_BONUS_CREDITS = 1          # kotha user ki bonus credit (andariki)
 MIN_PAYOUT = 100                   # payout minimum ₹100
 PAYOUT_SLA_DAYS = 3                # request → 3 working days lo pay
@@ -45,17 +47,17 @@ SAME_PHONE_SOFT_LIMIT = 3          # okate phone number nunchi intha mandi accou
 
 TIERS: List[Dict] = [
     {"key": "BRONZE",   "min": 0,  "extra_pct": 0,  "icon": "🥉", "perks": ["₹50 per paying referral", "Daily 10 cap"]},
-    {"key": "SILVER",   "min": 3,  "extra_pct": 5,  "icon": "🥈", "perks": ["+5% extra on every commission", "Priority support"]},
-    {"key": "GOLD",     "min": 10, "extra_pct": 10, "icon": "🥇", "perks": ["+10% extra", "Free 1 porutham report", "Channel shout-out"]},
-    {"key": "PLATINUM", "min": 25, "extra_pct": 15, "icon": "💎", "perks": ["+15% extra", "Verified Referrer badge", "₹500 milestone bonus"]},
-    {"key": "ELITE",    "min": 50, "extra_pct": 20, "icon": "👑", "perks": ["+20% extra", "Elite badge", "₹1200 milestone + 25 credits"]},
+    {"key": "SILVER",   "min": 3,  "extra_pct": 0,  "icon": "🥈", "perks": ["🥈 Silver Referrer badge", "Priority support"]},
+    {"key": "GOLD",     "min": 10, "extra_pct": 0, "icon": "🥇", "perks": ["🥇 Gold Referrer badge", "Free 1 porutham report", "Channel shout-out"]},
+    {"key": "PLATINUM", "min": 25, "extra_pct": 0, "icon": "💎", "perks": ["💎 Verified Referrer badge", "Homepage recognise"]},
+    {"key": "ELITE",    "min": 50, "extra_pct": 0, "icon": "👑", "perks": ["👑 Elite badge + VIP support", "Top referrer wall"]},
 ]
 
 MILESTONES: List[Dict] = [
-    {"paid": 3,  "cash": 0,    "credits": 1,  "title": "🥈 SILVER Referrer", "telugu": "3 paying referrals — ₹50×3 = ₹150 + 1 free credit"},
-    {"paid": 10, "cash": 250,  "credits": 3,  "title": "🥇 GOLD Referrer", "telugu": "10 paying referrals — ₹500 + ₹250 bonus + 3 credits"},
-    {"paid": 25, "cash": 500,  "credits": 10, "title": "💎 PLATINUM Referrer", "telugu": "25 paying referrals — ₹1250 + ₹500 bonus + 10 credits"},
-    {"paid": 50, "cash": 1200, "credits": 25, "title": "👑 ELITE Referrer", "telugu": "50 paying referrals — ₹2500 + ₹1200 bonus + 25 credits + VIP badge"},
+    {"paid": 3,  "cash": 0,    "credits": 0,  "title": "🥈 SILVER Referrer", "telugu": "3 paying referrals — 🥈 badge + priority support"},
+    {"paid": 10, "cash": 0,  "credits": 0,  "title": "🥇 GOLD Referrer", "telugu": "10 paying referrals — 🥇 badge + free porutham report"},
+    {"paid": 25, "cash": 0,  "credits": 0, "title": "💎 PLATINUM Referrer", "telugu": "25 paying referrals — 💎 verified badge + homepage"},
+    {"paid": 50, "cash": 0, "credits": 0, "title": "👑 ELITE Referrer", "telugu": "50 paying referrals — 👑 elite badge + VIP support"},
 ]
 
 REFERRAL_TYPES = ("USER", "LADY", "STUDENT", "INFLUENCER", "BROKER", "BUREAU", "PHONE", "NONE")
@@ -138,18 +140,15 @@ def parse_referral_type(code: str) -> str:
 def calculate_commission(referral_type: str, plan_amount: int, is_first_payment: bool = True,
                          tier: str = "BRONZE") -> int:
     """
-    ₹50 for the FIRST payment (any plan ≥ ₹29) — 'andariki ₹50'.
-    Tarvata payments ki 10% (max ₹100) + tier extra %.
+    🌊 WAVE 25 — FLAT ₹50 ONLY: referred user MODATI payment (≥ ₹29) ki ₹50.
+    Repeat payments ki ₹0. Tier extra LEDU (tiers = badges matrame).
     """
     amount = int(plan_amount or 0)
     if amount < MIN_QUALIFYING_AMOUNT:
         return 0
-    if is_first_payment:
-        base = FIRST_PAY_COMMISSION
-    else:
-        base = min(int(amount * REPEAT_COMMISSION_PCT + 0.5), REPEAT_COMMISSION_CAP)
-    extra_pct = tier_of(next((t["min"] for t in TIERS if t["key"] == tier), 0))["extra_pct"]
-    return int(base * (1 + extra_pct / 100.0) + 0.5)      # half-up (10.5 → 11) — predictable
+    if not is_first_payment:
+        return 0
+    return int(FIRST_PAY_COMMISSION)
 
 
 def check_bonus_eligibility(referrer_stats: Dict) -> Dict:
@@ -161,7 +160,7 @@ def check_bonus_eligibility(referrer_stats: Dict) -> Dict:
     new_hits = [m for m in hit if m["paid"] not in already]
     cash = sum(m["cash"] for m in new_hits)
     credits = sum(m["credits"] for m in new_hits)
-    eligible = bool(cash or credits)
+    eligible = bool(new_hits)  # 🌊 WAVE 25: money ledu — badge recognition ke eligible
     return {
         "eligible": eligible, "bonus": cash, "credits": credits, "tier": tier["key"],
         "new_milestones": new_hits, "hit": hit,
@@ -210,6 +209,11 @@ def save_state() -> Dict:
                 "clicks": CLICKS[-2000:]}
         with open(STATE_FILE, "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False)
+        try:  # 🌊 WAVE 19 — partner wallets/stats kooda persist (attach/process mutates them)
+            from refpartners import _save as _partner_save
+            _partner_save()
+        except Exception:
+            pass
         return {"ok": True, "path": STATE_FILE}
     except Exception as e:
         return {"ok": False, "error": str(e)[:120]}
@@ -285,7 +289,12 @@ def find_referrer(code: str, all_users: List[Dict]) -> Optional[Dict]:
         for u in all_users:
             if str(u.get("phone", "")).strip() == p_up:
                 return u
-    return None
+    # 🌊 WAVE 19 — referral partners (charan108 style IDs)
+    try:
+        from refpartners import find_partner_by_code
+        return find_partner_by_code(probe)
+    except Exception:
+        return None
 
 
 def validate_referral(code: str, all_users: List[Dict]) -> Dict:
@@ -387,10 +396,10 @@ def _fraud_flags(referrer: Dict, referred_user: Dict, all_users: List[Dict]) -> 
 def process_referral_payment(referred_user: Dict, referrer_code: str, plan_amount: int,
                              all_users: List[Dict], payment_id: str = "") -> Dict:
     """
-    Referred friend pay chesaka → referrer ki commission + wallet + tier + milestone bonus.
-    · First payment  → ₹50 flat (+ tier extra %)  ← "andariki ₹50"
-    · Repeat payment → 10% (max ₹100) (+ tier extra %)
-    · Milestone hit  → cash + credits AUTO credit (purathana bug fix)
+    Referred friend pay chesaka → referrer ki ₹50 wallet (FLAT, first payment only).
+    · First payment  → ₹50 flat — "andariki ₹50, anthe" (WAVE 25)
+    · Repeat payment → ₹0 (no commission)
+    · Milestone hit  → badge recognition matrame (cash/credits ledu)
     """
     amount = int(plan_amount or 0)
     ref = find_referrer(referrer_code, all_users)
@@ -416,13 +425,22 @@ def process_referral_payment(referred_user: Dict, referrer_code: str, plan_amoun
     tier = tier_of(st["paid_count"])["key"]
     commission = calculate_commission(parse_referral_type(referrer_code), amount, first, tier)
     if commission <= 0:
-        return {"success": False, "reason": "zero_commission", "amount": amount}
+        if not first:
+            referred_user["has_paid"] = True
+            referred_user.setdefault("first_paid_at", _now())
+        return {"success": False, "reason": "no_repeat_commission" if not first else "zero_commission",
+                "amount": amount, "first_payment": first,
+                "message_telugu": ("ℹ️ Repeat payment — referral commission okkasari matrame (₹50 already icham 🙂)"
+                                   if not first else "ℹ️ Ee payment ki referral commission ledu")}
 
     # 👛 wallet credit
     st["wallet"] = round(float(st.get("wallet", 0)) + commission, 2)
     st["lifetime_earned"] = round(float(st.get("lifetime_earned", 0)) + commission, 2)
     ref["wallet"] = st["wallet"]
     st["paid_count"] = int(st.get("paid_count", 0)) + 1
+    # 🌊 WAVE 20 — join paid-ness source of truth (dashboards + ledger anni ikkadi nunchi)
+    referred_user["has_paid"] = True
+    referred_user.setdefault("first_paid_at", _now())
     if st.get("paid_today_date") != _today():
         st["paid_today_date"] = _today()
         st["paid_today"] = 0
@@ -432,7 +450,7 @@ def process_referral_payment(referred_user: Dict, referrer_code: str, plan_amoun
         "id": _next_id("RC"), "at": _now(), "type": "commission", "amount": commission,
         "from": referred_user.get("tsap_id"), "from_name": referred_user.get("full_name") or referred_user.get("name", ""),
         "plan_amount": amount, "first_payment": first, "tier": tier, "payment_id": payment_id,
-        "note": ("Modati payment bonus ₹%d" % FIRST_PAY_COMMISSION) if first else "Repeat payment 10%",
+        "note": ("Modati payment bonus ₹%d (flat)" % FIRST_PAY_COMMISSION),
     })
 
     # 🏆 milestone + tier bonus (auto credit — cash + credits)
@@ -522,6 +540,19 @@ def reverse_referral_payment(referred_user: Dict, plan_amount: int, all_users: L
 # ------------------------------------------------------------------ payouts
 UPI_RE = re.compile(r"^[a-zA-Z0-9._-]{2,64}@[a-zA-Z]{2,32}$")
 IFSC_RE = re.compile(r"^[A-Z]{4}0[A-Z0-9]{6}$")
+# 🌊 WAVE 25 — payout UTR/reference: UPI 12-digit ref / bank UTR (audit must be traceable)
+PAYOUT_UTR_RE = re.compile(r"^[A-Za-z0-9]{6,30}$")
+_PAYOUT_LOCKS: Dict[str, threading.Lock] = defaultdict(threading.Lock)
+
+
+def valid_payout_utr(utr: str) -> bool:
+    """Admin payout reference — khali/malformed UTR tho approve cheyyakudadu."""
+    u = (utr or "").strip()
+    if not PAYOUT_UTR_RE.fullmatch(u):
+        return False
+    if u.strip("0") == "":
+        return False
+    return True
 
 
 def payout_request(user: Dict, amount: int, method: str = "upi", upi_id: str = "",
@@ -541,7 +572,8 @@ def payout_request(user: Dict, amount: int, method: str = "upi", upi_id: str = "
     if amount > float(st.get("wallet", 0)):
         return {"ok": False, "reason": "insufficient_wallet", "wallet": st["wallet"],
                 "message_telugu": "⚠️ Wallet lo ₹%s matrame undi — ₹%d adagalev" % (st["wallet"], amount)}
-    if any(p.get("tsap_id") == user.get("tsap_id") and p.get("status") == "requested" for p in PAYOUTS):
+    _me = user.get("tsap_id") or user.get("partner_id")
+    if any((p.get("tsap_id") or p.get("partner_id")) == _me and p.get("status") == "requested" for p in PAYOUTS):
         return {"ok": False, "reason": "pending_exists",
                 "message_telugu": "⏳ Mee pata payout request inka process lo undi — adi ayyaka malli adagandi"}
     if method == "upi":
@@ -555,7 +587,7 @@ def payout_request(user: Dict, amount: int, method: str = "upi", upi_id: str = "
             return {"ok": False, "reason": "bad_bank",
                     "message_telugu": "⚠️ Bank details sari ga ivvandi (holder + account no + IFSC)"}
     req = {
-        "id": _next_id("PAY"), "tsap_id": user.get("tsap_id"),
+        "id": _next_id("PAY"), "tsap_id": user.get("tsap_id"), "partner_id": user.get("partner_id", ""),
         "name": user.get("full_name") or user.get("name", ""),
         "code": _code_of(user), "amount": amount, "method": method,
         "upi_id": (upi_id or "").strip() if method == "upi" else "",
@@ -578,23 +610,46 @@ def payout_request(user: Dict, amount: int, method: str = "upi", upi_id: str = "
 def payout_action(request_id: str, action: str, all_users: List[Dict], utr: str = "",
                   reason: str = "") -> Dict:
     """Admin: payout approve (UTR tho) / reject (wallet ki malli credit)."""
+    # 🌊 WAVE 25 — per-request lock: double-click approve double-pay avvakudadu
+    with _PAYOUT_LOCKS[str(request_id or "")]:
+        return _payout_action_locked(request_id, action, all_users, utr=utr, reason=reason)
+
+
+def _payout_action_locked(request_id: str, action: str, all_users: List[Dict], utr: str = "",
+                          reason: str = "") -> Dict:
     req = next((p for p in PAYOUTS if p["id"] == request_id), None)
     if not req:
         return {"ok": False, "reason": "not_found", "message_telugu": "⚠️ Ee payout request dorakaledu"}
     if req["status"] != "requested":
         return {"ok": False, "reason": "already_%s" % req["status"]}
     user = next((u for u in all_users if u.get("tsap_id") == req["tsap_id"]), None)
+    if not user and req.get("partner_id"):
+        # 🌊 WAVE 21 — partner payout: user table lo undadu, partner registry lo
+        try:
+            from refpartners import get_partner
+            user = get_partner(req["partner_id"])
+        except Exception:
+            user = None
     if not user:
         return {"ok": False, "reason": "user_not_found"}
     st = stats_of(user)
     action = (action or "").lower()
     if action in ("approve", "paid"):
-        if not utr:
-            return {"ok": False, "reason": "utr_required",
-                    "message_telugu": "⚠️ UTR/reference number ivvakunda approve cheyyakoodadu (audit ki)"}
+        if not valid_payout_utr(utr):
+            return {"ok": False, "reason": "utr_invalid",
+                    "message_telugu": "⚠️ Valid UTR/reference ivvandi (6-30 letters/digits, only-zero kadu) — audit ki mandatory"}
+        utr = utr.strip()
+        if float(st.get("pending_payout", 0)) < float(req["amount"]):
+            return {"ok": False, "reason": "pending_mismatch",
+                    "message_telugu": "⚠️ Pending amount mismatch — data repair tarvata approve cheyyandi"}
         req.update({"status": "paid", "utr": utr, "paid_at": _now(), "paid_by": "admin"})
         st["pending_payout"] = round(float(st.get("pending_payout", 0)) - float(req["amount"]), 2)
         st["paid_out"] = round(float(st.get("paid_out", 0)) + float(req["amount"]), 2)
+        # 🌊 WAVE 25 — TRANSACTION LIST lo PAID: user wallet nunchi debit appude ayyindi
+        # (request time), ippudu PAID confirmation entry (UTR tho) — user adi chusthadu ✅
+        st.setdefault("ledger", []).append({"id": _next_id("PD"), "at": _now(), "type": "payout_paid",
+                                            "amount": 0, "paid": True, "utr": utr,
+                                            "note": "✅ PAID ₹%s • UTR %s" % (req["amount"], utr)})
         msg = "🎉 ₹%d mee %s ki pampinchi — UTR: %s. Thank you!" % (
             req["amount"], "UPI" if req["method"] == "upi" else "bank", utr)
     elif action in ("reject", "cancel"):
@@ -610,8 +665,67 @@ def payout_action(request_id: str, action: str, all_users: List[Dict], utr: str 
     else:
         return {"ok": False, "reason": "bad_action"}
     user["referral_stats"] = st
+    try:
+        if user.get("partner_id"):
+            from refpartners import _save as _partner_save
+            _partner_save()
+    except Exception:
+        pass
     save_state()
     return {"ok": True, "request": req, "wallet": st.get("wallet"), "message_telugu": msg}
+
+
+def pay_wallet_full(code: str, all_users: List[Dict], utr: str = "",
+                    method: str = "upi", note: str = "") -> Dict:
+    """🌊 WAVE 21 — ADMIN manual pay: PhonePe/bank lo amount pampaka → wallet 0.
+    Full wallet ni paid_out ki move + ledger + payout record (UTR audit). User + partner."""
+    # 🌊 WAVE 25 — lock + strict UTR (double admin-click double-zero avvakudadu)
+    with _PAYOUT_LOCKS["full:" + str(code or "").strip().upper()]:
+        return _pay_wallet_full_locked(code, all_users, utr=utr, method=method, note=note)
+
+
+def _pay_wallet_full_locked(code: str, all_users: List[Dict], utr: str = "",
+                            method: str = "upi", note: str = "") -> Dict:
+    if not valid_payout_utr(utr):
+        return {"ok": False, "reason": "utr_invalid",
+                "message_telugu": "⚠️ Valid UTR/reference ivvandi (6-30 letters/digits) — audit ki mandatory"}
+    utr = utr.strip()
+    ref = find_referrer(code, all_users)
+    if not ref:
+        return {"ok": False, "reason": "referrer_not_found",
+                "message_telugu": "⚠️ Referrer dorakaledu"}
+    st = stats_of(ref)
+    amt = round(float(st.get("wallet", 0) or 0), 2)
+    if amt <= 0:
+        return {"ok": False, "reason": "wallet_empty",
+                "message_telugu": "ℹ️ Wallet already ₹0 — pay cheyyadaniki emi ledu"}
+    me = ref.get("tsap_id") or ref.get("partner_id")
+    if any((x.get("tsap_id") or x.get("partner_id")) == me and x.get("status") == "requested" for x in PAYOUTS):
+        return {"ok": False, "reason": "pending_exists",
+                "message_telugu": "⏳ Payout request already pending lo undi — danne approve/reject cheyyandi"}
+    req = {"id": _next_id("PAY"), "tsap_id": ref.get("tsap_id"), "partner_id": ref.get("partner_id", ""),
+           "name": ref.get("full_name") or ref.get("name", ""),
+           "code": _code_of(ref), "amount": amt, "method": (method or "upi").lower(),
+           "upi_id": "", "bank": {}, "status": "paid", "requested_at": _now(),
+           "utr": utr.strip(), "paid_at": _now(), "paid_by": "admin",
+           "note": ("admin_pay_full:" + str(note or "")).strip(":"),
+           "eta_days": 0, "tier": st.get("tier", "BRONZE")}
+    PAYOUTS.append(req)
+    st["wallet"] = 0
+    ref["wallet"] = 0
+    st["paid_out"] = round(float(st.get("paid_out", 0)) + amt, 2)
+    st.setdefault("ledger", []).append({"id": _next_id("PA"), "at": _now(), "type": "payout_manual_full",
+                                        "amount": -amt, "note": "%s → UTR %s (wallet 0)" % (req["id"], utr.strip())})
+    ref["referral_stats"] = st
+    try:
+        if ref.get("partner_id"):
+            from refpartners import _save as _partner_save
+            _partner_save()
+    except Exception:
+        pass
+    save_state()
+    return {"ok": True, "request": req, "wallet": 0, "paid": amt,
+            "message_telugu": "✅ ₹%s manual pay (UTR %s) — wallet ₹0 ayyindi" % (amt, utr.strip())}
 
 
 def payout_queue(status: str = "requested") -> Dict:
@@ -665,8 +779,8 @@ def referral_dashboard(user: Dict, all_users: List[Dict], limit_recent: int = 10
         },
         "commission_rules": {
             "first_payment": "₹%d (edi aina plan — ₹%d nunchi)" % (FIRST_PAY_COMMISSION, MIN_QUALIFYING_AMOUNT),
-            "repeat_payment": "%d%% (max ₹%d)" % (int(REPEAT_COMMISSION_PCT * 100), REPEAT_COMMISSION_CAP),
-            "tier_extra": "+%d%% (extra on every commission)" % tier["extra_pct"],
+            "repeat_payment": "₹0 — commission okkasari matrame (first payment)",
+            "tier_extra": "badges matrame (extra % ledu)",
             "referee_bonus": "+%d credit to the new user" % REFEREE_BONUS_CREDITS,
             "min_payout": MIN_PAYOUT, "payout_sla_days": PAYOUT_SLA_DAYS,
         },
@@ -676,7 +790,10 @@ def referral_dashboard(user: Dict, all_users: List[Dict], limit_recent: int = 10
         "tiers": TIERS,
         "recent_registrations": [{"tsap_id": u.get("tsap_id"), "name": u.get("full_name") or u.get("name", ""),
                                   "joined": u.get("referred_at", ""),
-                                  "paid": u in paid_regs} for u in regs[-limit_recent:]][::-1],
+                                  "paid": u in paid_regs,
+                                  "commission": round(sum(float(l.get("amount", 0) or 0) for l in st.get("ledger", [])
+                                                        if l.get("type") == "commission" and l.get("from") == u.get("tsap_id")), 2)}
+                                 for u in regs[-limit_recent:]][::-1],
         "ledger": list(reversed(st.get("ledger", [])))[:20],
         "payouts": [mask_payout(p) for p in list(reversed(payouts_mine))[:10]],
         "wallet_can_withdraw": float(st.get("wallet", 0)) >= MIN_PAYOUT,
@@ -737,7 +854,8 @@ def _urlenc(text: str) -> str:
 
 # ------------------------------------------------------------------ leaderboard
 def get_leaderboard(all_users: List[Dict], limit: int = 10, period: str = "all") -> List[Dict]:
-    """Top referrers — full_name use (pata bug fix), period: all | week | month."""
+    """Top referrers — full_name use (pata bug fix), period: all | week | month.
+    WAVE 24 — partners kuda board lo (same rules)."""
     cutoff = None
     if period == "week":
         cutoff = (datetime.utcnow() - timedelta(days=7)).isoformat()
@@ -756,7 +874,8 @@ def get_leaderboard(all_users: List[Dict], limit: int = 10, period: str = "all")
                 continue
             earned = sum(float(l.get("amount", 0)) for l in entries)
         rows.append({
-            "name": u.get("full_name") or u.get("name") or "Mana Vivaha member",
+            # WAVE 25 — public board: FIRST name matrame (surname hidden — W13 rule)
+            "name": str(u.get("full_name") or u.get("name") or "Mana Vivaha member").split()[0],
             "code": _code_of(u), "tsap_id": u.get("tsap_id"),
             "refers": int(st.get("registrations", st.get("total", 0)) or 0),
             "paid": int(st.get("paid_count", 0)),
@@ -764,6 +883,31 @@ def get_leaderboard(all_users: List[Dict], limit: int = 10, period: str = "all")
             "tier": tier_of(int(st.get("paid_count", 0)))["key"],
             "icon": tier_of(int(st.get("paid_count", 0)))["icon"],
         })
+    try:
+        from refpartners import PARTNERS as _P19
+        for u in _P19:
+            st = u.get("referral_stats") or {}
+            if not st.get("paid_count"):
+                continue
+            earned = float(st.get("lifetime_earned", 0) or 0)
+            if cutoff:
+                entries = [l for l in st.get("ledger", [])
+                           if l.get("type") in ("commission", "milestone") and str(l.get("at", "")) >= cutoff]
+                if not entries:
+                    continue
+                earned = sum(float(l.get("amount", 0)) for l in entries)
+            rows.append({
+                "name": str(u.get("name") or "Partner").split()[0],
+                "code": u.get("partner_id", ""), "tsap_id": "",
+                "partner_id": u.get("partner_id", ""),
+                "refers": int(st.get("registrations", 0) or 0),
+                "paid": int(st.get("paid_count", 0)),
+                "earned": round(earned, 2),
+                "tier": tier_of(int(st.get("paid_count", 0)))["key"],
+                "icon": tier_of(int(st.get("paid_count", 0)))["icon"],
+            })
+    except Exception:
+        pass
     rows.sort(key=lambda r: (r["paid"], r["earned"], r["refers"]), reverse=True)
     for i, r in enumerate(rows[:limit], 1):
         r["rank"] = i
@@ -781,9 +925,9 @@ def referral_terms_telugu() -> Dict:
             "👥 **Evvaru enni aina refer cheyyochu — limit ledu, conditions ledu** (bride/groom/brother/parents/friend/broker/vendor — evvaraina)",
             "📞 **Okate phone lo kooda parvaledu** — intlo andaru okate number vaadukuntunna, andaru refer cheyyochu",
             "🎁 Kotha user ki (referee) **+1 credit FREE** + free 3 profiles — vaallaki kooda labham",
-            "🔁 Friend tarvata malli pay chesthe (renewal/add-on) — **10% (max ₹100)**",
-            "🏆 Tiers: SILVER 3 → GOLD 10 → PLATINUM 25 → ELITE 50 paying referrals — extra % + badges + milestone cash",
-            "💸 Payout: wallet ₹100 datithe UPI/bank ki request pettandi — 3 working days lo credit (UTR confirm)",
+            "🔁 Friend tarvata malli pay chesthe (renewal/add-on) — commission **ledu** (₹50 okkasari matrame — anthe)",
+            "🏆 Tiers: SILVER 3 → GOLD 10 → PLATINUM 25 → ELITE 50 paying referrals — **badges + recognition** (extra money ledu)",
+            "💸 Payout: wallet ₹100 datithe UPI/bank ki request pettandi — 3 working days lo credit. Manam pay chesaka wallet nunchi theesestham + transaction list lo **PAID (UTR tho)** kanipisthundi ✅",
             "✅ Mana team spam/fake patterns (bot registrations, fake payments) ni review chestundi — nijamaina referrals ki em problem ledu",
             "↩️ Customer refund adigithe aa commission wallet nunchi theesestham (clawback) — double profit ledu",
             "📊 Dashboard lo clicks, registrations, payments, wallet, tier — anni live ga kanipistayi",

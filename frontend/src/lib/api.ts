@@ -22,14 +22,25 @@ export type ApiResult<T> = {
 
 export function getToken(): string {
   if (typeof window === "undefined") return "";
-  try { return localStorage.getItem(TOKEN_KEY) || ""; } catch { return ""; }
+  try { return localStorage.getItem(TOKEN_KEY) || sessionStorage.getItem(TOKEN_KEY) || ""; }
+  catch { return ""; }
 }
 
-export function setToken(token: string, tsapId?: string) {
+export function getTsapId(): string {
+  if (typeof window === "undefined") return "";
+  try { return localStorage.getItem(TSAP_KEY) || sessionStorage.getItem(TSAP_KEY) || ""; }
+  catch { return ""; }
+}
+
+// 🌊 WAVE 17 — keep=true (default) → localStorage (always logged in); false → sessionStorage
+export function setToken(token: string, tsapId?: string, keep = true) {
   if (typeof window === "undefined") return;
   try {
-    if (token) localStorage.setItem(TOKEN_KEY, token);
-    if (tsapId) localStorage.setItem(TSAP_KEY, tsapId);
+    const store = keep ? localStorage : sessionStorage;
+    const other = keep ? sessionStorage : localStorage;
+    if (token) store.setItem(TOKEN_KEY, token);
+    if (tsapId) store.setItem(TSAP_KEY, tsapId);
+    try { other.removeItem(TOKEN_KEY); other.removeItem(TSAP_KEY); } catch { /* ignore */ }
   } catch { /* private mode */ }
 }
 
@@ -45,7 +56,7 @@ export function setAdminKey(key: string) {
 
 export function clearAuth() {
   if (typeof window === "undefined") return;
-  try { localStorage.removeItem(TOKEN_KEY); } catch { /* ignore */ }
+  try { localStorage.removeItem(TOKEN_KEY); sessionStorage.removeItem(TOKEN_KEY); } catch { /* ignore */ }
 }
 
 type Opts = {

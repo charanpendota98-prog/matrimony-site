@@ -72,6 +72,8 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
 
 export default function Page({ params }: { params: { id: string } }) {
   const base = siteBase();
+  // 🌊 WAVE 23 — SECURITY: JSON-LD script-breakout fix (</script> in URL id)
+  const safeId = String(params?.id || "").replace(/[<>"']/g, "").slice(0, 40);
   return (
     <>
       <script
@@ -80,8 +82,8 @@ export default function Page({ params }: { params: { id: string } }) {
           __html: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "Person",
-            identifier: String(params?.id || ""),
-            url: `${base}/search/${encodeURIComponent(String(params?.id || ""))}`,
+            identifier: safeId,
+            url: `${base}/search/${encodeURIComponent(safeId)}`,
             name: "Mana Vivaha verified profile",
             description: "Telugu matrimony profile — Mana Vivaha (TS + AP)",
             isPartOf: { "@type": "WebSite", name: "Mana Vivaha", url: base },

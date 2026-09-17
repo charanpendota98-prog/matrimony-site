@@ -1,110 +1,194 @@
 "use client";
+
 /**
- * 🔑 "Mee referral link teesukondi" — TSAP ID pettandi (register appude code auto-create ayyindi).
- * Advanced: live API nunchi code + link + poster + share messages + wallet summary.
+ * 🤝🌊 WAVE 19 — Referral Partner registration:
+ * name + phone + PhonePe + address + state + district → ID (charan108) + link.
+ * Link tho register → code auto-fill → vallaki ₹50/payment.
  */
-import { authHeaders } from "@/lib/api";
 import { useState } from "react";
 import Link from "next/link";
+import { Duo, duo } from "@/lib/duo";
+import { DISTRICTS_BY_STATE } from "@/lib/telugu-data";
 
-export default function GetMyReferralCodePage() {
-  const [tsapId, setTsapId] = useState("");
-  const [data, setData] = useState<any>(null);
-  const [err, setErr] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [copied, setCopied] = useState("");
+const STATES = ["TS", "AP", "KA", "MH", "Other"];
 
-  const load = async () => {
-    const id = tsapId.trim().toUpperCase();
-    if (!id) { setErr("TSAP ID pettandi (udaharanam: TSAP-F-2025-1042)"); return; }
-    setLoading(true); setErr(""); setData(null);
+export default function PartnerRegisterPage() {
+  const [f, setF] = useState({ name: "", phone: "", phonepe: "", address: "", state: "TS", district: "" });
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState("");
+  const [done, setDone] = useState<{ partner_id?: string; link?: string } | null>(null);
+  const [copied, setCopied] = useState(false);
+  const [lookup, setLookup] = useState("");
+  const [dash, setDash] = useState<any>(null);
+
+  const set = (k: string, v: string) => setF((p) => ({ ...p, [k]: v }));
+  const dists: string[] = (DISTRICTS_BY_STATE as Record<string, string[]>)[f.state] || [];
+
+  const submit = async () => {
+    setBusy(true); setMsg(""); setDone(null);
     try {
-      const r = await fetch(`/api/referral/${id}`, { headers: authHeaders() });
+      const r = await fetch("/api/referral/partner/register", {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(f),
+      });
       const d = await r.json();
-      if (d.ok) { setData(d); localStorage.setItem("tsap_last_id", id); }
-      else setErr(d.detail || "Ee ID dorakaledu — sari ga chusukondi leda register avvandi");
+      if (!r.ok) { setMsg(d.detail || "Fail ayyindi"); return; }
+      setDone(d);
+      setMsg(d.message_telugu || "Ready!");
     } catch {
-      setErr("Server nunchi data ravaledu — malli try cheyyandi");
+      setMsg("Network ledu — malli try cheyyandi");
     }
-    setLoading(false);
+    setBusy(false);
   };
 
-  const copy = (t: string, l: string) => { navigator.clipboard?.writeText(t); setCopied(l); setTimeout(() => setCopied(""), 1500); };
+  const copy = async (t: string) => {
+    try { await navigator.clipboard.writeText(t); setCopied(true); setTimeout(() => setCopied(false), 1500); }
+    catch { /* ignore */ }
+  };
+
+  const loadDash = async () => {
+    const id = lookup.trim();
+    if (!id) return;
+    setDash(null); setMsg("");
+    try {
+      const r = await fetch(`/api/referral/partner/${encodeURIComponent(id)}`);
+      const d = await r.json();
+      if (!r.ok) { setMsg(d.detail || "ID dorakaledu"); return; }
+      setDash(d);
+    } catch { setMsg("Network ledu"); }
+  };
 
   return (
-    <main className="min-h-screen bg-[#FFF8E7] py-8 px-4">
-      <div className="max-w-2xl mx-auto">
-        <Link href="/referral" className="text-sm font-bold text-[#7A0C2E]">← Referral dashboard</Link>
+    <main className="mx-auto max-w-2xl px-4 py-8">
+      <h1 className="text-2xl font-extrabold text-maroon">🤝 <Duo en="Become a Referral Partner" te="రిఫరల్ భాగస్వామి అవండి" /></h1>
+      <p className="mt-1 text-sm text-slate-600 telugu">
+        {duo("Details ivvandi — mee ID + link vastundi. Friends join + pay chesthe meeku ₹50/payment (wallet → UPI).",
+             "వివరాలు ఇవ్వండి — మీ ID + లింక్ వస్తుంది. ఫ్రెండ్స్ జాయిన్ + పే చేస్తే మీకు ₹50/పేమెంట్.")}
+      </p>
 
-        <div className="mt-4 bg-white rounded-3xl p-6 shadow-sm border border-gray-200">
-          <h1 className="text-xl font-extrabold text-[#7A0C2E] telugu">🔑 Mee Referral Code & Link</h1>
-          <p className="mt-1 text-xs text-gray-600 telugu">
-            Register ayyaka mee code automatic ga create ayyindi. Mee TSAP ID pettandi —
-            link, poster (QR tho), WhatsApp messages anni ready ga istham. Friend ₹99 pay chesthe meeku <b>₹50</b>.
-          </p>
-
-          <div className="mt-4 flex flex-col sm:flex-row gap-2">
-            <input value={tsapId} onChange={(e) => setTsapId(e.target.value.toUpperCase())}
-              onKeyDown={(e) => e.key === "Enter" && load()}
-              placeholder="TSAP-F-2025-1042 / TSAP-M-2025-1042"
-              className="flex-1 rounded-xl border border-gray-300 px-4 py-3 text-sm font-mono" aria-label="TSAP-F-2025-1042 / TSAP-M-2025-1042" />
-            <button onClick={load} disabled={loading}
-              className="rounded-xl maroon-gradient text-white px-6 py-3 font-bold text-sm">
-              {loading ? "…" : "Teesukondi →"}
+      {!done ? (
+        <section className="mt-4 rounded-2xl border border-gold/30 bg-white p-4 card-shadow space-y-3">
+          <div>
+            <label className="text-[13px] font-bold">👤 {duo("Your name", "మీ పేరు")} *</label>
+            <input value={f.name} onChange={(e) => set("name", e.target.value)} placeholder="Charan Kumar"
+              className="input-mobile mt-1" />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-[13px] font-bold">📞 {duo("Mobile", "మొబైల్")} *</label>
+              <input value={f.phone} onChange={(e) => set("phone", e.target.value.replace(/\D/g, "").slice(0, 10))}
+                inputMode="numeric" placeholder="98480 12345" className="input-mobile mt-1" />
+            </div>
+            <div>
+              <label className="text-[13px] font-bold">💰 {duo("PhonePe number", "ఫోన్‌పే నంబర్")}</label>
+              <input value={f.phonepe} onChange={(e) => set("phonepe", e.target.value.replace(/\D/g, "").slice(0, 10))}
+                inputMode="numeric" placeholder="Payouts ki (same aithe khali)" className="input-mobile mt-1" />
+            </div>
+          </div>
+          <div>
+            <label className="text-[13px] font-bold">🏠 {duo("Address", "చిరునామా")}</label>
+            <input value={f.address} onChange={(e) => set("address", e.target.value)} placeholder="Village/Town, Mandal"
+              className="input-mobile mt-1" />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-[13px] font-bold">🗺️ {duo("State", "రాష్ట్రం")} *</label>
+              <select value={f.state} onChange={(e) => { set("state", e.target.value); set("district", ""); }}
+                className="input-mobile mt-1">
+                {STATES.map((s) => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="text-[13px] font-bold">📍 {duo("District", "జిల్లా")} *</label>
+              {dists.length ? (
+                <select value={f.district} onChange={(e) => set("district", e.target.value)} className="input-mobile mt-1">
+                  <option value="">Select…</option>
+                  {dists.map((d) => <option key={d} value={d}>{d}</option>)}
+                </select>
+              ) : (
+                <input value={f.district} onChange={(e) => set("district", e.target.value)} placeholder="District"
+                  className="input-mobile mt-1" />
+              )}
+            </div>
+          </div>
+          {msg ? <p className="text-[13px] font-medium text-maroon">{msg}</p> : null}
+          <button onClick={submit} disabled={busy}
+            className="w-full rounded-2xl maroon-gradient text-white font-bold py-3 disabled:opacity-50">
+            {busy ? "…" : <>🚀 <Duo en="Create my Partner ID" te="నా భాగస్వామి ID సృష్టించండి" /></>}
+          </button>
+        </section>
+      ) : (
+        <section className="mt-4 rounded-2xl border border-emerald-300 bg-emerald-50 p-5 text-center">
+          <div className="text-4xl">🎉</div>
+          <div className="font-bold text-emerald-900 text-lg mt-1">ID: <span className="font-mono">{done.partner_id}</span></div>
+          <div className="mt-2 rounded-xl bg-white border border-emerald-200 p-3 text-[12px] font-mono break-all">{done.link}</div>
+          <div className="mt-3 flex gap-2 justify-center">
+            <button onClick={() => void copy(String(done.link || ""))}
+              className="rounded-full bg-[#7A0C2E] text-white px-5 py-2.5 text-sm font-bold">
+              {copied ? "copied ✓" : "🔗 Link copy"}
+            </button>
+            <button onClick={() => { setDone(null); setMsg(""); }}
+              className="rounded-full border border-emerald-400 px-5 py-2.5 text-sm font-bold text-emerald-800">
+              + {duo("New partner", "కొత్త భాగస్వామి")}
             </button>
           </div>
-          {err && <div className="mt-2 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs p-3">⚠️ {err}</div>}
-          <div className="mt-2 text-[11px] text-gray-500 telugu">
-            ID marchipoyara? Register appudu pampina WhatsApp message lo undi · leda{" "}
-            <Link href="/register" className="underline font-bold text-[#7A0C2E]">kotha register</Link> cheyyandi (mee sontha code auto vastundi).
-          </div>
+          <p className="mt-3 text-[12px] text-emerald-800 telugu">
+            {duo("Ee link tho evaru register ayina — vaalla payment ki meeku ₹50 wallet lo. Dashboard kindha chudandi.",
+                 "ఈ లింక్‌తో ఎవరు రిజిస్టర్ అయినా — వాళ్ల పేమెంట్‌కు మీకు ₹50 వాలెట్‌లో.")}
+          </p>
+        </section>
+      )}
+
+      <section className="mt-5 rounded-2xl border border-slate-200 bg-white p-4">
+        <h2 className="text-sm font-bold">📊 <Duo en="My partner dashboard" te="నా భాగస్వామి డాష్‌బోర్డ్" /></h2>
+        <div className="mt-2 flex gap-2">
+          <input value={lookup} onChange={(e) => setLookup(e.target.value)} placeholder="charan108"
+            className="flex-1 rounded-xl border border-slate-300 px-3 py-2 text-sm" />
+          <button onClick={loadDash} className="rounded-xl border border-[#7A0C2E] px-4 py-2 text-sm font-bold text-maroon">
+            Chudu
+          </button>
         </div>
-
-        {data && (
-          <div className="mt-4 space-y-4">
-            <div className="bg-white rounded-3xl p-6 shadow-sm border border-[#D4AF37]/40">
-              <div className="text-xs text-gray-500">Mee code</div>
-              <div className="text-3xl font-extrabold text-[#7A0C2E]">{data.code}</div>
-              <div className="mt-3 rounded-2xl bg-[#FFF8E7] border border-[#D4AF37]/40 p-3 text-xs font-mono break-all">{data.link}</div>
-              <div className="mt-3 flex flex-wrap gap-2 text-xs">
-                <button onClick={() => copy(data.link, "link")} className="rounded-full bg-[#7A0C2E] text-white px-4 py-2 font-bold">🔗 Link copy</button>
-                <button onClick={() => copy(data.code, "code")} className="rounded-full bg-gray-100 px-4 py-2 font-bold">#️⃣ Code copy</button>
-                <a href={`/api/referral/${data.stats ? tsapId : ""}/poster.png?style=square`} className="rounded-full bg-[#0F1F3C] text-white px-4 py-2 font-bold">🖼️ Poster (QR)</a>
-                <a href={data.share_kit?.whatsapp_share} target="_blank" rel="noreferrer" className="rounded-full bg-[#25D366] text-white px-4 py-2 font-bold">💬 WhatsApp share</a>
+        {dash?.success ? (
+          <div className="mt-3 grid grid-cols-2 gap-2 text-center text-[12px]">
+            <div className="rounded-xl bg-cream p-2"><b>{dash.clicks ?? 0}</b><br />👆 Clicks</div>
+            <div className="rounded-xl bg-cream p-2"><b>{dash.registrations}</b><br />Joins</div>
+            <div className="rounded-xl bg-cream p-2"><b>{dash.paid_count}</b><br />Paid</div>
+            <div className="rounded-xl bg-emerald-50 p-2"><b>₹{dash.wallet}</b><br />Wallet</div>
+            <div className="rounded-xl bg-emerald-50 p-2 col-span-2"><b>₹{dash.lifetime_earned}</b><br />Lifetime earned</div>
+            {dash.link ? (
+              <div className="col-span-2 flex gap-2 justify-center">
+                <button onClick={() => void copy(String(dash.link))}
+                  className="rounded-full bg-[#7A0C2E] text-white px-4 py-2 text-[12px] font-bold">
+                  {copied ? "copied ✓" : "🔗 Link copy"}
+                </button>
+                <a href={`https://wa.me/?text=${encodeURIComponent(`Mana Vivaha lo register avvandi — naa link tho join ayithe meeku +1 credit FREE 🎁 ${dash.link}`)}`}
+                  target="_blank" rel="noreferrer"
+                  className="rounded-full bg-[#25D366] text-white px-4 py-2 text-[12px] font-bold">
+                  📲 WhatsApp share
+                </a>
               </div>
-              {copied && <div className="text-[11px] text-green-700 mt-2">✅ {copied} copy ayyindi</div>}
-            </div>
-
-            <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-200">
-              <div className="font-bold text-[#7A0C2E] text-sm">📊 Mee stats</div>
-              <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs">
-                <div className="rounded-xl bg-gray-50 p-3"><div className="font-bold text-lg">{data.stats?.clicks ?? 0}</div><div className="text-[10px] text-gray-500">Clicks</div></div>
-                <div className="rounded-xl bg-gray-50 p-3"><div className="font-bold text-lg">{data.stats?.registrations ?? 0}</div><div className="text-[10px] text-gray-500">Registers</div></div>
-                <div className="rounded-xl bg-green-50 p-3"><div className="font-bold text-lg text-green-600">{data.stats?.paid_count ?? 0}</div><div className="text-[10px] text-gray-500">Paid</div></div>
-                <div className="rounded-xl bg-[#FFF8E7] p-3"><div className="font-bold text-lg text-[#7A0C2E]">₹{data.stats?.wallet ?? 0}</div><div className="text-[10px] text-gray-500">Wallet</div></div>
+            ) : null}
+            {Array.isArray(dash.joins) && dash.joins.length ? (
+              <div className="col-span-2 text-left rounded-xl bg-white border border-slate-200 p-2 space-y-1">
+                {dash.joins.map((j: any) => (
+                  <div key={String(j.tsap_id)} className="flex items-center justify-between gap-2 text-[12px] bg-cream/60 rounded-lg px-2 py-1.5">
+                    <div className="min-w-0">
+                      <div className="font-bold truncate">{j.name || j.tsap_id}</div>
+                      <div className="font-mono text-[10px] text-gray-500">{j.tsap_id} · {String(j.at || "").slice(0, 10)}</div>
+                    </div>
+                    <span className={`shrink-0 font-bold ${j.paid ? "text-emerald-700" : "text-amber-600"}`}>
+                      {j.paid ? `💰 ₹${j.commission ?? 50}` : "⏳ pending"}
+                    </span>
+                  </div>
+                ))}
               </div>
-              <div className="mt-3 text-xs text-gray-600 telugu">
-                💡 Friend ₹99 pay chesthe ₹50 mee wallet ki · repeat payments ki 10% · 3 pays → Silver tier (extra 5%).
-              </div>
-              <Link href="/referral" className="mt-3 inline-block text-xs font-bold text-[#7A0C2E] underline">
-                Full dashboard (milestones, ledger, payout) →
-              </Link>
-            </div>
+            ) : null}
           </div>
-        )}
+        ) : null}
+      </section>
 
-        <div className="mt-6 bg-white rounded-3xl p-6 shadow-sm border border-gray-200 text-xs text-gray-700">
-          <div className="font-bold text-[#7A0C2E]">🤝 Referral ela pani chestundi (3 steps)</div>
-          <ol className="mt-2 space-y-1 list-decimal pl-5 telugu">
-            <li>Mee link/poster friend ki pampandi (WhatsApp group, status, friend circle)</li>
-            <li>Vaallu register cheste — vaallaki <b>+1 credit FREE</b>, meeku stats lo kanipisthundi</li>
-            <li>Vaallu ₹99 (leda edaina plan) pay chesthe — <b>meeku ₹50</b> wallet ki (repeat ki 10%)</li>
-          </ol>
-          <div className="mt-2 text-[11px] text-gray-500">
-            Payout: wallet ₹100 datithe UPI ki adagochu (3 working days, UTR tho) · Self-referral/fake registrations ban.
-          </div>
-        </div>
-      </div>
+      <p className="mt-4 text-center text-sm text-slate-600">
+        <Link href="/referral" className="font-semibold text-maroon underline">← Referral home</Link>
+      </p>
     </main>
   );
 }

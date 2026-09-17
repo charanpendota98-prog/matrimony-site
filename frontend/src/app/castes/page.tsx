@@ -2,6 +2,7 @@
  * /castes — SEO hub: anni 43 caste pages ki index (Google crawl + internal linking)
  */
 import Link from "next/link";
+import { Duo, duo } from "@/lib/duo";
 import type { Metadata } from "next";
 import Reveal from "@/components/Reveal";
 import SectionHeading from "@/components/SectionHeading";
@@ -26,7 +27,7 @@ export default function CastesHub() {
             <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-3 py-1 text-[11px] font-bold">
               🔎 {SEO_PAGE_COUNT}+ caste pages • {CHANNEL_STATS.by_tier.L3_CASTE} caste channels
             </div>
-            <h1 className="mt-3 text-2xl md:text-4xl font-bold">Caste-wise Telugu Matrimony — Anni Castes</h1>
+            <h1 className="mt-3 text-2xl md:text-4xl font-bold"><Duo en="Caste-wise Telugu Matrimony — All Castes" te="కులాల వారీగా — అన్ని కులాలు" /></h1>
             <p className="mt-2 text-[13px] md:text-sm opacity-90 telugu max-w-3xl">
               Mee caste + district select cheyyandi — aa community bride/groom profiles, channel, porutham report,
               pricing antha okka page lo. OC, BC, SC, ST — anni castes cover ({CHANNEL_STATS.by_tier.L3_CASTE} channels).
