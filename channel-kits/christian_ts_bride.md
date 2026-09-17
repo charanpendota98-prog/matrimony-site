@@ -31,14 +31,14 @@ Telugu Matrimony — TS + AP
 👥 Telangana Christian — Catholic • CSI • Baptist • Pentecost • Born Again
 
 ఇక్కడ ఏం దొరుకుతుంది:
-✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)
+✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site లో)
 ✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details
 ✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక
 ✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది
 
 ఎలా use చేయాలి (3 steps):
-1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
-2️⃣ @telugumatrimony1_bot ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
+1️⃣ మీకు నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)
+2️⃣ @telugumatrimony1_bot కి *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది
 3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు
 
 🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12
@@ -60,18 +60,18 @@ Telugu Matrimony — TS + AP
 ```
 📜 *CHANNEL RULES — 👰 Christian Ts Brides | Christian_Ts వధువులు*
 ━━━━━━━━━━━━━━━━━━
-1️⃣ Only Mana Vivaha admin posts — members message cheyyakunda chudagalaru
-2️⃣ Profile details upload cheyyali ante *@telugumatrimony1_bot* ki phone/photo pampandi
+1️⃣ Only Mana Vivaha admin posts — members message చెయ్యకుండా చూడగలరు
+2️⃣ Profile details upload చెయ్యాలి అంటే *@telugumatrimony1_bot* కి phone/photo పంపండి
 3️⃣ ఎవరికీ *advance money* పంపొద్దు — డబ్బు అడిగితే వెంటనే screenshot → report
 4️⃣ Caste/religion గురించి discriminative comments, personal abuses → instant ban
 5️⃣ బయట links, promos, business ads → delete + ban
 6️⃣ నంబర్లు channel లో పెట్టొద్దు (privacy) — accept అయ్యాక WhatsApp లో వస్తుంది
-7️⃣ Chatting లేదు — comment lo 'interest' అని అనొద్దు, @telugumatrimony1_bot ki ID పంపండి
+7️⃣ Chatting లేదు — comment లో 'interest' అని అనొద్దు, @telugumatrimony1_bot కి ID పంపండి
 
 🙏 మనం ఒక కుటుంబం లాంటి వాళ్ళం — గౌరవంగా ఉందాం. Report: https://manavivaha.in/safety
 ```
 
-## 5) WhatsApp / status lo share text
+## 5) WhatsApp / status లో share text
 
 ```
 💍 *✝️ Telangana Christian Brides | తెలంగాణ క్రైస్తవ వధువులు*

@@ -271,7 +271,7 @@ def pinned_welcome(key: str, ch: Dict | None = None) -> str:
         "✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక\n"
         "✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది\n\n"
         "ఎలా use చేయాలి (3 steps):\n"
-        "1️⃣ మీకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)\n"
+        "1️⃣ మీకు నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)\n"
         "2️⃣ %s కి *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది\n"
         "3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు\n\n"
         "🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12\n\n"
@@ -293,7 +293,7 @@ def rules_post(key: str) -> str:
     return (
         "📜 *CHANNEL RULES — %s*\n"
         "━━━━━━━━━━━━━━━━━━\n"
-        "1️⃣ Only Mana Vivaha admin posts — members message cheyyakunda chudagalaru\n"
+        "1️⃣ Only Mana Vivaha admin posts — members message చెయ్యకుండా చూడగలరు\n"
         "2️⃣ Profile details upload చెయ్యాలి అంటే *%s* కి phone/photo పంపండి\n"
         "3️⃣ ఎవరికీ *advance money* పంపొద్దు — డబ్బు అడిగితే వెంటనే screenshot → report\n"
         "4️⃣ Caste/religion గురించి discriminative comments, personal abuses → instant ban\n"
