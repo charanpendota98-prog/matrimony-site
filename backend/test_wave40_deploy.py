@@ -161,6 +161,13 @@ if os.path.exists(cx):
           and "localhost:3000" in ct)
 check("D7 milesweb section", "MilesWeb" in gt)
 
+# ===========================================================================
+# D8 - Oracle free tier section
+# ===========================================================================
+section("D8 - oracle free tier")
+check("D8 oracle section", all(k in gt for k in
+      ("Oracle", "Ampere", "Ingress", "Reserved", "iptables", "manavivaha.in")))
+
 print(f"\n{'=' * 76}\nRESULT: {PASS} pass / {FAIL} fail\n{'=' * 76}")
 if FAILED:
     print("FAILED:", FAILED)

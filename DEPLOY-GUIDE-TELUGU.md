@@ -158,4 +158,68 @@ mundu `/owner` nunchi backup zip download chesukondi.
 > Shared premium hosting waste kadu — future lo blog/landing pages ki, leda
 > email accounts ki vadukovachu. Kani APP matram VPS meeda.
 
+---
+
+## 10. Oracle Cloud FREE Tier (₹0 — RECOMMENDED!)
+
+Meedaggara Oracle Cloud account unte — **dabbulu avasaram ledu**, free tier lone
+site full run avutundi. Domain MilesWeb lone unchandi (DNS akkade).
+
+**Step 1 — Free VM create (OCI Console → Compute → Create Instance):**
+
+| Setting | Value |
+|---|---|
+| Image | **Ubuntu 22.04 Minimal** (aarch64/ARM) |
+| Shape | **Ampere A1 (ARM)** — 4 OCPU + 24GB RAM (Always Free limit lopale) |
+| VCN | Default VCN + **public subnet** + **public IP assign** ✅ |
+| SSH key | Mee laptop nunchi `.pub` key paste (`ssh-keygen` lekapothe) |
+| Boot volume | 50GB chalu (200GB free limit lopale) |
+
+> ⚠️ AMD shape (1GB RAM) **tiskokandi** — adi chalu kadu. Ampere ARM ey best.
+> Mana Docker images (Python + Node) ARM lo perfect ga work avutayi.
+
+**Step 2 — Reserved IP (mundu cheyandi!):**
+
+VM stop/start aithe normal IP maripotundi → site down! So:
+`OCI → Networking → Public IPs → Reserve` → VM VNIC ki attach.
+(VM ki attach ayi unte **free**.)
+
+**Step 3 — Firewall open (MARCHIPOKANDI — 90% mandi ikkade stuck!):**
+
+OCI VCN → Security List → **Add Ingress Rules**:
+- Source `0.0.0.0/0`, port **80** (TCP)
+- Source `0.0.0.0/0`, port **443** (TCP)
+- (22 SSH already untundi)
+
+VM lopala kuda:
+```bash
+sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 80 -j ACCEPT
+sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 443 -j ACCEPT
+sudo netfilter-persistent save 2>/dev/null || sudo apt install -y iptables-persistent
+```
+
+**Step 4 — Server ready (copy-paste):**
+
+```bash
+sudo apt update && sudo apt install -y git caddy
+curl -fsSL https://get.docker.com | sh
+sudo usermod -aG docker $USER && newgrp docker
+git clone -b arena/01a0aaf1-matrimony-site https://github.com/charanpendota98-prog/matrimony-site.git
+cd matrimony-site && cp .env.example .env && nano .env   # step 2 values!
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+sudo cp Caddyfile.example /etc/caddy/Caddyfile && sudo systemctl reload caddy
+```
+
+**Step 5 — MilesWeb DNS → Oracle IP:**
+
+MilesWeb → manavivaha.in → DNS: `A @ → OCI reserved IP`, `A www → OCI reserved IP`.
+30 mins lo `https://manavivaha.in` 🔒 LIVE!
+
+**Oracle gotchas (telusukondi):**
+
+1. Account ki **card verify** kavali (charge avvadu, ₹0/hold only)
+2. Nela ki okasari console lo **login** avvandi (idle accounts meeda strict)
+3. **Backup zip weekly** download (`/owner` → 💾) — free tier aina data mee చేతిలో safe
+4. Boot volume backup (OCI console → monthly once, free limit lopale)
+
 **Doubt unte developer ni adagandi — deploy day roju pakkana undandi. All the best! 🙏**
