@@ -38,7 +38,6 @@ export default function SiteFooter() {
         { href: "/bureau", teL: "Bureau / Broker B2B", enL: "Bureau / Broker B2B" },
         { href: "/vendors", teL: "వెడ్డింగ్ Vendors (18 categories)", enL: "Wedding Vendors (18 categories)" },
         { href: "/vendors/register", teL: "మీ business advertise — ₹149+", enL: "Advertise your business — ₹149+" },
-        { href: "/admin", teL: "Admin Panel", enL: "Admin Panel" },
       ],
     },
   ];
@@ -58,8 +57,8 @@ export default function SiteFooter() {
             </div>
           </div>
           <div className="text-xs opacity-75 mt-3 telugu leading-relaxed">
-            {te ? <>TS + AP No.1 తెలుగు మ్యాట్రిమోనీ. ₹99 కే సంబంధం — మొదటి 3 ప్రొఫైళ్లు FREE. Region • Religion • {CHANNEL_STATS.by_tier.L3_CASTE} Castes • Special channels.</>
-                : <>TS + AP No.1 Telugu Matrimony. ₹99 Sambandham — first 3 profiles FREE. Region • Religion • {CHANNEL_STATS.by_tier.L3_CASTE} Castes • Special channels.</>}
+            {te ? <>TS + AP తెలుగు మ్యాట్రిమోనీ. ₹99 కే సంబంధం — మొదటి 3 ప్రొఫైళ్లు FREE. Region • Religion • {CHANNEL_STATS.by_tier.L3_CASTE} Castes • Special channels.</>
+                : <>TS + AP Telugu Matrimony. ₹99 Sambandham — first 3 profiles FREE. Region • Religion • {CHANNEL_STATS.by_tier.L3_CASTE} Castes • Special channels.</>}
           </div>
           <div className="mt-4 flex flex-wrap gap-2 text-[11px]">
             <span className="px-2.5 py-1 rounded-full bg-white/10">{CHANNEL_STATS.total} Channels</span>

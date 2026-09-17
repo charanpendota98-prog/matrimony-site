@@ -77,7 +77,7 @@ _fam = R.attach_referral(_same_phone_user, me["referral_code"], users)
 check("Same phone ALLOWED (block ledu) + review flag", _fam["ok"] is True
       and any(f.startswith("same_phone_join") for f in _fam.get("flags", [])), _fam)
 check("Same phone family ki kooda +1 credit", _same_phone_user["credits"] == 4)
-check("Same phone note Telugu", "parvaledu" in _fam.get("note_telugu", "") or _fam.get("note_telugu") == "")
+check("Same phone note Telugu", "పర్వాలేదు" in _fam.get("note_telugu", "") or _fam.get("note_telugu") == "")
 _f2 = {"tsap_id": "TSAP-F-2025-8888", "phone": me["phone"], "credits": 3, "full_name": "Family Two"}
 _f3 = {"tsap_id": "TSAP-F-2025-9999", "phone": me["phone"], "credits": 3, "full_name": "Family Three"}
 users.extend([_f2, _f3])
@@ -85,17 +85,16 @@ R.attach_referral(_f2, me["referral_code"], users)
 _r3 = R.attach_referral(_f3, me["referral_code"], users)
 check("3+ same-phone joins → multi_account_review flag (block ledu)", _r3["ok"] is True
       and any("multi_account_review" in f for f in R.stats_of(me)["flags"]), R.stats_of(me)["flags"][-3:])
-check("Terms lo 'conditions levu' line", "conditions levu" in R.referral_terms_telugu()["no_conditions_telugu"].lower()
-      or "Evvaru enni aina" in R.referral_terms_telugu()["no_conditions_telugu"])
+check("Terms lo 'conditions levu' line", "ఎవ్వరు ఎన్ని అయినా" in R.referral_terms_telugu()["no_conditions_telugu"])
 check("Terms: okate phone lo kooda allowed ani cheppindi",
-      any("okate phone" in r.lower() or "Okate phone" in r for r in R.referral_terms_telugu()["rules_telugu"]))
+any("ఒకటే phone" in r for r in R.referral_terms_telugu()["rules_telugu"]))
 check("Daily/lifetime caps SOFT (block undi kaadu)",
       R.DAILY_PAYING_SOFT_CAP >= 50 and R.LIFETIME_SOFT_CAP >= 500)
 check("Validate endpoint message lo peru + credit", "Ravi Kumar" in R.validate_referral(me["referral_code"], users)["message_telugu"])
 
 print("=== 2b. NOTIFICATION LOOP (WhatsApp texts) ===")
 jt = R.referrer_join_text(me, friend)
-check("Join message: referrer peru + friend peru", "Ravi garu" in jt and "Sita" in jt)
+check("Join message: referrer peru + friend peru", "Ravi గారు" in jt and "Sita" in jt)
 check("Join message: ₹50 + code + link", "₹50" in jt and me["referral_code"] in jt and "manavivaha.in/r/" in jt)
 ct = R.referrer_commission_text(me, friend, {"commission": 50, "tier": "BRONZE", "plan_amount": 99})
 check("Commission message: ₹ amount + friend paying + tier",
@@ -128,7 +127,7 @@ check("First-payment flag + ledger entry", r1["first_payment"] and any(l["type"]
 check("paid_count +1 + tier BRONZE", me["referral_stats"]["paid_count"] == 1 and r1["tier"] == "BRONZE")
 check("Repeat payment → no commission", R.process_referral_payment(friend, me["referral_code"], 199, users).get("reason") == "no_repeat_commission")
 check("Wallet 50 ye (repeat add kadu)", round(R.stats_of(me)["wallet"], 2) == 50, R.stats_of(me)["wallet"])
-check("Bonus message lo tier + next milestone", "BRONZE" in r1["message_telugu"] and "Inka" in r1["message_telugu"], r1["message_telugu"][-90:])
+check("Bonus message lo tier + next milestone", "BRONZE" in r1["message_telugu"] and "ఇంకా" in r1["message_telugu"], r1["message_telugu"][-90:])
 
 # milestone: 3rd paying referral → SILVER badge (repeat pays count kadu — WAVE 25)
 f3 = {"tsap_id": "TSAP-F-2025-3333", "full_name": "Third", "phone": "9848033333", "credits": 3}
@@ -313,7 +312,7 @@ with TestClient(main.app) as c:
           and (rj["referral"]["joined_with"]["notify"].get("manual_text")
                or rj["referral"]["joined_with"]["notify"].get("referrer_notified")))
     check("Kotha user welcome lo referral line (friend peru + sontha code)",
-          "Mee friend" in str(rj.get("welcome_status", {}).get("manual_text", ""))
+          "మీ friend" in str(rj.get("welcome_status", {}).get("manual_text", ""))
           and rj["referral"]["my_code"] in str(rj.get("welcome_status", {}).get("manual_text", "")))
     check("Register response: poster urls (square + status)",
           rj["referral"]["poster_url"].endswith("/poster.png")

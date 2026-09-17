@@ -40,11 +40,8 @@ const NAV_MORE: NavItem[] = [
   { href: "/verify", en: "Verify profile", te: "Profile verify", icon: "✅" },
 ];
 
-const NAV_TEAM: NavItem[] = [
-  { href: "/admin", en: "Admin", te: "అడ్మిన్", icon: "🔐" },
-  { href: "/growth", en: "Growth (leads)", te: "గ్రోత్ (leads)", icon: "📈" },
-  { href: "/admin/photos", en: "Photo review", te: "Photo review", icon: "📸" },
-];
+/* 🔒 Admin (/admin, /growth, /admin/photos) is DELIBERATELY not linked anywhere in public UI
+   (anti-scam) — team opens it by direct URL + X-Admin-Key only. */
 
 export default function SiteHeader() {
   const pathname = usePathname();
@@ -221,10 +218,6 @@ export default function SiteHeader() {
           {groupTitle("More", "మరిన్ని")}
           <div className="space-y-1">
             {NAV_MORE.map(menuLink)}
-          </div>
-          {groupTitle("Team", "టీమ్")}
-          <div className="space-y-1">
-            {NAV_TEAM.map(menuLink)}
           </div>
           <div className="flex gap-2 pt-3">
             <Link

@@ -453,8 +453,8 @@ export default function Home() {
                 className="flex-1 outline-none text-sm py-2.5 bg-transparent"
                 aria-label="Profile ID search"
               />
-              <Link
-                href={`/search/${searchId.trim() || "TSAP-M-2025-1042"}`}
+<Link
+                href={searchId.trim() ? `/search/${searchId.trim()}` : "/matches"}
                 className="px-5 py-2.5 maroon-gradient text-white rounded-xl text-sm font-bold whitespace-nowrap"
               >
                 {L.idSearchBtn}
@@ -467,9 +467,12 @@ export default function Home() {
             <div className="relative max-w-md mx-auto w-full">
               <div className="absolute inset-0 maroon-gradient rounded-[2rem] rotate-3 opacity-15" />
               <div className="relative bg-white rounded-[2rem] p-5 card-shadow-lg border border-gold/30">
-                <div className="flex items-center justify-between">
+<div className="flex items-center justify-between">
                   <div className="text-[10px] font-bold text-gold-deep uppercase tracking-widest">
                     Mana Vivaha • Profile Card
+                  </div>
+                  <div className="text-[10px] px-2 py-1 rounded-full bg-slate-100 text-slate-500 font-bold">
+                    {te ? "నమూనా (sample)" : "Sample"}
                   </div>
                   <div className="text-[10px] px-2 py-1 rounded-full bg-green-50 text-green-700 font-bold">
                     ✓ DOB Verified
@@ -639,8 +642,9 @@ export default function Home() {
             {/* RIGHT: WhatsApp mockup (real message we send) */}
             <Reveal delay={140}>
               <div className="rounded-3xl overflow-hidden card-shadow-lg border border-black/10 bg-[#0b141a]">
-                <div className="bg-[#202c33] px-4 py-3 flex items-center gap-3">
+<div className="bg-[#202c33] px-4 py-3 flex items-center gap-3">
                   <div className="w-9 h-9 rounded-full gold-gradient flex items-center justify-center font-bold text-maroon">MV</div>
+                  <span className="ml-auto text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-gray-300 font-bold">{te ? "నమూనా message" : "Sample message"}</span>
                   <div className="min-w-0">
                     <div className="text-white text-[13px] font-bold truncate">Mana Vivaha Matrimony</div>
                     <div className="text-[10px] text-emerald-300">🟢 online • verified business</div>

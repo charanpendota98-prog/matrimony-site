@@ -1265,7 +1265,7 @@ def leaderboard(period: str = "all", limit: int = 10):
     limit = clamp_int(limit, "limit", 1, 50, 10)
     board = get_leaderboard(DB_USERS, limit=limit, period=period)
     return {"success": True, "period": period, "leaderboard": board, "total_users": len(DB_USERS),
-            "prize_telugu": "Weekly top-1 ki ₹1000 + Elite badge (mana team WhatsApp lo contact chestundi)"}
+            "prize_telugu": "Weekly top-1 కి ₹1000 + Elite badge (మన team WhatsApp లో contact చేస్తుంది)"}
 
 
 # ═══════════════════ 🤝 REFERRAL 2.0 — DASHBOARD / SHARE / PAYOUT ═══════════════════

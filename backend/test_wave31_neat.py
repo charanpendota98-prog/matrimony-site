@@ -167,6 +167,41 @@ except Exception as e:  # noqa: BLE001
 r = c.get("/api/channels")
 check("N5.3 channels 200", r.status_code == 200, (r.status_code, r.text[:120]))
 
+section("N6 backend neat Telugu (referral program + no fake)")
+ref_src = open(os.path.join(ROOT, "backend", "referral.py"), encoding="utf-8").read()
+ref_user_lines = [l for l in ref_src.splitlines()
+                  if "telugu" in l.lower() and '"' in l and not l.strip().startswith("#")]
+ref_blob = "\n".join(ref_user_lines)
+for tok in ("ke Sambandham", "100+", "dorakaledu", "okkasari", "cheyyochu", "Modati ",
+            "modati ", "edaina", "evvar", "parvaledu", "sontha", "vaaduk", "theesesa",
+            "garu,", "garu ", "Mee ", "mee ", "cheyyagane", "ayyindi", "avvachu",
+            "ivvaledu", "ivvandi", "matrame", "kosam", "nunchi", "levu", "ledu"):
+    check(f"N6.1 no {tok!r} in referral.py user strings", tok not in ref_blob, tok)
+main_src = open(os.path.join(ROOT, "backend", "main.py"), encoding="utf-8").read()
+check("N6.2 no ke Sambandham in main.py user strings",
+      "ke Sambandham" not in main_src.replace("Modati 3", ""))
+
+section("N7 admin hidden from public UI (anti-scam)")
+header_src = open(os.path.join(SRC, "components", "SiteHeader.tsx"), encoding="utf-8").read()
+footer_src = open(os.path.join(SRC, "components", "SiteFooter.tsx"), encoding="utf-8").read()
+check("N7.1 no /admin link in header", '"/admin"' not in header_src and "'/admin'" not in header_src)
+check("N7.2 no /growth link in header", "href=\"/growth\"" not in header_src)
+check("N7.3 no /admin link in footer", '"/admin"' not in footer_src)
+robots_src = open(os.path.join(SRC, "app", "robots.ts"), encoding="utf-8").read()
+check("N7.4 robots blocks admin+growth",
+      all(x in robots_src for x in ("/admin", "/growth")))
+sitemap_src = open(os.path.join(SRC, "app", "sitemap.ts"), encoding="utf-8").read()
+check("N7.5 sitemap has no admin/growth",
+      "/admin" not in sitemap_src and "/growth" not in sitemap_src)
+
+section("N8 no-fake markers on illustrations")
+home_src = open(os.path.join(SRC, "app", "page.tsx"), encoding="utf-8").read()
+check("N8.1 hero card marked sample", "నమూనా" in home_src)
+check("N8.2 whatsapp mock marked sample", "Sample message" in home_src)
+check("N8.3 no No.1 claims", "No.1" not in home_src
+      and "No.1" not in open(os.path.join(SRC, "app", "layout.tsx"), encoding="utf-8").read()
+      and "No.1" not in footer_src)
+
 print(f"\n{'=' * 60}\n🌊 WAVE 31 NEAT: {PASS} passed, {FAIL} failed")
 if FAILED:
     print("FAILED:", FAILED)

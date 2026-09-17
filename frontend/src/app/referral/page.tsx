@@ -222,10 +222,12 @@ export default function ReferralPage() {
         <section className="mt-6 bg-white rounded-3xl p-5 border border-gray-200 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="font-bold text-[#7A0C2E] telugu">📲 <Duo en="Share kit — ready messages for WhatsApp/Status" te="వాట్సాప్/స్టేటస్‌కు రెడీ మెసేజ్‌లు" /></h2>
-            <div className="flex gap-2 text-xs">
-              <a href={`/api/referral/${tsapId}/poster.png?style=square`} className="rounded-full bg-[#7A0C2E] text-white px-3 py-1.5 font-bold">🖼️ Poster (square)</a>
-              <a href={`/api/referral/${tsapId}/poster.png?style=status`} className="rounded-full bg-[#0F1F3C] text-white px-3 py-1.5 font-bold">📱 Status poster</a>
-            </div>
+            {tsapId ? (
+              <div className="flex gap-2 text-xs">
+                <a href={`/api/referral/${tsapId}/poster.png?style=square`} className="rounded-full bg-[#7A0C2E] text-white px-3 py-1.5 font-bold">🖼️ Poster (square)</a>
+                <a href={`/api/referral/${tsapId}/poster.png?style=status`} className="rounded-full bg-[#0F1F3C] text-white px-3 py-1.5 font-bold">📱 Status poster</a>
+              </div>
+            ) : null}
           </div>
 
           {msgs.length > 0 && (
