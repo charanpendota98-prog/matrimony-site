@@ -107,8 +107,8 @@ _restore()
 
 def pay_config() -> Dict:
     """Public config — key_id matrame (secret NEVER)."""
-    key_id = os.getenv("RAZORPAY_KEY_ID", "").strip()
-    secret = os.getenv("RAZORPAY_KEY_SECRET", "").strip()
+    key_id = _key_id()
+    secret = _secret()
     upi = os.getenv("PAY_UPI_ID", "manavivaha@upi")
     live = bool(key_id and secret)
     return {"mode": "razorpay" if live else "manual_upi",
@@ -118,8 +118,16 @@ def pay_config() -> Dict:
                             else f"💳 UPI manual: {upi} కి pay చేసి UTR పంపండి — admin confirm చేస్తాడు")}
 
 
+def _key_id() -> str:
+    """Razorpay key id - RAZORPAY_KEY_ID primary, RAZORPAY_KEY legacy (.env old style)."""
+    return (os.getenv("RAZORPAY_KEY_ID", "").strip()
+            or os.getenv("RAZORPAY_KEY", "").strip())
+
+
 def _secret() -> str:
-    return os.getenv("RAZORPAY_KEY_SECRET", "").strip()
+    """Razorpay secret - RAZORPAY_KEY_SECRET primary, RAZORPAY_SECRET legacy."""
+    return (os.getenv("RAZORPAY_KEY_SECRET", "").strip()
+            or os.getenv("RAZORPAY_SECRET", "").strip())
 
 
 # ---------------------------------------------------------------------------
@@ -291,7 +299,7 @@ def _rzp_create_order(pay_order_id: str, amount_rs: int, label: str) -> Dict:
     Frontend ki order_id matrame → checkout → signature verify → fulfill.
     Frontend amount/order trust CHEYYAM — anni server-side."""
     import requests  # lazy
-    key_id = os.getenv("RAZORPAY_KEY_ID", "").strip()
+    key_id = _key_id()
     secret = _secret()
     if not key_id or not secret:
         return {"ok": False, "message_telugu": "⚠️ Online pay configure కాలేదు (keys లేదు) — UPI manual తో try చెయ్యండి"}
@@ -383,7 +391,7 @@ def _capture_check_enabled() -> bool:
 def _rzp_payment_status(payment_id: str) -> Dict:
     """Razorpay payment live status (secret backend lone). Fail-closed dict."""
     import requests  # lazy
-    key_id = os.getenv("RAZORPAY_KEY_ID", "").strip()
+    key_id = _key_id()
     secret = _secret()
     if not key_id or not secret or not payment_id:
         return {"captured": False, "amount": 0, "status": "", "error": "no_keys"}
@@ -698,7 +706,7 @@ def razorpay_refund(payment_id: str, amount_rs: int, note: str = "") -> Dict:
     """Server-side Razorpay refund (secret backend lone - frontend ki never).
     Full amount only (partial refunds policy lo levu - simple + safe)."""
     import requests  # lazy
-    key_id = os.getenv("RAZORPAY_KEY_ID", "").strip()
+    key_id = _key_id()
     secret = _secret()
     if not key_id or not secret:
         return {"ok": False, "message_telugu": "\u26a0\ufe0f Razorpay keys \u0c32\u0c47\u0c26\u0c41 - manual-UPI refund (admin out-of-band return) \u0c35\u0c3e\u0c21\u0c02\u0c21\u0c3f"}

@@ -365,6 +365,38 @@ check("S2 POST on GET-only -> 405", w2.status_code == 405, w2.status_code)
 j1 = client.post("/api/otp/send", content="not-json{{{", headers={"Content-Type": "application/json"})
 check("S2 malformed JSON -> 4xx not 500", j1.status_code in (400, 422), j1.status_code)
 
+# P11 - key env fallback (W37: old .env style RAZORPAY_KEY/SECRET kooda pani cheyyali)
+section("P11 - razorpay key env fallback")
+_envbak = {k: os.environ.get(k) for k in ("RAZORPAY_KEY_ID", "RAZORPAY_KEY_SECRET",
+                                         "RAZORPAY_KEY", "RAZORPAY_SECRET")}
+try:
+    for k in _envbak:
+        os.environ.pop(k, None)
+    check("P11 no keys -> manual_upi", PP.pay_config()["mode"] == "manual_upi", PP.pay_config())
+    c0 = client.get("/api/pay/config").json()
+    check("P11 config route manual + secret-free", c0.get("mode") == "manual_upi"
+          and c0.get("key_id") in ("", None) and "secret" not in str(c0).lower(), c0)
+    os.environ["RAZORPAY_KEY"] = "rzp_test_LEGACY"
+    os.environ["RAZORPAY_SECRET"] = "secLEGACY"
+    check("P11 legacy pair -> razorpay", PP.pay_config()["mode"] == "razorpay"
+          and PP.pay_config()["key_id"] == "rzp_test_LEGACY", PP.pay_config())
+    c1 = client.get("/api/pay/config").json()
+    check("P11 config route razorpay (legacy)", c1.get("mode") == "razorpay"
+          and c1.get("key_id") == "rzp_test_LEGACY" and "secLEGACY" not in str(c1), c1)
+    os.environ["RAZORPAY_KEY_ID"] = "rzp_test_PRIMARY"
+    os.environ["RAZORPAY_KEY_SECRET"] = "secPRIMARY"
+    check("P11 primary wins over legacy", PP.pay_config()["key_id"] == "rzp_test_PRIMARY",
+          PP.pay_config())
+    os.environ.pop("RAZORPAY_KEY_ID", None)
+    os.environ.pop("RAZORPAY_KEY_SECRET", None)
+    check("P11 primary removed -> legacy again", PP.pay_config()["key_id"] == "rzp_test_LEGACY")
+finally:
+    for k, v in _envbak.items():
+        if v is None:
+            os.environ.pop(k, None)
+        else:
+            os.environ[k] = v
+
 print(f"\n{'=' * 76}\nRESULT: {PASS} pass / {FAIL} fail\n{'=' * 76}")
 if FAILED:
     print("FAILED:", FAILED)
