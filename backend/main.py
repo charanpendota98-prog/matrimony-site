@@ -4097,6 +4097,8 @@ def admin_story_action(story_id: str, payload: dict = None, request: Request = N
     """💑 Admin: story approve/reject (approve → share text ready)."""
     require_admin(request)
     d = payload or {}
+    if not next((s for s in A11.STORIES if s.get("story_id") == story_id), None):
+        raise HTTPException(404, "Story dorakaledu: %s" % story_id)
     rec = A11.review_story(story_id, str(d.get("action", "")), str(d.get("note", "")))
     out = {"success": True, "story": rec}
     if rec.get("status") == "approved":
@@ -4946,6 +4948,92 @@ def api_admin_pay_refund(order_id: str, payload: dict, request: Request):
         MAUD.audit("pay_refunded", "admin", {"order_id": order_id, "refund_id": res.get("refund_id", ""),
                                              "via": res.get("via", ""), "reversed": res.get("reversed", [])})
     return res
+
+
+# ============================================================================
+# WAVE 35 - ADMIN OPS (profiles queue + ban + stories queue)
+# ============================================================================
+@app.get("/api/admin/profiles")
+def api_admin_profiles(request: Request, status: str = "pending", q: str = "", limit: int = 30, offset: int = 0):
+    """ADMIN-ONLY profile queue - pending approvals first (backend truth, phones included)."""
+    require_admin(request)
+    status = (status or "pending").strip().lower()
+    if status not in ("pending", "approved", "banned", "all"):
+        raise HTTPException(400, "status: pending/approved/banned/all")
+    limit = clamp_int(limit, "limit", 1, 100, 30)
+    offset = clamp_int(offset, "offset", 0, 100000, 0)
+    items = list(DB_USERS)
+    if status == "pending":
+        items = [u for u in items if not u.get("is_approved") and not u.get("is_banned")]
+    elif status == "approved":
+        items = [u for u in items if u.get("is_approved") and not u.get("is_banned")]
+    elif status == "banned":
+        items = [u for u in items if u.get("is_banned")]
+    if q.strip():
+        ql = q.strip().lower()
+        items = [u for u in items if ql in str(u.get("tsap_id", "")).lower() or ql in str(u.get("full_name", "")).lower()
+                 or ql in str(u.get("phone", "")) or ql in str(u.get("caste", "")).lower()
+                 or ql in str(u.get("district", "")).lower()]
+    items.sort(key=lambda u: str(u.get("created_at", "")), reverse=(status != "pending"))
+    total = len(items)
+    rows = []
+    for u in items[offset:offset + limit]:
+        rows.append({"tsap_id": u.get("tsap_id"), "full_name": u.get("full_name"), "gender": u.get("gender"),
+                     "age": u.get("age"), "caste": u.get("caste"), "district": u.get("district"), "state": u.get("state"),
+                     "phone": u.get("phone", ""), "phone_verified": bool(u.get("phone_verified")),
+                     "is_verified": bool(u.get("is_verified")), "is_approved": bool(u.get("is_approved")),
+                     "is_banned": bool(u.get("is_banned")), "warnings": int(u.get("warnings", 0) or 0),
+                     "credits": u.get("credits", 0), "plan": u.get("plan", "FREE"),
+                     "has_photo": bool(u.get("photo_urls")), "photo_status": u.get("photo_status", "none"),
+                     "created_at": u.get("created_at", ""), "card_url": u.get("card_url", "")})
+    return {"success": True, "status": status, "total": total, "count": len(rows), "offset": offset, "limit": limit,
+            "profiles": rows,
+            "message_telugu": "\U0001F465 %d profiles (%s)" % (total, status)}
+
+
+@app.post("/api/admin/profiles/{tsap_id}/ban")
+def api_admin_ban(tsap_id: str, payload: dict, request: Request):
+    """ADMIN - profile ban (search/matches/channels నుంచి పోతుంది) + audit."""
+    require_admin(request)
+    u = _find_user(tsap_id.upper())
+    if not u:
+        raise HTTPException(404, "Profile dorakaledu")
+    u["is_banned"] = True
+    u["is_approved"] = False
+    u["banned_at"] = datetime.utcnow().isoformat()
+    u["banned_reason"] = str((payload or {}).get("reason", "") or "")[:200]
+    MAUD.audit("profile_ban", "admin", {"tsap_id": u["tsap_id"], "reason": u["banned_reason"]})
+    return {"success": True, "tsap_id": u["tsap_id"], "banned": True,
+            "message_telugu": "\u26D4 %s ban - search/matches/channels నుంచి పోతుంది" % u["tsap_id"]}
+
+
+@app.post("/api/admin/profiles/{tsap_id}/unban")
+def api_admin_unban(tsap_id: str, request: Request):
+    """ADMIN - unban + approve (malli live) + audit."""
+    require_admin(request)
+    u = _find_user(tsap_id.upper())
+    if not u:
+        raise HTTPException(404, "Profile dorakaledu")
+    u["is_banned"] = False
+    u["is_approved"] = True
+    u["unbanned_at"] = datetime.utcnow().isoformat()
+    MAUD.audit("profile_unban", "admin", {"tsap_id": u["tsap_id"]})
+    return {"success": True, "tsap_id": u["tsap_id"], "banned": False,
+            "message_telugu": "\u2705 %s unban + approve - malli live" % u["tsap_id"]}
+
+
+@app.get("/api/admin/stories")
+def api_admin_stories(request: Request, status: str = "pending", limit: int = 50):
+    """ADMIN - user success stories queue (approve -> /stories page + channels)."""
+    require_admin(request)
+    status = (status or "").strip().lower()
+    if status and status not in ("pending", "approved", "rejected"):
+        raise HTTPException(400, "status: pending/approved/rejected (khali = anni)")
+    limit = clamp_int(limit, "limit", 1, 200, 50)
+    items = [s for s in A11.STORIES if not status or s.get("status") == status]
+    items = list(reversed(items[-limit:]))
+    return {"success": True, "status": status or "all", "count": len(items), "stories": items,
+            "message_telugu": "\U0001F491 %d stories (%s)" % (len(items), status or "all")}
 
 
 @app.get("/api/offers/active")

@@ -18,14 +18,14 @@ import ContentConsole from "@/components/ContentConsole";
 import ChannelsConsole from "@/components/ChannelsConsole";
 import WANumbersConsole from "@/components/WANumbersConsole";
 import ReferralReport from "@/components/ReferralReport";
+import { ModerationQueue, StoriesQueue, LeadsPanel, PublishPanel } from "@/components/AdminOps";
 import { apiGet, apiPost, authHeaders, getAdminKey, setAdminKey } from "@/lib/api";
 import Link from "next/link";
 import { Duo, duo } from "@/lib/duo";
 import { useLang } from "@/lib/lang";
 
-const DEMO_PROFILES: any[] = [];
 // 🐞 FIX (F05): ee list lo mundu fake rows (98480xxxxx / 98481xxxxx fake phone numbers) unnayi —
-// admin ki nijam kaani data chupinche. Ippudu anni rows /api/admin/queue nunchi matrame.
+// admin ki nijam kaani data chupinche. WAVE 35: anni rows /api/admin/profiles (backend truth) nunchi matrame.
 
 export default function AdminPage() {
   const { lang } = useLang();
@@ -44,6 +44,12 @@ export default function AdminPage() {
   const [vRevenue, setVRevenue] = useState<any>(null);
   const [stats, setStats] = useState<any>({});
   // 🔐 WAVE 9 — admin key (X-Admin-Key) + abuse dashboard
+  const [profStatus, setProfStatus] = useState("pending");
+  const [profQ, setProfQ] = useState("");
+  const [profQGo, setProfQGo] = useState("");
+  const [profTotal, setProfTotal] = useState(0);
+  const [profOffset, setProfOffset] = useState(0);
+  const [pFlash, setPFlash] = useState("");
   const [adminKey, setAdminKeyState] = useState("");
   const [needKey, setNeedKey] = useState(false);
   const [abuse, setAbuse] = useState<any>(null);
@@ -65,10 +71,15 @@ export default function AdminPage() {
   useEffect(() => { void loadAbuse(); }, [loadAbuse]);
 
   /* ---------- loaders ---------- */
-  useEffect(() => {
-    const p = JSON.parse(localStorage.getItem("tsap_profiles") || "[]");
-    setProfiles(p.length ? p.map((x: any) => ({ ...x, status: x.status || "Pending" })) : DEMO_PROFILES);
-  }, []);
+  const loadProfiles = useCallback(async () => {
+    try {
+      const d = await fetch(`/api/admin/profiles?status=${profStatus}&q=${encodeURIComponent(profQGo)}&limit=30&offset=${profOffset}`, { headers: authHeaders(true) })
+        .then((r) => { if (r.status === 403) setNeedKey(true); return r.json(); });
+      if (d.success) { setProfiles(d.profiles || []); setProfTotal(d.total || 0); }
+      else setPFlash(d.detail || "Load fail");
+    } catch { setPFlash("Network problem"); }
+  }, [profStatus, profQGo, profOffset]);
+  useEffect(() => { if (tab === "profiles") void loadProfiles(); }, [tab, loadProfiles]);
 
   // 🔐 ADMIN_TOKEN env set unte ee token tho vellali (lekapote dev/demo mode lo open)
   const adminToken = () => {
@@ -143,12 +154,35 @@ export default function AdminPage() {
     try {
       const r = await fetch(`/api/admin/approve/${id}`, { method: "POST", headers: authHeaders(true) });
       const d = await r.json();
-      setProfiles((prev) => prev.map((p) => (p.id === id ? { ...p, status: "Approved" } : p)));
-      setFlash(te ? `✅ ${id} approve + auto-post queue: ${(d.auto_post_queue || []).slice(0, 3).join(", ")}` : `✅ ${id} approved + auto-post queue: ${(d.auto_post_queue || []).slice(0, 3).join(", ")}`);
-    } catch { setFlash(te ? "Approve fail అయ్యింది — API check చెయ్యండి" : "Approve failed — check API"); }
+      setPFlash(d.success ? `✅ ${id} approve + ${(d.posted_to || []).length} channels` : (d.detail || "done"));
+      void loadProfiles();
+    } catch { setPFlash("Approve fail - API check"); }
   };
 
-  const filtered = profiles.filter((p) => (p.id + (p.caste || "") + (p.district || "")).toLowerCase().includes(search.toLowerCase()));
+  const giftPremium = async (id: string) => {
+    const r = await fetch(`/api/admin/make_premium/${id}?gift_credits=10`, { method: "POST", headers: authHeaders(true) });
+    const d = await r.json();
+    setPFlash(d.message_telugu || d.detail || "done");
+    void loadProfiles();
+  };
+
+  const banProfile = async (id: string, ban: boolean) => {
+    if (ban && !window.confirm(`${id} BAN? (search/matches/channels నుంచి పోతుంది)`)) return;
+    const r = await fetch(`/api/admin/profiles/${id}/${ban ? "ban" : "unban"}`,
+      { method: "POST", headers: { ...authHeaders(true), "Content-Type": "application/json" },
+        body: JSON.stringify(ban ? { reason: "admin console" } : {}) });
+    const d = await r.json();
+    setFlash(d.message_telugu || d.detail || "done");
+    setPFlash(d.message_telugu || d.detail || "done");
+    void loadProfiles();
+  };
+
+  const vendorToken = async (id: string) => {
+    const r = await fetch(`/api/admin/vendors/${id}/token`, { method: "POST", headers: authHeaders(true) });
+    const d = await r.json();
+    setFlash(d.success ? `🔑 ${id} token: ${d.vendor_token} (vendor ki WhatsApp lo pampandi)` : (d.detail || "done"));
+  };
+
   const rows = (queue.items || []).filter((p: any) => ((p.code || "") + (p.name || "") + (p.upi_id || "") + p.id).toLowerCase().includes(search.toLowerCase()));
 
   return (
@@ -195,7 +229,8 @@ export default function AdminPage() {
         <div className="flex flex-wrap gap-2 mb-4">
           {[["payouts", duo("💰 Referral Payouts (live)", "💰 రెఫరల్ చెల్లింపులు")], ["vendors", duo("🏪 Vendor Ads (live)", "🏪 వెండర్ ప్రకటనలు")],
             ["matchsend", duo("🎯 Match & Send (₹500)", "🎯 మ్యాచ్ & సెండ")], ["astro", duo("🪐 Astro", "🪐 జ్యోతిషం")], ["ads", duo("📢 Ads", "📢 ప్రకటనలు")], ["pay", duo("💳 Payments", "💳 చెల్లింపులు")], ["offers", duo("🎉 Offers", "🎉 ఆఫర్లు")], ["content", duo("📝 Content (CMS)", "📝 కంటెంట్")], ["channels", duo("📡 Channels + Poster", "📡 ఛానళ్లు")], ["profiles", duo("👥 Profiles", "👥 ప్రొఫైళ్లు")], ["analytics", duo("📊 Analytics", "📊 విశ్లేషణ")],
-            ["photos", duo("📸 Photo Review", "📸 ఫోటో పరిశీలన")]].map(([k, l]) => (
+            ["photos", duo("📸 Photo Review", "📸 ఫోటో పరిశీలన")],
+            ["safety", duo("🛡️ Safety", "🛡️ భద్రత")], ["ops", duo("📮 Ops", "📮 ఆప్స్")]].map(([k, l]) => (
             <button key={k} onClick={() => setTab(k)}
               className={`px-5 py-2 rounded-full text-sm font-bold ${tab === k ? "maroon-gradient text-white" : "bg-white border"}`}>{l}</button>
           ))}
@@ -289,6 +324,26 @@ export default function AdminPage() {
               <h2 className="font-bold text-[#7A0C2E] mt-2">📡 Channels — links map + bulk import + smart poster</h2>
               <ChannelsConsole />
               <WANumbersConsole />
+            </>
+          )}
+
+          {/* ---------------- SAFETY ---------------- */}
+          {tab === "safety" && (
+            <>
+              <h2 className="font-bold text-[#7A0C2E] mt-2">🛡️ Safety — reports + success-story approvals</h2>
+              <ModerationQueue />
+              <h2 className="font-bold text-[#7A0C2E] mt-4">💑 Success stories — approve → page + channels</h2>
+              <StoriesQueue />
+            </>
+          )}
+
+          {/* ---------------- OPS ---------------- */}
+          {tab === "ops" && (
+            <>
+              <h2 className="font-bold text-[#7A0C2E] mt-2">📈 Leads — follow-up (24h lo)</h2>
+              <LeadsPanel />
+              <h2 className="font-bold text-[#7A0C2E] mt-4">📮 Publish control — re-post + digest + dead letters</h2>
+              <PublishPanel />
             </>
           )}
 
@@ -454,6 +509,7 @@ export default function AdminPage() {
                               {v.status !== "active" && (
                                 <button onClick={() => actVendor(v.id, "approve", v.package)} className="px-3 py-1 bg-green-600 text-white rounded-full text-xs">♻️ Reactivate</button>
                               )}
+                              <button onClick={() => void vendorToken(v.id)} className="px-3 py-1 bg-gray-100 rounded-full text-xs">🔑 token</button>
                               <a href={`/vendors/${v.id}`} className="px-3 py-1 bg-gray-100 rounded-full text-xs">👁️ view</a>
                               <a href={`/api/vendors/${v.id}/poster.png`} download className="px-3 py-1 bg-gray-100 rounded-full text-xs">⬇️ poster</a>
                             </div>
@@ -474,27 +530,71 @@ export default function AdminPage() {
             </>
           )}
 
-          {/* ---------------- PROFILES ---------------- */}
+          {/* ---------------- PROFILES (backend queue) ---------------- */}
           {tab === "profiles" && (
-            <div className="mt-4 overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead><tr className="text-xs text-gray-500 border-b">
-                  <th className="text-left p-2">ID</th><th>Details</th><th>Credits</th><th>Status</th><th>Actions</th>
-                </tr></thead>
-                <tbody>
-                  {filtered.map((p) => (
-                    <tr key={p.id} className="border-b">
-                      <td className="p-2 font-bold">{p.id}</td>
-                      <td className="p-2 text-xs">{p.gender} • {p.age}y • {p.caste} • {p.district} ({p.state})</td>
-                      <td className="p-2 text-center">{p.credits ?? 3}</td>
-                      <td className="p-2"><span className={`px-2 py-1 rounded-full text-xs ${p.status === "Approved" ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-700"}`}>{p.status}</span></td>
-                      <td className="p-2">
-                        <button onClick={() => approveProfile(p.id)} className="px-3 py-1 bg-green-600 text-white rounded-full text-xs">✅ Approve → channels</button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="mt-2">
+              <div className="flex flex-wrap items-center gap-2 text-xs">
+                {[["pending", "Pending"], ["approved", "Approved"], ["banned", "Banned"], ["all", "All"]].map(([v, l]) => (
+                  <button key={v} onClick={() => { setProfStatus(v); setProfOffset(0); }}
+                    className={`rounded-full px-3 py-1.5 font-bold ${profStatus === v ? "maroon-gradient text-white" : "bg-gray-100"}`}>{l}</button>
+                ))}
+                <input value={profQ} onChange={(e) => setProfQ(e.target.value)} placeholder="ID / name / phone / caste / district"
+                  className="min-w-[200px] flex-1 rounded-full border px-3 py-1.5" aria-label="search profiles" />
+                <button onClick={() => { setProfQGo(profQ); setProfOffset(0); }} className="rounded-full bg-[#7A0C2E] px-4 py-1.5 font-bold text-white">🔍 Search</button>
+                <span className="font-bold text-[#7A0C2E]">{profTotal} profiles</span>
+                <button onClick={() => void loadProfiles()} className="underline">↻ refresh</button>
+              </div>
+              {pFlash && <div className="mb-2 mt-2 rounded-xl bg-[#0F1F3C] p-2 text-xs text-white">{pFlash}</div>}
+              <div className="mt-3 overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead><tr className="border-b text-xs text-gray-500">
+                    <th className="p-2 text-left">Profile</th><th>Contact</th><th>Status</th><th>Credits</th><th>Actions</th>
+                  </tr></thead>
+                  <tbody>
+                    {!profiles.length && <tr><td colSpan={5} className="p-4 text-center text-xs text-gray-500">Ee queue khali 🙂</td></tr>}
+                    {profiles.map((p: any) => (
+                      <tr key={p.tsap_id} className="border-b align-top">
+                        <td className="p-2 text-xs">
+                          <div className="font-mono font-bold">{p.tsap_id}</div>
+                          <div className="font-bold">{p.full_name} • {p.gender} • {p.age}y</div>
+                          <div className="text-[11px] text-gray-500">{p.caste} • {p.district} ({p.state})</div>
+                          <div className="text-[10px] text-gray-400">{String(p.created_at || "").slice(0, 16).replace("T", " ")}{p.has_photo ? " • 📸" : ""}</div>
+                        </td>
+                        <td className="p-2 text-xs">
+                          {p.phone ? <a href={`https://wa.me/91${p.phone}`} target="_blank" rel="noreferrer" className="font-mono font-bold text-green-700 underline">📞 {p.phone}</a> : <span className="text-gray-400">—</span>}
+                          <div className="mt-1 text-[10px]">{p.phone_verified ? "✅ phone" : "⏳ phone"} • {p.is_verified ? "✅ badge" : "— badge"}</div>
+                        </td>
+                        <td className="p-2 text-xs">
+                          <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${p.is_banned ? "bg-red-100 text-red-700" : p.is_approved ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-700"}`}>
+                            {p.is_banned ? "BANNED" : p.is_approved ? "Approved" : "Pending"}
+                          </span>
+                          {(p.warnings || 0) > 0 && <div className="mt-1 text-[10px] text-amber-700">⚠️ {p.warnings} warnings</div>}
+                        </td>
+                        <td className="p-2 text-center text-xs"><b>{p.credits}</b><div className="text-[10px] text-gray-500">{p.plan}</div></td>
+                        <td className="p-2">
+                          <div className="flex max-w-[220px] flex-wrap gap-1">
+                            {!p.is_approved && !p.is_banned && (
+                              <button onClick={() => void approveProfile(p.tsap_id)} className="rounded-full bg-green-600 px-3 py-1 text-xs text-white">✅ Approve</button>
+                            )}
+                            <button onClick={() => void giftPremium(p.tsap_id)} className="rounded-full bg-[#D4AF37] px-3 py-1 text-xs font-bold">💎 +10</button>
+                            {p.is_banned ? (
+                              <button onClick={() => void banProfile(p.tsap_id, false)} className="rounded-full bg-blue-600 px-3 py-1 text-xs text-white">♻️ Unban</button>
+                            ) : (
+                              <button onClick={() => void banProfile(p.tsap_id, true)} className="rounded-full bg-red-100 px-3 py-1 text-xs text-red-700">⛔ Ban</button>
+                            )}
+                            <a href={`/search/${p.tsap_id}`} className="rounded-full bg-gray-100 px-3 py-1 text-xs">👁️ view</a>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="mt-2 flex items-center gap-2 text-xs">
+                <button disabled={profOffset === 0} onClick={() => setProfOffset(Math.max(0, profOffset - 30))} className="rounded-full bg-gray-100 px-3 py-1 disabled:opacity-40">← prev</button>
+                <span>{profOffset + 1}–{Math.min(profOffset + 30, profTotal)} / {profTotal}</span>
+                <button disabled={profOffset + 30 >= profTotal} onClick={() => setProfOffset(profOffset + 30)} className="rounded-full bg-gray-100 px-3 py-1 disabled:opacity-40">next →</button>
+              </div>
             </div>
           )}
 
@@ -535,6 +635,7 @@ export default function AdminPage() {
                 <div className="font-bold text-[#7A0C2E]">🩺 System health</div>
                 <a href="/api/system/health" target="_blank" rel="noreferrer" className="mt-2 block underline font-bold text-[#7A0C2E]">/api/system/health →</a>
                 <a href="/api/wa/status" target="_blank" rel="noreferrer" className="mt-1 block underline font-bold text-[#7A0C2E]">/api/wa/status →</a>
+                <a href="/api/bots/health" target="_blank" rel="noreferrer" className="mt-1 block underline font-bold text-[#7A0C2E]">/api/bots/health →</a>
                 <a href="/api/referral/leaderboard?period=week" target="_blank" rel="noreferrer" className="mt-1 block underline font-bold text-[#7A0C2E]">/api/referral/leaderboard?period=week →</a>
               </div>
             </div>

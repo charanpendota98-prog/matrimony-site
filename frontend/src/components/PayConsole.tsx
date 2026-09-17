@@ -23,6 +23,11 @@ export default function PayConsole() {
   const [status, setStatus] = useState("");
   const [utr, setUtr] = useState<Record<string, string>>({});
   const [flash, setFlash] = useState("");
+  const [rf, setRf] = useState<Record<string, string>>({});
+  const [audit, setAudit] = useState<any[]>([]);
+  const [showAudit, setShowAudit] = useState(false);
+  const [clawId, setClawId] = useState("");
+  const [clawAmt, setClawAmt] = useState("");
 
   const load = async () => {
     try {
@@ -45,6 +50,35 @@ export default function PayConsole() {
     void load();
   };
 
+  const refund = async (id: string, mode: string) => {
+    const reason = (rf[id + ":r"] || "customer_request").trim() || "customer_request";
+    const note = (rf[id + ":n"] || "").trim();
+    if (mode !== "razorpay" && !note) { setFlash(te ? "Manual refund ki return-proof note mandatory (UTR/memo) - audit" : "Manual refund needs return-proof note (UTR/memo) - audit"); return; }
+    if (!window.confirm(te ? `${id} REFUND? (money back + benefits reverse + commission clawback)` : `${id} REFUND? (money back + benefits reversed + commission clawback)`)) return;
+    const r = await fetch(withToken(`/api/admin/payments/${id}/refund`),
+      { method: "POST", headers: { ...authHeaders(true), "Content-Type": "application/json" },
+        body: JSON.stringify({ reason, note }) });
+    const d = await r.json();
+    setFlash(d.message_telugu || d.detail || "done");
+    void load();
+  };
+
+  const loadAudit = async () => {
+    try {
+      const d = await fetch(withToken("/api/admin/audit?limit=30"), { headers: authHeaders(true) }).then((r) => r.json());
+      if (d.success) { setAudit(d.events || []); setShowAudit(true); }
+      else setFlash(d.detail || "Audit load fail");
+    } catch { setFlash("Network problem"); }
+  };
+
+  const clawback = async () => {
+    if (!clawId.trim()) { setFlash(te ? "TSAP ID ఇవ్వండి" : "Give TSAP ID"); return; }
+    const r = await fetch(withToken(`/api/admin/refund/${clawId.trim().toUpperCase()}?amount=${encodeURIComponent(clawAmt || "0")}&reason=admin_clawback`),
+      { method: "POST", headers: authHeaders(true) });
+    const d = await r.json();
+    setFlash(d.message_telugu || d.reason || "done");
+  };
+
   return (
     <div>
       <p className="telugu mt-2 text-xs text-gray-500">
@@ -52,8 +86,8 @@ export default function PayConsole() {
         appude credits/assisted/ads add (double-credit impossible — idempotent).
       </p>
       {stats && (
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-2 my-3">
-          {[["Orders", stats.orders], ["Paid", stats.paid], ["Pending", stats.pending],
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-2 my-3">
+          {[["Orders", stats.orders], ["Paid", stats.paid], ["Pending", stats.pending], ["Refunded", stats.refunded],
             ["Collected ₹", stats.collected], ["Offers live", stats.offers_live]].map(([l, v]) => (
             <div key={l as string} className="rounded-xl bg-rose-50 border border-rose-100 p-2 text-center">
               <div className="text-lg font-extrabold text-[#7A0C2E]">{String(v ?? 0)}</div>
@@ -63,13 +97,30 @@ export default function PayConsole() {
         </div>
       )}
       <div className="flex gap-2 my-2">
-        {([["", te ? "అన్నీ" : "all"], ["created", "pending"], ["claimed", te ? "UTR వచ్చింది" : "UTR received"], ["paid", "paid"], ["expired", "expired"]] as string[][]).map(([v, l]) => (
+        {([["", te ? "అన్నీ" : "all"], ["created", "pending"], ["claimed", te ? "UTR వచ్చింది" : "UTR received"], ["paid", "paid"], ["refunded", "refunded"], ["expired", "expired"]] as string[][]).map(([v, l]) => (
           <button key={v} onClick={() => setStatus(v)}
             className={`px-3 py-1 rounded-full text-xs font-bold ${status === v ? "maroon-gradient text-white" : "bg-gray-100"}`}>{l}</button>
         ))}
         <button onClick={() => void load()} className="ml-auto text-xs underline">↻ refresh</button>
       </div>
       {flash && <div className="mb-2 rounded-xl bg-[#0F1F3C] text-white text-xs p-2">{flash}</div>}
+      <div className="mb-2 flex flex-wrap items-center gap-2 text-xs">
+        <button onClick={() => void loadAudit()} className="rounded-full bg-[#0F1F3C] px-3 py-1.5 font-bold text-white">\U0001F9FE Money audit</button>
+        <input value={clawId} onChange={(e) => setClawId(e.target.value)} placeholder="TSAP-ID (clawback)"
+          className="w-40 rounded-lg border px-2 py-1.5 font-mono" aria-label="TSAP ID" />
+        <input value={clawAmt} onChange={(e) => setClawAmt(e.target.value)} placeholder="\u20B9 amt"
+          className="w-20 rounded-lg border px-2 py-1.5 font-mono" aria-label="amount" />
+        <button onClick={() => void clawback()} className="rounded-full bg-amber-100 px-3 py-1.5 font-bold text-amber-800">\u21A9\uFE0F Commission clawback</button>
+      </div>
+      {showAudit && (
+        <div className="mb-2 max-h-[160px] space-y-1 overflow-auto rounded-xl border p-2 text-[11px]">
+          <div className="flex items-center"><b>\U0001F9FE Audit (latest 30)</b><button onClick={() => setShowAudit(false)} className="ml-auto underline">close</button></div>
+          {audit.map((e: any, i: number) => (
+            <div key={i} className="rounded-lg bg-gray-50 px-2 py-1 font-mono">{e.event} \u2022 {e.actor} \u2022 {JSON.stringify(e.data || {}).slice(0, 90)} \u2022 {String(e.at || "").slice(0, 19).replace("T", " ")}</div>
+          ))}
+          {!audit.length && <p className="text-gray-400">No records.</p>}
+        </div>
+      )}
       <div className="space-y-2 max-h-[420px] overflow-auto pr-1">
         {items.map((o) => (
           <div key={o.id} className="rounded-xl border p-3 text-xs">
@@ -97,6 +148,19 @@ export default function PayConsole() {
             )}
             {o.status === "paid" && o.receipt && (
               <div className="mt-1 text-[11px] text-green-700">🧾 {o.receipt.payment_id || o.receipt.utr} • {o.paid_at}</div>
+            )}
+            {o.status === "paid" && (
+              <div className="mt-2 flex flex-wrap gap-2">
+                <input value={rf[o.id + ":r"] || ""} onChange={(e) => setRf({ ...rf, [o.id + ":r"]: e.target.value })}
+                  placeholder="reason (customer_request)" className="min-w-[140px] flex-1 rounded-lg border px-2 py-1.5 text-xs" aria-label="refund reason" />
+                <input value={rf[o.id + ":n"] || ""} onChange={(e) => setRf({ ...rf, [o.id + ":n"]: e.target.value })}
+                  placeholder={o.mode === "razorpay" ? "note (optional)" : "return proof UTR (mandatory)"} className="min-w-[140px] flex-1 rounded-lg border px-2 py-1.5 text-xs" aria-label="refund note" />
+                <button onClick={() => void refund(o.id, o.mode)}
+                  className="rounded-lg bg-red-600 px-4 py-1.5 text-xs font-bold text-white">\u21A9\uFE0F Refund</button>
+              </div>
+            )}
+            {o.status === "refunded" && (
+              <div className="mt-1 text-[11px] text-red-700">\u21A9\uFE0F refunded {o.refund_id} \u2022 {o.refunded_at} \u2022 {(o.refund_reversal?.reversed || []).join(", ")}</div>
             )}
           </div>
         ))}
