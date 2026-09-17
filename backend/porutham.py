@@ -191,29 +191,29 @@ def compute_porutham(bride: Dict, groom: Dict) -> Dict:
     if b_star is None or g_star is None:
         return {
             "available": False,
-            "reason": "Star (nakshatram) details rendu profiles lo levu — porutham calculate cheyyadam ledu",
+            "reason": "Star (nakshatram) details రెండు profiles లో లేవు — పొరుతం calculate cheyyadam లేదు",
             "score": 0, "max_score": 10, "verdict": "Data saripoledu",
             "items": [], "doshas": [],
-            "advice_telugu": "Register lo 'Star / Nakshatram' fill cheyyandi — appudu porutham (10 points) automatic ga vastundi.",
+            "advice_telugu": "Register లో 'Star / Nakshatram' fill చెయ్యండి — appudu పొరుతం (10 points) automatic గా వస్తుంది.",
         }
 
     # 1. Rasi porutham (shashtashtaka 6/8 dosham)
     dist = ((b_rasi - g_rasi) % 12) + 1
     rasi_ok = dist not in (6, 8)
-    items.append({"no": 1, "name": "Rasi Porutham", "telugu": "రాశి పొరుత్తం", "pass": rasi_ok,
-                  "note": ("Rasi distances bagunnayi" if rasi_ok else
-                           f"Rasi {dist}వ స్థానం — షష్టాష్టక (6/8) దోషం, పరిహారం అవసరం")})
+    items.append({"no": 1, "name": "రాశి పొరుతం", "telugu": "రాశి పొరుత్తం", "pass": rasi_ok,
+                  "note": ("రాశి distances బాగున్నాయి" if rasi_ok else
+                           f"రాశి {dist}వ స్థానం — షష్టాష్టక (6/8) దోషం, పరిహారం అవసరం")})
 
     # 2. Nakshatra porutham (vedha kakunda — general nakshatra distance)
     nak_count = _count(g_star, b_star)
     nak_ok = not _vedha(b_star, g_star)
-    items.append({"no": 2, "name": "Nakshatra Porutham", "telugu": "నక్షత్ర పొరుత్తం", "pass": nak_ok,
+    items.append({"no": 2, "name": "Nakshatra పొరుతం", "telugu": "నక్షత్ర పొరుత్తం", "pass": nak_ok,
                   "note": (f"Nakshatra count {nak_count} — ok" if nak_ok else "వేధ ఉంది (క్రింద చూడండి)")})
 
     # 3. Gana
     bg, gg = GANA.get(b_star, "Manushya"), GANA.get(g_star, "Manushya")
     gana_score = GANA_MATRIX.get((bg, gg), 1)
-    items.append({"no": 3, "name": "Gana Porutham", "telugu": "గణ పొరుత్తం", "pass": gana_score >= 1,
+    items.append({"no": 3, "name": "Gana పొరుతం", "telugu": "గణ పొరుత్తం", "pass": gana_score >= 1,
                   "note": f"Bride {bg} • Groom {gg} — " + ("బాగుంది" if gana_score == 2 else
                                                             ("పర్వాలేదు" if gana_score == 1 else "రాక్షస గణం — సరిపోదు"))})
 
@@ -221,26 +221,26 @@ def compute_porutham(bride: Dict, groom: Dict) -> Dict:
     by, gy = YONI[b_star], YONI[g_star]
     enemy = (by, gy) in YONI_ENEMIES or (gy, by) in YONI_ENEMIES
     yoni_ok = not enemy
-    items.append({"no": 4, "name": "Yoni Porutham", "telugu": "యోని పొరుత్తం", "pass": yoni_ok,
+    items.append({"no": 4, "name": "Yoni పొరుతం", "telugu": "యోని పొరుత్తం", "pass": yoni_ok,
                   "note": f"{by} ↔ {gy}" + (" — శత్రు యోనులు (కలహం రిస్క్)" if enemy else " — అనుకూలం")})
 
     # 5. Rajju (critical)
     br, gr = _rajju(b_star), _rajju(g_star)
     rajju_ok = br != gr
-    items.append({"no": 5, "name": "Rajju Porutham", "telugu": "రజ్జు పొరుత్తం", "pass": rajju_ok,
+    items.append({"no": 5, "name": "Rajju పొరుతం", "telugu": "రజ్జు పొరుత్తం", "pass": rajju_ok,
                   "note": (f"{RAJJU_TELUGU.get(br, br)} ≠ {RAJJU_TELUGU.get(gr, gr)} — మంచిది" if rajju_ok
                            else f"ఇద్దరికీ {RAJJU_TELUGU.get(br, br)} — రజ్జు దోషం ⚠️ (పెద్దలను సంప్రదించండి)")})
 
     # 6. Vedha (critical)
     vedha = _vedha(b_star, g_star)
-    items.append({"no": 6, "name": "Vedha Porutham", "telugu": "వేధ పొరుత్తం", "pass": not vedha,
+    items.append({"no": 6, "name": "Vedha పొరుతం", "telugu": "వేధ పొరుత్తం", "pass": not vedha,
                   "note": ("వేధ లేదు — మంచిది" if not vedha else
                            f"{NAKSHATRA_TELUGU[b_star]} ↔ {NAKSHATRA_TELUGU[g_star]} — వేధ ఉంది ⚠️")})
 
     # 7. Mahendra
     m_count = _count(b_star, g_star)
     mahendra_ok = m_count in (4, 7, 10, 13, 16, 19, 22, 25)
-    items.append({"no": 7, "name": "Mahendra Porutham", "telugu": "మహేంద్ర పొరుత్తం", "pass": mahendra_ok,
+    items.append({"no": 7, "name": "Mahendra పొరుతం", "telugu": "మహేంద్ర పొరుత్తం", "pass": mahendra_ok,
                   "note": f"Count {m_count} — " + ("అనుకూలం" if mahendra_ok else "అనుకూలం కాదు (4,7,10,13,16,19,22,25 మంచివి)")})
 
     # 8. Stree Deergha
@@ -254,7 +254,7 @@ def compute_porutham(bride: Dict, groom: Dict) -> Dict:
     gv = VASHYA_BY_RASI.get(g_rasi, [])
     vashya_ok = bool(set(bv) & set(gv)) or any((a, c) in VASHYA_FRIENDS or (c, a) in VASHYA_FRIENDS
                                               for a in bv for c in gv)
-    items.append({"no": 9, "name": "Vashya Porutham", "telugu": "వశ్య పొరుత్తం", "pass": vashya_ok,
+    items.append({"no": 9, "name": "Vashya పొరుతం", "telugu": "వశ్య పొరుత్తం", "pass": vashya_ok,
                   "note": f"{RASI_TELUGU[b_rasi]} ↔ {RASI_TELUGU[g_rasi]} ({'/'.join(bv) or '?'} ↔ {'/'.join(gv) or '?'}) — "
                           + ("అనుకూలం" if vashya_ok else "వశ్యం సరిపోదు — ఒకరు ఒకరిని ఆధీనం చేసుకోలేరు")})
 
@@ -267,7 +267,7 @@ def compute_porutham(bride: Dict, groom: Dict) -> Dict:
                ("Mercury (Budha)", "Venus (Shukra)"), ("Venus (Shukra)", "Mercury (Budha)"),
                ("Moon (Chandra)", "Sun (Surya)"), ("Sun (Surya)", "Moon (Chandra)")}
     lord_ok = b_lord == g_lord or (b_lord, g_lord) in friends
-    items.append({"no": 10, "name": "Rasi Adhipathi", "telugu": "రాశి అధిపతి పొరుత్తం", "pass": lord_ok,
+    items.append({"no": 10, "name": "రాశి Adhipathi", "telugu": "రాశి అధిపతి పొరుత్తం", "pass": lord_ok,
                   "note": f"{b_lord} ↔ {g_lord} — " + ("స్నేహితులు" if lord_ok else "సంబంధం బలహీనం")})
 
     score = len([i for i in items if i["pass"]])
@@ -294,18 +294,18 @@ def compute_porutham(bride: Dict, groom: Dict) -> Dict:
         "items": items,
         "doshas": doshas,
         "advice_telugu": (
-            "Idi traditional పొరుత్తం tables batti software estimate. Final ga పురోహితుడు / పంచాంగం tho confirm cheyyandi."
+            "Idi traditional పొరుత్తం tables batti software estimate. Final గా పురోహితుడు / పంచాంగం తో confirm చెయ్యండి."
             + (" ⚠️ రజ్జు/వేధ దోషం ఉంది — పరిహారం (శాంతి) ఉంటేనే ముందుకు వెళ్ళండి." if critical_miss else "")
         ),
     }
 
 
 def porutham_line(bride: Dict, groom: Dict) -> str:
-    """WhatsApp/card message lo chupinchadaniki okka line (short)."""
+    """WhatsApp/card message లో చూపించడానికి ఒక్క line (short)."""
     r = compute_porutham(bride, groom)
     if not r.get("available"):
-        return "🔮 Porutham: star details levu (register lo fill cheyyandi)"
-    return f"🔮 Porutham: {r['score']}/10 {r['verdict'].split('—')[0].strip()}"
+        return "🔮 పొరుతం: star details లేవు (register లో fill చెయ్యండి)"
+    return f"🔮 పొరుతం: {r['score']}/10 {r['verdict'].split('—')[0].strip()}"
 
 
 if __name__ == "__main__":  # demo: python porutham.py

@@ -1,5 +1,5 @@
 """
-🎁 WELCOME PACK — "register avvagane 3 profiles + caste channel links WhatsApp ki"
+🎁 WELCOME PACK — "register avvagane 3 profiles + caste channel links WhatsApp కి"
 ===============================================================================
 User adigindi (Telugu):
   "registration avvagane elaga vadi whatsapp ki 3 profiles vellai, mana channel links
@@ -27,7 +27,7 @@ from channels_config import SITE, caste_channel_links, channel_links, CHANNELS
 # 1. PROFILE LINE (safe — phone/email lekunda)
 # --------------------------------------------------------------------------- #
 def safe_profile_summary(p: Dict[str, Any]) -> Dict[str, Any]:
-    """Match profile nunchi WhatsApp/website ki pani chese safe fields matrame."""
+    """Match profile నుంచి WhatsApp/website కి pani చేసే safe fields మాత్రమే."""
     p = p or {}
     tsap_id = str(p.get("tsap_id", ""))
     return {
@@ -54,7 +54,7 @@ def safe_profile_summary(p: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def profile_line(idx: int, prof: Dict[str, Any], score: int = 0, reason: str = "") -> str:
-    """WhatsApp lo okka profile line (Telugu, emoji, numbers ledu)."""
+    """WhatsApp లో ఒక్క profile line (Telugu, emoji, numbers లేదు)."""
     emoji = ["1️⃣", "2️⃣", "3️⃣"][idx] if idx < 3 else "•"
     bits = [f"{emoji} *{prof.get('name', '—')}* — {prof.get('age', '—')} yrs"]
     fam = ", ".join([x for x in [str(prof.get("caste", "")), str(prof.get("district", ""))] if x])
@@ -106,15 +106,15 @@ def channels_text(links: List[Dict[str, Any]], why_map: Optional[Dict[str, str]]
     if not links:
         return ""
     lines = [channel_line(l, why_map.get(l.get("key", ""), "")) for l in links]
-    return "📢 *Mee caste channels — daily matches ikkada* 👇\n" + "\n".join(lines)
+    return "📢 *మీ caste channels — daily matches ఇక్కడ* 👇\n" + "\n".join(lines)
 
 
 def support_note() -> str:
-    """WhatsApp channel link configure avvakapote — support ki ela adagali (Telugu)."""
+    """WhatsApp channel link configure అవ్వకపోతే — support కి ఎలా అడగాలి (Telugu)."""
     wa = os.getenv("SUPPORT_WHATSAPP_NUMBER", os.getenv("ADMIN_WHATSAPP_NUMBER", "")).strip()
     if wa:
-        return f"📱 WhatsApp channel links kooda pampistham — support ki 'CHANNEL' ani ping cheyyandi: https://wa.me/{wa}"
-    return "📱 WhatsApp channel links configure avutunnayi — Telegram links ippude join avvandi (daily matches)."
+        return f"📱 WhatsApp channel links కూడా pampistham — support కి 'CHANNEL' అని ping చెయ్యండి: https://wa.me/{wa}"
+    return "📱 WhatsApp channel links configure avutunnayi — Telegram links ippude join అవ్వండి (daily matches)."
 
 
 # --------------------------------------------------------------------------- #
@@ -148,7 +148,7 @@ def build_welcome_pack(user: Dict[str, Any], tsap_id: str, matches: List[Dict[st
         why = {}
 
     head = (
-        f"🎉 *{user.get('full_name', 'గారు')} గారు — mee 3 FREE matches ready!* 🎉\n"
+        f"🎉 *{user.get('full_name', 'గారు')} గారు — మీ 3 FREE matches ready!* 🎉\n"
         f"🆔 *{tsap_id}* | 💍 {user.get('caste', '—')}"
         f"{(' / ' + str(user['sub_caste'])) if user.get('sub_caste') else ''}"
         f" | 📍 {user.get('district', '—')}, {user.get('state', 'TS')}\n"
@@ -156,13 +156,13 @@ def build_welcome_pack(user: Dict[str, Any], tsap_id: str, matches: List[Dict[st
     )
     body_parts = [head]
     if profs:
-        body_parts.append("🔎 *Mee 3 profiles* (numbers 🔒 — interest accept = consent tho matrame exchange):\n" +
+        body_parts.append("🔎 *మీ 3 profiles* (numbers 🔒 — interest accept = consent తో మాత్రమే exchange):\n" +
                           "\n".join(profile_line(i, p, p.get("score", 0), p.get("reason", ""))
                                     for i, p in enumerate(profs)))
     else:
-        body_parts.append("🔎 Mee matches inka prepare avutunnai — konchem sepatlo WhatsApp lo vastayi.")
-    body_parts.append("✅ Interest pampali ante: mee TSAP ID + vaalla ID tho ee link open cheyyandi — " +
-                      "1 credit (modati 3 FREE), decline ayithe credit refund.")
+        body_parts.append("🔎 మీ matches ఇంకా prepare avutunnai — konchem sepatlo WhatsApp లో vastayi.")
+    body_parts.append("✅ Interest pampali అంటే: మీ TSAP ID + వాళ్ల ID తో ee link open చెయ్యండి — " +
+                      "1 credit (మొదటి 3 FREE), decline అయితే credit refund.")
     if chans:
         body_parts.append(channels_text(chans, why))
     body_parts.append(support_note())
@@ -175,24 +175,24 @@ def build_welcome_pack(user: Dict[str, Any], tsap_id: str, matches: List[Dict[st
         "message_text": message,
         "message_preview": message[:2600],   # channels block kooda preview lo kanipinchali
         "rules_telugu": [
-            "🔒 Numbers eppudu public ga ivvamu — interest accept (consent) tho matrame exchange",
-            "🆓 Modati 3 profiles + 3 requests FREE",
-            "💰 ₹99 → 5 profiles + boost (modati 3 FREE taruvata)",
-            "📢 Mee caste Telegram + WhatsApp channels lo daily matches — join avvandi",
+            "🔒 Numbers ఎప్పుడు public గా ఇవ్వము — interest accept (consent) తో మాత్రమే exchange",
+            "🆓 మొదటి 3 profiles + 3 requests FREE",
+            "💰 ₹99 → 5 profiles + boost (మొదటి 3 FREE taruvata)",
+            "📢 మీ caste Telegram + WhatsApp channels లో daily matches — join అవ్వండి",
         ],
         "has_numbers": False,
     }
 
 
 def pack_public(pack: Dict[str, Any]) -> Dict[str, Any]:
-    """API response ki — message text + profiles + channels (sensitive ledu, number masked)."""
+    """API response కి — message text + profiles + channels (sensitive లేదు, number masked)."""
     if not pack:
         return {}
     return {k: v for k, v in pack.items() if k != "has_numbers"}
 
 
 def channels_count() -> Dict[str, int]:
-    """Debug/stats — enni channels ki telegram/whatsapp link configure ayyayi."""
+    """Debug/stats — enni channels కి telegram/whatsapp link configure అయ్యాయి."""
     tg = wa = 0
     for key in CHANNELS:
         l = channel_links(key)

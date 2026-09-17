@@ -124,7 +124,7 @@ class BotAPI:
 
 
 def _multipart(params: dict, files: dict):
-    """Simple multipart/form-data encoder (urllib tho file upload ki)."""
+    """Simple multipart/form-data encoder (urllib తో file upload కి)."""
     boundary = "----ManaVivahaBoundary%s" % int(time.time() * 1000)
     parts = []
     for k, v in params.items():
@@ -234,12 +234,12 @@ def write_plan_md(path: str | None = None, wave: int | None = None) -> str:
     rows = plan_rows(wave)
     path = path or os.path.join(ROOT, "CHANNELS-SETUP-CHECKLIST.md")
     lines = ["# 📢 Mana Vivaha — Channel Setup Checklist (%d channels)" % len(rows), "",
-             "> Ee file `setup_channels.py --plan` tho auto-generate ayyindi. Prathi channel ki:",
+             "> ఈ file `setup_channels.py --plan` తో auto-generate అయ్యింది. Prathi channel కి:",
              "> **Name → Username → Description → 📌 pinned post** (copy-paste ready).", "",
              "## ⚡ Fastest way (automation)", "",
              "```bash",
-             "# 1) Phone lo channels create cheyyandi (name+username paste) → bot ni admin cheyyandi",
-             "# 2) Taruvata okka command — title/desc/DP/pinned/invite link anni auto set:",
+             "# 1) Phone లో channels create చెయ్యండి (name+username paste) → bot ని admin చెయ్యండి",
+             "# 2) Taruvata ఒక్క command — title/desc/DP/pinned/invite link అన్నీ auto set:",
              "cd backend",
              "BOT_TOKEN=xxxx python setup_channels.py --apply --wave 1",
              "```", ""]
@@ -255,13 +255,13 @@ def write_plan_md(path: str | None = None, wave: int | None = None) -> str:
                   "| Link | https://t.me/%s |" % r["username"],
                   "| Hashtags | %s |" % " ".join(r["hashtags"]),
                   "", "**Description (paste in channel → Edit → Description):**", "", "```", r["desc"], "```",
-                  "", "**📌 Pin this post (channel ki welcome + rules):**", "", "```", r["pinned"], "```", ""]
+                  "", "**📌 Pin this post (channel కి welcome + rules):**", "", "```", r["pinned"], "```", ""]
     open(path, "w").write("\n".join(lines))
     return path
 
 
 def write_kits(keys: list | None = None, wave: int | None = None) -> list:
-    """Prathi channel ki separate kit file — copy-paste cheyyadaniki."""
+    """Prathi channel కి separate kit file — copy-paste చెయ్యడానికి."""
     out_dir = os.path.join(ROOT, "channel-kits")
     os.makedirs(out_dir, exist_ok=True)
     written = []
@@ -288,7 +288,7 @@ def write_kits(keys: list | None = None, wave: int | None = None) -> list:
             "Channel → Manage → Administrators → Add Admin → `%s` → ✅ Post Messages, ✅ Edit Messages, ✅ Delete Messages, ✅ Manage Video Chats, ✅ Change Channel Info" % BOT_USERNAME,
             "", "## 3) 📌 Pinned welcome post (idi pin cheyyi)", "", "```", r["pinned"], "```", "",
             "## 4) Rules post", "", "```", CC.rules_post(r["key"]), "```", "",
-            "## 5) WhatsApp / status lo share text", "", "```", r["share"], "```", "",
+            "## 5) WhatsApp / status లో share text", "", "```", r["share"], "```", "",
             "## 6) Setup command", "", "```bash",
             "python setup_channels.py --apply --key %s" % r["key"], "```", "",
         ]
@@ -300,7 +300,7 @@ def write_kits(keys: list | None = None, wave: int | None = None) -> list:
 
 
 def write_create_list_telugu(path: str | None = None, wave: int | None = None) -> str:
-    """📱 Phone lo channel create cheyyadaniki SIMPLE copy-paste list (Telugu)."""
+    """📱 Phone లో channel create చెయ్యడానికి SIMPLE copy-paste list (Telugu)."""
     rows = plan_rows(wave)
     path = path or os.path.join(ROOT, "CHANNEL-CREATE-LIST-TELUGU.md")
     by_wave: Dict[int, list] = {}
@@ -311,7 +311,7 @@ def write_create_list_telugu(path: str | None = None, wave: int | None = None) -
         "# 📱 CHANNEL CREATE LIST — ఇది చూసి ఒక్కొక్కటి create చేయండి",
         "",
         f"**మొత్తం {len(rows)} channels** — కానీ ఒకేసారి అన్నీ వద్దు. **దశ (wave) ప్రకారం** చేయండి.",
-        "ప్రతి channel ki: **Name copy → Username copy → Description paste → @telugumatrimony1_bot ni admin**",
+        "ప్రతి channel కి: **Name copy → Username copy → Description paste → @telugumatrimony1_bot ని admin**",
         "",
         "## ⚡ ఒక్కో channel ki 4 నిమిషాలు (phone lo)",
         "1. Telegram → ☰ → **New Channel** → Name (క్రింద టేబుల్ నుంచి copy) → **Public** → Username (copy)",
@@ -333,15 +333,15 @@ def write_create_list_telugu(path: str | None = None, wave: int | None = None) -
                             "✅ LIVE" if r["live"] else "⬜ create"))
         lines.append("")
         if w == 1:
-            lines += ["### ✅ Wave-1 ayyaka ee command run cheyyandi", "",
+            lines += ["### ✅ Wave-1 అయ్యాక ee command run చెయ్యండి", "",
                       "```bash", "export BOT_TOKEN=xxxx",
                       "python setup_channels.py --apply --wave 1 --mark-live",
-                      "python setup_channels.py --check          # anni perfect ఉన్నాయా చూడండి", "```", ""]
+                      "python setup_channels.py --check          # అన్నీ perfect ఉన్నాయా చూడండి", "```", ""]
     lines += ["## 🎯 ముఖ్యమైన సూచనలు", "",
               "- **Wave-1 = 17 channels** (Official + 4 main + 6 castes × bride/groom) — ఇవి ముందు చేయండి",
               "- ఒకేసారి 20+ channels create చేయకండి (Telegram 'Too Many Attempts' ఇస్తుంది) → 10 చేసి 1 గంట ఆగండి",
               "- **@TSBRIDE / @TSGROOM1** ఇప్పటికే ఉన్నాయి — వాటికి bot admin ఉందో ఒకసారి check చేయండి",
-              "- AP channels: `@APBRIDE`, `@APGROOM1` (India motham lo ఎవరూ తీసుకోకుండా ముందే పెట్టేయండి)",
+              "- AP channels: `@APBRIDE`, `@APGROOM1` (India motham లో ఎవరూ తీసుకోకుండా ముందే పెట్టేయండి)",
               "- Caste channels: top 6 castes → Reddy, Kamma, Kapu, Velama, Vysya, Brahmin (bride + groom separate)",
               ""]
     open(path, "w").write("\n".join(lines))
@@ -366,7 +366,7 @@ def save_state(state: dict) -> None:
 
 
 def resolve_chat(bot: "BotAPI", key: str) -> dict:
-    """@username (fallback tho) → chat object + which username worked."""
+    """@username (fallback తో) → chat object + which username worked."""
     ch = CHANNELS.get(key, {})
     tried = []
     for uname in [ch.get("username")] + list(ch.get("fallbacks", [])):
@@ -391,7 +391,7 @@ def check_bot_admin(bot: "BotAPI", chat_id, bot_id: int) -> dict:
 
 def configure_channel(bot: "BotAPI", key: str, state: dict, force_photo: bool = False,
                       pin_welcome: bool = True) -> dict:
-    """Okka channel ni PERFECT ga set cheyyi: title → desc → DP → invite link → pinned welcome."""
+    """ఒక్క channel ని PERFECT గా set cheyyi: title → desc → DP → invite link → pinned welcome."""
     ch = CHANNELS.get(key)
     if not ch:
         return {"key": key, "ok": False, "error": "registry lo ledu"}
@@ -412,7 +412,7 @@ def configure_channel(bot: "BotAPI", key: str, state: dict, force_photo: bool = 
     steps.append({"step": "get_chat", "ok": True, "username": resolved["username"],
                   "title": chat.get("title"), "members": chat.get("member_count", bot.get_chat_member_count(chat_id))})
     if not admin["is_admin"]:
-        return {"key": key, "ok": False, "error": "bot admin kaadu — channel → Administrators → %s add cheyyandi" % BOT_USERNAME,
+        return {"key": key, "ok": False, "error": "bot admin కాదు — channel → Administrators → %s add cheyyandi" % BOT_USERNAME,
                 "chat_title": chat.get("title"), "username": resolved["username"], "steps": steps}
 
     if chat.get("title") != title and admin["can_change_info"]:
@@ -455,7 +455,7 @@ def configure_channel(bot: "BotAPI", key: str, state: dict, force_photo: bool = 
             steps.append({"step": "pinned_welcome", "ok": bool(r.get("ok")), "message_id": mid})
             st["welcome_message_id"] = mid
         else:
-            errors.append("pinned_welcome: message pampaledu (%s)" % (msg or {}).get("description", "?"))
+            errors.append("pinned_welcome: message పంపలేదు (%s)" % (msg or {}).get("description", "?"))
     else:
         steps.append({"step": "pinned_welcome", "ok": True, "message_id": st.get("welcome_message_id"), "cached": True})
 
@@ -523,14 +523,14 @@ def run_check(bot: "BotAPI", wave: int | None = None, keys: list | None = None) 
 # REGISTRY — live keys auto-manage
 # ===========================================================================
 def write_live_keys(keys: list) -> str:
-    """channels_config.py lo LIVE_KEYS_EXTRA block ni update cheyyi (verified channels)."""
+    """channels_config.py లో LIVE_KEYS_EXTRA block ని update cheyyi (verified channels)."""
     src = open(REGISTRY).read()
     m = re.search(r"# >>> LIVE_KEYS_EXTRA.*?\n(.*?)# <<< LIVE_KEYS_EXTRA", src, re.S)
     current = set()
     if m:
         current = set(re.findall(r'"([^"]+)"', m.group(1)))
     current.update(keys)
-    block = ("# >>> LIVE_KEYS_EXTRA (setup_channels.py --mark-live idi auto-manage chestundi)\n"
+    block = ("# >>> LIVE_KEYS_EXTRA (setup_channels.py --mark-live idi auto-manage చేస్తుంది)\n"
              "LIVE_KEYS_EXTRA = [\n" + "".join('    "%s",\n' % k for k in sorted(current)) + "]\n"
              "# <<< LIVE_KEYS_EXTRA")
     if m:
@@ -546,7 +546,7 @@ def write_live_keys(keys: list) -> str:
 # SELF TEST (no token) — full flow ni fake bot tho
 # ===========================================================================
 class FakeBot:
-    """Tests ki: anni API calls record chestundi, Telegram tho matladadu."""
+    """Tests కి: అన్నీ API calls record చేస్తుంది, Telegram తో matladadu."""
 
     def __init__(self, admin=True, photo=None, description=""):
         self.calls = []
@@ -635,18 +635,18 @@ def self_test(wave: int | None = None) -> dict:
         for need in ("getChat", "setChatTitle", "setChatDescription", "setChatPhoto",
                      "createChatInviteLink", "sendMessage", "pinChatMessage"):
             if need not in methods:
-                problems.append("apply lo %s call ravaledu" % need)
+                problems.append("apply లో %s call ravaledu" % need)
         if res["configured"] != 3:
             problems.append("3 channels configure avvaledu: %s" % res)
         # welcome text to check
         send = [c for c in fake.calls if c["method"] == "sendMessage"]
         if send and "chatting లేదు" not in send[0]["params"]["text"]:
-            problems.append("welcome post lo rules ledu")
+            problems.append("welcome post లో rules లేదు")
         # 4) admin kaani bot → clear error
         fake2 = FakeBot(admin=False)
         r2 = configure_channel(fake2, "ts_bride", load_state())
         if "admin" not in str(r2.get("error", "")).lower():
-            problems.append("admin ledu error ravaledu: %s" % r2.get("error"))
+            problems.append("admin లేదు error ravaledu: %s" % r2.get("error"))
         print("4) non-admin error:", r2.get("error"))
     finally:
         if state_path_bak:
@@ -675,17 +675,17 @@ def env_token(cli_token: str | None) -> str:
 def main() -> int:
     ap = argparse.ArgumentParser(description="Mana Vivaha channel setup automation")
     ap.add_argument("--plan", action="store_true", help="creation plan print + CHANNELS-SETUP-CHECKLIST.md")
-    ap.add_argument("--kit", action="store_true", help="prathi channel ki kit file (channel-kits/)")
-    ap.add_argument("--create-list", action="store_true", help="📱 Telugu copy-paste create list (phone ki)")
+    ap.add_argument("--kit", action="store_true", help="prathi channel కి kit file (channel-kits/)")
+    ap.add_argument("--create-list", action="store_true", help="📱 Telugu copy-paste create list (phone కి)")
     ap.add_argument("--photos", action="store_true", help="channel DP images generate")
-    ap.add_argument("--check", action="store_true", help="Telegram lo status check")
+    ap.add_argument("--check", action="store_true", help="Telegram లో status check")
     ap.add_argument("--apply", action="store_true", help="title/desc/DP/pinned auto set")
-    ap.add_argument("--mark-live", action="store_true", help="registry lo live=True patch")
-    ap.add_argument("--self-test", action="store_true", help="fake bot tho flow test")
+    ap.add_argument("--mark-live", action="store_true", help="registry లో live=True patch")
+    ap.add_argument("--self-test", action="store_true", help="fake bot తో flow test")
     ap.add_argument("--wave", type=int, help="only wave N")
     ap.add_argument("--key", action="append", help="only ee key (repeat ok)")
     ap.add_argument("--token", help="BOT_TOKEN (lekapote env/.env)")
-    ap.add_argument("--force-photo", action="store_true", help="DP already unna malli upload")
+    ap.add_argument("--force-photo", action="store_true", help="DP already ఉన్న మళ్లీ upload")
     ap.add_argument("--dry-run", action="store_true", help="API calls cheyyaku (body chupinchu)")
     args = ap.parse_args()
 
@@ -714,8 +714,8 @@ def main() -> int:
     token = env_token(args.token)
     if not token:
         print("⚠️  BOT_TOKEN ledu.\n"
-              "   1) Telegram → @BotFather → /mybots → mee bot → API Token copy\n"
-              "   2) export BOT_TOKEN=123456:ABC...  (leda backend/.env lo BOT_TOKEN=...)\n"
+              "   1) Telegram → @BotFather → /mybots → మీ bot → API Token copy\n"
+              "   2) export BOT_TOKEN=123456:ABC...  (leda backend/.env లో BOT_TOKEN=...)\n"
               "   3) Malli: python setup_channels.py %s"
               % ("--check" if args.check else "--apply --wave 1"))
         return 2

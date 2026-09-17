@@ -16,7 +16,7 @@ SAVE_DEBOUNCE_S = 5.0
 
 
 def load() -> dict:
-    """Startup load — file lekapoina/corrupt aina khali DB (crash avvadu)."""
+    """Startup load — file lekapoina/corrupt aina khali DB (crash అవ్వదు)."""
     try:
         if not os.path.exists(DB_FILE):
             return {}
@@ -29,7 +29,7 @@ def load() -> dict:
 
 
 def save(payload: dict, force: bool = False) -> bool:
-    """Atomic save (tmp + rename) — half-write/corrupt avvadhu."""
+    """Atomic save (tmp + rename) — half-write/corrupt అవ్వదు."""
     global _last_save
     now = time.time()
     if not force and (now - _last_save) < SAVE_DEBOUNCE_S:

@@ -143,7 +143,7 @@ finally:
 
 section("F. Telugu 404s")
 n1 = c.get("/api/matches/TSAP-NOPE-1")
-check("F1 matches 404 Telugu", n1.status_code == 404 and "dorakaledu" in n1.text, n1.text[:80])
+check("F1 matches 404 Telugu", n1.status_code == 404 and "దొరకలేదు" in n1.text, n1.text[:80])
 # welcome-pack with ageless candidate → 200 (probe 500 class dead)
 _users2 = list(M.DB_USERS)
 try:

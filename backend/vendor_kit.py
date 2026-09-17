@@ -58,7 +58,7 @@ def _center(draw, y, text, font, fill, W):
 
 def vendor_poster(vendor: Dict, style: str = "square", out_path: Optional[str] = None,
                   site: str = "manavivaha.in") -> str:
-    """Vendor promo poster generate chesi path return chestundi."""
+    """Vendor promo poster generate చేసి path return చేస్తుంది."""
     from PIL import Image, ImageDraw
     code = _safe(vendor.get("id", "MVV"))
     out_path = out_path or os.path.join(POSTER_DIR, "%s_%s.png" % (code, style))
@@ -107,7 +107,7 @@ def vendor_poster(vendor: Dict, style: str = "square", out_path: Optional[str] =
     try:
         import qrcode
         qr = qrcode.QRCode(box_size=10, border=2)
-        qr.add_data("https://wa.me/91%s?text=%s" % (phone, "Namaste! Mana Vivaha listing chusanu"))
+        qr.add_data("https://wa.me/91%s?text=%s" % (phone, "నమస్తే! Mana Vivaha listing చూశాను"))
         qr.make()
         qr_img = qr.make_image(fill_color="black", back_color="white").convert("RGB")
         size = 260 if style != "status" else 300
@@ -122,7 +122,7 @@ def vendor_poster(vendor: Dict, style: str = "square", out_path: Optional[str] =
     d.text((100, box_y + 26), "BOOKING / ENQUIRY:", font=_font(30), fill=BRAND_MAROON)
     d.text((100, box_y + 76), "+91 %s" % phone, font=_font(52), fill=BRAND_NAVY)
     _qr_w = (260 if style != "status" else 300) + 60 if qr_ready else 0
-    d.text((100, box_y + 152), "WhatsApp cheyyandi - Mana Vivaha\nmember ani cheppandi",
+    d.text((100, box_y + 152), "WhatsApp చెయ్యండి - Mana Vivaha\nmember అని చెప్పండి",
            font=_font(24), fill=(90, 90, 90), spacing=6)
     if not qr_ready:
         d.text((100, box_y + 190), "%s/vendors" % site, font=_font(26), fill=BRAND_NAVY)

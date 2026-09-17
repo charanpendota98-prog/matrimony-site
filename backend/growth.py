@@ -2,13 +2,13 @@
 MANA VIVAHA — GROWTH ENGINE
 ===========================
 1) 🙏 NAMASTE WELCOME AUTOMATION — register avvagane MANA WhatsApp nunchi:
-   • user ki: "Namaste <name> garu! 🙏" + profile card + full details + next steps
+   • user ki: "నమస్తే <name> గారు! 🙏" + profile card + full details + next steps
    • admin/matcher ki: kotha registration alert (follow-up cheyyadaniki)
-2) 📊 VISITOR + LEAD CAPTURE — "site ki vachina vallu, chusina vallu antha DB lo save avvali"
+2) 📊 VISITOR + LEAD CAPTURE — "site కి వచ్చిన వాళ్లు, chusina వాళ్లు antha DB లో save అవ్వాలి"
    • prathi visit (path, referrer, utm, device, city guess) DB_VISITORS lo
    • number isthe → DB_LEADS (hot lead) + WhatsApp follow-up queue
    • profile views DB_VIEWS lo (already main.py lo) — ikkada who-viewed summary
-3) 🎴 SHARE KIT — "oka profile chala mandi chudalanukune la" — status-ready image + text + hashtags
+3) 🎴 SHARE KIT — "ఒక profile చాలా మంది chudalanukune la" — status-ready image + text + hashtags
 
 Chatting ledu — interest request + WhatsApp profile share model ki todu.
 """
@@ -37,36 +37,36 @@ def namaste_text(user: Dict, tsap_id: str) -> str:
     u = user or {}
     return (
         f"🙏 *నమస్తే {u.get('full_name', 'గారు')} గారు!* 🙏\n"
-        f"*Mana Vivaha* kutumbam lo meeku swagatham 💐\n"
+        f"*Mana Vivaha* కుటుంబంలోకి మీకు స్వాగతం 💐\n"
         f"━━━━━━━━━━━━━━━━\n"
-        f"✅ Mee profile ready: *{tsap_id}*\n"
+        f"✅ మీ profile ready: *{tsap_id}*\n"
         f"━━━━━━━━━━━━━━━━\n"
         f"👤 {u.get('full_name', '—')} ({u.get('age', '—')} yrs)\n"
-        f"💍 {u.get('caste', '—')}{(' / ' + u['sub_caste']) if u.get('sub_caste') else ''} | Gothram: {u.get('gothram', '—')}\n"
-        f"🌟 Star: {u.get('star', '—')} | Rasi: {u.get('rasi', '—')}\n"
+        f"💍 {u.get('caste', '—')}{(' / ' + u['sub_caste']) if u.get('sub_caste') else ''} | గోత్రం: {u.get('gothram', '—')}\n"
+        f"🌟 Star: {u.get('star', '—')} | రాశి: {u.get('rasi', '—')}\n"
         f"📏 Height: {u.get('height', '—')} | 🩸 {u.get('blood_group', '—') or '—'}\n"
         f"🎓 {u.get('education', '—')} {u.get('education_detail', '')}\n"
         f"💼 {u.get('job', '—')} {u.get('company', '')} | 💰 {u.get('salary', '—')}\n"
         f"📍 {u.get('district', '—')}, {u.get('state', 'TS')}\n"
         f"👨‍👩‍👧 {u.get('family_type', '—')} • {u.get('family_status', '—')}\n"
         f"━━━━━━━━━━━━━━━━\n"
-        f"📢 Mee profile ippude mana *65 channels* + WhatsApp groups lo post avutundi "
-        f"(anti-ban rules tho — konni nimushalalo live).\n"
+        f"📢 మీ profile ఇప్పుడే మన *52 channels* + WhatsApp groups లో post అవుతుంది "
+        f"(anti-ban rules తో — కొన్ని నిమిషాల్లో live).\n"
         f"━━━━━━━━━━━━━━━━\n"
-        f"*Ippudu em cheyyali?*\n"
-        f"1️⃣ Mee profile card kindha pampisthunnam — WhatsApp status lo pettandi (reach double!)\n"
-        f"2️⃣ Matches chusi 💌 *Interest request* pampandi — modati 3 FREE\n"
-        f"3️⃣ Mee ID share cheyyandi: {tsap_id}\n"
+        f"*ఇప్పుడు ఏం చెయ్యాలి?*\n"
+        f"1️⃣ మీ profile card కింద పంపిస్తున్నాం — WhatsApp status లో పెట్టండి (reach double!)\n"
+        f"2️⃣ Matches చూసి 💌 *Interest request* పంపండి — మొదటి 3 FREE\n"
+        f"3️⃣ మీ ID share చెయ్యండి: {tsap_id}\n"
         f"━━━━━━━━━━━━━━━━\n"
-        f"🔒 Mee number evariki kanipinchadu. Interest accept ayyaka matrame exchange avutundi.\n"
-        f"🚫 Chatting ledu — spam/loose talk undadu.\n"
-        f"🤖 Bot: {BOT_USERNAME} | 🔍 Mee profile: {SITE}/search/{tsap_id}\n"
-        f"⚠️ Advance money adigithe ventane report cheyyandi: {SUPPORT_PHONE}"
+        f"🔒 మీ number ఎవరికీ కనిపించదు. Interest accept అయ్యాకే exchange అవుతుంది.\n"
+        f"🚫 Chatting లేదు — spam/loose talk ఉండదు.\n"
+        f"🤖 Bot: {BOT_USERNAME} | 🔍 మీ profile: {SITE}/search/{tsap_id}\n"
+        f"⚠️ Advance money అడిగితే వెంటనే report చెయ్యండి: {SUPPORT_PHONE}"
     )
 
 
 def admin_new_profile_text(user: Dict, tsap_id: str, source: str = "website") -> str:
-    """Admin/matcher ki kotha registration alert — 2 nimushalalo verify + follow-up cheyyadaniki."""
+    """Admin/matcher కి కొత్త registration alert — 2 నిమిషాల్లో verify + follow-up చెయ్యడానికి."""
     u = user or {}
     return (
         f"🆕 *NEW REGISTRATION* ({source})\n"
@@ -74,26 +74,26 @@ def admin_new_profile_text(user: Dict, tsap_id: str, source: str = "website") ->
         f"👤 {u.get('full_name', '—')} • {u.get('age', '—')}y • {u.get('caste', '—')}\n"
         f"📍 {u.get('district', '—')}, {u.get('state', 'TS')} • 🎓 {u.get('education', '—')} • 💼 {u.get('job', '—')}\n"
         f"📞 {u.get('phone', '—')} {'✅ verified' if u.get('phone_verified') else '⚠️ verify pending'}\n"
-        f"📸 photo: {'undi' if u.get('photo_urls') else 'ledu — adagandi'}\n"
+        f"📸 photo: {'ఉంది' if u.get('photo_urls') else 'లేదు — అడగండి'}\n"
         f"🎴 Card: {SITE}/cards/{tsap_id}.png\n"
-        f"👉 Follow-up: welcome call + photo adagandi + channels confirm"
+        f"👉 Follow-up: welcome call + photo అడగండి + channels confirm"
     )
 
 
 def lead_followup_text(lead: Dict) -> str:
-    """Number ichi aagipoyina lead ki polite follow-up (mana WhatsApp nunchi)."""
+    """Number ichi ఆగిపోయిన lead కి polite follow-up (మన WhatsApp నుంచి)."""
     l = lead or {}
     return (
-        f"🙏 Namaste {l.get('name', 'గారు')} గారు!\n"
-        f"Mana Vivaha nunchi matladutunnam 💐\n"
-        f"Meeru {l.get('district', 'mee oorlo')} nunchi — {l.get('gender', '')} profile ki interest chupincharu.\n"
+        f"🙏 నమస్తే {l.get('name', 'గారు')} గారు!\n"
+        f"Mana Vivaha నుంచి మాట్లాడుతున్నాం 💐\n"
+        f"మీరు {l.get('district', 'మీ ఊర్లో')} నుంచి — {l.get('gender', '')} profile కి interest చూపించారు.\n"
         f"━━━━━━━━━━━━━━━━\n"
-        f"Mee profile *FREE* ga complete cheyyadaniki 3 nimushalu chalu:\n"
-        f"1️⃣ Peru + photo (optional)\n2️⃣ Caste + star details\n3️⃣ Education + job\n"
+        f"మీ profile *FREE* గా complete చెయ్యడానికి 3 నిమిషాలు చాలు:\n"
+        f"1️⃣ పేరు + photo (optional)\n2️⃣ Caste + star details\n3️⃣ Education + job\n"
         f"━━━━━━━━━━━━━━━━\n"
-        f"🔗 Ikkada complete cheyyandi: {SITE}/register?phone={l.get('phone', '')}\n"
-        f"లేదా ee number ki 'YES' ani reply cheyyandi — mana team call chesi 5 nimushalalo profile ready chestundi.\n"
-        f"🔒 Mee number safe — evariki share avvadu.🚫 Chatting ledu.\n"
+        f"🔗 ఇక్కడ complete చెయ్యండి: {SITE}/register?phone={l.get('phone', '')}\n"
+        f"లేదా ఈ number కి 'YES' అని reply చెయ్యండి — మన team call చేసి 5 నిమిషాల్లో profile ready చేస్తుంది.\n"
+        f"🔒 మీ number safe — ఎవరికీ share అవ్వదు. 🚫 Chatting లేదు.\n"
         f"❓ Help: {SUPPORT_PHONE}"
     )
 
@@ -102,13 +102,13 @@ def lead_followup_text(lead: Dict) -> str:
 # 2) 📊 VISITOR + LEAD CAPTURE
 # ---------------------------------------------------------------------------
 def _vid(ip: str, ua: str) -> str:
-    """Anonymous visitor id (IP+UA hash — cookie ledu, GDPR-friendly)."""
+    """Anonymous visitor id (IP+UA hash — cookie లేదు, GDPR-friendly)."""
     return "V" + hashlib.sha256((str(ip) + "|" + str(ua)[:120]).encode()).hexdigest()[:14]
 
 
 def track_visit(ip: str, ua: str, path: str, ref: str = "", utm: str = "",
                 device: str = "", extra: Optional[Dict] = None) -> Dict:
-    """Prathi visit DB_VISITORS lo — 'chusina vallu antha save' requirement."""
+    """Prathi visit DB_VISITORS లో — 'chusina వాళ్లు antha save' requirement."""
     d = "mobile" if device == "mobile" else ("desktop" if device == "desktop" else ("mobile" if _is_mobile(ua) else "desktop"))
     rec = {
         "vid": _vid(ip, ua), "at": datetime.utcnow().isoformat(), "path": path[:160],
@@ -153,7 +153,7 @@ def save_lead(name: str, phone: str, gender: str = "", district: str = "", caste
     """
     phone = "".join(ch for ch in str(phone) if ch.isdigit())[-10:]
     if len(phone) != 10:
-        return False, "10 digit mobile number ivvandi", {}
+        return False, "10 digit mobile number ఇవ్వండి", {}
     existing = next((l for l in DB_LEADS if l["phone"] == phone), None)
     if existing:
         existing.update({"name": name or existing.get("name", ""), "gender": gender or existing.get("gender", ""),
@@ -168,7 +168,7 @@ def save_lead(name: str, phone: str, gender: str = "", district: str = "", caste
         "at": datetime.utcnow().isoformat(), "name": name, "phone": phone, "gender": gender,
         "district": district, "caste": caste, "age": str(age), "source": source, "notes": notes,
         "status": "new", "touches": 1,
-        "followup": "WhatsApp follow-up queued (mana side nunchi)",
+        "followup": "WhatsApp follow-up queued (మన side నుంచి)",
     }
     DB_LEADS.append(lead)
     return True, "new_lead", lead
@@ -198,7 +198,7 @@ def lead_stats() -> Dict:
         "conversion": (round(len(DB_LEADS) / max(1, len({v['vid'] for v in DB_VISITORS})) * 100, 1)),
         "message_telugu": "%d visits (%d unique) • %d leads • %s" % (
             len(DB_VISITORS), len({v["vid"] for v in DB_VISITORS}), len(DB_LEADS),
-            "ee roju kotha leads: %d" % len([l for l in DB_LEADS if l["at"][:10] == datetime.utcnow().strftime("%Y-%m-%d")])),
+            "ee రోజు కొత్త leads: %d" % len([l for l in DB_LEADS if l["at"][:10] == datetime.utcnow().strftime("%Y-%m-%d")])),
     }
 
 
@@ -214,7 +214,7 @@ def leads_list(status: str = "", limit: int = 100) -> Dict:
     rows = DB_LEADS if not status else [l for l in DB_LEADS if l.get("status") == status]
     hot = sorted(rows, key=lambda x: (-int(x.get("touches", 1)), x["at"]), reverse=False)[:limit]
     return {"total": len(rows), "items": hot,
-            "message_telugu": "Kotha leads mundu follow-up cheyyandi — first 24 hours lo response rate 3x ekkuva"}
+            "message_telugu": "కొత్త leads ముందు follow-up చెయ్యండి — first 24 hours లో response rate 3x ఎక్కువ"}
 
 
 # ---------------------------------------------------------------------------
@@ -223,7 +223,7 @@ def leads_list(status: str = "", limit: int = 100) -> Dict:
 def share_kit(user: Dict, tsap_id: str, hashtags: Optional[List[str]] = None) -> Dict:
     """
     WhatsApp status / groups ki ready kit: card image + Telugu text + hashtags + TG/WA share links.
-    'Oka profile chala mandi chudalanukune la' — idi aa reach engine.
+    'ఒక profile చాలా మంది chudalanukune la' — idi aa reach engine.
     """
     u = user or {}
     name = u.get("full_name", "Profile")
@@ -246,11 +246,11 @@ def share_kit(user: Dict, tsap_id: str, hashtags: Optional[List[str]] = None) ->
         "hashtags": tags,
         "whatsapp_share": "https://wa.me/?text=" + _url(caption),
         "telegram_share": "https://t.me/share/url?url=" + _url(f"{SITE}/search/{tsap_id}") + "&text=" + _url(caption),
-        "best_time_to_post": "Ratri 8–10 IST (WhatsApp status views ekkuva)",
+        "best_time_to_post": "Ratri 8–10 IST (WhatsApp status views ఎక్కువ)",
         "tips_telugu": [
-            "Card image ni WhatsApp status lo 24h pettandi — local reach 3x avutundi",
-            "Family WhatsApp groups lo caption + link pampandi",
-            "Caste + district group admin ki direct ga pampandi (mana channels cover chestayi)",
+            "Card image ని WhatsApp status లో 24h పెట్టండి — local reach 3x అవుతుంది",
+            "Family WhatsApp groups లో caption + link పంపండి",
+            "Caste + district group admin కి direct గా పంపండి (మన channels cover chestayi)",
         ],
     }
 
@@ -265,26 +265,26 @@ def _url(s: str) -> str:
 # ---------------------------------------------------------------------------
 def inventory_status(total_users: int) -> Dict:
     """
-    'Chala mandi undalsina avasaram ledu — 300–400 profiles chalu' → ee gauge.
+    'చాలా మంది ఉండాల్సిన అవసరం లేదు — 300–400 profiles చాలు' → ee gauge.
     """
     target = int(os.getenv("LAUNCH_TARGET_PROFILES", "360"))
     pct = round(total_users / max(1, target) * 100, 1)
     return {
         "total_profiles": total_users, "launch_target": target, "percent": pct,
         "ready": total_users >= target,
-        "message_telugu": ("✅ Launch inventory ready (%d/%d profiles) — channels khali ga kanipinchavu"
+        "message_telugu": ("✅ Launch inventory ready (%d/%d profiles) — channels khali గా kanipinchavu"
                            % (total_users, target)) if total_users >= target else
-                          ("⚠️ Inka %d profiles kavali launch ki (%d/%d). Growth engine leads ni profiles ga marchutundi."
+                          ("⚠️ ఇంకా %d profiles కావాలి launch కి (%d/%d). Growth engine leads ని profiles గా marchutundi."
                            % (target - total_users, total_users, target)),
         "how_to_fill": ["POST /api/demo/seed-launch (demo inventory)",
-                        "Community heads nunchi bulk upload",
+                        "Community heads నుంచి bulk upload",
                         "Lead follow-up → profile completion (conversion 40%+)",
                         "Referral link (prathi user 3 profiles techukostadu)"],
     }
 
 
 def expire_old_requests(requests: List[Dict], days: int = 7) -> int:
-    """7 days lo reply lekapothe request expire (credits user ke migilipothayi ani notify)."""
+    """7 days లో reply lekapothe request expire (credits user కే migilipothayi అని notify)."""
     now = datetime.utcnow()
     n = 0
     for r in requests:

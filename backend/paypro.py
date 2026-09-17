@@ -35,7 +35,7 @@ _ORDER_LOCKS: Dict[str, threading.Lock] = defaultdict(threading.Lock)
 
 
 def valid_utr(utr: str) -> bool:
-    """UTR/UPI-ref = exactly 12 digits (screenshot/statement nunchi)."""
+    """UTR/UPI-ref = exactly 12 digits (screenshot/statement నుంచి)."""
     return bool(UTR_RE.fullmatch((utr or "").strip()))
 
 
@@ -48,14 +48,14 @@ def _order_age_hours(po: Dict) -> float:
 
 
 def order_expired(po: Dict) -> bool:
-    """created/claimed order 24h datithe expire — kotha order mandatory (amount/plan drift proof)."""
+    """created/claimed order 24h datithe expire — కొత్త order mandatory (amount/plan drift proof)."""
     if (po.get("status") or "") not in ("created", "claimed"):
         return False
     return _order_age_hours(po) > ORDER_EXPIRY_HOURS
 
 
 def utr_used_elsewhere(utr: str, exclude_order_id: str = "") -> Optional[str]:
-    """Same UTR malli vadakudadu — edo order lo paid/claimed ayyinda? → order id."""
+    """Same UTR మళ్లీ vadakudadu — edo order లో paid/claimed ayyinda? → order id."""
     u = (utr or "").strip()
     if not u:
         return None
@@ -114,7 +114,7 @@ def pay_config() -> Dict:
             "key_id": key_id if live else "",
             "upi_id": upi,
             "note_telugu": ("💳 Online pay ready (Razorpay)" if live
-                            else f"💳 UPI manual: {upi} ki pay chesi UTR pampandi — admin confirm chesthadu")}
+                            else f"💳 UPI manual: {upi} కి pay చేసి UTR పంపండి — admin confirm చేస్తాడు")}
 
 
 def _secret() -> str:
@@ -137,7 +137,7 @@ FESTIVAL_PRESETS = [
 
 
 def seed_festivals(valid_from: str = "", valid_to: str = "", max_uses: int = 1000) -> Dict:
-    """Admin 1-click: preset festival codes activate (dates tho)."""
+    """Admin 1-click: preset festival codes activate (dates తో)."""
     added = []
     have = {o.get("code") for o in OFFERS}
     for p in FESTIVAL_PRESETS:
@@ -158,11 +158,11 @@ def create_offer(code: str, title: str, pct_off: int = 0, flat_off: int = 0,
                  festival: str = "", usable_once: bool = True) -> Dict:
     code = str(code or "").strip().upper()
     if len(code) < 3:
-        return {"success": False, "message_telugu": "⚠️ Code 3+ chars undali"}
+        return {"success": False, "message_telugu": "⚠️ Code 3+ chars ఉండాలి"}
     if any(o.get("code") == code for o in OFFERS):
-        return {"success": False, "message_telugu": "⚠️ Ee code already undi"}
+        return {"success": False, "message_telugu": "⚠️ ఈ code already ఉంది"}
     if not pct_off and not flat_off:
-        return {"success": False, "message_telugu": "⚠️ % leda flat discount ivvandi"}
+        return {"success": False, "message_telugu": "⚠️ % leda flat discount ఇవ్వండి"}
     o = {"code": code, "title": title or code, "pct_off": int(pct_off or 0),
          "flat_off": int(flat_off or 0), "applies_to": applies_to or ["credits"],
          "valid_from": valid_from or "", "valid_to": valid_to or "",
@@ -185,9 +185,9 @@ def delete_offer(code: str) -> Dict:
     before = len(OFFERS)
     OFFERS = [o for o in OFFERS if str(o.get("code", "")).upper() != code]
     if len(OFFERS) == before:
-        return {"success": False, "message_telugu": "⚠️ Offer code dorakaledu"}
+        return {"success": False, "message_telugu": "⚠️ Offer code దొరకలేదు"}
     _persist()
-    return {"success": True, "message_telugu": f"🗑️ {code} delete ayyindi"}
+    return {"success": True, "message_telugu": f"🗑️ {code} delete అయ్యింది"}
 
 
 def validate_offer(code: str, purpose: str, amount: int, user_id: str = "") -> Dict:
@@ -196,23 +196,23 @@ def validate_offer(code: str, purpose: str, amount: int, user_id: str = "") -> D
         return {"ok": True, "code": "", "final_amount": amount, "discount": 0}
     o = get_offer(code)
     if not o or not o.get("active"):
-        return {"ok": False, "reason": "bad_code", "message_telugu": "⚠️ Offer code valid kadu"}
+        return {"ok": False, "reason": "bad_code", "message_telugu": "⚠️ Offer code valid కాదు"}
     today = datetime.utcnow().strftime("%Y-%m-%d")
     if o.get("valid_from") and today < o["valid_from"][:10]:
-        return {"ok": False, "reason": "not_started", "message_telugu": "⚠️ Offer inka start kaledu"}
+        return {"ok": False, "reason": "not_started", "message_telugu": "⚠️ Offer ఇంకా start కాలేదు"}
     if o.get("valid_to") and today > o["valid_to"][:10]:
-        return {"ok": False, "reason": "expired", "message_telugu": "⚠️ Offer expire ayyindi"}
+        return {"ok": False, "reason": "expired", "message_telugu": "⚠️ Offer expire అయ్యింది"}
     if int(o.get("used", 0)) >= int(o.get("max_uses", 1)):
         return {"ok": False, "reason": "exhausted", "message_telugu": "⚠️ Offer limit ayipoyindi"}
     if o.get("usable_once", True) and user_id and str(user_id).strip().upper() in [str(x).upper() for x in (o.get("used_by") or [])]:
         return {"ok": False, "reason": "already_used",
-                "message_telugu": "⚠️ Ee code ni meeru already vadaru (okkasari matrame)"}
+                "message_telugu": "⚠️ ఈ code ని మీరు already vadaru (okkasari మాత్రమే)"}
     if purpose not in (o.get("applies_to") or []):
         return {"ok": False, "reason": "not_applicable",
-                "message_telugu": f"⚠️ Ee offer {purpose} ki apply kadu"}
+                "message_telugu": f"⚠️ ఈ offer {purpose} కి apply కాదు"}
     if amount < int(o.get("min_amount", 0) or 0):
         return {"ok": False, "reason": "min_amount",
-                "message_telugu": f"⚠️ Minimum ₹{o['min_amount']} undali"}
+                "message_telugu": f"⚠️ Minimum ₹{o['min_amount']} ఉండాలి"}
     disc = int(amount * int(o.get("pct_off", 0) or 0) / 100) + int(o.get("flat_off", 0) or 0)
     disc = min(disc, amount - 1) if amount > 1 else 0
     return {"ok": True, "code": o["code"], "final_amount": amount - disc, "discount": disc,
@@ -256,22 +256,22 @@ def _expected_amount(purpose: str, ref: str) -> Dict:
     if purpose == "credits":
         plan = get_plan(ref)
         if (plan.get("code") or "FREE") == "FREE":
-            return {"ok": False, "message_telugu": "⚠️ Plan code S_29/S_99/S_199/S_299/S_499 matrame"}
+            return {"ok": False, "message_telugu": "⚠️ Plan code S_29/S_99/S_199/S_299/S_499 మాత్రమే"}
         return {"ok": True, "amount": int(plan["price"]), "label": plan.get("telugu", plan.get("label", ref)),
                 "credits": int(plan.get("profiles", 0))}
     if purpose == "assisted":
         import smart12 as S12  # lazy
         o = S12.get_order(ref)
         if not o:
-            return {"ok": False, "message_telugu": "⚠️ Assist order dorakaledu"}
+            return {"ok": False, "message_telugu": "⚠️ Assist order దొరకలేదు"}
         if o.get("status") not in ("requested",):
-            return {"ok": False, "message_telugu": f"⚠️ Order already {o.get('status')} — malli pay vaddu"}
+            return {"ok": False, "message_telugu": f"⚠️ Order already {o.get('status')} — మళ్లీ pay వద్దు"}
         return {"ok": True, "amount": int(o.get("amount", 500)), "label": f"Assisted {ref} (₹500 service)"}
     if purpose == "ads":
         import ads as ADS  # lazy
         c = ADS.get_campaign(ref)
         if not c:
-            return {"ok": False, "message_telugu": "⚠️ Campaign dorakaledu"}
+            return {"ok": False, "message_telugu": "⚠️ Campaign దొరకలేదు"}
         if c.get("status") not in ("pending",):
             return {"ok": False, "message_telugu": f"⚠️ Campaign already {c.get('status')}"}
         return {"ok": True, "amount": int(c.get("amount", 0)), "label": f"Ad campaign {ref}"}
@@ -279,9 +279,9 @@ def _expected_amount(purpose: str, ref: str) -> Dict:
         import advanced11 as A11  # lazy
         pack = A11.BOOST_PACKS.get(str(ref).upper())
         if not pack:
-            return {"ok": False, "message_telugu": "⚠️ Boost pack B_1/B_3/B_7 matrame"}
+            return {"ok": False, "message_telugu": "⚠️ Boost pack B_1/B_3/B_7 మాత్రమే"}
         return {"ok": True, "amount": int(pack["price"]), "label": pack.get("label", ref)}
-    return {"ok": False, "message_telugu": "⚠️ purpose: credits/assisted/ads/boost matrame"}
+    return {"ok": False, "message_telugu": "⚠️ purpose: credits/assisted/ads/boost మాత్రమే"}
 
 
 def _rzp_create_order(pay_order_id: str, amount_rs: int, label: str) -> Dict:
@@ -292,7 +292,7 @@ def _rzp_create_order(pay_order_id: str, amount_rs: int, label: str) -> Dict:
     key_id = os.getenv("RAZORPAY_KEY_ID", "").strip()
     secret = _secret()
     if not key_id or not secret:
-        return {"ok": False, "message_telugu": "⚠️ Online pay configure kaledu (keys ledu) — UPI manual tho try cheyyandi"}
+        return {"ok": False, "message_telugu": "⚠️ Online pay configure కాలేదు (keys లేదు) — UPI manual తో try చెయ్యండి"}
     try:
         r = requests.post(
             "https://api.razorpay.com/v1/orders",
@@ -301,13 +301,13 @@ def _rzp_create_order(pay_order_id: str, amount_rs: int, label: str) -> Dict:
                   "receipt": pay_order_id[:40], "notes": {"pay_order": pay_order_id, "label": label[:100]}},
             timeout=15)
         if r.status_code not in (200, 201):
-            return {"ok": False, "message_telugu": "⚠️ Razorpay order create fail — malli try cheyyandi (dabbulu cut avvavu)"}
+            return {"ok": False, "message_telugu": "⚠️ Razorpay order create fail — మళ్లీ try చెయ్యండి (డబ్బులు cut avvavu)"}
         j = r.json()
         if not j.get("id") or int(j.get("amount", 0)) != int(amount_rs) * 100:
-            return {"ok": False, "message_telugu": "⚠️ Razorpay amount mismatch — order create kaledu (safe abort)"}
+            return {"ok": False, "message_telugu": "⚠️ Razorpay amount mismatch — order create కాలేదు (safe abort)"}
         return {"ok": True, "rzp_order_id": j["id"], "rzp_amount": int(j["amount"])}
     except Exception:
-        return {"ok": False, "message_telugu": "⚠️ Razorpay reach avvatledu — network/malli try (UPI manual kooda undi)"}
+        return {"ok": False, "message_telugu": "⚠️ Razorpay reach avvatledu — network/మళ్లీ try (UPI manual కూడా ఉంది)"}
 
 
 def create_pay_order(tsap_id: str, purpose: str, ref: str, offer_code: str = "") -> Dict:
@@ -341,17 +341,17 @@ def create_pay_order(tsap_id: str, purpose: str, ref: str, offer_code: str = "")
     out = {"success": True, "pay_order": {k: po[k] for k in
            ("id", "purpose", "ref", "amount", "final_amount", "discount", "offer_code",
             "label", "mode", "status")},
-           "message_telugu": (f"✅ Order {po['id']} — ₹{po['final_amount']} pay cheyyandi"
+           "message_telugu": (f"✅ Order {po['id']} — ₹{po['final_amount']} pay చెయ్యండి"
                                + (f" (offer {off['code']}: -₹{off['discount']})" if off.get("code") else ""))}
     if cfg["mode"] == "razorpay":
         # 🌊 WAVE 25: frontend checkout ee order_id tho — verify lo signature + id + amount match
         out["pay_order"]["key_id"] = cfg["key_id"]
         out["pay_order"]["rzp_order_id"] = po["rzp_order_id"]
         out["pay_order"]["checkout_amount_paise"] = po["final_amount"] * 100
-        out["next_telugu"] = "💳 Razorpay checkout lo pay chesi → /api/pay/verify ki pampandi"
+        out["next_telugu"] = "💳 Razorpay checkout లో pay చేసి → /api/pay/verify కి పంపండి"
     else:
         out["pay_order"]["upi_id"] = cfg["upi_id"]
-        out["next_telugu"] = f"💳 {cfg['upi_id']} ki ₹{po['final_amount']} pay chesi UTR admin ki pampandi"
+        out["next_telugu"] = f"💳 {cfg['upi_id']} కి ₹{po['final_amount']} pay చేసి UTR admin కి పంపండి"
     return out
 
 
@@ -397,11 +397,11 @@ def _fire_referral_commission(user: Dict, po: Dict, payment_id: str) -> None:
 
 
 def fulfill_order(po: Dict, payment_id: str, via: str) -> Dict:
-    """Actual fulfill (main.py users/callbacks tho — Users list inject via param? no: lazy main)."""
+    """Actual fulfill (main.py users/callbacks తో — Users list inject via param? no: lazy main)."""
     import main as MAIN  # lazy: circles avoid (paypro ← main import, runtime only)
     user = MAIN._find_user(po.get("tsap_id", ""))
     if not user:
-        return {"ok": False, "message_telugu": "⚠️ User dorakaledu — amount hold (admin refund/credit)"}
+        return {"ok": False, "message_telugu": "⚠️ User దొరకలేదు — amount hold (admin refund/credit)"}
     purpose, ref = po.get("purpose"), po.get("ref")
     if purpose == "credits":
         from interest import apply_payment
@@ -419,7 +419,7 @@ def fulfill_order(po: Dict, payment_id: str, via: str) -> Dict:
             return {"ok": False, "message_telugu": r.get("message_telugu")}
         _fire_referral_commission(user, po, payment_id)
         return {"ok": True, "referral": po.get("referral"),
-                "message_telugu": f"✅ Assisted {ref} PAID — admin profiles select chesi personal ga pampisthadu 🙏"}
+                "message_telugu": f"✅ Assisted {ref} PAID — admin profiles select చేసి personal గా pampisthadu 🙏"}
     if purpose == "ads":
         import ads as ADS
         r = ADS.approve_campaign(ref, payment_id or po.get("utr", "") or "RZPAY")
@@ -452,27 +452,27 @@ def _verify_payment_locked(pay_order_id: str, rzp_order_id: str, payment_id: str
                            signature: str) -> Dict:
     po = get_pay_order(pay_order_id)
     if not po:
-        return {"success": False, "message_telugu": "⚠️ Order dorakaledu"}
+        return {"success": False, "message_telugu": "⚠️ Order దొరకలేదు"}
     if po.get("status") == "paid":
         return {"success": True, "duplicate": True, "receipt": po.get("receipt"),
-                "message_telugu": "✅ Ee order already paid — double charge ledu (idempotent) 🙂"}
+                "message_telugu": "✅ ఈ order already paid — double charge లేదు (idempotent) 🙂"}
     if order_expired(po):
         po["status"] = "expired"
         _persist()
         return {"success": False, "reason": "expired",
-                "message_telugu": "⚠️ Order expire ayyindi (24h) — kotha order create cheyyandi"}
+                "message_telugu": "⚠️ Order expire అయ్యింది (24h) — కొత్త order create చెయ్యండి"}
     if payment_id and payment_id in RECEIPTS:
         old = RECEIPTS[payment_id]
         return {"success": True, "duplicate": True, "receipt": old,
-                "message_telugu": "✅ Ee payment already use ayyindi — malli credit ivvamu 🙂"}
+                "message_telugu": "✅ ఈ payment already use అయ్యింది — మళ్లీ credit ఇవ్వము 🙂"}
     if pay_config()["mode"] != "razorpay":
-        return {"success": False, "message_telugu": "⚠️ Online verify off (manual-UPI mode) — admin confirm chesthadu"}
+        return {"success": False, "message_telugu": "⚠️ Online verify off (manual-UPI mode) — admin confirm చేస్తాడు"}
     if po.get("rzp_order_id") and rzp_order_id != po["rzp_order_id"]:
         return {"success": False, "reason": "order_mismatch",
-                "message_telugu": "🚫 Ee payment vere order di — mana order tho match avvaledu (support ki payment ID pampandi)"}
+                "message_telugu": "🚫 ఈ payment vere order di — మన order తో match avvaledu (support కి payment ID పంపండి)"}
     if not _hmac_ok(rzp_order_id, payment_id, signature):
         return {"success": False, "reason": "bad_signature",
-                "message_telugu": "🚫 Payment verify FAIL — signature mismatch (amount cut ayithe 5-7 days lo auto-refund, leda support ki payment ID pampandi)"}
+                "message_telugu": "🚫 Payment verify FAIL — signature mismatch (amount cut అయితే 5-7 days లో auto-refund, leda support కి payment ID పంపండి)"}
     po["rzp_order_id"] = rzp_order_id
     po["payment_id"] = payment_id
     done = fulfill_order(po, payment_id, "razorpay")
@@ -551,10 +551,10 @@ def claim_utr(pay_order_id: str, tsap_id: str, utr: str) -> Dict:
     Owner route nunchi matrame (mee order ke)."""
     po = get_pay_order(pay_order_id)
     if not po:
-        return {"success": False, "message_telugu": "⚠️ Order dorakaledu"}
+        return {"success": False, "message_telugu": "⚠️ Order దొరకలేదు"}
     if str(po.get("tsap_id", "")).upper() != str(tsap_id or "").upper():
         return {"success": False, "reason": "not_yours",
-                "message_telugu": "⚠️ Ee order meedi kadu"}
+                "message_telugu": "⚠️ ఈ order meedi కాదు"}
     if po.get("status") == "paid":
         return {"success": True, "duplicate": True,
                 "message_telugu": "✅ Already paid — credits vachayi 🙂"}
@@ -562,22 +562,22 @@ def claim_utr(pay_order_id: str, tsap_id: str, utr: str) -> Dict:
         po["status"] = "expired"
         _persist()
         return {"success": False, "reason": "expired",
-                "message_telugu": "⚠️ Order expire ayyindi — kotha order cheyyandi"}
+                "message_telugu": "⚠️ Order expire అయ్యింది — కొత్త order చెయ్యండి"}
     if po.get("status") not in ("created", "claimed"):
-        return {"success": False, "message_telugu": "⚠️ Ee order confirm cheyyalem (status: %s)" % po.get("status")}
+        return {"success": False, "message_telugu": "⚠️ ఈ order confirm cheyyalem (status: %s)" % po.get("status")}
     if not valid_utr(utr):
         return {"success": False, "reason": "utr_invalid",
-                "message_telugu": "⚠️ UTR = 12 digits (GPay/PhonePe statement nunchi copy cheyyandi)"}
+                "message_telugu": "⚠️ UTR = 12 digits (GPay/PhonePe statement నుంచి copy చెయ్యండి)"}
     dup = utr_used_elsewhere(utr, exclude_order_id=po["id"])
     if dup:
         return {"success": False, "reason": "utr_reused",
-                "message_telugu": "🚫 Ee UTR already vere order (%s) lo use ayyindi" % dup}
+                "message_telugu": "🚫 ఈ UTR already vere order (%s) లో use అయ్యింది" % dup}
     po["claim_utr"] = utr.strip()
     po["claimed_at"] = _now()
     po["status"] = "claimed"
     _persist()
     return {"success": True, "order_id": po["id"],
-            "message_telugu": "✅ UTR vachindi! Admin bank statement verify chesi confirm chesthadu (thwaralone credits add) 🙏"}
+            "message_telugu": "✅ UTR వచ్చింది! Admin bank statement verify చేసి confirm చేస్తాడు (thwaralone credits add) 🙏"}
 
 
 def confirm_manual(pay_order_id: str, utr: str) -> Dict:
@@ -590,30 +590,30 @@ def confirm_manual(pay_order_id: str, utr: str) -> Dict:
 def _confirm_manual_locked(pay_order_id: str, utr: str) -> Dict:
     po = get_pay_order(pay_order_id)
     if not po:
-        return {"success": False, "message_telugu": "⚠️ Order dorakaledu"}
+        return {"success": False, "message_telugu": "⚠️ Order దొరకలేదు"}
     if po.get("status") == "paid":
         return {"success": True, "duplicate": True, "receipt": po.get("receipt"),
-                "message_telugu": "✅ Already paid — double credit ivvamu"}
+                "message_telugu": "✅ Already paid — double credit ఇవ్వము"}
     if order_expired(po):
         po["status"] = "expired"
         _persist()
         return {"success": False, "reason": "expired",
-                "message_telugu": "⚠️ Order expire ayyindi — user kotha order cheyyali"}
+                "message_telugu": "⚠️ Order expire అయ్యింది — user కొత్త order చెయ్యాలి"}
     if po.get("status") not in ("created", "claimed"):
-        return {"success": False, "message_telugu": "⚠️ Ee order confirm cheyyalem (status: %s)" % po.get("status")}
+        return {"success": False, "message_telugu": "⚠️ ఈ order confirm cheyyalem (status: %s)" % po.get("status")}
     utr = (utr or "").strip() or (po.get("claim_utr") or "")
     if po.get("status") == "claimed" and not (utr or "").strip():
         utr = po.get("claim_utr", "")
     if not valid_utr(utr):
         return {"success": False, "reason": "utr_invalid",
-                "message_telugu": "⚠️ UTR 12 digits undali (statement nunchi verify cheyyandi)"}
+                "message_telugu": "⚠️ UTR 12 digits ఉండాలి (statement నుంచి verify చెయ్యండి)"}
     dup = utr_used_elsewhere(utr, exclude_order_id=po["id"])
     if dup:
         return {"success": False, "reason": "utr_reused",
-                "message_telugu": "🚫 FRAUD BLOCK: ee UTR already %s lo use ayyindi!" % dup}
+                "message_telugu": "🚫 FRAUD BLOCK: ee UTR already %s లో use అయ్యింది!" % dup}
     if int(po.get("final_amount", 0) or 0) <= 0:
         return {"success": False, "reason": "bad_amount",
-                "message_telugu": "⚠️ Order amount tappu — kotha order cheyyandi"}
+                "message_telugu": "⚠️ Order amount tappu — కొత్త order చెయ్యండి"}
     po["utr"] = utr.strip()
     done = fulfill_order(po, "", "manual_utr")
     if not done.get("ok"):

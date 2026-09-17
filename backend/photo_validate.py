@@ -30,13 +30,13 @@ FRAME_BAND = 0.045      # top+bottom dark band >= 4.5% height each = PHOTO_OF_PH
 FRAME_DARK = 28         # band mean kinda + center paina → frame undi
 
 REASONS = {
-    "OK": ("Photo looks clear ✅", "ఫోటో క్లియర్‌గా ఉంది ✅ — admin approval ki vellindi"),
-    "BAD_FORMAT": ("Not a valid photo file", "ఇది సరైన ఫోటో ఫైల్ కాదు — JPG/PNG/WebP pettandi"),
+    "OK": ("Photo looks clear ✅", "ఫోటో క్లియర్‌గా ఉంది ✅ — admin approval కి వెళ్లింది"),
+    "BAD_FORMAT": ("Not a valid photo file", "ఇది సరైన ఫోటో ఫైల్ కాదు — JPG/PNG/WebP పెట్టండి"),
     "TOO_BIG": ("Photo larger than 5 MB", "ఫోటో 5MB కన్నా పెద్దది — చిన్న ఫోటో పంపండి"),
     "TOO_SMALL_FILE": ("Photo file is empty/corrupt", "ఫోటో ఖాళీ/పాడైంది — మళ్లీ upload చెయ్యండి"),
-    "LOW_RES": ("Image resolution too low", "ఫోటో resolution చాలా తక్కువ — high-quality original photo pettandi (min 350px)"),
+    "LOW_RES": ("Image resolution too low", "ఫోటో resolution చాలా తక్కువ — high-quality original photo పెట్టండి (min 350px)"),
     "TOO_DARK": ("Photo is too dark", "ఫోటో చాలా చీకటిగా ఉంది — వెలుతురులో తీసిన ఫోటో పంపండి"),
-    "TOO_BRIGHT": ("Photo is overexposed/blank", "ఫోటో తెల్లగా/మసకగా ఉంది — సరైన ఫోటో పంపండి"),
+    "TOO_BRIGHT": ("Photo is overexposed/blank", "ఫోటో తెల్లగా/మసకga ఉంది — సరైన ఫోటో పంపండి"),
     "FLAT": ("Not a real photo", "ఇది నిజమైన ఫోటోలా లేదు — మీ original ఫోటో పంపండి"),
     "BLURRY": ("Photo is blurry", "ఫోటో blur గా ఉంది — clear/sharp ఫోటో పంపండి"),
     "GLARE": ("Flash/glare detected — photo of a photo?", "ఫోటోపై flash/glare ఉంది — screen/photo ని తీసినది కాకుండా ORIGINAL ఫోటో పంపండి"),
@@ -55,7 +55,7 @@ def _pass(checks):
 
 
 def _laplacian_var(gray: Image.Image) -> float:
-    """Blur score — Laplacian variance @480px (ekkuva = sharp). ImageStat = C-speed (~5ms)."""
+    """Blur score — Laplacian variance @480px (ఎక్కువ = sharp). ImageStat = C-speed (~5ms)."""
     g = gray.copy()
     g.thumbnail((480, 480), Image.BILINEAR)
     lap = g.filter(ImageFilter.Kernel((3, 3), (0, 1, 0, 1, -4, 1, 0, 1, 0), scale=1))

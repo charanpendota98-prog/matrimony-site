@@ -79,7 +79,7 @@ B_YOUNG2Y = {"gender": "Bride", "dob": "2000-05-10", "age": 25}  # 2y younger
 r = MP.age_rule_check(B_OLDER1, G)
 check("A1 1-day-older bride BLOCK", r["blocked"] is True and r["reason"] == "bride_older"
       and r["gap_days"] == -1 and r["via"] == "dob", r)
-check("A2 verdict telugu 🚫+roju", "🚫" in r["verdict_telugu"] and "roju" in r["verdict_telugu"])
+check("A2 verdict telugu 🚫+roju", "🚫" in r["verdict_telugu"] and "రోజు" in r["verdict_telugu"])
 r = MP.age_rule_check(G, B_OLDER1)   # direction flip
 check("A3 direction-independent block", r["blocked"] is True and r["reason"] == "bride_older")
 r = MP.age_rule_check(B_SAME, G)

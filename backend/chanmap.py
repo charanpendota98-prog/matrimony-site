@@ -55,7 +55,7 @@ def _channels():
 
 
 def effective() -> List[Dict]:
-    """Anni channels + admin links merged (admin table + public links ki)."""
+    """అన్నీ channels + admin links merged (admin table + public links కి)."""
     out = []
     for key, c in _channels().items():
         o = OVERRIDES.get(key, {})
@@ -72,7 +72,7 @@ def effective() -> List[Dict]:
 
 
 def public_links() -> Dict[str, Dict]:
-    """/channels page Join buttons ki (active + link unna vi matrame)."""
+    """/channels page Join buttons కి (active + link ఉన్న vi మాత్రమే)."""
     return {e["key"]: {"telegram": e["telegram"], "whatsapp": e["whatsapp"]}
             for e in effective() if e["active"] and (e["telegram"] or e["whatsapp"])}
 
@@ -81,18 +81,18 @@ def set_link(key: str, telegram_link: str = "", whatsapp_link: str = "",
              active: bool = True, note: str = "") -> Dict:
     key = str(key or "").strip()
     if key not in _channels():
-        return {"success": False, "message_telugu": "⚠️ Channel key dorakaledu"}
+        return {"success": False, "message_telugu": "⚠️ Channel key దొరకలేదు"}
     tg, wa = str(telegram_link or "").strip(), str(whatsapp_link or "").strip()
     for u, label in ((tg, "Telegram"), (wa, "WhatsApp")):
         if u and not _URL_OK.match(u):
-            return {"success": False, "message_telugu": f"⚠️ {label} link http(s) URL ivvandi"}
+            return {"success": False, "message_telugu": f"⚠️ {label} link http(s) URL ఇవ్వండి"}
         if u and len(u) > 300:
             return {"success": False, "message_telugu": f"⚠️ {label} link too long"}
     OVERRIDES[key] = {"telegram_link": tg, "whatsapp_link": wa, "active": bool(active),
                       "note": str(note or "").strip()[:200], "updated_at": _now()}
     _persist()
     return {"success": True, "channel": next(e for e in effective() if e["key"] == key),
-            "message_telugu": f"✅ {key} links save ayyayi"}
+            "message_telugu": f"✅ {key} links save అయ్యాయి"}
 
 
 def _score(label: str, entry: Dict) -> float:
@@ -120,9 +120,9 @@ def import_bulk(text: str, auto_apply: bool = False, threshold: float = 0.45) ->
     matched, unmatched, applied = [], [], []
     lines = [l.strip() for l in str(text or "").splitlines() if l.strip() and not l.strip().startswith("#")]
     if not lines:
-        return {"success": False, "message_telugu": "⚠️ Lines levu — `Label | tg-link | wa-link` format lo paste cheyyandi"}
+        return {"success": False, "message_telugu": "⚠️ Lines లేవు — `Label | tg-link | wa-link` format లో paste చెయ్యండి"}
     if len(lines) > 200:
-        return {"success": False, "message_telugu": "⚠️ Okka sari 200 lines max"}
+        return {"success": False, "message_telugu": "⚠️ ఒక్క సరి 200 lines max"}
     for ln in lines[:200]:
         parts = [p.strip() for p in re.split(r"\s*\|\s*|\t", ln) if p.strip()]
         if len(parts) < 2:
@@ -157,7 +157,7 @@ def import_bulk(text: str, auto_apply: bool = False, threshold: float = 0.45) ->
                               "hint": f"best guess: {best['key']} ({round(score,2)})" if best else "no guess"})
     _persist()
     return {"success": True, "matched": matched, "unmatched": unmatched, "applied": applied,
-            "message_telugu": f"✅ {len(matched)} match • {len(unmatched)} manual kavali" + (f" • {len(applied)} save" if auto_apply else "")}
+            "message_telugu": f"✅ {len(matched)} match • {len(unmatched)} manual కావాలి" + (f" • {len(applied)} save" if auto_apply else "")}
 
 
 CRITICAL_KEYS = ["official", "ts_bride", "ts_groom", "ap_bride", "ap_groom", "nri_global",
@@ -165,7 +165,7 @@ CRITICAL_KEYS = ["official", "ts_bride", "ts_groom", "ap_bride", "ap_groom", "nr
 
 
 def coverage() -> Dict:
-    """Tier-wise live/active + critical gaps — admin dashboard ki."""
+    """Tier-wise live/active + critical gaps — admin dashboard కి."""
     eff = effective()
     by_tier: Dict[str, Dict] = {}
     for e in eff:
@@ -187,4 +187,4 @@ def coverage() -> Dict:
             "with_whatsapp": sum(1 for e in eff if e["whatsapp"]),
             "customized": sum(1 for e in eff if e["customized"]),
             "by_tier": by_tier, "critical_gaps": gaps,
-            "message_telugu": f"📡 {len(eff)} channels • {sum(1 for e in eff if e['live'])} live" + (f" • gaps: {', '.join(gaps)}" if gaps else " • critical anni live ✅")}
+            "message_telugu": f"📡 {len(eff)} channels • {sum(1 for e in eff if e['live'])} live" + (f" • gaps: {', '.join(gaps)}" if gaps else " • critical అన్నీ live ✅")}

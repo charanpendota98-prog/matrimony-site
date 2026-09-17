@@ -92,7 +92,7 @@ def upsert_page(slug: str, title_en: str, title_te: str, body_en: str = "", body
     if not _SLUG_RE.match(slug):
         return {"success": False, "message_telugu": "⚠️ slug: a–z, 0–9, hyphen (ex: about-us)"}
     if not str(title_en or "").strip():
-        return {"success": False, "message_telugu": "⚠️ English title kavali"}
+        return {"success": False, "message_telugu": "⚠️ English title కావాలి"}
     p = next((x for x in PAGES if x.get("slug") == slug), None)
     data = {"slug": slug, "title_en": str(title_en).strip()[:200], "title_te": str(title_te or "").strip()[:200],
             "body_en": str(body_en or "")[:20000], "body_te": str(body_te or "")[:20000],
@@ -100,7 +100,7 @@ def upsert_page(slug: str, title_en: str, title_te: str, body_en: str = "", body
             "order": int(order or 0), "updated_at": _now()}
     if p:
         p.update(data)
-        msg = f"✅ Page /p/{slug} update ayyindi"
+        msg = f"✅ Page /p/{slug} update అయ్యింది"
     else:
         data["created_at"] = _now()
         PAGES.append(data)
@@ -124,11 +124,11 @@ def upsert_story(sid: str = "", groom: str = "", bride: str = "", photo: str = "
                  wedding_date: str = "", tags=None, published: bool = True) -> Dict:
     global _SEQ
     if not str(groom or "").strip() or not str(bride or "").strip():
-        return {"success": False, "message_telugu": "⚠️ Groom + bride names kavali"}
+        return {"success": False, "message_telugu": "⚠️ Groom + bride names కావాలి"}
     if sid:
         s = next((x for x in STORIES if x.get("id") == sid), None)
         if not s:
-            return {"success": False, "message_telugu": "⚠️ Story dorakaledu"}
+            return {"success": False, "message_telugu": "⚠️ Story దొరకలేదు"}
     else:
         _SEQ["ST"] += 1
         s = {"id": f"ST-{_SEQ['ST']:04d}", "created_at": _now()}
@@ -156,11 +156,11 @@ def upsert_banner(bid: str = "", text_en: str = "", text_te: str = "", link: str
                   pages=None, active: bool = True, order: int = 0) -> Dict:
     global _SEQ
     if not str(text_en or "").strip():
-        return {"success": False, "message_telugu": "⚠️ Banner text (English) kavali"}
+        return {"success": False, "message_telugu": "⚠️ Banner text (English) కావాలి"}
     if bid:
         b = next((x for x in BANNERS if x.get("id") == bid), None)
         if not b:
-            return {"success": False, "message_telugu": "⚠️ Banner dorakaledu"}
+            return {"success": False, "message_telugu": "⚠️ Banner దొరకలేదు"}
     else:
         _SEQ["BN"] += 1
         b = {"id": f"BN-{_SEQ['BN']:04d}", "created_at": _now()}
@@ -191,9 +191,9 @@ def delete_item(kind: str, iid: str) -> Dict:
     before = len(store)
     store[:] = [x for x in store if str(x.get(key, "")) != str(iid or "")]
     if len(store) == before:
-        return {"success": False, "message_telugu": "⚠️ Item dorakaledu"}
+        return {"success": False, "message_telugu": "⚠️ Item దొరకలేదు"}
     _persist()
-    return {"success": True, "message_telugu": f"✅ {iid} delete ayyindi"}
+    return {"success": True, "message_telugu": f"✅ {iid} delete అయ్యింది"}
 
 
 def all_tags() -> List[str]:
@@ -206,7 +206,7 @@ def all_tags() -> List[str]:
 
 
 def seed_cms() -> Dict:
-    """Admin 1-click: demo pages + stories (edit/delete cheyochu)."""
+    """Admin 1-click: demo pages + stories (edit/delete చెయ్యొచ్చు)."""
     added = []
     if not get_page("about-us"):
         upsert_page("about-us", "About Mana Vivaha", "మన వివాహ గురించి",

@@ -90,14 +90,14 @@ def quote(level: str, days: int, districts: Optional[List[str]] = None,
     """Honest price math — vendor ki mundhe telustundi."""
     level = (level or "").lower()
     if level not in LEVELS:
-        return {"ok": False, "message_telugu": "⚠️ level: district / state / all matrame"}
+        return {"ok": False, "message_telugu": "⚠️ level: district / state / all మాత్రమే"}
     days = int(days or 0)
     if days < RATES["min_days"] or days > RATES["max_days"]:
-        return {"ok": False, "message_telugu": f"⚠️ days {RATES['min_days']}–{RATES['max_days']} matrame"}
+        return {"ok": False, "message_telugu": f"⚠️ days {RATES['min_days']}–{RATES['max_days']} మాత్రమే"}
     ds = [d for d in (districts or []) if d]
     sl = [s for s in (slots or []) if s in SLOTS] or ["matches_sidebar"]
     if level == "district" and not ds:
-        return {"ok": False, "message_telugu": "⚠️ district level ki districts list kavali"}
+        return {"ok": False, "message_telugu": "⚠️ district level కి districts list కావాలి"}
     if level == "district":
         per_day = RATES["base_per_day"] + RATES["per_district_per_day"] * len(ds)
     elif level == "state":
@@ -119,13 +119,13 @@ def create_campaign(vendor_id: str, title: str, level: str, days: int,
                     slots: Optional[List[str]] = None, image_url: str = "",
                     banner_url: str = "", video_url: str = "", offer: str = "",
                     link: str = "") -> Dict:
-    """Vendor campaign request → status pending (payment + admin approve tarvata live)."""
+    """Vendor campaign request → status pending (payment + admin approve తర్వాత live)."""
     global _AD_SEQ
     q = quote(level, days, districts, slots, bool(video_url))
     if not q.get("ok"):
         return {"success": False, "message_telugu": q.get("message_telugu")}
     if not (title or "").strip():
-        return {"success": False, "message_telugu": "⚠️ Ad title kavali"}
+        return {"success": False, "message_telugu": "⚠️ Ad title కావాలి"}
     _AD_SEQ += 1
     c = {"id": f"AD-{_AD_SEQ:04d}", "vendor_id": vendor_id, "title": title.strip(),
          "offer": offer or "", "level": q["level"], "districts": q["districts"],
@@ -139,7 +139,7 @@ def create_campaign(vendor_id: str, title: str, level: str, days: int,
     CAMPAIGNS.append(c)
     _persist()
     return {"success": True, "campaign": c,
-            "message_telugu": f"✅ Campaign {c['id']} — ₹{c['total'] if 'total' in c else c['amount']} pay chesi UTR pampandi, admin approve chesthadu 🙏"}
+            "message_telugu": f"✅ Campaign {c['id']} — ₹{c['total'] if 'total' in c else c['amount']} pay చేసి UTR పంపండి, admin approve చేస్తాడు 🙏"}
 
 
 def get_campaign(cid: str) -> Optional[Dict]:
@@ -150,7 +150,7 @@ def approve_campaign(cid: str, utr: str, days_override: int = 0) -> Dict:
     """Admin: UTR + approve → active (start/end set)."""
     c = get_campaign(cid)
     if not c:
-        return {"success": False, "message_telugu": "⚠️ Campaign dorakaledu"}
+        return {"success": False, "message_telugu": "⚠️ Campaign దొరకలేదు"}
     if not (utr or "").strip():
         return {"success": False, "message_telugu": "⚠️ UTR lekunda approve cheyyakoodadu (audit)"}
     days = int(days_override or c.get("days") or RATES["min_days"])
@@ -168,7 +168,7 @@ def update_campaign(cid: str, patch: Dict) -> Dict:
     (money matter kabatti amount manual ga admin approve lo fix)."""
     c = get_campaign(cid)
     if not c:
-        return {"success": False, "message_telugu": "⚠️ Campaign dorakaledu"}
+        return {"success": False, "message_telugu": "⚠️ Campaign దొరకలేదు"}
     d = patch or {}
     for k in ("title", "offer", "state", "image_url", "banner_url", "video_url", "link"):
         if d.get(k) is not None and str(d.get(k)).strip() != "":
@@ -187,7 +187,7 @@ def update_campaign(cid: str, patch: Dict) -> Dict:
         try:
             c["days"] = max(1, int(ndays))
         except (ValueError, TypeError):
-            return {"success": False, "message_telugu": "⚠️ days number ivvandi"}
+            return {"success": False, "message_telugu": "⚠️ days number ఇవ్వండి"}
         if c.get("status") == "active" and c.get("start"):
             try:
                 st = datetime.fromisoformat(c["start"][:19])
@@ -201,13 +201,13 @@ def update_campaign(cid: str, patch: Dict) -> Dict:
             return {"success": False, "message_telugu": "⚠️ end date format tappu (YYYY-MM-DD)"}
     _persist()
     return {"success": True, "campaign": c,
-            "message_telugu": f"✅ {cid} update ayyindi ({(c.get('start') or '?')[:10]} → {(c.get('end') or '?')[:10]} • {c.get('days')} days)"}
+            "message_telugu": f"✅ {cid} update అయ్యింది ({(c.get('start') or '?')[:10]} → {(c.get('end') or '?')[:10]} • {c.get('days')} days)"}
 
 
 def campaign_action(cid: str, action: str, reason: str = "") -> Dict:
     c = get_campaign(cid)
     if not c:
-        return {"success": False, "message_telugu": "⚠️ Campaign dorakaledu"}
+        return {"success": False, "message_telugu": "⚠️ Campaign దొరకలేదు"}
     if action == "reject":
         c["status"] = "rejected"
     elif action == "pause":

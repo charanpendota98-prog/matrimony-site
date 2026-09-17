@@ -3,8 +3,8 @@
 ====================================================================
   • profile_completeness()  → form lo em miss ayyindo % + Telugu tips (register/complete-profile fix)
   • trust_score()           → verification + activity + completeness composite (badge)
-  • saved searches          → "ee filters tho kotha profiles vaste WhatsApp alert" (advanced feature)
-  • consent ledger          → numbers eppudu evariki exchange ayyayi (audit trail, disputes ki)
+  • saved searches          → "ee filters తో కొత్త profiles వస్తే WhatsApp alert" (advanced feature)
+  • consent ledger          → numbers eppudu evariki exchange అయ్యాయి (audit trail, disputes ki)
   • interest templates      → Telugu ready-made messages (users ki easy + spam takkuva)
   • facets                  → search UI chips ki caste/district/education counts
 """
@@ -65,9 +65,9 @@ COMPLETENESS_FIELDS: List[Dict[str, Any]] = [
     {"key": "photo_urls", "w": 10, "label": "ఫోటో (1-2 clear photos)", "group": "photo", "is_list": True},
     {"key": "caste", "w": 6, "label": "కులం / Community", "group": "community"},
     {"key": "sub_caste", "w": 3, "label": "Sub caste", "group": "community"},
-    {"key": "gothram", "w": 3, "label": "గోత్రం", "group": "community"},
+    {"key": "gothram", "w": 3, "label": "gothram", "group": "community"},
     {"key": "star", "w": 3, "label": "నక్షత్రం", "group": "astro"},
-    {"key": "rasi", "w": 2, "label": "రాశి", "group": "astro"},
+    {"key": "rasi", "w": 2, "label": "rasi", "group": "astro"},
     {"key": "education", "w": 6, "label": "చదువు", "group": "career"},
     {"key": "college", "w": 3, "label": "College / University", "group": "career"},
     {"key": "job", "w": 6, "label": "ఉద్యోగం / వ్యాపారం", "group": "career"},
@@ -106,26 +106,26 @@ def _filled(user: Dict[str, Any], field: Dict[str, Any]) -> bool:
 
 
 def profile_completeness(user: Dict[str, Any]) -> Dict[str, Any]:
-    """% + em miss ayyindo + Telugu tips (register clarity + profile improve fix)."""
+    """% + ఏం miss ayyindo + Telugu tips (register clarity + profile improve fix)."""
     got = sum(f["w"] for f in COMPLETENESS_FIELDS if _filled(user, f))
     percent = int(round(got * 100 / TOTAL_WEIGHT)) if TOTAL_WEIGHT else 0
     missing = [{"key": f["key"], "label": f["label"], "group": f["group"], "weight": f["w"]}
                for f in COMPLETENESS_FIELDS if not _filled(user, f)]
     important = [m for m in missing if m["weight"] >= 5 and not m.get("optional")][:5]
     if percent >= 90:
-        level, telugu = "excellent", "🌟 Excellent — mee profile complete ga undi, matches ekkuva vasthayi"
+        level, telugu = "excellent", "🌟 Excellent — మీ profile complete గా ఉంది, matches ఎక్కువ వస్తాయి"
     elif percent >= 70:
-        level, telugu = "good", "✅ Good — konchem fields add chesthe inka manchi matches"
+        level, telugu = "good", "✅ Good — konchem fields add చేస్తే ఇంకా మంచి matches"
     elif percent >= 45:
-        level, telugu = "average", "🟡 Average — photo + about_myself add chesthe 3x responses (matrimony survey)"
+        level, telugu = "average", "🟡 Average — photo + about_myself add చేస్తే 3x responses (matrimony survey)"
     else:
-        level, telugu = "low", "🔴 Incomplete — ee profile ki matches takkuva vasthayi, ippude fill cheyyandi"
+        level, telugu = "low", "🔴 Incomplete — ee profile కి matches తక్కువ వస్తాయి, ippude fill చెయ్యండి"
     return {
         "percent": percent, "level": level, "verdict_telugu": telugu,
         "missing": missing[:12], "missing_count": len(missing),
-        "important_telugu": [f"➕ {m['label']} add cheyyandi" for m in important],
+        "important_telugu": [f"➕ {m['label']} add చెయ్యండి" for m in important],
         "sections": _section_breakdown(user),
-        "bonus_telugu": "📸 Photo unna profiles ki 5x views · ✅ OTP verify unte trust badge · 📝 about_myself unte better matches",
+        "bonus_telugu": "📸 Photo ఉన్న profiles కి 5x views · ✅ OTP verify ఉంటే trust badge · 📝 about_myself ఉంటే better matches",
     }
 
 
@@ -154,7 +154,7 @@ def trust_score(user: Dict[str, Any], interests: Optional[List[Dict[str, Any]]] 
     verified = bool(u.get("is_verified") or u.get("phone_verified"))
     score += 25 if verified else 0
     factors.append({"key": "phone_verified", "points": 25 if verified else 0, "max": 25,
-                    "telugu": "✅ Phone verified" if verified else "❌ Phone verify cheyyandi (25 pts)"})
+                    "telugu": "✅ Phone verified" if verified else "❌ Phone verify చెయ్యండి (25 pts)"})
 
     comp = profile_completeness(u)["percent"]
     comp_points = int(round(comp * 0.25))            # max 25
@@ -165,13 +165,13 @@ def trust_score(user: Dict[str, Any], interests: Optional[List[Dict[str, Any]]] 
     has_photo = bool(u.get("photo_urls"))
     score += 15 if has_photo else 0
     factors.append({"key": "photo", "points": 15 if has_photo else 0, "max": 15,
-                    "telugu": "📸 Photo undi" if has_photo else "📸 Photo add cheyyandi (15 pts)"})
+                    "telugu": "📸 Photo ఉంది" if has_photo else "📸 Photo add చెయ్యండి (15 pts)"})
 
     about = len(str(u.get("about_myself") or ""))
     about_points = 10 if about >= 80 else (6 if about >= 30 else 0)
     score += about_points
     factors.append({"key": "about", "points": about_points, "max": 10,
-                    "telugu": "📄 About section bagundi" if about_points == 10 else "📄 'Mee gurinchi' kochem rayandi (10 pts)"})
+                    "telugu": "📄 About section బాగుంది" if about_points == 10 else "📄 'మీ gurinchi' kochem రాయండి (10 pts)"})
 
     src = "site"
     act_points = 0
@@ -179,10 +179,10 @@ def trust_score(user: Dict[str, Any], interests: Optional[List[Dict[str, Any]]] 
         replied = [i for i in interests if i.get("status") in ("accepted", "declined")]
         act_points = min(10, 2 * len(replied))
         factors.append({"key": "activity", "points": act_points, "max": 10,
-                        "telugu": f"💬 {len(replied)} requests ki reply iccharu"})
+                        "telugu": f"💬 {len(replied)} requests కి reply iccharu"})
     else:
         factors.append({"key": "activity", "points": 0, "max": 10,
-                        "telugu": "💬 Requests ki reply isthe trust perugutundi"})
+                        "telugu": "💬 Requests కి reply isthe trust perugutundi"})
     score += act_points
 
     penalty = min(20, 5 * int(reports_against or 0) + 3 * int(blocks_against or 0))
@@ -197,9 +197,9 @@ def trust_score(user: Dict[str, Any], interests: Optional[List[Dict[str, Any]]] 
     elif score >= 60:
         level, badge = "silver", "🥈 Good trust profile"
     elif score >= 35:
-        level, badge = "bronze", "🥉 Basic — verify + photo add cheyyandi"
+        level, badge = "bronze", "🥉 Basic — verify + photo add చెయ్యండి"
     else:
-        level, badge = "new", "🆕 Kotha profile — trust peragadaniki steps kinda unnayi"
+        level, badge = "new", "🆕 కొత్త profile — trust peragadaniki steps kinda ఉన్నాయి"
     tips = [f["telugu"] for f in factors if f["max"] and f["points"] < f["max"]]
     return {"score": score, "level": level, "badge_telugu": badge, "factors": factors,
             "next_steps_telugu": tips[:4], "source": src}
@@ -230,16 +230,16 @@ def normalize_filters(raw: Dict[str, Any]) -> Dict[str, Any]:
         else:
             out[k] = clean(v, 60, k)
     if out.get("age_min") and out.get("age_max") and out["age_min"] > out["age_max"]:
-        validation_error("age_min", "⚠️ age_min < age_max undali")
+        validation_error("age_min", "⚠️ age_min < age_max ఉండాలి")
     if out.get("salary_min") and out.get("salary_max") and out["salary_min"] > out["salary_max"]:
-        validation_error("salary_min", "⚠️ salary_min < salary_max undali")
+        validation_error("salary_min", "⚠️ salary_min < salary_max ఉండాలి")
     return out
 
 
 def save_search(tsap_id: str, name: str, filters: Dict[str, Any], alert: bool = True) -> Dict[str, Any]:
     norm = normalize_filters(filters)
     if not norm:
-        validation_error("filters", "⚠️ Konni filters pettandi — appudu save cheyyagalam")
+        validation_error("filters", "⚠️ కొన్ని filters పెట్టండి — appudu save cheyyagalam")
     name = req_text(name, "search name", 2, 40, required=False) or "My search"
     sid = f"SRCH-{len(SAVED_SEARCHES) + 1:05d}"
     rec = {"search_id": sid, "tsap_id": tsap_id, "name": name, "filters": norm, "alert": bool(alert),
@@ -344,7 +344,7 @@ def matches_filters(user: Dict[str, Any], filters: Dict[str, Any]) -> bool:
 
 def new_matches_for(rec: Dict[str, Any], users: List[Dict[str, Any]], exclude: Optional[List[str]] = None,
                     limit: int = 10) -> List[Dict[str, Any]]:
-    """Saved search ki ippudu match ayye profiles (alert ki)."""
+    """Saved search కి ఇప్పుడు match ayye profiles (alert కి)."""
     seen_ids = set(rec.get("last_seen_ids") or [])
     excl = set(exclude or []) | {rec.get("tsap_id")}
     out = []
@@ -367,7 +367,7 @@ def mark_alerted(rec: Dict[str, Any], ids: List[str]) -> None:
 
 
 # ---------------------------------------------------------------------------
-# 4. CONSENT LEDGER (numbers eppudu exchange ayyayi — audit trail)
+# 4. CONSENT LEDGER (numbers eppudu exchange అయ్యాయి — audit trail)
 # ---------------------------------------------------------------------------
 def log_consent(action: str, actor_id: str, other_id: str, request_id: str = "",
                 exchanged: bool = False, note: str = "") -> Dict[str, Any]:
@@ -390,23 +390,23 @@ def consent_for(tsap_id: str) -> List[Dict[str, Any]]:
 # 5. INTEREST TEMPLATES (Telugu ready-made — spam takkuva, response ekkuva)
 # ---------------------------------------------------------------------------
 TEMPLATES: List[Dict[str, str]] = [
-    {"id": "traditional", "label": "🙏 Traditional / Family tho matladataniki",
-     "text": "Namaste, mee profile chusam — mana kutumbaalu matladukovadam start cheddam. Maa vaipu nunchi full details pampistham."},
+    {"id": "traditional", "label": "🙏 Traditional / Family తో matladataniki",
+     "text": "నమస్తే, మీ profile chusam — మన kutumbaalu matladukovadam start cheddam. మా vaipu నుంచి full details pampistham."},
     {"id": "professional", "label": "💼 Job / City match",
-     "text": "Hello, memu kooda same city lo job chestunnam — mana interests/lifestyle match avutunnayi. Matladataniki interest undi."},
+     "text": "Hello, మేము కూడా same city లో job చేస్తున్నాం — మన interests/lifestyle match avutunnayi. Matladataniki interest ఉంది."},
     {"id": "horoscope", "label": "⭐ Jatakam / Porutham",
-     "text": "Namaste, mee jathakam details chusi porutham bagundi ani anipinchindi — mana intlo peddavallaki cheppataniki mundu meeru interest unte cheppandi."},
+     "text": "నమస్తే, మీ jathakam details chusi పొరుతం బాగుంది అని anipinchindi — మన ఇంట్లో peddavallaki cheppataniki ముందు మీరు interest ఉంటే చెప్పండి."},
     {"id": "second_marriage", "label": "🔄 Second marriage / Vidakuulu",
-     "text": "Namaste, memu kooda life lo second innings start cheddamani chustunnam. Mee profile chusi hope vachindi — matladocha?"},
-    {"id": "parents", "label": "👨‍👩‍👧 Parents tarvupuna (mee intlo vallaki cheppandi)",
-     "text": "Namaste, memu mee kosam chustunnam (parents side nunchi) — mee intlo andaritho matladi cheppandi, tarvata direct matladukovachu."},
+     "text": "నమస్తే, మేము కూడా life లో second innings start cheddamani chustunnam. మీ profile chusi hope వచ్చింది — matladocha?"},
+    {"id": "parents", "label": "👨‍👩‍👧 Parents tarvupuna (మీ ఇంట్లో వాళ్లకి చెప్పండి)",
+     "text": "నమస్తే, మేము మీ కోసం chustunnam (parents side నుంచి) — మీ ఇంట్లో andaritho matladi చెప్పండి, తర్వాత direct matladukovachu."},
     {"id": "simple", "label": "✍️ Simple / straight forward",
-     "text": "Hello, mee profile nachhindi. Interest unte accept cheyyandi — mana numbers exchange avutayi, tarvata matladukundam."},
+     "text": "Hello, మీ profile nachhindi. Interest ఉంటే accept చెయ్యండి — మన numbers exchange అవుతాయి, తర్వాత matladukundam."},
 ]
 
 
 def templates() -> List[Dict[str, str]]:
-    return [dict(t, note_telugu="Copy chesi edit cheskovachu — mee style lo rayandi") for t in TEMPLATES]
+    return [dict(t, note_telugu="Copy చేసి edit cheskovachu — మీ style లో రాయండి") for t in TEMPLATES]
 
 
 # ---------------------------------------------------------------------------

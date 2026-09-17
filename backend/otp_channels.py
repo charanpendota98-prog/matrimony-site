@@ -36,7 +36,7 @@ def _wa_send(phone: str, text: str) -> Dict[str, Any]:
 
 
 def _telegram_send(phone: str, text: str, users: Optional[List[Dict]] = None) -> Dict[str, Any]:
-    """Telegram DM to linked chat (FREE). Needs BOT_TOKEN + /link chesina user."""
+    """Telegram DM to linked chat (FREE). Needs BOT_TOKEN + /link చేసిన user."""
     token = os.getenv("BOT_TOKEN", "").strip()
     if not token:
         return {"ok": False, "detail": "no_bot_token"}
@@ -49,7 +49,7 @@ def _telegram_send(phone: str, text: str, users: Optional[List[Dict]] = None) ->
     except Exception:
         pass
     if not chat_id:
-        return {"ok": False, "detail": "not_linked (/link cheyyandi)"}
+        return {"ok": False, "detail": "not_linked (/link చెయ్యండి)"}
     try:
         import urllib.request
         import urllib.parse
@@ -67,10 +67,10 @@ def _telegram_send(phone: str, text: str, users: Optional[List[Dict]] = None) ->
 
 
 def _sms_send(phone: str, text: str) -> Dict[str, Any]:
-    """SMS provider (MSG91/Fast2SMS) — env keys unte matrame (trial free)."""
+    """SMS provider (MSG91/Fast2SMS) — env keys ఉంటే మాత్రమే (trial free)."""
     key = os.getenv("MSG91_KEY", "").strip() or os.getenv("FAST2SMS_KEY", "").strip()
     if not key:
-        return {"ok": False, "detail": "no_sms_key (MSG91_KEY/FAST2SMS_KEY pettandi)"}
+        return {"ok": False, "detail": "no_sms_key (MSG91_KEY/FAST2SMS_KEY పెట్టండి)"}
     sender = os.getenv("SMS_SENDER", "MNVIVH").strip() or "MNVIVH"
     route = os.getenv("SMS_ROUTE", "4").strip() or "4"
     try:
@@ -117,14 +117,14 @@ def send_otp(phone: str, code: str, users: Optional[List[Dict]] = None) -> Dict[
                     "detail": r["detail"], "tried": tried}
     dev = str(os.getenv("OTP_DEV_MODE", "true")).lower() in ("1", "true", "yes", "on")
     return {"ok": False, "channel": "dev" if dev else "none",
-            "detail": "dev_mode (code response lo)" if dev else "no_channel_configured",
+            "detail": "dev_mode (code response లో)" if dev else "no_channel_configured",
             "tried": tried}
 
 
 CHANNEL_TELUGU = {
-    "wa": "📲 WhatsApp lo OTP pampinchaam (FREE)",
+    "wa": "📲 WhatsApp లో OTP పంపించాం (FREE)",
     "telegram": "✈️ Telegram lo OTP pampinchaam (FREE)",
     "sms": "📩 SMS lo OTP pampinchaam",
-    "dev": "🧪 DEV MODE — OTP response lo undi",
-    "none": "⚠️ OTP channel configure kaledu — support ki cheppandi",
+    "dev": "🧪 DEV MODE — OTP response లో ఉంది",
+    "none": "⚠️ OTP channel configure కాలేదు — support కి చెప్పండి",
 }

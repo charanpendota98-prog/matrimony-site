@@ -40,7 +40,7 @@ def _font(size: int, bold: bool = True):
 
 
 def _qr_image(data: str, size: int):
-    """QR generate (qrcode lib unte). Lekapote None — card lo link text vastundi."""
+    """QR generate (qrcode lib ఉంటే). Lekapote None — card లో link text వస్తుంది."""
     try:
         import qrcode
         qr = qrcode.QRCode(box_size=10, border=2, error_correction=qrcode.constants.ERROR_CORRECT_M)
@@ -53,7 +53,7 @@ def _qr_image(data: str, size: int):
 
 
 def _safe(text: str) -> str:
-    """Filename safe (code lo weird chars vaste bhi path break avvadu)."""
+    """Filename safe (code లో weird chars వస్తే bhi path break అవ్వదు)."""
     return "".join(ch for ch in str(text) if ch.isalnum() or ch in "-_")[:24] or "ref"
 
 
@@ -119,7 +119,7 @@ def poster_card(user: Dict, code: str = "", link: str = "", out_path: Optional[s
     y += qr_size + 40
 
     # bullets
-    for line in ["Real profiles  |  Photo private  |  Chatting ledu",
+    for line in ["Real profiles  |  Photo private  |  Chatting లేదు",
                  "Numbers share only after both sides agree",
                  "Fraud alerts + verified badges + Telugu support"]:
         d.text((48, y), "• " + line, font=_font(30, False), fill=NAVY)
@@ -147,5 +147,5 @@ def referral_kit(user: Dict, share_kit: Dict) -> Dict:
         except Exception as e:
             out["errors"].append("%s: %s" % (style, str(e)[:80]))
     out["message_telugu"] = ("🖼️ Poster ready (square = WhatsApp post, status = story). "
-                             "Download chesi share cheyyandi — QR scan chesthe direct register!")
+                             "Download చేసి share చెయ్యండి — QR scan చేస్తే direct register!")
     return out

@@ -23,7 +23,7 @@ def _now() -> str:
 
 
 def audit(event: str, actor: str = "admin", details: Optional[Dict] = None) -> Dict:
-    """Oka money action log chey — eppudu crash avvadu (audit failure != pay failure)."""
+    """ఒక money action log chey — ఎప్పుడు crash అవ్వదు (audit failure != pay failure)."""
     rec = {"at": _now(), "event": str(event or ""), "actor": str(actor or ""),
            "details": details or {}}
     try:

@@ -51,16 +51,16 @@ STATE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "wa_state.
 GREETING_VARIANTS = [
     "💍 *MANA VIVAHA* — TS-AP Telugu Matrimony",
     "💍 *MANA VIVAHA* • Telugu Matrimony (TS/AP)",
-    "💍 *MANA VIVAHA* — Mee Telugu Sambandham",
+    "💍 *MANA VIVAHA* — మీ Telugu సంబంధం",
     "💍 *MANA VIVAHA* • 100% Telugu Matrimony",
     "💍 *MANA VIVAHA* — Nammakamaina Telugu Matrimony",
 ]
 CTA_VARIANTS = [
     "📝 FREE register (3 min): {site}/register\n🤖 Bot: {bot}",
-    "📝 Mee profile FREE ga pettandi: {site}/register\n🤖 Bot: {bot}",
+    "📝 మీ profile FREE గా పెట్టండి: {site}/register\n🤖 Bot: {bot}",
     "📝 3 nimishallo FREE register: {site}/register\n🤖 Bot: {bot}",
-    "📝 FREE ga join avvandi: {site}/register\n🤖 Bot: {bot}",
-    "📝 Mee details FREE ga ivvandi: {site}/register\n🤖 Bot: {bot}",
+    "📝 FREE గా join అవ్వండి: {site}/register\n🤖 Bot: {bot}",
+    "📝 మీ details FREE గా ఇవ్వండి: {site}/register\n🤖 Bot: {bot}",
 ]
 
 
@@ -86,7 +86,7 @@ def _env_bool(name: str, default: bool) -> bool:
 
 
 class WhatsAppAntiban:
-    """Thread-safe anti-ban state machine (async worker + API rendu use chesthayi)."""
+    """Thread-safe anti-ban state machine (async worker + API రెండు use chesthayi)."""
 
     def __init__(self, state_file: str = STATE_FILE):
         self.state_file = state_file
@@ -168,7 +168,7 @@ class WhatsAppAntiban:
         }
 
     def warmup_cap(self) -> int:
-        """Kotha number ki day-1 nunchi ramp: 1/3 → 1/2 → 3/4 → full."""
+        """కొత్త number కి day-1 నుంచి ramp: 1/3 → 1/2 → 3/4 → full."""
         c = self.cfg()
         if c["warmup_days"] <= 0:
             return c["daily_cap"]
@@ -287,7 +287,7 @@ class WhatsAppAntiban:
         return gap
 
     def typing_ms(self) -> int:
-        """'Type chesthunnattu' presence duration — text length tho proportionate."""
+        """'Type chesthunnattu' presence duration — text length తో proportionate."""
         return int(random.uniform(2000, 9000))
 
     # ------------------------------------------------------------------ update
@@ -338,7 +338,7 @@ class WhatsAppAntiban:
         return {"paused": False}
 
     def reset_today(self) -> Dict:
-        """Test/debug: ee roju counters reset (caps malli fresh)."""
+        """Test/debug: ee రోజు counters reset (caps మళ్లీ fresh)."""
         self.state.setdefault("days", {})[self._day()] = 0
         for t, v in list(self.state.get("targets", {}).items()):
             if v.get("day") == self._day():

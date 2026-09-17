@@ -7,7 +7,7 @@
    (Full jathakam ki birth-chart kavali — screening honest ga "pandit review" cheptundi.)
 3. JATHAKAM upload + PANDIT verify queue (admin) → verified badge.
 
-Tables: classical Parashara convention. Unknown star/rasi → honest "data ledu"
+Tables: classical Parashara convention. Unknown star/rasi → honest "data లేదు"
 (guess cheyyamu — mistakes vaddu).
 """
 from __future__ import annotations
@@ -151,7 +151,7 @@ def _norm_key(s: str) -> str:
 
 
 def star_index(star: str) -> Optional[int]:
-    """'Rohini'/'rohini '/'Aswini' → 0..26 · teliyakapothe None (guess vaddu)."""
+    """'Rohini'/'rohini '/'Aswini' → 0..26 · teliyakapothe None (guess వద్దు)."""
     k = _norm_key(star)
     if not k:
         return None
@@ -197,7 +197,7 @@ def guna_milan(bride_star: str, bride_rasi: str, groom_star: str, groom_rasi: st
         if gr is None:
             missing.append("abbayi rasi")
         return {"available": False, "total_36": 0,
-                "verdict_telugu": f"⚠️ {', '.join(missing)} ledu — profile lo star+rasi pedithe 36-guna choopistham 🙏",
+                "verdict_telugu": f"⚠️ {', '.join(missing)} లేదు — profile లో star+రాశి పెడితే 36-guna చూపిస్తాం 🙏",
                 "missing": missing}
     B, G = NAKSHATRAS[bs], NAKSHATRAS[gs]
     kootas: List[Dict] = []
@@ -207,8 +207,8 @@ def guna_milan(bride_star: str, bride_rasi: str, groom_star: str, groom_rasi: st
     gv, bv = RASI_VARNA[gr], RASI_VARNA[br]
     v_score = 1.0 if gv >= bv else 0.0
     kootas.append({"koota": "Varna", "max": 1, "score": v_score,
-                   "detail": f"{RASI_VARNA_NAME[gr]} (abbayi) vs {RASI_VARNA_NAME[br]} (ammayi)",
-                   "telugu": "✅ Varna porutham" if v_score else "⚠️ Varna takkuva — peddalu/pariharam"})
+                   "detail": f"{RASI_VARNA_NAME[gr]} (అబ్బాయి) vs {RASI_VARNA_NAME[br]} (అమ్మాయి)",
+                   "telugu": "✅ Varna పొరుతం" if v_score else "⚠️ Varna తక్కువ — peddalu/పరిహారం"})
 
     # 2. VASHYA (2) — rasi groups
     gg, bg = RASI_VASHYA[gr], RASI_VASHYA[br]
@@ -222,17 +222,17 @@ def guna_milan(bride_star: str, bride_rasi: str, groom_star: str, groom_rasi: st
         va_score = 0.5
     kootas.append({"koota": "Vashya", "max": 2, "score": va_score,
                    "detail": f"{gg} vs {bg}",
-                   "telugu": "✅ Vashya porutham" if va_score >= 1 else "⚠️ Vashya takkuva"})
+                   "telugu": "✅ Vashya పొరుతం" if va_score >= 1 else "⚠️ Vashya తక్కువ"})
 
     # 3. TARA (3) — ammayi star nunchi abbayi star (9-cycle; 3,5,7 shubha)
     dist = (gs - bs) % 27 + 1
     tara = dist % 9
     t_score = 3.0 if tara in (3, 5, 7) else 0.0
     if tara == 1:
-        doshas.append("Janma-tara (okka tara) — pariharam tharvata munduku")
+        doshas.append("Janma-tara (ఒక్క tara) — పరిహారం తర్వాత munduku")
     kootas.append({"koota": "Tara", "max": 3, "score": t_score,
                    "detail": f"distance {dist} → tara {tara if tara else 9}",
-                   "telugu": "✅ Tara porutham (shubha tara)" if t_score else "⚠️ Tara balam ledu"})
+                   "telugu": "✅ Tara పొరుతం (శుభ tara)" if t_score else "⚠️ Tara బలం లేదు"})
 
     # 4. YONI (2) — animals
     yb, yg = B[2], G[2]
@@ -246,7 +246,7 @@ def guna_milan(bride_star: str, bride_rasi: str, groom_star: str, groom_rasi: st
         y_score = 1.0
     kootas.append({"koota": "Yoni", "max": 2, "score": y_score,
                    "detail": f"{YONI_TE.get(yb, yb)} vs {YONI_TE.get(yg, yg)}",
-                   "telugu": "✅ Yoni porutham" if y_score >= 1 else "🚫 Yoni vairam — pandit ni adagandi"})
+                   "telugu": "✅ Yoni పొరుతం" if y_score >= 1 else "🚫 Yoni vairam — pandit ని అడగండి"})
 
     # 5. GRAHA MAITRI (5) — rasi lords friendship
     lb, lg = RASI_LORD[br], RASI_LORD[gr]
@@ -266,8 +266,8 @@ def guna_milan(bride_star: str, bride_rasi: str, groom_star: str, groom_rasi: st
     else:
         m_score = 1.0
     kootas.append({"koota": "Graha Maitri", "max": 5, "score": m_score,
-                   "detail": f"{lb} (ammayi rasi lord) × {lg} (abbayi rasi lord)",
-                   "telugu": "✅ Graha-maitri bagundi" if m_score >= 3 else "⚠️ Graha-maitri takkuva"})
+                   "detail": f"{lb} (అమ్మాయి రాశి lord) × {lg} (అబ్బాయి రాశి lord)",
+                   "telugu": "✅ Graha-maitri బాగుంది" if m_score >= 3 else "⚠️ Graha-maitri తక్కువ"})
 
     # 6. GANA (6) — temperament
     nb, ng = B[1], G[1]
@@ -277,10 +277,10 @@ def guna_milan(bride_star: str, bride_rasi: str, groom_star: str, groom_rasi: st
         n_score = 5.0
     else:
         n_score = 1.0
-        doshas.append(f"Gana dosha ({GANA_TE.get(nb)} × {GANA_TE.get(ng)}) — pariharam undi")
+        doshas.append(f"Gana dosha ({GANA_TE.get(nb)} × {GANA_TE.get(ng)}) — పరిహారం ఉంది")
     kootas.append({"koota": "Gana", "max": 6, "score": n_score,
                    "detail": f"{GANA_TE.get(nb)} vs {GANA_TE.get(ng)}",
-                   "telugu": "✅ Gana porutham" if n_score >= 5 else "⚠️ Gana dosha — pariharam cheskovachu"})
+                   "telugu": "✅ Gana పొరుతం" if n_score >= 5 else "⚠️ Gana dosha — పరిహారం cheskovachu"})
 
     # 7. BHAKOOT (7) — abbayi rasi ammayi rasi nunchi (6-8, 5-9, 2-12 dosha)
     rdist = (gr - br) % 12 + 1
@@ -292,10 +292,10 @@ def guna_milan(bride_star: str, bride_rasi: str, groom_star: str, groom_rasi: st
         bh_score = 0.0
         kind = {6: "Shashtashtaka (6-8)", 8: "Shashtashtaka (6-8)", 5: "Navama-Panchama (5-9)",
                 9: "Navama-Panchama (5-9)", 2: "Dvidwadasha (2-12)", 12: "Dvidwadasha (2-12)"}.get(rdist, "")
-        doshas.append(f"Bhakoot dosha {kind} — pandit pariharam must")
+        doshas.append(f"Bhakoot dosha {kind} — pandit పరిహారం must")
     kootas.append({"koota": "Bhakoot", "max": 7, "score": bh_score,
                    "detail": f"rasi distance {rdist}",
-                   "telugu": "✅ Bhakoot porutham" if bh_score >= 3 else "🚫 Bhakoot dosha — pandit ni adagandi"})
+                   "telugu": "✅ Bhakoot పొరుతం" if bh_score >= 3 else "🚫 Bhakoot dosha — pandit ని అడగండి"})
 
     # 8. NADI (8) — veru nadi must
     db, dg = B[3], G[3]
@@ -303,27 +303,27 @@ def guna_milan(bride_star: str, bride_rasi: str, groom_star: str, groom_rasi: st
         d_score = 8.0
     else:
         d_score = 0.0
-        doshas.append(f"Nadi dosha (rendu {NADI_TE.get(db)}) — pariharam lekunda vaddu")
+        doshas.append(f"Nadi dosha (రెండు {NADI_TE.get(db)}) — పరిహారం lekunda వద్దు")
     kootas.append({"koota": "Nadi", "max": 8, "score": d_score,
                    "detail": f"{NADI_TE.get(db)} vs {NADI_TE.get(dg)}",
-                   "telugu": "✅ Nadi porutham (veru nadi)" if d_score else "🚫 Nadi dosha — pandit ni adagandi"})
+                   "telugu": "✅ Nadi పొరుతం (వేరు nadi)" if d_score else "🚫 Nadi dosha — pandit ని అడగండి"})
 
     total = round(sum(k["score"] for k in kootas), 1)
     if total >= 32:
-        verdict, ved = "uttama", "🌟 UTTAMA porutham — 32+ guna! Pelli ki best muhurtham chuskondi 💍"
+        verdict, ved = "uttama", "🌟 UTTAMA పొరుతం — 32+ guna! పెళ్లి కి best ముహూర్తం చూసుకోండి 💍"
     elif total >= 24:
-        verdict, ved = "manchi", "✅ MANCHI porutham — munduku vellachu"
+        verdict, ved = "మంచి", "✅ MANCHI పొరుతం — munduku వెళ్లచ్చు"
     elif total >= 18:
-        verdict, ved = "madhyama", "⚠️ MADHYAMA porutham — pariharam + pandit salaha tho munduku"
+        verdict, ved = "madhyama", "⚠️ MADHYAMA పొరుతం — పరిహారం + pandit salaha తో munduku"
     else:
-        verdict, ved = "takkuva", "🚫 Guna takkuva — pandit tho matladaka vaddu"
+        verdict, ved = "తక్కువ", "🚫 Guna తక్కువ — pandit తో మాట్లాడక వద్దు"
     if doshas:
-        ved += f" · Doshalu: {len(doshas)} (kindha chudandi)"
+        ved += f" · Doshalu: {len(doshas)} (కింద చూడండి)"
     return {"available": True, "total_36": total, "percent": round(total / 36 * 100, 1),
             "verdict": verdict, "verdict_telugu": ved, "kootas": kootas, "doshas": doshas,
             "bride": {"star": star_name(bs), "rasi": rasi_name(br)},
             "groom": {"star": star_name(gs), "rasi": rasi_name(gr)},
-            "note_telugu": "📿 Classical Ashtakoota paddhati — final nirnayam mee family pandit tho 🙏"}
+            "note_telugu": "📿 Classical Ashtakoota paddhati — final nirnayam మీ family pandit తో 🙏"}
 
 
 # ---------------------------------------------------------------------------
@@ -345,18 +345,18 @@ def dosha_screening(profile: Dict) -> Dict:
     decl = _norm_dosham(p.get("dosham", ""))
     if decl and decl not in ("no", "no dosham", "none", "nill", "ledhu", "ledu", "—", "-"):
         flags.append({"dosha": "declared", "level": "high",
-                      "telugu": f"🚫 Profile lo dosham undi ({p.get('dosham')}) — pariharam details adagandi"})
+                      "telugu": f"🚫 Profile లో దోషం ఉంది ({p.get('dosham')}) — పరిహారం details అడగండి"})
     si = star_index(p.get("star", ""))
     sname = star_name(si) if si is not None else ""
     if sname == "Mula":
         flags.append({"dosha": "moola", "level": "high",
-                      "telugu": "⚠️ Moola nakshatram (gandanta) — pandit pariharam salaha must"})
+                      "telugu": "⚠️ Moola nakshatram (gandanta) — pandit పరిహారం salaha must"})
     elif sname in ("Ashlesha", "Magha", "Jyeshtha", "Revati"):
         flags.append({"dosha": "gandanta_watch", "level": "medium",
-                      "telugu": f"⚠️ {sname} — gandanta zone star, jathakam full ga chudandi"})
+                      "telugu": f"⚠️ {sname} — gandanta zone star, jathakam full గా చూడండి"})
     if str(p.get("moola_nakshatram", "No")).lower() in ("yes", "true", "1", "avunu"):
         flags.append({"dosha": "moola_declared", "level": "high",
-                      "telugu": "⚠️ Moola-nakshatram (declared) — pandit confirm cheyyali"})
+                      "telugu": "⚠️ Moola-nakshatram (declared) — pandit confirm చెయ్యాలి"})
     kuja_status = "unknown"
     if any(k in decl for k in ("kuja", "manglik", "chevvai", "mangal")):
         kuja_status = "declared"
@@ -366,9 +366,9 @@ def dosha_screening(profile: Dict) -> Dict:
     return {"level": level, "flags": flags, "kuja": kuja_status,
             "star": sname or str(p.get("star", "—")), "rasi": str(p.get("rasi", "—")),
             "verdict_telugu": ("✅ Dosha emi kanipinchaledu (screening)" if level == "clear"
-                               else f"⚠️ {len(flags)} dosha flag(s) — kindha chudandi + pandit verify"),
+                               else f"⚠️ {len(flags)} dosha flag(s) — కింద చూడండి + pandit verify"),
             "jathakam_verified": bool(p.get("jathakam_verified")),
-            "note_telugu": "📿 Idi screening matrame — pelli nirnayam ki full jathakam + pandit must 🙏"}
+            "note_telugu": "📿 Idi screening మాత్రమే — పెళ్లి nirnayam కి full jathakam + pandit must 🙏"}
 
 
 # ---------------------------------------------------------------------------
@@ -420,14 +420,14 @@ def submit_jathakam(tsap_id: str, filename: str, kind: str = "photo") -> Dict:
 def verify_jathakam(jid: str, ok: bool, note: str = "") -> Dict:
     j = next((x for x in JATHAKAMS if x.get("id") == jid), None)
     if not j:
-        return {"success": False, "message_telugu": "⚠️ Jathakam dorakaledu"}
+        return {"success": False, "message_telugu": "⚠️ Jathakam దొరకలేదు"}
     j["status"] = "verified" if ok else "rejected"
     j["note"] = note
     j["verified_at"] = _now()
     _persist()
     return {"success": True, "jathakam": j,
-            "message_telugu": ("✅ Jathakam verify ayyindi — profile ki 🪐 badge" if ok
-                               else "❌ Jathakam reject — malli upload cheyamani cheppandi")}
+            "message_telugu": ("✅ Jathakam verify అయ్యింది — profile కి 🪐 badge" if ok
+                               else "❌ Jathakam reject — మళ్లీ upload cheyamani చెప్పండి")}
 
 
 def astro_stats(users: List[Dict]) -> Dict:

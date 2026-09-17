@@ -64,7 +64,7 @@ def _brand_bar(draw, W: int, H: int, label: str = "MANA VIVAHA • TSAP MATRIMON
 
 
 def og_profile_png(user: Dict, out_path: Optional[str] = None) -> Optional[str]:
-    """Profile link preview — WhatsApp/Telegram/FB lo ee image kanipisthundi."""
+    """Profile link preview — WhatsApp/Telegram/FB లో ee image కనిపిస్తుంది."""
     if not PIL_OK:
         return None
     u = user or {}
@@ -88,7 +88,7 @@ def og_profile_png(user: Dict, out_path: Optional[str] = None) -> Optional[str]:
         ("Education", "%s %s" % (u.get("education", "—"), u.get("education_detail", ""))),
         ("Profession", "%s %s" % (u.get("job", "—"), ("@ " + u["company"]) if u.get("company") else "")),
         ("Location", "%s, %s" % (u.get("district", "—"), u.get("state", "TS"))),
-        ("Star / Rasi", "%s / %s" % (u.get("star", "—"), u.get("rasi", "—"))),
+        ("Star / రాశి", "%s / %s" % (u.get("star", "—"), u.get("rasi", "—"))),
         ("Family", "%s • %s" % (u.get("family_type", "—"), u.get("family_status", "—"))),
     ]
     y = 216
@@ -112,7 +112,7 @@ def og_profile_png(user: Dict, out_path: Optional[str] = None) -> Optional[str]:
 
 
 def og_porutham_png(bride: Dict, groom: Dict, result: Dict, out_path: Optional[str] = None) -> Optional[str]:
-    """10-porutham report preview — score + pass/fail count (+ Telugu verdict English transliteration)."""
+    """10-పొరుతం report preview — score + pass/fail count (+ Telugu verdict English transliteration)."""
     if not PIL_OK:
         return None
     r = result or {}
@@ -154,8 +154,8 @@ def og_porutham_png(bride: Dict, groom: Dict, result: Dict, out_path: Optional[s
         sc_num = int(score)
     except Exception:
         sc_num = 0
-    eng = ("Excellent porutham — go ahead" if sc_num >= 8 else
-           "Good porutham — most points match" if sc_num >= 6 else
+    eng = ("Excellent పొరుతం — go ahead" if sc_num >= 8 else
+           "Good పొరుతం — most points match" if sc_num >= 6 else
            "Average — some points differ" if sc_num >= 4 else "Weak — consult elders")
     dosha = ", ".join([str(x) for x in (r.get("doshas") or [])])
     line = "%s / 10  —  %s" % (score, eng) + (("   |  Dosha: " + dosha) if dosha else "")
@@ -163,14 +163,14 @@ def og_porutham_png(bride: Dict, groom: Dict, result: Dict, out_path: Optional[s
     d.text((420, 508), _fit(d, line, _font(22, True), 700), font=_font(22, True), fill=MAROON)
 
     _brand_bar(d, W, H, "MANA VIVAHA • PORUTHAM REPORT")
-    out_path = out_path or os.path.join(PREVIEW_DIR, "porutham-%s-%s.png" % (b.get("tsap_id", "A"), g.get("tsap_id", "B")))
+    out_path = out_path or os.path.join(PREVIEW_DIR, "పొరుతం-%s-%s.png" % (b.get("tsap_id", "A"), g.get("tsap_id", "B")))
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
     img.save(out_path, "PNG", optimize=True)
     return out_path
 
 
 def og_generic_png(title: str, subtitle: str, out_path: Optional[str] = None, name: str = "site") -> Optional[str]:
-    """Site / caste / SEO page preview (WhatsApp group lo link pampinappudu)."""
+    """Site / caste / SEO page preview (WhatsApp group లో link pampinappudu)."""
     if not PIL_OK:
         return None
     W, H = 1200, 630
@@ -179,9 +179,9 @@ def og_generic_png(title: str, subtitle: str, out_path: Optional[str] = None, na
     d.rectangle([0, 0, 14, H], fill=GOLD)
     d.text((60, 120), _fit(d, title, _font(52, True), 1040), font=_font(52, True), fill=WHITE)
     d.text((60, 230), _fit(d, subtitle, _font(28), 1040), font=_font(28), fill=GOLD)
-    d.text((60, 330), "65 channels • 43 castes • TS + AP • 3 FREE requests", font=_font(26), fill=CREAM)
+    d.text((60, 330), "52 channels • 43 castes • TS + AP • 3 FREE requests", font=_font(26), fill=CREAM)
     d.rounded_rectangle([60, 420, 620, 480], radius=26, fill=GOLD)
-    d.text((84, 436), "manavivaha.in — FREE ga register cheyyandi", font=_font(22, True), fill=MAROON)
+    d.text((84, 436), "manavivaha.in — FREE గా register చెయ్యండి", font=_font(22, True), fill=MAROON)
     _brand_bar(d, W, H)
     out_path = out_path or os.path.join(PREVIEW_DIR, "og-%s.png" % name)
     os.makedirs(os.path.dirname(out_path), exist_ok=True)

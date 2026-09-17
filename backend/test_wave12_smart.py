@@ -88,7 +88,7 @@ check("B4 caption: full-name string ekkada ledu", "Lakshmi" in cap and "Lakshmi 
 check("B5 caption: number ledu", not PHONE_RE.findall(cap))
 check("B6 caption: ID/score/bot/register/safety intact",
       "TSAP-F-2025-5775" in cap and "92%" in cap and CC.BOT_USERNAME in cap
-      and "/register" in cap and "mosam jagratha" in cap.lower())
+      and "/register" in cap and "మోసం జాగ్రత్త" in cap)
 check("B7 caption: /unlock CTA undi", "/unlock TSAP-F-2025-5775" in cap)
 wa = PUB.build_whatsapp_text(prof, "TSAP-F-2025-0001", 90)
 check("B8 WA text: name+number ledu, link undi",

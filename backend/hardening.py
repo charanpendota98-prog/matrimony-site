@@ -41,7 +41,7 @@ def _flag(name: str, default: str = "") -> str:
 
 
 def dev_mode() -> bool:
-    """Tests / local harness — enforcement skip (oka chota decide avutundi)."""
+    """Tests / local harness — enforcement skip (ఒక chota decide అవుతుంది)."""
     return _flag("WA_TEST_FAST") in ("1", "true", "yes", "on") or _flag("TSAP_AUTH_MODE") in ("off", "dev", "test")
 
 
@@ -92,7 +92,7 @@ def _b64d(txt: str) -> bytes:
 
 
 def sign_token(tsap_id: str, ttl_seconds: int = TOKEN_TTL_SECONDS, scope: str = "user") -> str:
-    """User ki signed token — private endpoints ki proof (IDOR fix)."""
+    """User కి signed token — private endpoints కి proof (IDOR fix)."""
     exp = int(time.time()) + int(ttl_seconds)
     payload = f"{tsap_id}|{exp}|{scope}|{secrets.token_hex(4)}"
     sig = hmac.new(SECRET.encode(), payload.encode(), hashlib.sha256).digest()
@@ -186,7 +186,7 @@ def client_ip(request: Request) -> str:
 
 
 def rate_limit_hit(request: Request, extra_key: str = "") -> Optional[Dict[str, Any]]:
-    """Sliding window. Limit cross ayithe dict return (caller 429 isthadu), else None."""
+    """Sliding window. Limit cross అయితే dict return (caller 429 isthadu), else None."""
     if RL_DISABLED or dev_mode():
         return None
     # 🛡️ admin/bridge key unte bypass — ops/testing ki (admin key secret, evariki telidu).
@@ -210,7 +210,7 @@ def rate_limit_hit(request: Request, extra_key: str = "") -> Optional[Dict[str, 
         ABUSE["rate_limit_by_route"][rule_key] = ABUSE["rate_limit_by_route"].get(rule_key, 0) + 1
         abuse_log("rate_limit", rule_key, {"ip": client_ip(request), "retry_after": retry})
         return {"limit": max_hits, "window_seconds": window, "retry_after": retry,
-                "message_telugu": f"⚠️ Chala fast ga try chestunnaru — {retry} sec tarvata malli try cheyyandi"}
+                "message_telugu": f"⚠️ చాలా fast గా try chestunnaru — {retry} sec తర్వాత మళ్లీ try చెయ్యండి"}
     bucket.append(now)
     return None
 
@@ -221,7 +221,7 @@ def abuse_log(kind: str, where: str, data: Optional[Dict[str, Any]] = None) -> N
 
 
 def abuse_count(kind: str, n: int = 1) -> None:
-    """Counter penchadam (webhook replay, OTP locks, blocked attempts…) — admin dashboard ki."""
+    """Counter penchadam (webhook replay, OTP locks, blocked attempts…) — admin dashboard కి."""
     ABUSE[kind] = int(ABUSE.get(kind, 0)) + int(n)
 
 
@@ -251,7 +251,7 @@ EMAIL_RE = re.compile(r"^[^@\s]{1,64}@[^@\s]{4,255}$")
 
 
 def clean(value: Any, max_len: int = 200, field: str = "", allow_newlines: bool = False) -> str:
-    """HTML/script/control chars theesi, length cap chesi safe string."""
+    """HTML/script/control chars theesi, length cap చేసి safe string."""
     try:
         s = "" if value is None else str(value)
     except Exception:
@@ -279,7 +279,7 @@ def req_text(value: Any, field: str, min_len: int = 1, max_len: int = 200, requi
              pattern_msg: str = "") -> str:
     s = clean(value, max_len=max_len, field=field, allow_newlines=allow_newlines)
     if required and len(s) < min_len:
-        validation_error(field, f"⚠️ {field} sarigga ivvandi ({min_len}-{max_len} characters)")
+        validation_error(field, f"⚠️ {field} సరిగ్గా ఇవ్వండి ({min_len}-{max_len} characters)")
     if s and pattern is not None and not pattern.match(s):
         validation_error(field, pattern_msg or f"⚠️ {field} format tappu")
     return s
@@ -292,7 +292,7 @@ def req_phone(value: Any, field: str = "phone") -> str:
     if digits.startswith("0") and len(digits) == 11:
         digits = digits[1:]
     if not PHONE_RE.match(digits):
-        validation_error(field, "⚠️ 10 digit mobile number ivvandi (6/7/8/9 tho start avvali)")
+        validation_error(field, "⚠️ 10 digit mobile number ఇవ్వండి (6/7/8/9 తో start అవ్వాలి)")
     return digits
 
 
@@ -300,7 +300,7 @@ def req_int(value: Any, field: str, lo: int, hi: int, default: Optional[int] = N
     if value in (None, "", "None"):
         if default is not None:
             return default
-        validation_error(field, f"⚠️ {field} ivvandi")
+        validation_error(field, f"⚠️ {field} ఇవ్వండి")
     try:
         if isinstance(value, bool):
             raise ValueError
@@ -309,14 +309,14 @@ def req_int(value: Any, field: str, lo: int, hi: int, default: Optional[int] = N
             raise ValueError
         n = int(float(s))
     except Exception:
-        validation_error(field, f"⚠️ {field} number ga undali")
+        validation_error(field, f"⚠️ {field} number గా ఉండాలి")
     if n < lo or n > hi:
-        validation_error(field, f"⚠️ {field} {lo}–{hi} madhya lo undali (meeru icchindi: {n})")
+        validation_error(field, f"⚠️ {field} {lo}–{hi} madhya లో ఉండాలి (మీరు icchindi: {n})")
     return n
 
 
 def clamp_int(value: Any, field: str, lo: int, hi: int, default: int) -> int:
-    """Range bayata unte **clamp** (400 kaadu) — limit=-5 → 1, limit=99999 → hi. Junk ayithe 400."""
+    """Range బయట ఉంటే **clamp** (400 కాదు) — limit=-5 → 1, limit=99999 → hi. Junk అయితే 400."""
     if value in (None, "", "None"):
         return default
     try:
@@ -327,7 +327,7 @@ def clamp_int(value: Any, field: str, lo: int, hi: int, default: int) -> int:
             raise ValueError
         n = int(float(s))
     except Exception:
-        validation_error(field, f"⚠️ {field} number ga undali")
+        validation_error(field, f"⚠️ {field} number గా ఉండాలి")
     return max(lo, min(hi, n))
 
 
@@ -337,11 +337,11 @@ def req_choice(value: Any, field: str, allowed: Iterable[str], required: bool = 
     s = clean(value, max_len=60, field=field)
     if not s:
         if required:
-            validation_error(field, f"⚠️ {field} select cheyyandi ({', '.join(allowed_list[:6])}…)")
+            validation_error(field, f"⚠️ {field} select చెయ్యండి ({', '.join(allowed_list[:6])}…)")
         return default
     low = {a.lower(): a for a in allowed_list}
     if s.lower() not in low:
-        validation_error(field, f"⚠️ {field} ki '{s}' valid kaadu — ivi matrame: {', '.join(allowed_list[:6])}")
+        validation_error(field, f"⚠️ {field} కి '{s}' valid కాదు — ఇవి మాత్రమే: {', '.join(allowed_list[:6])}")
     return low[s.lower()]
 
 
@@ -370,7 +370,7 @@ def require_owner(request: Request, tsap_id: str) -> None:
         return
     ABUSE["auth_denied"] += 1
     abuse_log("auth_denied", request.url.path if request else "?", {"has_token": bool(ident)})
-    raise HTTPException(401, "🔒 Mee account ki login cheyyandi (OTP) — token lekapote ee data chudaleru")
+    raise HTTPException(401, "🔒 మీ account కి login చెయ్యండి (OTP) — token lekapote ee data chudaleru")
 
 
 def require_admin(request: Request) -> None:
@@ -379,16 +379,16 @@ def require_admin(request: Request) -> None:
         return
     ABUSE["admin_denied"] += 1
     abuse_log("admin_denied", request.url.path if request else "?")
-    raise HTTPException(403, "🔒 Admin access — X-Admin-Key kavali (lekapote mee team ki cheppandi)")
+    raise HTTPException(403, "🔒 Admin access — X-Admin-Key కావాలి (lekapote మీ team కి చెప్పండి)")
 
 
 def vendor_token(vendor_id: str) -> str:
-    """Vendor ki signed token (vendor dashboard own data — vendor users ki phone OTP ledu)."""
+    """Vendor కి signed token (vendor dashboard own data — vendor users కి phone OTP లేదు)."""
     return sign_token(f"vendor:{vendor_id}", scope="vendor")
 
 
 def require_vendor(request: Request, vendor_id: str) -> None:
-    """Vendor dashboard — X-Vendor-Token kavali (lekapote 401). Vendor data leak fix."""
+    """Vendor dashboard — X-Vendor-Token కావాలి (lekapote 401). Vendor data leak fix."""
     if not auth_enforced() or is_admin(request) or is_automation(request):
         return
     raw = ""
@@ -399,11 +399,11 @@ def require_vendor(request: Request, vendor_id: str) -> None:
         return
     ABUSE["auth_denied"] += 1
     abuse_log("vendor_auth_denied", vendor_id)
-    raise HTTPException(401, "🔒 Vendor dashboard ki mee vendor token kavali (register lo vachhindi) — support ki cheppandi")
+    raise HTTPException(401, "🔒 Vendor dashboard కి మీ vendor token కావాలి (register లో వచ్చింది) — support కి చెప్పండి")
 
 
 def require_self_credit(request: Request, user: Dict[str, Any]) -> None:
-    """Credits balance ki owner token (lekapote balance gurinchi cheppakudadu)."""
+    """Credits balance కి owner token (lekapote balance gurinchi cheppakudadu)."""
     require_owner(request, str((user or {}).get("tsap_id", "")))
 
 
@@ -429,7 +429,7 @@ def apply_security_headers(headers) -> None:
 def too_many(limit_info: Dict[str, Any]) -> JSONResponse:
     return JSONResponse(status_code=429, content={
         "success": False, "error": "rate_limited", **limit_info,
-        "help_telugu": "Anti-spam protection — konchem aagi malli try cheyyandi."},
+        "help_telugu": "Anti-spam protection — konchem aagi మళ్లీ try చెయ్యండి."},
         headers={"Retry-After": str(limit_info.get("retry_after", 60))})
 
 
@@ -441,7 +441,7 @@ _IDEMPOTENCY_TTL = 30 * 24 * 3600
 
 
 def seen(key: str) -> bool:
-    """True = idi mundu already process ayyindi (replay!)."""
+    """True = idi ముందు already process అయ్యింది (replay!)."""
     if not key:
         return False
     now = time.time()
@@ -471,5 +471,5 @@ def posture() -> Dict[str, Any]:
         "token_ttl_hours": TOKEN_TTL_SECONDS // 3600,
         "headers": sorted(list(SECURITY_HEADERS.keys()) + [HSTS_HEADER]),
         "idempotency_entries": seen_count(),
-        "numbers_policy": "🔒 phone numbers public API lo eppudu ledu — interest accept tho matrame exchange (consent)",
+        "numbers_policy": "🔒 phone numbers public API లో ఎప్పుడు లేదు — interest accept తో మాత్రమే exchange (consent)",
     }

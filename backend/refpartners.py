@@ -102,28 +102,28 @@ def register_partner(name: str, phone: str, phonepe: str = "", address: str = ""
     name = re.sub(r"\s+", " ", (name or "").strip())[:60]
     if len(name) < 2:
         return {"success": False, "reason": "bad_name",
-                "message_telugu": "⚠️ Name ivvandi (min 2 letters)"}
+                "message_telugu": "⚠️ Name ఇవ్వండి (min 2 letters)"}
     phone = "".join(ch for ch in str(phone or "") if ch.isdigit())
     if len(phone) != 10 or phone[0] not in "6789":
         return {"success": False, "reason": "bad_phone",
-                "message_telugu": "⚠️ 10-digit mobile number ivvandi (6/7/8/9 tho start)"}
+                "message_telugu": "⚠️ 10-digit mobile number ఇవ్వండి (6/7/8/9 తో start)"}
     if any(p.get("phone") == phone for p in PARTNERS):
         ex = next(p for p in PARTNERS if p.get("phone") == phone)
         return {"success": True, "already": True, "partner_id": ex["partner_id"],
                 "link": ex.get("link", ""),
-                "message_telugu": f"ℹ️ Ee number tho already partner ID undi: {ex['partner_id']}"}
+                "message_telugu": f"ℹ️ ఈ number తో already partner ID ఉంది: {ex['partner_id']}"}
     phonepe_d = "".join(ch for ch in str(phonepe or "") if ch.isdigit())
     if phonepe_d and (len(phonepe_d) != 10 or phonepe_d[0] not in "6789"):
         return {"success": False, "reason": "bad_phonepe",
-                "message_telugu": "⚠️ PhonePe number 10 digits undali (ledante khali vadileyandi)"}
+                "message_telugu": "⚠️ PhonePe number 10 digits ఉండాలి (ledante khali vadileyandi)"}
     state = (state or "").strip()
     if state not in _STATES:
         return {"success": False, "reason": "bad_state",
-                "message_telugu": "⚠️ State select cheyyandi (TS/AP/KA/MH/Other)"}
+                "message_telugu": "⚠️ State select చెయ్యండి (TS/AP/KA/MH/Other)"}
     district = re.sub(r"\s+", " ", (district or "").strip())[:40]
     if len(district) < 2:
         return {"success": False, "reason": "bad_district",
-                "message_telugu": "⚠️ District select/type cheyyandi"}
+                "message_telugu": "⚠️ District select/type చెయ్యండి"}
     pid = _gen_id(name)
     base_url = (site or os.getenv("SITE_URL", "https://manavivaha.in")).rstrip("/")
     p = {"partner_id": pid, "name": name, "full_name": name, "phone": phone,
@@ -138,7 +138,7 @@ def register_partner(name: str, phone: str, phonepe: str = "", address: str = ""
     _save()
     _csv_append(p)
     return {"success": True, "partner_id": pid, "link": p["link"],
-            "message_telugu": f"🎉 Partner ID ready: {pid} — ee link share cheyyandi, prathi payment ki ₹50!"}
+            "message_telugu": f"🎉 Partner ID ready: {pid} — ee link share చెయ్యండి, prathi payment కి ₹50!"}
 
 
 def record_click(pid: str) -> None:
@@ -154,7 +154,7 @@ def partner_public(pid: str, users: Optional[List[Dict]] = None) -> Dict[str, An
     p = get_partner(pid)
     if not p:
         return {"success": False, "reason": "not_found",
-                "message_telugu": "⚠️ Partner ID dorakaledu"}
+                "message_telugu": "⚠️ Partner ID దొరకలేదు"}
     st = p.get("referral_stats", {})
     _ledger = st.get("ledger", []) or []
     _paid_ids = {l.get("from") for l in _ledger if l.get("type") == "commission" and l.get("from")}
@@ -180,7 +180,7 @@ def partner_public(pid: str, users: Optional[List[Dict]] = None) -> Dict[str, An
 
 
 def admin_report(users: List[Dict]) -> Dict[str, Any]:
-    """Admin: evariki entha ravali + evari referral lo evaru (partners + users)."""
+    """Admin: ఎవరికీ entha ravali + evari referral లో ఎవరు (partners + users)."""
     rows = []
     for p in PARTNERS:
         st = p.get("referral_stats", {})

@@ -50,16 +50,16 @@ def age_rule_check(a: Dict, b: Dict) -> Dict:
     bride, groom = _roles(a, b)
     if not bride:
         return {"applicable": False, "blocked": False, "reason": "same_gender_or_unknown",
-                "verdict_telugu": "Age rule Bride×Groom ke (same-gender ki N/A)"}
+                "verdict_telugu": "Age rule Bride×Groom కే (same-gender కి N/A)"}
     bd, gd = parse_dob(bride.get("dob", "")), parse_dob(groom.get("dob", ""))
     if bd and gd:
         gap = (bd - gd).days   # +ve = bride younger by N days
         if gap < 0:
             return {"applicable": True, "blocked": True, "reason": "bride_older",
                     "gap_days": gap, "via": "dob",
-                    "verdict_telugu": f"🚫 Ammayi abbayi kanna {-gap} roju peddadi — sampradayam prakaram suggest cheyyamu 🙏"}
-        txt = "okka roje puttaru (same date) 🎉" if gap == 0 else (
-            f"ammayi {gap} rojulu chinna" if gap < 365 else f"ammayi ~{gap // 365}y chinna")
+                    "verdict_telugu": f"🚫 Ammayi అబ్బాయి kanna {-gap} రోజు పెద్దది — సంప్రదాయం prakaram suggest cheyyamu 🙏"}
+        txt = "ఒక్క roje puttaru (same date) 🎉" if gap == 0 else (
+            f"అమ్మాయి {gap} rojulu చిన్న" if gap < 365 else f"అమ్మాయి ~{gap // 365}y చిన్న")
         return {"applicable": True, "blocked": False, "reason": "age_ok",
                 "gap_days": gap, "gap_text": txt, "via": "dob",
                 "verdict_telugu": f"✅ Vayasu set — {txt}"}
@@ -72,12 +72,12 @@ def age_rule_check(a: Dict, b: Dict) -> Dict:
         if ba > ga:
             return {"applicable": True, "blocked": True, "reason": "bride_older",
                     "via": "age_years", "gap_days": None,
-                    "verdict_telugu": f"🚫 Ammayi ({ba}) abbayi ({ga}) kanna peddadi — suggest cheyyamu 🙏"}
+                    "verdict_telugu": f"🚫 Ammayi ({ba}) అబ్బాయి ({ga}) kanna పెద్దది — suggest cheyyamu 🙏"}
         return {"applicable": True, "blocked": False, "reason": "age_ok",
                 "via": "age_years", "gap_days": None,
-                "verdict_telugu": "✅ Vayasu paranga OK (DOB pedithe date-accurate ga chustham)"}
+                "verdict_telugu": "✅ Vayasu paranga OK (DOB పెడితే date-accurate గా chustham)"}
     return {"applicable": True, "blocked": False, "reason": "age_unknown", "via": "unknown",
-            "gap_days": None, "verdict_telugu": "⚠️ DOB/age ledu — age verify cheyyalekapoyam (rank thakkuva)"}
+            "gap_days": None, "verdict_telugu": "⚠️ DOB/age లేదు — age verify cheyyalekapoyam (rank తక్కువ)"}
 
 
 def age_priority_key(me: Dict, other: Dict) -> Tuple[int, int]:
@@ -147,7 +147,7 @@ def job_group(profile: Dict) -> str:
 
 
 def profession_affinity(a: Dict, b: Dict) -> Dict:
-    """Same-group → boost + telugu reason (rank layer kosam)."""
+    """Same-group → boost + telugu reason (rank layer కోసం)."""
     ga, gb = job_group(a), job_group(b)
     same = ga == gb and ga != "other"
     both_known = ga != "other" and gb != "other"
@@ -240,6 +240,6 @@ def castes_for(religion: str) -> Dict:
     r = alias.get(r, r)
     if r not in RELIGION_CASTES:
         return {"religion": r or "Hindu", "castes": sorted(HINDU_CASTES),
-                "note_telugu": "Religion teliyadu — Hindu castes chupisthunnam"}
+                "note_telugu": "Religion తెలియదు — Hindu castes chupisthunnam"}
     return {"religion": r, "castes": list(RELIGION_CASTES[r]),
             "note_telugu": f"✅ {r} — {len(RELIGION_CASTES[r])} groups (A–Z order)"}

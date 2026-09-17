@@ -22,7 +22,7 @@ EDU_LEVELS = {
 }
 
 def _num(v, default: int = 0) -> int:
-    """WAVE 26 — age missing/string aina crash vaddu (incomplete profiles)."""
+    """WAVE 26 — age missing/string aina crash వద్దు (incomplete profiles)."""
     try:
         return int(float(v))
     except Exception:
@@ -34,7 +34,7 @@ def _str(v) -> str:
 
 
 def calculate_age_score(user_age: int, match_age: int, user_gender: str) -> int:
-    """Abbayi 1-5 years pedda = full, thakkuva theda = thakkuva"""
+    """Abbayi 1-5 years పెద్ద = full, తక్కువ theda = తక్కువ"""
     if user_age is None or match_age is None:
         return 12  # neutral — data lekapothe mid score (crash kadu, bias kadu)
     try:
@@ -131,7 +131,7 @@ def calculate_match_score(user: Dict, match: Dict, user_wants_same_caste: bool=T
     return min(100, total)
 
 def generate_personalized_reasons(user: Dict, match: Dict, score: int) -> List[str]:
-    """Nuvvu ilaga anukunnavu, idi ilaga set avuthadu — Telugu lo"""
+    """నువ్వు ఇలాగా anukunnavu, idi ఇలాగా set avuthadu — Telugu లో"""
     # WAVE 26 — anni .get(): khali fields tho kuda reasons ravali
     user, match = user or {}, match or {}
     _ud, _md = _str(user.get("district")), _str(match.get("district"))
@@ -144,27 +144,27 @@ def generate_personalized_reasons(user: Dict, match: Dict, score: int) -> List[s
     # Location
     if _ud and _ud == _md:
         if user.get("mandal") and match.get("mandal") and _str(user.get("mandal")).lower() == _str(match.get("mandal")).lower():
-            reasons.append(f"Nuvvu {user['mandal']} kavali annavu → {_mg} kooda {match['mandal']} lone — super near!")
+            reasons.append(f"నువ్వు {user['mandal']} కావాలి అన్నావు → {_mg} కూడా {match['mandal']} లోనే — super near!")
         else:
-            reasons.append(f"Nuvvu {_ud} kavali annavu → {_mg} kooda {_md} lone")
+            reasons.append(f"నువ్వు {_ud} కావాలి అన్నావు → {_mg} కూడా {_md} లోనే")
     elif _us and _us == _ms:
-        reasons.append(f"Nuvvu {_us} kavali annavu → {_mg} kooda {_us} lone")
+        reasons.append(f"నువ్వు {_us} కావాలి అన్నావు → {_mg} కూడా {_us} లోనే")
 
     # Job
     if _uj and _uj == _mj:
-        reasons.append(f"Nuvvu {_uj} kavali annavu → {_mg} kooda {_mj} ({match.get('salary','')})")
+        reasons.append(f"నువ్వు {_uj} కావాలి అన్నావు → {_mg} కూడా {_mj} ({match.get('salary','')})")
     elif "Govt" in _uj and "Govt" in _mj:
         reasons.append(f"Govt job — iddaru Govt, secure future!")
 
     # Caste
     if _uc and _uc == _mc:
-        reasons.append(f"Nuvvu {_uc} kavali annavu → {_mg} kooda {_uc}, gothram kooda {user.get('gothram','')} != {match.get('gothram','')} (safe)")
+        reasons.append(f"నువ్వు {_uc} కావాలి అన్నావు → {_mg} కూడా {_uc}, గోత్రం కూడా {user.get('gothram','')} != {match.get('gothram','')} (safe)")
 
     # Age
     if user.get("age") is not None and match.get("age") is not None:
         diff = abs(_num(user.get("age")) - _num(match.get("age")))
         if 1 <= diff <= 5:
-            reasons.append(f"Age gap {diff} years — perfect, understanding baguntundi")
+            reasons.append(f"Age gap {diff} years — perfect, understanding బాగుంటుంది")
 
     # Education
     if _ue and _ue == _me:
@@ -172,7 +172,7 @@ def generate_personalized_reasons(user: Dict, match: Dict, score: int) -> List[s
 
     # Mandal proximity
     if not reasons:
-        reasons.append(f"Location + Education + Caste 3 kalisi {score}% set avuthundi")
+        reasons.append(f"Location + Education + Caste 3 కలిసి {score}% set అవుతుంది")
 
     # Limit to 3 best
     return reasons[:3]
@@ -195,7 +195,7 @@ def find_top_matches(user: Dict, all_profiles: List[Dict], limit=10, min_score=7
 
 def generate_profile_highlights(profile: Dict, limit: int = 4) -> List[str]:
     """
-    Channel card ki 'Enduku best match' reasons — profile nunchi + vaadi expectations nunchi.
+    Channel card ki 'ఎందుకు best match' reasons — profile nunchi + vaadi expectations nunchi.
     Idi viewer ki convince cheyyadaniki (profile owner's own strengths + preference clarity).
     """
     r = []
@@ -213,15 +213,15 @@ def generate_profile_highlights(profile: Dict, limit: int = 4) -> List[str]:
     fam = profile.get("family_status") or profile.get("family_type", "")
 
     if caste and gothram:
-        r.append(f"{caste} {gothram} gothram{(' + ' + star + ' nakshatram') if star else ''} — sambandham clear ga cheppochu")
+        r.append(f"{caste} {gothram} గోత్రం{(' + ' + star + ' nakshatram') if star else ''} — సంబంధం clear గా cheppochu")
     if job:
         r.append(f"{edu + ' + ' if edu else ''}{job}{(' (' + str(salary) + ')') if salary else ''} — settled profession, no tension")
     if loc:
-        r.append(f"{loc} lo work{(' / ' + profile.get('current_city') + ' lo stay') if profile.get('current_city') and profile.get('current_city') != loc else ''} — {who} tho same city lo undochu")
+        r.append(f"{loc} లో work{(' / ' + profile.get('current_city') + ' లో stay') if profile.get('current_city') and profile.get('current_city') != loc else ''} — {who} తో same city లో undochu")
     if fam:
         r.append(f"{fam} family • {profile.get('father_name','')} {profile.get('father_occupation','')}".strip())
     if profile.get("dob_correct") or profile.get("is_verified"):
-        r.append("ID + DOB verified — fake kaadu, manam guarantee istham")
+        r.append("ID + DOB verified — fake కాదు, మనం guarantee ఇస్తాం")
     if str(profile.get("marital_status", "")).lower().startswith(("pelli", "never", "first")):
         r.append("First marriage • single • no past complications")
     if profile.get("photo_urls") and str(profile.get("photo_urls")).strip("[]'"):

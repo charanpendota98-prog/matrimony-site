@@ -174,7 +174,7 @@ class CardBuilder:
         d.rounded_rectangle([24, 20, 84, 80], 14, fill=GOLD)
         d.text((38, 32), "MV", fill=self.accent, font=F(28, True))
         d.text((100, 22), f"{BRAND}  •  {LEGAL}", fill=WHITE, font=F(22, True))
-        d.text((100, 52), "TS-AP No.1 Telugu Matrimony  •  \u20b999 ke Sambandham",
+        d.text((100, 52), "TS-AP Telugu Matrimony  •  \u20b999 సంబంధం",
                fill=GOLD_LIGHT, font=F(14))
 
         # id + status line
@@ -259,7 +259,7 @@ class CardBuilder:
         # verified tick block
         d.rounded_rectangle([x, self.y + 192, W - 30, self.y + 236], 12, fill=(238, 246, 238))
         d.text((x + 12, self.y + 200),
-               f"{ICON['check']} Mana Vivaha verified profile  {ICON['dot']}  Photo watermark  {ICON['dot']}  Mosam jagratha",
+               f"{ICON['check']} Mana Vivaha verified profile  {ICON['dot']}  Photo watermark  {ICON['dot']}  మోసం జాగ్రత్త",
                fill=GREEN, font=F(13, True))
         self.y += 316
 
@@ -313,7 +313,7 @@ class CardBuilder:
         d = self.d
         score = int(u.get("score", 92) or 92)
         d.rounded_rectangle([24, self.y, W - 24, self.y + 36], 10, fill=self.accent)
-        d.text((38, self.y + 8), f"{ICON['star']} {score}% BEST MATCH  {ICON['dot']}  Enduku set avutharu?",
+        d.text((38, self.y + 8), f"{ICON['star']} {score}% BEST MATCH  {ICON['dot']}  ఎందుకు set అవుతారు?",
                fill=GOLD_LIGHT, font=F(16, True))
         self.y += 46
         for r in reasons:
@@ -345,7 +345,7 @@ class CardBuilder:
         d.text((24, y0 + 68), _fit(d, tags, F(12, True), W - 170), fill=GOLD, font=F(12, True))
         d.text((24, y0 + 92), f"Credits: {_s(u.get('credits'),3)} FREE  {ICON['dot']}  Referral: {_s(u.get('referral_code'),'-')}",
                fill=GOLD_LIGHT, font=F(12))
-        d.text((24, y0 + 114), "! Direct ga money adigithe ventane report cheyyandi - mosam jagratha!",
+        d.text((24, y0 + 114), "! Direct గా money అడిగితే వెంటనే report చెయ్యండి - మోసం జాగ్రత్త!",
                fill=(255, 190, 190), font=F(12, True))
         d.text((24, y0 + 142), f"Watermark: {rid}  {ICON['dot']}  (c) Mana Vivaha {os.getenv('YEAR','2025')}",
                fill=(200, 200, 200), font=F(11))
@@ -476,9 +476,9 @@ if __name__ == "__main__":
         "mandal": "Miryalaguda", "current_city": "Hyderabad", "pincode": "508207",
         "phone": "9848012345", "phone_last4": "2345", "credits": 3,
         "referral_code": "LAK42", "score": 92,
-        "about_myself": "Nenu friendly, family oriented, software lo work chesthunna. Cooking, music istam.",
+        "about_myself": "నేను friendly, family oriented, software లో work చేస్తున్న. Cooking, music ఇష్టం.",
         "expectations": "Reddy alliance, Hyderabad / Nalgonda, software or govt job, 26-31 age.",
-        "reasons": ["Nuvvu Hyderabad kavali annavu → veellu kooda Hyderabad lone — near!",
+        "reasons": ["నువ్వు Hyderabad కావాలి అన్నావు → వీళ్లు కూడా Hyderabad లోనే — near!",
                     "Software + Reddy + BTech — ee combination perfect match",
                     "Gothram Bharadwaj + Star Rohini — jatakaalu kooda set avuthunnai"],
         "hashtags": "#TSBride #Reddy #Software #Telangana #Bride #Nalgonda #Age25 #BTech",

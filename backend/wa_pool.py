@@ -183,7 +183,7 @@ class WAPool:
                 "channels_order": [i.name for i in self.order("channels")],
                 "personal_order": [i.name for i in self.order("personal")],
                 "total_sent_today": sum(i.sent_today for i in self.instances),
-                "failover": "purpose number down ayithe 'both' backup number ventane (duplicate avvadu)",
+                "failover": "purpose number down అయితే 'both' backup number వెంటనే (duplicate అవ్వదు)",
                 "recommended": "3 numbers: OTP (fast) + Channels (posts) + Personal (DMs) + 1 both-backup (optional)",
                 "recent": self.last_delivery[-10:]}
 
@@ -236,11 +236,11 @@ class WAPool:
         candidates = ordered[:max_instances]
         if not candidates:
             return {"ok": False, "instance": "", "attempts": attempts,
-                    "error": "WhatsApp instances configure cheyyaledu",
-                    "hint": "WA_INSTANCES (JSON) leda WHATSAPP_BRIDGE_URL set cheyyandi"}
+                    "error": "WhatsApp instances configure చెయ్యలేదు",
+                    "hint": "WA_INSTANCES (JSON) leda WHATSAPP_BRIDGE_URL set చెయ్యండి"}
         if fn is None:
             return {"ok": False, "instance": "", "attempts": attempts,
-                    "error": "deliverer ledu (publisher _wa_send_via_instance pass cheyyali)"}
+                    "error": "deliverer లేదు (publisher _wa_send_via_instance pass చెయ్యాలి)"}
         for inst in candidates:
             try:
                 res = fn(inst, item)
@@ -263,8 +263,8 @@ class WAPool:
         self.last_delivery.append({"at": time.strftime("%H:%M:%S"), "ok": False,
                                    "target": item.get("target"), "attempts": attempts})
         return {"ok": False, "instance": "", "attempts": attempts,
-                "error": "anni WhatsApp instances fail ayyayi",
-                "hint": "bridge QR scan + WA_INSTANCES urls check cheyyandi"}
+                "error": "అన్నీ WhatsApp instances fail అయ్యాయి",
+                "hint": "bridge QR scan + WA_INSTANCES urls check చెయ్యండి"}
 
     # ------------------------------------------------------- 🌊 WAVE 19 admin manage
     def add_instance(self, name: str, url: str, lane: str = "both", daily_cap: int = 60,
@@ -272,18 +272,18 @@ class WAPool:
         name = (name or "").strip() or ("wa%d" % (len(self.instances) + 1))
         if any(i.name == name for i in self.instances):
             return {"success": False, "reason": "duplicate",
-                    "message_telugu": f"⚠️ {name} already undi — vere name ivvandi"}
+                    "message_telugu": f"⚠️ {name} already ఉంది — vere name ఇవ్వండి"}
         inst = WAInstance(name, url, lane, daily_cap, token, number)
         self.instances.append(inst)
         self.save_state()
         return {"success": True, "name": name, "lane": inst.lane,
-                "message_telugu": f"✅ {name} ({inst.lane}) add ayyindi"}
+                "message_telugu": f"✅ {name} ({inst.lane}) add అయ్యింది"}
 
     def update_instance(self, name: str, **kw) -> Dict:
         inst = next((i for i in self.instances if i.name == name), None)
         if not inst:
             return {"success": False, "reason": "not_found",
-                    "message_telugu": "⚠️ Number dorakaledu"}
+                    "message_telugu": "⚠️ Number దొరకలేదు"}
         if "url" in kw and kw["url"] is not None:
             inst.url = str(kw["url"]).rstrip("/")
             inst.status = "ok" if inst.url else "no_url"
@@ -303,19 +303,19 @@ class WAPool:
             inst.status = "paused"
         self.save_state()
         return {"success": True, "name": name, "instance": inst.as_dict(),
-                "message_telugu": f"✅ {name} update ayyindi"}
+                "message_telugu": f"✅ {name} update అయ్యింది"}
 
     def remove_instance(self, name: str) -> Dict:
         before = len(self.instances)
         self.instances = [i for i in self.instances if i.name != name]
         if len(self.instances) == before:
             return {"success": False, "reason": "not_found",
-                    "message_telugu": "⚠️ Number dorakaledu"}
+                    "message_telugu": "⚠️ Number దొరకలేదు"}
         self.save_state()
         return {"success": True, "message_telugu": f"🗑️ {name} teesesam"}
 
     def dead_letter(self, item: Dict, attempts: List[Dict]) -> Dict:
-        """3 tries ayyaka kooda fail → dead-letter (admin alert + tarvata manual/bulk retry)."""
+        """3 tries అయ్యాక కూడా fail → dead-letter (admin alert + తర్వాత manual/bulk retry)."""
         rec = {"at": time.strftime("%Y-%m-%d %H:%M:%S"), "target": item.get("target"),
                "kind": item.get("kind"), "text_preview": str(item.get("text", ""))[:120],
                "attempts": attempts}
@@ -327,7 +327,7 @@ _ENGINES: Dict[str, object] = {}
 
 
 def engine_for(instance_name: str):
-    """Per-number anti-ban engine — okka WhatsApp number ki okka gaps/caps state (multi-number safe)."""
+    """Per-number anti-ban engine — ఒక్క WhatsApp number కి ఒక్క gaps/caps state (multi-number safe)."""
     try:
         from wa_antiban import WhatsAppAntiban
     except Exception:

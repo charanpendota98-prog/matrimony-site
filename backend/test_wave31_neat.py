@@ -194,6 +194,53 @@ sitemap_src = open(os.path.join(SRC, "app", "sitemap.ts"), encoding="utf-8").rea
 check("N7.5 sitemap has no admin/growth",
       "/admin" not in sitemap_src and "/growth" not in sitemap_src)
 
+section("N9 backend display Telugu everywhere (W33 converter + hand fixes)")
+import re as _re
+_DISPLAY = ("telugu", "message", "verdict", "caption", "error_", '"q":', "'q':",
+            '"a":', "'a':", "headline", "_text", "headline_telugu")
+_SLANG = ("cheyy", "ayithe", "aithe", "kanipinch", "dorak", "ivvamu", "ivvandi",
+          "pampandi", "chudandi", "undadu", "matrame", "nunchi", "kavali",
+          "veltundi", "ekkuva", "Modati", "modati", "sambandham", "Sambandham",
+          "adigithe", "parvaledu", "jagratha", "kutumbam", "Ippudu", "ippudu",
+          "Eppudu", "eppudu", "Enduku", "enduku", "andariki", "okate",
+          "ventane", "kaledu", "istam", "Emaina", "Mundu", "kaadu")
+_CODE_OK = ('"keys"', "'keys'", '"reason"', "'reason'", '"code"', "'code'",
+            "marital_status", "req_choice", ".get(", '["', "gothram", "rasi",
+            "dosham", "porutham", "in (", "startswith", "check(", "assert ")
+_bad = []
+for _fn in ("ads.py", "advanced11.py", "astro.py", "growth.py", "interest.py",
+            "main.py", "paypro.py", "porutham.py", "publisher.py", "safety.py",
+            "smart12.py", "telegram_bot.py", "topmatch.py", "vendors.py",
+            "welcome_pack.py", "channel_content.py", "credits.py", "otp_channels.py",
+            "cms.py", "hardening.py", "quality.py", "matchpro.py", "matching_engine.py"):
+    _src = open(os.path.join(ROOT, "backend", _fn), encoding="utf-8").read()
+    for _i, _ln in enumerate(_src.splitlines(), 1):
+        _s = _ln.strip()
+        if not _s or _s.startswith("#"):
+            continue
+        _low = _ln.lower()
+        if not any(m in _low for m in _DISPLAY) and len(_ln) < 60:
+            continue
+        if any(x in _ln for x in _CODE_OK):
+            continue
+        _lits = " ".join(_re.findall(r'"(?:[^"\\]|\\.)*"|\'(?:[^\'\\]|\\.)*\'', _ln))
+        if len(_lits) < 12:
+            continue
+        for _tok in _SLANG:
+            if _re.search(r"(?<![A-Za-z_])" + _re.escape(_tok) + r"(?![A-Za-z_])", _lits):
+                _bad.append(f"{_fn}:{_i}:{_tok}")
+                break
+check("N9.1 no Roman slang in backend display strings", not _bad, "; ".join(_bad[:5]))
+_full = ""
+for _fn in ("interest.py", "main.py", "growth.py", "preview.py", "channel_content.py",
+            "channels_config.py", "telegram_bot.py"):
+    _full += open(os.path.join(ROOT, "backend", _fn), encoding="utf-8").read()
+check("N9.2 no 65-channels claim", "65 channels" not in _full and "65channel" not in _full)
+check("N9.3 no No.1 claims in backend display",
+      "No.1 Telugu" not in _full and "నం.1" not in _full)
+check("N9.4 no ke Sambandham anywhere backend",
+      "ke Sambandham" not in _full.replace("99keSambandham", ""))
+
 section("N8 no-fake markers on illustrations")
 home_src = open(os.path.join(SRC, "app", "page.tsx"), encoding="utf-8").read()
 check("N8.1 hero card marked sample", "నమూనా" in home_src)

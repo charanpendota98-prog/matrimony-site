@@ -121,7 +121,7 @@ class BotPool:
                 "available": len([b for b in self.bots if b.available(now)]),
                 "post_order": [b.name for b in self.order("post")],
                 "alert_order": [b.name for b in self.order("alert")],
-                "failover": "primary → backup → alert (okati fail aithe pakkadi ventane try avutundi)",
+                "failover": "primary → backup → alert (okati fail అయితే pakkadi వెంటనే try అవుతుంది)",
                 "recommended": "3 bots: primary (users+post) • backup (post) • alert (admin notifications)"}
 
     # ---- failure bookkeeping
@@ -171,7 +171,7 @@ class BotPool:
     async def _send_via_api(self, bot: BotSpec, chat_id: str, text: str,
                             photo_path: Optional[str], parse_mode: Optional[str]) -> Dict:
         if httpx is None:
-            return {"ok": False, "network_error": True, "description": "httpx install ledu"}
+            return {"ok": False, "network_error": True, "description": "httpx install లేదు"}
         base = "https://api.telegram.org/bot%s" % bot.token
         try:
             async with httpx.AsyncClient(timeout=30) as client:
@@ -198,13 +198,13 @@ class BotPool:
     async def post(self, chat_id: str, text: str, photo_path: Optional[str] = None,
                    role: str = "post", parse_mode: Optional[str] = None,
                    dry_run: bool = False, max_bots: int = 3) -> Dict:
-        """Pool lo healthy bots try chesi post cheyyi. Returns {ok, bot, attempts, ...}."""
+        """Pool లో healthy bots try చేసి post cheyyi. Returns {ok, bot, attempts, ...}."""
         sender = self._sender or self._send_via_api
         attempts: List[Dict] = []
         candidates = [b for b in self.order(role) if b.configured][:max_bots]
         if not candidates:
             return {"ok": False, "bot": "", "attempts": attempts,
-                    "error": "BOT_TOKEN(s) set cheyyaledu", "hint": "env lo BOT_TOKEN + BOT_TOKEN_BACKUP pettu"}
+                    "error": "BOT_TOKEN(s) set చెయ్యలేదు", "hint": "env లో BOT_TOKEN + BOT_TOKEN_BACKUP pettu"}
         if dry_run:
             b = candidates[0]
             return {"ok": True, "dry_run": True, "bot": b.name, "detail": "would post to %s" % chat_id,
@@ -229,14 +229,14 @@ class BotPool:
             attempts.append({"bot": bot.name, "ok": False, "kind": kind,
                              "error": (res.get("description") or res.get("error") or "")[:160],
                              "cooldown_s": int(retry)})
-        return {"ok": False, "bot": "", "attempts": attempts, "error": "anni bots fail ayyayi",
-                "hint": "primary/backup bots ni channels lo admin cheyyandi + tokens check cheyyandi"}
+        return {"ok": False, "bot": "", "attempts": attempts, "error": "అన్నీ bots fail అయ్యాయి",
+                "hint": "primary/backup bots ని channels లో admin చెయ్యండి + tokens check చెయ్యండి"}
 
     async def send_alert(self, text: str, chat_id: str = "", parse_mode: Optional[str] = None) -> Dict:
-        """Admin alert (namaste/interest/monitor) — alert bot mundu, tarvata primary."""
+        """Admin alert (నమస్తే/interest/monitor) — alert bot ముందు, తర్వాత primary."""
         target = chat_id or os.getenv("ADMIN_CHAT_ID", "") or os.getenv("ADMIN_WHATSAPP_NUMBER", "")
         if not target:
-            return {"ok": False, "error": "ADMIN_CHAT_ID ledu"}
+            return {"ok": False, "error": "ADMIN_CHAT_ID లేదు"}
         return await self.post(target, text, role="alert", parse_mode=parse_mode)
 
 

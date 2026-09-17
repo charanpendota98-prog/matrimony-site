@@ -47,19 +47,19 @@ def test_namaste_welcome():
           all(k in t for k in ["Reddy", "Rohini", "Software Engineer", "Hyderabad"]), "")
     check("namaste text: card + profile link", "/search/TSAP-F-2025-1042" in t, "")
     check("namaste text: 3 FREE interest requests", "3 FREE" in t, "")
-    check("namaste text: chatting ledu (spam free)", "Chatting ledu" in t, "")
-    check("namaste text: number privacy line", "kanipinchadu" in t, "")
+    check("namaste text: chatting ledu (spam free)", "Chatting లేదు" in t, "")
+    check("namaste text: number privacy line", "కనిపించదు" in t, "")
     check("namaste text: report advance-money scam line", "Advance money" in t, "")
-    check("namaste text: 65 channels promise", "65" in t, "")
+    check("namaste text: 52 channels promise", "52" in t, "")
     check("namaste text: whatsapp status tip (reach)", "status" in t.lower(), "")
     a = growth.admin_new_profile_text(u, "TSAP-F-2025-1042", "website")
     check("admin alert: NEW REGISTRATION + source", "NEW REGISTRATION" in a and "website" in a, "")
     check("admin alert: phone + verified flag", "9848011111" in a and "verified" in a, "")
     check("admin alert: card link", "/cards/TSAP-F-2025-1042.png" in a, "")
     f = growth.lead_followup_text({"name": "Ravi", "phone": "9848099999", "district": "Warangal", "gender": "Groom"})
-    check("lead follow-up: namaste + register link with phone", "Namaste" in f and "/register?phone=9848099999" in f, "")
+    check("lead follow-up: namaste + register link with phone", "నమస్తే" in f and "/register?phone=9848099999" in f, "")
     check("lead follow-up: team call offer (mass-friendly)", "call" in f.lower() or "team" in f.lower(), "")
-    check("lead follow-up: safety line", "Chatting ledu" in f, "")
+    check("lead follow-up: safety line", "Chatting లేదు" in f, "")
 
 
 # --------------------------------------------------------------------------- #
@@ -155,7 +155,7 @@ def test_launch_inventory():
     inv = __import__("growth").inventory_status(360)
     check("inventory: target 360 ready", inv["ready"] and inv["total_profiles"] == 360, inv)
     inv2 = __import__("growth").inventory_status(120)
-    check("inventory: partial (<360) shows gap", (not inv2["ready"]) and "kavali" in inv2["message_telugu"], inv2["message_telugu"][:70])
+    check("inventory: partial (<360) shows gap", (not inv2["ready"]) and "కావాలి" in inv2["message_telugu"], inv2["message_telugu"][:70])
     check("inventory: how_to_fill has 4 ways", len(inv2["how_to_fill"]) == 4, len(inv2["how_to_fill"]))
 
 

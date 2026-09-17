@@ -87,7 +87,7 @@ def create_profile_card(user: Dict, output_path: str) -> str:
     draw.rectangle([20, y, W-20, y+140], fill=(255,255,255), outline=MAROON)
     draw.text((30, y+5), f"⭐ {user.get('score',92)}% BEST MATCH — Why?", fill=MAROON, font=font_bold)
     ry = y+35
-    for reason in user.get("reasons", ["Nuvvu Hyd kavali annavu → Ammai kooda Hyd lone", "Software + Reddy + Age gap perfect"] )[:3]:
+    for reason in user.get("reasons", ["నువ్వు Hyd కావాలి అన్నావు → అమ్మాయి కూడా Hyd లోనే", "Software + Reddy + Age gap perfect"] )[:3]:
         draw.text((30, ry), f"✅ {reason}", fill=BLACK, font=font_small)
         ry += 25
     y += 150
@@ -98,7 +98,7 @@ def create_profile_card(user: Dict, output_path: str) -> str:
     draw.text((20, H-145), f"🔍 ID Search: tsapmatrimony.com/search/{user.get('tsap_id','TSAP-1042')}", fill=WHITE, font=font_small)
     hashtags = f"#{user.get('caste','Reddy')} #{user.get('state','TS')} #{user.get('gender','Bride')} #Age{user.get('age','24')} #{user.get('education','BTech')} #{user.get('district','Nalgonda')}"
     draw.text((20, H-120), hashtags, fill=GOLD, font=font_tiny)
-    draw.text((20, H-100), f"Watermark: {user.get('tsap_id','TSAP-1042')} • ⚠️ Direct money adigithe fraud!", fill=WHITE, font=font_tiny)
+    draw.text((20, H-100), f"Watermark: {user.get('tsap_id','TSAP-1042')} • ⚠️ Direct money అడిగితే fraud!", fill=WHITE, font=font_tiny)
     draw.text((20, H-70), f"Referral: {user.get('referral_code','—')} • Credits: {user.get('credits',3)} • Photo-Private: {user.get('photo_private',False)}", fill=WHITE, font=font_tiny)
 
     # QR code (ID search)
@@ -139,7 +139,7 @@ if __name__=="__main__":
         "marital_status": "Pelli Kaledu",
         "expectations": "Same caste, Hyd near, Govt/Software, 23-26 age",
         "score": 92,
-        "reasons": ["Nuvvu Hyd kavali annavu → Ammai kooda Hyd lone", "Software + Reddy + Age gap 3y perfect", "Education BTech same"],
+        "reasons": ["నువ్వు Hyd కావాలి అన్నావు → అమ్మాయి కూడా Hyd లోనే", "Software + Reddy + Age gap 3y perfect", "Education BTech same"],
         "referral_code": "BROKER-RAJU-01",
         "credits": 3,
         "photo_private": False,

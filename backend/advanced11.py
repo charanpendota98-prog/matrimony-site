@@ -104,27 +104,27 @@ def gothram_check(a: Dict[str, Any], b: Dict[str, Any]) -> Dict[str, Any]:
             "a_gothram": ga_raw, "b_gothram": gb_raw,
             "reason": "same_gothram",
             "verdict_telugu": (
-                f"🚫 Same gothram ({ga_raw}) — pelli kudadhu (mana sampradayam). "
-                "Vere profiles chudandi — exception kavali ante support ki cheppandi."),
+                f"🚫 Same గోత్రం ({ga_raw}) — పెళ్లి కూడదు (మన సంప్రదాయం). "
+                "Vere profiles చూడండి — exception కావాలి అంటే support కి చెప్పండి."),
         }
     if (ga and not gb) or (gb and not ga):
         return {
             "same": False, "blocked": False, "unknown_side": True,
             "a_gothram": ga_raw, "b_gothram": gb_raw,
             "reason": "gothram_unknown",
-            "verdict_telugu": "⚠️ Okariki gothram ledu — peddavaallatho confirm chesukondi (same gothram ayithe pelli kudadhu).",
+            "verdict_telugu": "⚠️ ఒకరికి గోత్రం లేదు — peddavaallatho confirm చేసుకోండి (same గోత్రం అయితే పెళ్లి కూడదు).",
         }
     return {
         "same": False, "blocked": False,
         "a_gothram": ga_raw, "b_gothram": gb_raw,
         "reason": "ok" if (ga and gb) else "both_unknown",
-        "verdict_telugu": (f"✅ Gothram veru ({ga_raw} ≠ {gb_raw}) — sambandham ki OK"
-                           if (ga and gb) else "ℹ️ Gothram details ledu — profile complete cheyyandi"),
+        "verdict_telugu": (f"✅ గోత్రం వేరు ({ga_raw} ≠ {gb_raw}) — సంబంధం కి OK"
+                           if (ga and gb) else "ℹ️ గోత్రం details లేదు — profile complete చెయ్యండి"),
     }
 
 
 def filter_same_gothram(me: Dict[str, Any], pool: List[Dict[str, Any]]) -> Dict[str, Any]:
-    """pool nunchi same-gothram profiles teesi, count tho return."""
+    """pool నుంచి same-గోత్రం profiles teesi, count తో return."""
     mine = norm_gothram((me or {}).get("gothram"))
     kept, skipped = [], []
     for u in pool or []:
@@ -148,7 +148,7 @@ def submit_story(tsap_id: str, text: str, partner_id: str = "", couple_names: st
     body = req_text(text, "story", STORY_MIN, STORY_MAX)
     dup = next((s for s in STORIES if s.get("tsap_id") == tid and s.get("status") == "pending"), None)
     if dup:
-        validation_error("story", "⚠️ Mee story already review lo undi — approve ayyaka kanipistundi")
+        validation_error("story", "⚠️ మీ story already review లో ఉంది — approve అయ్యాక కనిపిస్తుంది")
     sid = f"STORY-{len(STORIES) + 1:04d}"
     rec = {
         "story_id": sid, "tsap_id": tid,
@@ -168,10 +168,10 @@ def submit_story(tsap_id: str, text: str, partner_id: str = "", couple_names: st
 def review_story(story_id: str, action: str, note: str = "") -> Dict[str, Any]:
     rec = next((s for s in STORIES if s.get("story_id") == story_id), None)
     if not rec:
-        validation_error("story_id", "⚠️ Story dorakaledu — ID sari chudandi")
+        validation_error("story_id", "⚠️ Story దొరకలేదు — ID సరి చూడండి")
     act = str(action or "").lower()
     if act not in ("approve", "reject"):
-        validation_error("action", "⚠️ action approve / reject matrame")
+        validation_error("action", "⚠️ action approve / reject మాత్రమే")
     assert rec is not None
     rec["status"] = "approved" if act == "approve" else "rejected"
     rec["reviewed_at"] = datetime.utcnow().isoformat()
@@ -189,7 +189,7 @@ def approved_stories(limit: int = 20) -> List[Dict[str, Any]]:
 def like_story(story_id: str) -> Dict[str, Any]:
     rec = next((s for s in STORIES if s.get("story_id") == story_id and s.get("status") == "approved"), None)
     if not rec:
-        validation_error("story_id", "⚠️ Story dorakaledu (approve ayyaka matrame like)")
+        validation_error("story_id", "⚠️ Story దొరకలేదు (approve అయ్యాక మాత్రమే like)")
     assert rec is not None
     rec["likes"] = int(rec.get("likes", 0)) + 1
     save_stories()
@@ -197,54 +197,54 @@ def like_story(story_id: str) -> Dict[str, Any]:
 
 
 def story_share_text(story: Dict[str, Any]) -> str:
-    """Channel/WhatsApp forward text (numbers ledu — privacy safe)."""
+    """Channel/WhatsApp forward text (numbers లేదు — privacy safe)."""
     names = story.get("couple_names") or "Mana Vivaha janta"
     dist = f" ({story['district']})" if story.get("district") else ""
     return (
-        f"💑 SUCCESS STORY{dist} 💑\n{names} — Mana Vivaha dwara kalisaru! 🎉\n"
+        f"💑 SUCCESS STORY{dist} 💑\n{names} — Mana Vivaha ద్వారా కలిశారు! 🎉\n"
         f"\"{story.get('text','')[:220]}\"\n\n"
-        f"Meeku kooda ilanti sambandham kavali ante → manavivaha.in (₹99 ke Sambandham, modati 3 FREE) 🙏")
+        f"మీకు కూడా ఇలాంటి సంబంధం కావాలి అంటే → manavivaha.in (₹99 కే సంబంధం, మొదటి 3 FREE) 🙏")
 
 
 # ---------------------------------------------------------------------------
 # 3. 💬 SUPPORT FAQ — Telugu bot answers (widget + Telegram bot common)
 # ---------------------------------------------------------------------------
 SUPPORT_FAQS: List[Dict[str, Any]] = [
-    {"id": "price", "q": "₹99 enduku? Free lo em vastundi?",
-     "a": "Modati 3 profiles + 3 interests FREE. ₹99 → 5 profiles unlock (numbers accept tarvata). Decline ayithe credit refund — loss ledu.",
+    {"id": "price", "q": "₹99 ఎందుకు? Free లో ఏం వస్తుంది?",
+     "a": "మొదటి 3 profiles + 3 interests FREE. ₹99 → 5 profiles unlock (numbers accept తర్వాత). Decline అయితే credit refund — loss లేదు.",
      "keys": ["price", "99", "free", "cost", "dabbulu", "rate", "plan"]},
-    {"id": "numbers", "q": "Phone numbers eppudu vastayi?",
-     "a": "Numbers eppudu public kadu. Meeru interest pampi, avatali vallu ACCEPT chesthe iddariki numbers WhatsApp lo automatic ga vastayi.",
+    {"id": "numbers", "q": "Phone numbers ఎప్పుడు vastayi?",
+     "a": "Numbers ఎప్పుడు public కాదు. మీరు interest పంపి, avatali వాళ్లు ACCEPT చేస్తే iddariki numbers WhatsApp లో automatic గా vastayi.",
      "keys": ["number", "phone", "contact", "mobile"]},
-    {"id": "register", "q": "Register ela? Entha time?",
-     "a": "3 min: /register lo details → OTP verify → photo → ID vastundi. Bot lo kooda @telugumatrimony1_bot /start cheyochu.",
+    {"id": "register", "q": "Register ఎలా? Entha time?",
+     "a": "3 min: /register లో details → OTP verify → photo → ID వస్తుంది. Bot లో కూడా @telugumatrimony1_bot /start చెయ్యొచ్చు.",
      "keys": ["register", "join", "signup", "account", "create"]},
-    {"id": "photo_private", "q": "Photo private ga pettukovacha (ammayilu)?",
-     "a": "Avunu! Photo-private ON chesthe mee photo blur lo untundi — interest accept chesinavallake clear photo. 100% safe.",
+    {"id": "photo_private", "q": "Photo private గా pettukovacha (ammayilu)?",
+     "a": "అవును! Photo-private ON చేస్తే మీ photo blur లో ఉంటుంది — interest accept చేసినవాళ్లకే clear photo. 100% safe.",
      "keys": ["photo", "private", "blur", "safe", "ammayi", "hide"]},
-    {"id": "gothram", "q": "Same gothram ayithe?",
-     "a": "Same gothram ayithe interest automatic ga block avutundi — pelli kudadhu kabatti. Warning kooda chupistham.",
+    {"id": "gothram", "q": "Same గోత్రం అయితే?",
+     "a": "Same గోత్రం అయితే interest automatic గా block అవుతుంది — పెళ్లి కూడదు కాబట్టి. Warning కూడా చూపిస్తాం.",
      "keys": ["gothram", "gotram"]},
-    {"id": "porutham", "q": "Porutham/jatakam chusthara?",
-     "a": "Avunu — star + rasi ivvandi, 10 poruthamalu score + Telugu verdict istam (/porutham). Interest lo kooda porutham line vastundi.",
+    {"id": "porutham", "q": "పొరుతం/jatakam చూస్తారా?",
+     "a": "అవును — star + రాశి ఇవ్వండి, 10 పొరుతములు score + Telugu verdict ఇష్టం (/porutham). Interest లో కూడా పొరుతం line వస్తుంది.",
      "keys": ["porutham", "jathakam", "jatakam", "star", "rasi", "nakshatra", "horoscope"]},
-    {"id": "refund", "q": "Refund policy enti?",
-     "a": "Matches rakapothe 7 days lo refund — /refund lo details chudandi. Decline ayina interest credit meeku automatic refund.",
+    {"id": "refund", "q": "Refund policy ఏంటి?",
+     "a": "Matches రాకపోతే 7 days లో refund — /refund లో details చూడండి. Decline అయిన interest credit మీకు automatic refund.",
      "keys": ["refund", "return", "money back", "cancel"]},
-    {"id": "fake", "q": "Fake profiles untaya? Report ela?",
-     "a": "OTP verify + photo check + 2 reports = auto-hide. Fake anipisthe profile lo Report button nachandi → mana team 24h lo action, meeru safe.",
+    {"id": "fake", "q": "Fake profiles untaya? Report ఎలా?",
+     "a": "OTP verify + photo check + 2 reports = auto-hide. Fake అనిపిస్తే profile లో Report button నొక్కండి → మన team 24h లో action, మీరు safe.",
      "keys": ["fake", "fraud", "report", "scam", "mosam", "block"]},
-    {"id": "bureau", "q": "Nenu broker/bureau — ela join avvali?",
-     "a": "/bureau lo register → referral code vastundi → meeku ₹50 per paid user + dashboard. Bureaus ki ₹999 white-label plan undi.",
+    {"id": "bureau", "q": "నేను broker/bureau — ఎలా join అవ్వాలి?",
+     "a": "/bureau లో register → referral code వస్తుంది → మీకు ₹50 per paid user + dashboard. Bureaus కి ₹999 white-label plan ఉంది.",
      "keys": ["bureau", "broker", "agent", "commission"]},
-    {"id": "vendor", "q": "Pelli vendors (catering/photo) ads ela ivvali?",
-     "a": "/vendors lo register → ₹149 nunchi packages → admin approve → meeku direct customer leads WhatsApp ki.",
+    {"id": "vendor", "q": "పెళ్లి vendors (catering/photo) ads ఎలా ఇవ్వాలి?",
+     "a": "/vendors లో register → ₹149 నుంచి packages → admin approve → మీకు direct customer leads WhatsApp కి.",
      "keys": ["vendor", "ad", "catering", "photo", "decoration", "business"]},
-    {"id": "whatsapp", "q": "WhatsApp lo matches vastaya?",
-     "a": "Avunu! Register avvagane 3 profiles WhatsApp ki + roju 9AM daily matches (paid) + saved-search alerts. Telegram channels kooda join avvandi.",
+    {"id": "whatsapp", "q": "WhatsApp లో matches vastaya?",
+     "a": "అవును! Register avvagane 3 profiles WhatsApp కి + రోజు 9AM daily matches (paid) + saved-search alerts. Telegram channels కూడా join అవ్వండి.",
      "keys": ["whatsapp", "telegram", "channel", "daily", "message"]},
     {"id": "support_human", "q": "Manishitho matladali — support number?",
-     "a": "Bot lo /help type cheyandi leda website /safety page lo contact — mana team 10AM–7PM Telugu lo reply istundi.",
+     "a": "Bot లో /help type చెయ్యండి leda website /safety page లో contact — మన team 10AM–7PM Telugu లో reply ఇస్తుంది.",
      "keys": ["support", "help", "contact", "human", "call", "number kavali"]},
 ]
 
@@ -261,7 +261,7 @@ def search_faq(query: str, limit: int = 5) -> List[Dict[str, Any]]:
             scored.append((hits, f))
     scored.sort(key=lambda x: -x[0])
     return [{"id": f["id"], "q": f["q"], "a": f["a"]} for _, f in scored[: max(1, min(limit, 12))]] or [
-        {"id": "support_human", "q": "Manishitho matladandi",
+        {"id": "support_human", "q": "Manishitho మాట్లాడండి",
          "a": next(f["a"] for f in SUPPORT_FAQS if f["id"] == "support_human")}]
 
 
@@ -270,7 +270,7 @@ def search_faq(query: str, limit: int = 5) -> List[Dict[str, Any]]:
 # ---------------------------------------------------------------------------
 STREAK_BONUS = {1: 1, 2: 1, 3: 2, 4: 2, 5: 3, 6: 3, 7: 5}   # day → bonus credits
 STREAK_MILESTONES = {7: "🔥 7 days streak! +5 credits — super consistency!",
-                     14: "⚡ 14 days! +8 credits — mee profile top priority lo untundi",
+                     14: "⚡ 14 days! +8 credits — మీ profile top priority లో ఉంటుంది",
                      30: "👑 30 days! +15 credits + VIP badge — Mana Vivaha star!"}
 STREAK_MAX_DAY_BONUS = 5
 
@@ -297,17 +297,17 @@ def streak_status(user: Dict[str, Any], today: str = "") -> Dict[str, Any]:
         "claimed_today": last == today,
         "next_bonus": streak_bonus_for(shown + 1),
         "milestone_telugu": next((STREAK_MILESTONES[d] for d in sorted(STREAK_MILESTONES) if shown < d),
-                                  "👑 Champion — streak continue cheyyandi!"),
+                                  "👑 Champion — streak continue చెయ్యండి!"),
     }
 
 
 def claim_daily(user: Dict[str, Any], today: str = "") -> Dict[str, Any]:
-    """Rojoo okasari claim — streak penchi bonus credits istundi (user dict mutate)."""
+    """Rojoo okasari claim — streak penchi bonus credits ఇస్తుంది (user dict mutate)."""
     today = today or date.today().isoformat()
     last = str(user.get("streak_last", "") or "")
     if last == today:
         return {"success": False, "already": True, "count": int(user.get("streak_count", 0) or 0),
-                "message_telugu": "✅ Ee roju bonus already thisukunnaru — repu malli randi! 🙏"}
+                "message_telugu": "✅ ఈ రోజు bonus already తీసుకున్నారు — రేపు మళ్లీ రండి! 🙏"}
     yesterday = (datetime.strptime(today, "%Y-%m-%d").date() - timedelta(days=1)).isoformat()
     count = int(user.get("streak_count", 0) or 0) + 1 if last == yesterday else 1
     bonus = streak_bonus_for(count)
@@ -343,7 +343,7 @@ def push_subscribe(tsap_id: str, endpoint: str, keys: Optional[Dict[str, str]] =
         old["updated_at"] = datetime.utcnow().isoformat()
         save_push()
         return {"success": True, "sub_id": old["sub_id"], "renewed": True,
-                "message_telugu": "🔔 Match alerts ON — kotha matches vaste notification vastundi"}
+                "message_telugu": "🔔 Match alerts ON — కొత్త matches వస్తే notification వస్తుంది"}
     sid = f"PUSH-{len(PUSH_SUBS) + 1:05d}"
     rec = {"sub_id": sid, "tsap_id": tid, "endpoint": ep,
            "keys": {"p256dh": clean(keys.get("p256dh", ""), 200, "p256dh"),
@@ -353,7 +353,7 @@ def push_subscribe(tsap_id: str, endpoint: str, keys: Optional[Dict[str, str]] =
     PUSH_SUBS.append(rec)
     save_push()
     return {"success": True, "sub_id": sid, "renewed": False,
-            "message_telugu": "🔔 Match alerts ON — browser close chesina kotha matches notification vastundi!"}
+            "message_telugu": "🔔 Match alerts ON — browser close చేసిన కొత్త matches notification వస్తుంది!"}
 
 
 def push_unsubscribe(tsap_id: str = "", endpoint: str = "") -> Dict[str, Any]:
@@ -366,7 +366,7 @@ def push_unsubscribe(tsap_id: str = "", endpoint: str = "") -> Dict[str, Any]:
     if removed:
         save_push()
     return {"success": True, "removed": removed,
-            "message_telugu": "🔕 Alerts off chesam" if removed else "ℹ️ Active alerts levu"}
+            "message_telugu": "🔕 Alerts off చేశాం" if removed else "ℹ️ Active alerts లేవు"}
 
 
 def subs_for(tsap_id: str) -> List[Dict[str, Any]]:
@@ -383,7 +383,7 @@ def push_notify(tsap_id: str, title: str, body: str, url: str = "/matches") -> D
     targets = subs_for(req_text(tsap_id, "tsap_id", 4, 30))
     if not targets:
         return {"success": False, "reason": "no_subscription", "queued": 0,
-                "message_telugu": "🔔 Ee user alerts ON cheyyaledu — matches page lo 🔔 button nachithe ON avutundi"}
+                "message_telugu": "🔔 ఈ user alerts ON చెయ్యలేదు — matches page లో 🔔 button నొక్కితే ON అవుతుంది"}
     payload = {"title": title, "body": body, "url": clean(url, 200, "url"),
                "icon": "/icons/icon-192.png", "tag": f"mv-{tsap_id}",
                "at": datetime.utcnow().isoformat()}
@@ -415,7 +415,7 @@ def push_notify(tsap_id: str, title: str, body: str, url: str = "/matches") -> D
             "mode": "live" if sent else "preview",
             "payload_preview": payload,
             "message_telugu": ("🔔 Notification pampam!" if sent
-                               else "🔔 Queue lo pettam (VAPID keys set cheyyagane live avutundi)")}
+                               else "🔔 Queue లో pettam (VAPID keys set చెయ్యగానే live అవుతుంది)")}
 
 
 # ---------------------------------------------------------------------------
@@ -430,11 +430,11 @@ def voice_validate(filename: str, size: int) -> Dict[str, Any]:
     ext = str(filename or "").split(".")[-1].lower()
     if ext not in VOICE_ALLOWED:
         return {"ok": False,
-                "error_telugu": "🎙️ Voice format MP3/WAV/OGG/M4A matrame — phone recorder lo pampandi"}
+                "error_telugu": "🎙️ Voice format MP3/WAV/OGG/M4A మాత్రమే — phone recorder లో పంపండి"}
     if size > VOICE_MAX_BYTES:
-        return {"ok": False, "error_telugu": "🎙️ Voice 2MB kanna peddadi — 30 sec short clip pampandi"}
+        return {"ok": False, "error_telugu": "🎙️ Voice 2MB kanna పెద్దది — 30 sec short clip పంపండి"}
     if size < VOICE_MIN_BYTES:
-        return {"ok": False, "error_telugu": "🎙️ Voice khali ga undi — malli record cheyyandi"}
+        return {"ok": False, "error_telugu": "🎙️ Voice khali గా ఉంది — మళ్లీ record చెయ్యండి"}
     return {"ok": True, "ext": ext}
 
 
@@ -448,10 +448,10 @@ COMPLETE_BONUS_CREDITS = 2
 def claim_complete_bonus(user: Dict[str, Any], percent: int) -> Dict[str, Any]:
     if user.get("complete_bonus_claimed"):
         return {"success": False, "already": True,
-                "message_telugu": "✅ Profile bonus already thisukunnaru — matches enjoy cheyyandi!"}
+                "message_telugu": "✅ Profile bonus already తీసుకున్నారు — matches enjoy చెయ్యండి!"}
     if int(percent or 0) < COMPLETE_BONUS_THRESHOLD:
         return {"success": False, "need_more": COMPLETE_BONUS_THRESHOLD - int(percent or 0),
-                "message_telugu": f"📝 Profile {percent}% undi — {COMPLETE_BONUS_THRESHOLD}% chesthe 2 credits FREE! Photo + about add cheyyandi"}
+                "message_telugu": f"📝 Profile {percent}% ఉంది — {COMPLETE_BONUS_THRESHOLD}% చేస్తే 2 credits FREE! Photo + about add చెయ్యండి"}
     user["complete_bonus_claimed"] = True
     user["credits"] = int(user.get("credits", 0) or 0) + COMPLETE_BONUS_CREDITS
     return {"success": True, "bonus": COMPLETE_BONUS_CREDITS, "credits": user["credits"],
@@ -478,7 +478,7 @@ def is_boosted(user: Dict[str, Any]) -> bool:
 def apply_boost(user: Dict[str, Any], pack_code: str) -> Dict[str, Any]:
     pack = BOOST_PACKS.get(str(pack_code or "").upper())
     if not pack:
-        validation_error("pack", "⚠️ Boost pack B_1 / B_3 / B_7 matrame")
+        validation_error("pack", "⚠️ Boost pack B_1 / B_3 / B_7 మాత్రమే")
     assert pack is not None
     base = datetime.utcnow()
     try:
@@ -490,7 +490,7 @@ def apply_boost(user: Dict[str, Any], pack_code: str) -> Dict[str, Any]:
     until = (base + timedelta(days=int(pack["days"]))).isoformat()
     user["boost_until"] = until
     return {"pack": pack, "boost_until": until,
-            "message_telugu": f"{pack['label']} active! Matches + channels lo mee profile TOP lo untundi ⚡"}
+            "message_telugu": f"{pack['label']} active! Matches + channels లో మీ profile TOP లో ఉంటుంది ⚡"}
 
 
 def boost_rank_key(user: Dict[str, Any]) -> int:

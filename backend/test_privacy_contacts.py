@@ -47,7 +47,7 @@ su = safe_user({"tsap_id": "T", "full_name": "Ravi", "phone": "9848012345", "ema
                 "phone_encrypted": "gAAAA", "phone_last4": "2345", "age": 30, "caste": "Reddy"})
 check("phone/email/encrypted keys levu", not (CONTACT_KEYS & set(su)), sorted(CONTACT_KEYS & set(su)))
 check("phone_masked + contact_locked + note", su.get("phone_masked") and su.get("contact_locked") is True
-      and "Number ivvamu" in su.get("contact_note_telugu", ""))
+      and "Number ఇవ్వము" in su.get("contact_note_telugu", ""))
 check("Profile details intact (age/caste/name)", su.get("age") == 30 and su.get("caste") == "Reddy" and su.get("full_name") == "Ravi")
 check("empty user → {}", safe_user(None) == {})
 
@@ -179,9 +179,9 @@ with TestClient(main.app) as c:
     fp = c.get("/api/free-plan").json()
     check("headline: FREE + 3 profiles + numbers ivvamu",
           fp["success"] and "FREE" in fp["headline_telugu"] and "3 profiles" in fp["headline_telugu"]
-          and "ivvamu" in fp["rule_telugu"])
+          and "ఇవ్వము" in fp["rule_telugu"])
     check("free block: 3 profiles/requests + numbers ❌",
-          fp["free"]["profiles"] == 3 and fp["free"]["requests"] == 3 and "ivvamu" in fp["free"]["numbers"])
+          fp["free"]["profiles"] == 3 and fp["free"]["requests"] == 3 and "ఇవ్వము" in fp["free"]["numbers"])
     check("paid ladder 5 plans (29 → 499)", len(fp["paid"]) == 5 and fp["paid"][0]["price"] == 29
           and fp["paid"][-1]["profiles"] == 50)
     check("numbers_rule Telugu (5 rules, consent + chatting ledu)",

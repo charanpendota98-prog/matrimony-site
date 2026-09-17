@@ -6,7 +6,7 @@ vallu manaku pay chestharu, kabatti manam ₹50 istham referal vallaki."**
 
 Design goals:
   * ఎవరికైనా ₹50 — referred friend **modati payment** (₹29/₹99/₹199/₹299/₹499 — edaina) chesthe
-  * Referee (kotha user) ki kooda **bonus credits** — "andariki bestga"
+  * Referee (kotha user) ki kooda **bonus credits** — "అందరికీ bestga"
   * Repeat payments ki commission LEDU — ₹50 okkasari matrame (first payment) — WAVE 25 rule
   * Tiers (BRONZE → ELITE): BADGES matrame (extra % ledu) — recognition kosam
   * Milestones: 3 / 10 / 25 / 50 paying referrals → cash + credits (AUTO credit — manual ledu)
@@ -55,7 +55,7 @@ TIERS: List[Dict] = [
 
 MILESTONES: List[Dict] = [
     {"paid": 3,  "cash": 0,    "credits": 0,  "title": "🥈 SILVER Referrer", "telugu": "3 paying referrals — 🥈 badge + priority support"},
-    {"paid": 10, "cash": 0,  "credits": 0,  "title": "🥇 GOLD Referrer", "telugu": "10 paying referrals — 🥇 badge + free porutham report"},
+    {"paid": 10, "cash": 0,  "credits": 0,  "title": "🥇 GOLD Referrer", "telugu": "10 paying referrals — 🥇 badge + free పొరుతం report"},
     {"paid": 25, "cash": 0,  "credits": 0, "title": "💎 PLATINUM Referrer", "telugu": "25 paying referrals — 💎 verified badge + homepage"},
     {"paid": 50, "cash": 0, "credits": 0, "title": "👑 ELITE Referrer", "telugu": "50 paying referrals — 👑 elite badge + VIP support"},
 ]
@@ -87,7 +87,7 @@ def _code_of(user: Dict) -> str:
 
 
 def stats_of(user: Dict) -> Dict:
-    """Referrer stats — pata format tho backward compatible."""
+    """Referrer stats — pata format తో backward compatible."""
     s = user.setdefault("referral_stats", {})
     s.setdefault("clicks", 0)
     s.setdefault("registrations", s.get("total", 0))
@@ -152,7 +152,7 @@ def calculate_commission(referral_type: str, plan_amount: int, is_first_payment:
 
 
 def check_bonus_eligibility(referrer_stats: Dict) -> Dict:
-    """Milestone + tier status — bonus cash/credits **auto credit** avutayi (process lo)."""
+    """Milestone + tier status — bonus cash/credits **auto credit** అవుతాయి (process లో)."""
     paid = int(referrer_stats.get("paid_count", 0) or 0)
     tier = tier_of(paid)
     hit = [m for m in MILESTONES if paid >= m["paid"]]
@@ -170,7 +170,7 @@ def check_bonus_eligibility(referrer_stats: Dict) -> Dict:
 
 
 def generate_short_code(name: str, existing_codes: Optional[list] = None) -> str:
-    """Short code — 3 letters + 2 digits = 5 chars — LAK42 — phone lo easy type."""
+    """Short code — 3 letters + 2 digits = 5 chars — LAK42 — phone లో easy type."""
     existing = {str(c).upper() for c in (existing_codes or [])}
     clean = "".join(c for c in str(name or "") if c.isalpha()).upper()
     base = (clean[:3] or "MV").ljust(3, "X")
@@ -220,7 +220,7 @@ def save_state() -> Dict:
 
 
 def load_state() -> Dict:
-    """Server start lo payouts + clicks malli load. Users' wallets main.DB nunchi (user dict lo)."""
+    """Server start లో payouts + clicks మళ్లీ load. Users' wallets main.DB నుంచి (user dict లో)."""
     global PAYOUTS, CLICKS
     try:
         if not os.path.exists(STATE_FILE):
@@ -237,7 +237,7 @@ def load_state() -> Dict:
 # ------------------------------------------------------------------ referrer profile
 def ensure_referrer_profile(user: Dict, all_users: Optional[List[Dict]] = None,
                             name_hint: str = "") -> Dict:
-    """Prathi user ki referral code + link (register appude set avutundi, leda ikkada)."""
+    """Prathi user కి referral code + link (register appude set అవుతుంది, leda ఇక్కడ)."""
     all_users = all_users if all_users is not None else []
     # ee user ni vadilisi, migilina vaalla codes (unique check ki)
     others = [_code_of(u) for u in all_users if u is not user and _code_of(u)]
@@ -274,7 +274,7 @@ def ensure_referrer_profile(user: Dict, all_users: Optional[List[Dict]] = None,
 
 
 def find_referrer(code: str, all_users: List[Dict]) -> Optional[Dict]:
-    """Code / alias / phone / tsap_id — edi ichina referrer ni pattukuntundi."""
+    """Code / alias / phone / tsap_id — edi ichina referrer ని pattukuntundi."""
     if not code:
         return None
     probe = str(code).strip()
@@ -298,7 +298,7 @@ def find_referrer(code: str, all_users: List[Dict]) -> Optional[Dict]:
 
 
 def validate_referral(code: str, all_users: List[Dict]) -> Dict:
-    """Landing page / register form lo validate — 'ee code pani chestunda?'"""
+    """Landing page / register form లో validate — 'ee code pani chestunda?'"""
     code = (code or "").strip()
     if not code:
         return {"ok": False, "valid_code": False, "reason": "code_missing", "message_telugu": "Referral code ఇవ్వలేదు"}
@@ -361,14 +361,14 @@ def _attach_referral_locked(user: Dict, code: str, all_users: List[Dict]) -> Dic
         st.setdefault("ledger", []).append(
             {"id": _next_id("RJ"), "at": _now(), "type": "join_event", "amount": 0,
              "from": user.get("tsap_id"), "from_name": user.get("full_name") or user.get("name", ""),
-             "note": "same phone nunchi join (family) — flag only, block ledu"})
+             "note": "same phone నుంచి join (family) — flag only, block లేదు"})
     st["total"] = st["registrations"]
     ref["referral_stats"] = st
     # 🎁 referee (kotha user) bonus — andariki
     user["credits"] = int(user.get("credits", 0) or 0) + REFEREE_BONUS_CREDITS
     user.setdefault("credit_history", []).append(
         {"at": _now(), "change": REFEREE_BONUS_CREDITS, "reason": "referral_join_bonus",
-         "by": _code_of(ref), "note": "Referral tho register — bonus credit"})
+         "by": _code_of(ref), "note": "Referral తో register — bonus credit"})
     save_state()
     return {"ok": True, "referrer_code": _code_of(ref), "referrer_id": ref.get("tsap_id"),
             "referrer_name": ref.get("full_name") or ref.get("name") or "", "bonus_credits": REFEREE_BONUS_CREDITS,
@@ -409,7 +409,7 @@ def _process_referral_payment_locked(referred_user: Dict, referrer_code: str, pl
                                      all_users: List[Dict], payment_id: str = "") -> Dict:
     """
     Referred friend pay chesaka → referrer ki ₹50 wallet (FLAT, first payment only).
-    · First payment  → ₹50 flat — "andariki ₹50, anthe" (WAVE 25)
+    · First payment  → ₹50 flat — "అందరికీ ₹50, anthe" (WAVE 25)
     · Repeat payment → ₹0 (no commission)
     · Milestone hit  → badge recognition matrame (cash/credits ledu)
     """
@@ -462,7 +462,7 @@ def _process_referral_payment_locked(referred_user: Dict, referrer_code: str, pl
         "id": _next_id("RC"), "at": _now(), "type": "commission", "amount": commission,
         "from": referred_user.get("tsap_id"), "from_name": referred_user.get("full_name") or referred_user.get("name", ""),
         "plan_amount": amount, "first_payment": first, "tier": tier, "payment_id": payment_id,
-        "note": ("Modati payment bonus ₹%d (flat)" % FIRST_PAY_COMMISSION),
+        "note": ("మొదటి payment bonus ₹%d (flat)" % FIRST_PAY_COMMISSION),
     })
 
     # 🏆 milestone + tier bonus (auto credit — cash + credits)
@@ -514,7 +514,7 @@ def _process_referral_payment_locked(referred_user: Dict, referrer_code: str, pl
 
 def reverse_referral_payment(referred_user: Dict, plan_amount: int, all_users: List[Dict],
                              reason: str = "refund") -> Dict:
-    """Payment refund/chargeback ayithe — referrer wallet nunchi commission theesestham (clawback)."""
+    """Payment refund/chargeback అయితే — referrer wallet నుంచి commission తీసేస్తాం (clawback)."""
     code = referred_user.get("referred_by")
     ref = find_referrer(code or "", all_users)
     if not ref:
@@ -564,7 +564,7 @@ def _ref_lock_key(user: Dict) -> str:
 
 
 def valid_payout_utr(utr: str) -> bool:
-    """Admin payout reference — khali/malformed UTR tho approve cheyyakudadu."""
+    """Admin payout reference — khali/malformed UTR తో approve cheyyakudadu."""
     u = (utr or "").strip()
     if not PAYOUT_UTR_RE.fullmatch(u):
         return False
@@ -633,7 +633,7 @@ def _payout_request_locked(user: Dict, amount: int, method: str = "upi", upi_id:
 
 def payout_action(request_id: str, action: str, all_users: List[Dict], utr: str = "",
                   reason: str = "") -> Dict:
-    """Admin: payout approve (UTR tho) / reject (wallet ki malli credit)."""
+    """Admin: payout approve (UTR తో) / reject (wallet కి మళ్లీ credit)."""
     # 🌊 WAVE 25 — per-request lock: double-click approve double-pay avvakudadu
     with _PAYOUT_LOCKS[str(request_id or "")]:
         return _payout_action_locked(request_id, action, all_users, utr=utr, reason=reason)
@@ -674,7 +674,7 @@ def _payout_action_locked(request_id: str, action: str, all_users: List[Dict], u
         st.setdefault("ledger", []).append({"id": _next_id("PD"), "at": _now(), "type": "payout_paid",
                                             "amount": 0, "paid": True, "utr": utr,
                                             "note": "✅ PAID ₹%s • UTR %s" % (req["amount"], utr)})
-        msg = "🎉 ₹%d mee %s ki pampinchi — UTR: %s. Thank you!" % (
+        msg = "🎉 ₹%d మీ %s కి pampinchi — UTR: %s. Thank you!" % (
             req["amount"], "UPI" if req["method"] == "upi" else "bank", utr)
     elif action in ("reject", "cancel"):
         req.update({"status": "rejected", "reason": reason or "admin_reject", "rejected_at": _now()})
@@ -683,8 +683,8 @@ def _payout_action_locked(request_id: str, action: str, all_users: List[Dict], u
         user["wallet"] = st["wallet"]
         st.setdefault("ledger", []).append({"id": _next_id("PB"), "at": _now(), "type": "payout_reject",
                                             "amount": float(req["amount"]),
-                                            "note": "Reject (%s) → wallet ki malli" % (reason or "admin")})
-        msg = "ℹ️ Payout %s reject ayyindi (%s) — ₹%d malli mee wallet lo add chesam." % (
+                                            "note": "Reject (%s) → wallet కి మళ్లీ" % (reason or "admin")})
+        msg = "ℹ️ Payout %s reject అయ్యింది (%s) — ₹%d మళ్లీ మీ wallet లో add చేశాం." % (
             req["id"], reason or "admin", req["amount"])
     else:
         return {"ok": False, "reason": "bad_action"}
@@ -761,7 +761,7 @@ def payout_queue(status: str = "requested") -> Dict:
 
 # ------------------------------------------------------------------ clicks + funnel
 def track_click(code: str, source: str = "link") -> Dict:
-    """ /r/<code> click — funnel (clicks → registrations → payments) ki kavali. """
+    """ /r/<code> click — funnel (clicks → registrations → payments) కి కావాలి. """
     c = (code or "").strip().upper()
     CLICKS.append({"at": _now(), "code": c, "source": source})
     save_state()
@@ -802,9 +802,9 @@ def referral_dashboard(user: Dict, all_users: List[Dict], limit_recent: int = 10
             "conversion_pct": conv, "per_paying_user": FIRST_PAY_COMMISSION,
         },
         "commission_rules": {
-            "first_payment": "₹%d (edi aina plan — ₹%d nunchi)" % (FIRST_PAY_COMMISSION, MIN_QUALIFYING_AMOUNT),
-            "repeat_payment": "₹0 — commission okkasari matrame (first payment)",
-            "tier_extra": "badges matrame (extra % ledu)",
+            "first_payment": "₹%d (ఏది అయిన plan — ₹%d నుంచి)" % (FIRST_PAY_COMMISSION, MIN_QUALIFYING_AMOUNT),
+            "repeat_payment": "₹0 — commission ఒక్కసారి మాత్రమే (first payment)",
+            "tier_extra": "badges మాత్రమే (extra % లేదు)",
             "referee_bonus": "+%d credit to the new user" % REFEREE_BONUS_CREDITS,
             "min_payout": MIN_PAYOUT, "payout_sla_days": PAYOUT_SLA_DAYS,
         },
@@ -829,12 +829,12 @@ def referral_dashboard(user: Dict, all_users: List[Dict], limit_recent: int = 10
 
 # ------------------------------------------------------------------ share kit
 def share_kit(user: Dict) -> Dict:
-    """WhatsApp/Telegram lo share cheyyadaniki ready texts (Telugu) + poster + QR link."""
+    """WhatsApp/Telegram లో share చెయ్యడానికి ready texts (Telugu) + poster + QR link."""
     ensure_referrer_profile(user, [])
     code = _code_of(user)
     link = user.get("referral_link") or ("https://manavivaha.in/r/%s" % code)
     name = user.get("full_name") or user.get("name") or "Mana Vivaha"
-    wa = ("🙏 Namaste! Nenu %s.\n\n"
+    wa = ("🙏 నమస్తే! నేను %s.\n\n"
           "Mana Vivaha (TS-AP Telugu Matrimony) — ₹99 సంబంధం, మొదటి 3 requests FREE.\n"
           "✅ నిజమైన profiles • ఫోటో గోప్యం • 52 Telegram channels\n"
           "✅ మీ సొంత code %s తో register చేస్తే +1 credit EXTRA FREE!\n\n"
@@ -847,7 +847,7 @@ def share_kit(user: Dict) -> Dict:
          "నా code *%s* తో register చేస్తే మీకు +1 credit FREE 🎁\n%s") % (code, link),
         ("👰🤵 Mana Vivaha లో రోజూ కొత్త profiles (Reddy, Kamma, Kapu, Mala, Madiga... caste-wise channels).\n"
          "నా code: %s → %s\n+1 credit FREE (నా referral)!") % (code, link),
-        ("🔔 Namaste! మీ ఇంట్లో/relative circle లో పెళ్లి చూసుకుంటున్న వాళ్లకి ఈ link పంపండి:\n%s\n"
+        ("🔔 నమస్తే! మీ ఇంట్లో/relative circle లో పెళ్లి చూసుకుంటున్న వాళ్లకి ఈ link పంపండి:\n%s\n"
          "Mana Vivaha — 3 requests FREE, ₹99 కి 5 profiles. నా code *%s* (bonus credit ఉంది).") % (link, code),
         ("🙏 %s గారు, Mana Vivaha లో register చెయ్యండి — photo private, fraud జాగ్రత్త, Telugu support.\n"
          "%s\nCode: *%s* (+1 credit FREE)") % (name, link, code),
@@ -966,7 +966,7 @@ def referral_terms_telugu() -> Dict:
 # ------------------------------------------------------------------ util (compat)
 def generate_bureau_white_label_card(original_card_path: str, bureau_name: str, bureau_code: str,
                                      output_path: str) -> str:
-    """Bureau card meeda 'Via <bureau>' overlay (PIL unte nijamga, lekapote path + note)."""
+    """Bureau card మీద 'Via <bureau>' overlay (PIL ఉంటే nijamga, lekapote path + note)."""
     try:
         from PIL import Image, ImageDraw
         img = Image.open(original_card_path).convert("RGB")
@@ -987,7 +987,7 @@ def _name_of(u, fallback="Friend"):
 
 
 def referrer_join_text(referrer, referee):
-    """Friend register ayyinappudu referrer ki pampE message."""
+    """Friend register ayyinappudu referrer కి pampE message."""
     return (
         "🎉 %s గారు, మీ referral link నుంచి *%s* join అయ్యారు!\n\n"
         "వాళ్లు మొదటి payment (₹99/₹199...) చెయ్యగానే మీకు *₹50* మీ wallet లో వెళ్తుంది.\n"
@@ -999,7 +999,7 @@ def referrer_join_text(referrer, referee):
 
 
 def referrer_commission_text(referrer, referee, result):
-    """Payment vachhi commission credit ayyinappudu referrer ki pampE message."""
+    """Payment vachhi commission credit ayyinappudu referrer కి pampE message."""
     amt = result.get("commission", 0)
     st = stats_of(referrer)
     tier = result.get("tier") or st.get("tier", "BRONZE")
@@ -1029,7 +1029,7 @@ def referrer_commission_text(referrer, referee, result):
 
 
 def referee_welcome_text(referee, referrer):
-    """Referral tho vachina kotha user ki (namaste message ki add-on line)."""
+    """Referral తో వచ్చిన కొత్త user కి (నమస్తే message కి add-on line)."""
     return ("🤝 మీ friend %s గారు referral code తో వచ్చారు — మీకు *+1 FREE credit* bonus! "
             "Total %s credits ready. మీ సొంత code: %s (friend pay చేస్తే మీకు ₹50)"
             % (_name_of(referrer, "Friend"), referee.get("credits", 3), _code_of(referee)))
@@ -1054,7 +1054,7 @@ def mask_payout(rec: Dict) -> Dict:
 
 
 def _mask_mid(text: str, keep: int) -> str:
-    """ravi@okhdfcbank → ra***@okh*** style (modati `keep` chars matrame kanipistayi)."""
+    """ravi@okhdfcbank → ra***@okh*** style (మొదటి `keep` chars మాత్రమే kanipistayi)."""
     t = str(text or "")
     if len(t) <= keep:
         return t[:1] + "***" if t else ""

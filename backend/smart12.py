@@ -109,7 +109,7 @@ def mask_name(full_name: str) -> str:
 
 
 def first_masked(full_name: str) -> str:
-    """Copy-list personal DM kosam: 'Lakshmi R.' — admin/paid mathrame."""
+    """Copy-list personal DM కోసం: 'Lakshmi R.' — admin/paid mathrame."""
     parts = str(full_name or "").strip().split()
     if not parts:
         return "—"
@@ -119,7 +119,7 @@ def first_masked(full_name: str) -> str:
 
 
 def mask_phone(phone: str) -> str:
-    """9848012345 → 98••••••45 (interest.py tho same format)."""
+    """9848012345 → 98••••••45 (interest.py తో same format)."""
     d = "".join(ch for ch in str(phone or "") if ch.isdigit())
     if len(d) < 4:
         return "🔒 •••••"
@@ -127,7 +127,7 @@ def mask_phone(phone: str) -> str:
 
 
 def assert_no_leak(text: str) -> Dict:
-    """Public text lo number leak check (tests + safety net)."""
+    """Public text లో number leak check (tests + safety net)."""
     found = PHONE_RE.findall(text or "")
     return {"ok": not found, "leaked": found[:3]}
 
@@ -138,7 +138,7 @@ def assert_no_leak(text: str) -> Dict:
 
 def build_masked_caption(profile: Dict, tsap_id: str = "TSAP-F-2025-XXXX",
                          score: int = 92) -> str:
-    """📢 Telegram channel post v2 — teaser matrame + unlock CTA."""
+    """📢 Telegram channel post v2 — teaser మాత్రమే + unlock CTA."""
     from channels_config import route_profile, BOT_USERNAME, SITE  # lazy: cycle safe
     r = route_profile(profile or {})
     reasons = "\n".join(f"• {x['telugu']}" for x in r["reasons"][:4])
@@ -150,15 +150,15 @@ def build_masked_caption(profile: Dict, tsap_id: str = "TSAP-F-2025-XXXX",
         f"{profile.get('height', '—')} • {profile.get('caste', '—')}\n"
         f"🎓 {profile.get('education', '—')} • 💼 {profile.get('job', '—')} • "
         f"📍 {profile.get('district', '—')}\n"
-        f"🌟 {profile.get('gothram', '—')} gothram • {profile.get('star', '—')} nakshatram\n"
-        f"\n✅ Enduku set avutharu:\n{reasons}\n"
+        f"🌟 {profile.get('gothram', '—')} గోత్రం • {profile.get('star', '—')} nakshatram\n"
+        f"\n✅ ఎందుకు set అవుతారు:\n{reasons}\n"
         f"\n{r['hashtags']}\n"
         f"━━━━━━━━━━━━━━━\n"
-        f"🔒 Number lock lo undi — unlock cheyyandi:\n"
+        f"🔒 Number lock లో ఉంది — unlock చెయ్యండి:\n"
         f"🤖 Bot: {BOT_USERNAME} → /unlock {tsap_id} (1 credit)\n"
         f"🔍 Full profile: {SITE}/search/{tsap_id}\n"
         f"📝 Register 3 min lo: {SITE}/register\n"
-        f"⚠️ Mosam jagratha — advance money evariki ivvakandi!"
+        f"⚠️ మోసం జాగ్రత్త — advance money ఎవరికీ ivvakandi!"
     )
 
 
@@ -174,16 +174,16 @@ def build_masked_whatsapp(profile: Dict, tsap_id: str = "TSAP-F-2025-XXXX",
         f"━━━━━━━━━━━━━━━━\n"
         f"👤 *{first_name_of(profile.get('full_name', ''))}* ({profile.get('age', '—')} yrs)\n"
         f"📍 {profile.get('district', '—')}, {profile.get('state', 'TS')}\n"
-        f"💍 Caste: {profile.get('caste', '—')}  |  Gothram: {profile.get('gothram', '—')}\n"
+        f"💍 Caste: {profile.get('caste', '—')}  |  గోత్రం: {profile.get('gothram', '—')}\n"
         f"🎓 {profile.get('education', '—')}  |  💼 {profile.get('job', '—')}\n"
-        f"🌟 Star: {profile.get('star', '—')}  |  Rasi: {profile.get('rasi', '—')}\n"
+        f"🌟 Star: {profile.get('star', '—')}  |  రాశి: {profile.get('rasi', '—')}\n"
         f"━━━━━━━━━━━━━━━━\n"
-        f"*Enduku best match:*\n{reasons}\n"
+        f"*ఎందుకు best match:*\n{reasons}\n"
         f"━━━━━━━━━━━━━━━━\n"
         f"{r['hashtags']}\n"
-        f"🔒 Number lock — bot lo /unlock {tsap_id} (1 credit)\n"
+        f"🔒 Number lock — bot లో /unlock {tsap_id} (1 credit)\n"
         f"🔍 Profile: {SITE}/search/{tsap_id}\n"
-        f"🤖 Bot: {BOT_USERNAME}  •  ⚠️ Advance money adigithe report cheyyandi"
+        f"🤖 Bot: {BOT_USERNAME}  •  ⚠️ Advance money అడిగితే report చెయ్యండి"
     )
 
 
@@ -197,7 +197,7 @@ def is_entitled(viewer_id: str, target_id: str) -> bool:
 
 def grant_unlock(viewer_id: str, target_id: str, via: str = "admin_gift",
                  order_id: str = "", credits_charged: int = 0) -> Dict:
-    """Admin/assisted grant — credit cut ledu, entitlement matrame."""
+    """Admin/assisted grant — credit cut లేదు, entitlement మాత్రమే."""
     box = UNLOCKS.setdefault(viewer_id, {})
     first = target_id not in box
     box[target_id] = {"via": via, "at": _now_iso(), "order_id": order_id,
@@ -222,12 +222,12 @@ def unlock_number(viewer: Dict, target: Dict) -> Dict:
     target_id = (target or {}).get("tsap_id", "")
     if not viewer_id or not target_id:
         return {"success": False, "reason": "bad_ids",
-                "message_telugu": "⚠️ ID sari ledu"}
+                "message_telugu": "⚠️ ID సరి లేదు"}
     if viewer_id == target_id:
         phone = str(target.get("phone", ""))
         return {"success": True, "phone": phone, "phone_masked": mask_phone(phone),
                 "charged": 0, "credits_left": viewer.get("credits", 0),
-                "via": "self", "message_telugu": "✅ Mee number ye idi 🙂"}
+                "via": "self", "message_telugu": "✅ మీ number ye idi 🙂"}
     if is_entitled(viewer_id, target_id):
         phone = str(target.get("phone", ""))
         REVEAL_LOG.append({"viewer": viewer_id, "target": target_id, "via": "entitled",
@@ -235,7 +235,7 @@ def unlock_number(viewer: Dict, target: Dict) -> Dict:
         _persist()
         return {"success": True, "phone": phone, "phone_masked": mask_phone(phone),
                 "charged": 0, "credits_left": viewer.get("credits", 0), "via": "entitled",
-                "message_telugu": "✅ Already unlocked — malli free ga chupisthunnam"}
+                "message_telugu": "✅ Already unlocked — మళ్లీ free గా chupisthunnam"}
     # WAVE 24 DOUBLE-SPEND LOCK: concurrent unlocks same credit ni rendu sarlu kharchu cheyyakudadu.
     with _UNLOCK_LOCKS[viewer_id]:
         credits = int(viewer.get("credits", 0) or 0)
@@ -243,7 +243,7 @@ def unlock_number(viewer: Dict, target: Dict) -> Dict:
             return {"success": False, "reason": "no_credits",
                     "phone_masked": mask_phone(target.get("phone", "")),
                     "credits_left": 0,
-                    "message_telugu": "⚠️ Credits ayipoyayi! ₹99 = 5 credits (leda ₹500 assisted — mana team meeke perfect 5 profiles pampisthundi). Pay chesi malli try cheyyandi 🙏",
+                    "message_telugu": "⚠️ Credits ayipoyayi! ₹99 = 5 credits (leda ₹500 assisted — మన team meeke perfect 5 profiles pampisthundi). Pay చేసి మళ్లీ try చెయ్యండి 🙏",
                     "pay_options": [{"label": "₹99 — 5 credits", "credits": 5},
                                     {"label": "₹500 — assisted 5 profiles (personal)", "credits": 0,
                                      "note": "admin pathavi"}]}
@@ -255,11 +255,11 @@ def unlock_number(viewer: Dict, target: Dict) -> Dict:
         _persist()
         return {"success": True, "phone": phone, "phone_masked": mask_phone(phone),
                 "charged": UNLOCK_CREDITS, "credits_left": viewer["credits"], "via": "credit",
-                "message_telugu": f"✅ Number unlock ayyindi! (1 credit cut — migilindi: {viewer['credits']})"}
+                "message_telugu": f"✅ Number unlock అయ్యింది! (1 credit cut — migilindi: {viewer['credits']})"}
 
 
 def my_unlocks(viewer_id: str, users: List[Dict]) -> Dict:
-    """Mee unlocked profiles — MASKED list (full number per-unlock matrame)."""
+    """మీ unlocked profiles — MASKED list (full number per-unlock మాత్రమే)."""
     box = UNLOCKS.get(viewer_id or "", {})
     by_id = {u.get("tsap_id"): u for u in (users or [])}
     items = []
@@ -296,26 +296,26 @@ def get_order(order_id: str) -> Optional[Dict]:
 def mark_order_paid(order_id: str, utr: str) -> Dict:
     o = get_order(order_id)
     if not o:
-        return {"success": False, "message_telugu": "⚠️ Order dorakaledu"}
+        return {"success": False, "message_telugu": "⚠️ Order దొరకలేదు"}
     if not (utr or "").strip():
         return {"success": False,
-                "message_telugu": "⚠️ UTR/reference lekunda paid cheyyakoodadu (audit ki)"}
+                "message_telugu": "⚠️ UTR/reference lekunda paid cheyyakoodadu (audit కి)"}
     o["status"] = "paid"
     o["utr"] = utr.strip()
     o["paid_at"] = _now_iso()
     _persist()
     return {"success": True, "order": o,
-            "message_telugu": f"✅ {order_id} paid (₹{o['amount']}) — ippudu profiles attach + send cheyochu"}
+            "message_telugu": f"✅ {order_id} paid (₹{o['amount']}) — ఇప్పుడు profiles attach + send చెయ్యొచ్చు"}
 
 
 def attach_order_profiles(order_id: str, profile_ids: List[str]) -> Dict:
-    """Paid order ki profiles attach → buyer ki entitlements (STRICT: ivi mathrame)."""
+    """Paid order కి profiles attach → buyer కి entitlements (STRICT: ఇవి mathrame)."""
     o = get_order(order_id)
     if not o:
-        return {"success": False, "message_telugu": "⚠️ Order dorakaledu"}
+        return {"success": False, "message_telugu": "⚠️ Order దొరకలేదు"}
     if o["status"] not in ("paid", "delivered"):
         return {"success": False,
-                "message_telugu": "⚠️ Mundhu payment (UTR) confirm cheyyandi — appude profiles attach"}
+                "message_telugu": "⚠️ Mundhu payment (UTR) confirm చెయ్యండి — appude profiles attach"}
     clean = [p for p in dict.fromkeys(profile_ids or []) if p]
     o["profile_ids"] = clean
     for pid in clean:
@@ -323,7 +323,7 @@ def attach_order_profiles(order_id: str, profile_ids: List[str]) -> Dict:
     _persist()
     return {"success": True, "order_id": order_id, "buyer_id": o["buyer_id"],
             "attached": len(clean),
-            "message_telugu": f"✅ {len(clean)} profiles {o['buyer_id']} ki unlock ayyayi (ivi mathrame — extra ledu)"}
+            "message_telugu": f"✅ {len(clean)} profiles {o['buyer_id']} కి unlock అయ్యాయి (ఇవి mathrame — extra లేదు)"}
 
 
 # ---------------------------------------------------------------------------
@@ -337,7 +337,7 @@ def build_copy_list(buyer: Dict, targets: List[Dict], order_id: str = "") -> str
       1. Sravani K. -- 9848012345 (TSAP-F-2042 · Kamma · 26)
     """
     bname = first_masked((buyer or {}).get("full_name", ""))
-    lines = [f"💍 Mana Vivaha — {bname} garu, mee kosam {len(targets)} profiles "
+    lines = [f"💍 Mana Vivaha — {bname} గారు, మీ కోసం {len(targets)} profiles "
              f"(₹{ASSISTED_PRICE} paid ✅{f' · {order_id}' if order_id else ''}):", ""]
     for i, t in enumerate(targets or [], 1):
         icon = "👰" if t.get("gender") == "Bride" else ("🤵" if t.get("gender") == "Groom" else "💍")
@@ -345,19 +345,19 @@ def build_copy_list(buyer: Dict, targets: List[Dict], order_id: str = "") -> str
                      f"{t.get('phone', '—')} ({t.get('tsap_id', '—')} · "
                      f"{t.get('caste', '—')} · {t.get('age', '—')}y · "
                      f"{t.get('district', '—')})")
-    lines += ["", "🙏 Nachina vallaki interest pampandi — leda memu matladistham (10AM–7PM).",
-              "⚠️ Ee numbers vere vallaki forward cheyyakandi — meekosame unlock chesam."]
+    lines += ["", "🙏 Nachina వాళ్లకి interest పంపండి — leda మేము matladistham (10AM–7PM).",
+              "⚠️ ఈ numbers vere వాళ్లకి forward చెయ్యకండి — meekosame unlock చేశాం."]
     return "\n".join(lines)
 
 
 def build_personal_card(target: Dict, buyer_name: str = "") -> str:
-    """Paid buyer DM card (Telegram/WhatsApp) — full number tho (consent-paid)."""
+    """Paid buyer DM card (Telegram/WhatsApp) — full number తో (consent-paid)."""
     t = target or {}
     icon = "👰" if t.get("gender") == "Bride" else ("🤵" if t.get("gender") == "Groom" else "💍")
     g = "Ammayi" if t.get("gender") == "Bride" else ("Abbayi" if t.get("gender") == "Groom" else "")
     return (
         f"{icon} {t.get('tsap_id', '—')} — {first_masked(t.get('full_name', ''))} ({g} {t.get('age', '—')}y)\n"
-        f"💍 {t.get('caste', '—')} · {t.get('gothram', '—')} gothram · 🌟 {t.get('star', '—')}\n"
+        f"💍 {t.get('caste', '—')} · {t.get('gothram', '—')} గోత్రం · 🌟 {t.get('star', '—')}\n"
         f"🎓 {t.get('education', '—')} · 💼 {t.get('job', '—')} · 💰 {t.get('salary', '—')}\n"
         f"📍 {t.get('district', '—')}, {t.get('state', 'TS')}\n"
         f"📞 Number: {t.get('phone', '—')}\n"
@@ -368,8 +368,8 @@ def build_personal_card(target: Dict, buyer_name: str = "") -> str:
 def build_personal_pack(buyer: Dict, targets: List[Dict], order_id: str = "") -> List[str]:
     """DM sequence: header + 1 msg per profile (Telegram limit-safe chunks)."""
     bname = first_masked((buyer or {}).get("full_name", ""))
-    header = (f"💍 Mana Vivaha — {bname} garu, Namaste! 🙏\n"
-              f"₹{ASSISTED_PRICE} payment vachindi ✅ — meekosam handpicked "
+    header = (f"💍 Mana Vivaha — {bname} గారు, నమస్తే! 🙏\n"
+              f"₹{ASSISTED_PRICE} payment వచ్చింది ✅ — meekosam handpicked "
               f"{len(targets)} profiles 👇 (numbers meekosame unlock){f' · {order_id}' if order_id else ''}")
     return [header] + [build_personal_card(t, bname) for t in (targets or [])]
 
@@ -433,7 +433,7 @@ async def deliver_personal(buyer: Dict, targets: List[Dict], via: str = "both",
     return {"ok": ok, "via": via, "messages": len(msgs), "telegram": tg, "whatsapp": wa,
             "copy_list": copy_list,
             "message_telugu": ("✅ Personal delivery success" if ok else
-                               "🧪 Dry-run/preview — tokens/link ledu, kindi copy-list tho manual ga pampandi")}
+                               "🧪 Dry-run/preview — tokens/link లేదు, kindi copy-list తో manual గా పంపండి")}
 
 
 # ---------------------------------------------------------------------------
@@ -450,7 +450,7 @@ def first_name_of(full_name: str) -> str:
 
 
 def surname_of(full_name: str) -> str:
-    """'Lakshmi Reddy' → 'Reddy' · single-word peru → '' (surname teliyadu)."""
+    """'Lakshmi Reddy' → 'Reddy' · single-word పేరు → '' (surname తెలియదు)."""
     parts = str(full_name or "").strip().split()
     return parts[-1] if len(parts) >= 2 else ""
 
@@ -471,18 +471,18 @@ def same_surname_check(a: Dict, b: Dict) -> Dict:
         missing = "a" if not sa else ("b" if not sb else "both")
         return {"same": False, "blocked": False, "unknown_side": True, "missing": missing,
                 "reason": "surname_unknown",
-                "verdict_telugu": "⚠️ Okariki inti-peru (surname) ledu — admin/pandit confirm cheyyandi"}
+                "verdict_telugu": "⚠️ ఒకరికి ఇంటి-పేరు (surname) లేదు — admin/pandit confirm చెయ్యండి"}
     same = (sa == sb)
     nm = surname_of(a.get("full_name", ""))
     return {"same": same, "blocked": same, "a_surname": nm,
             "b_surname": surname_of(b.get("full_name", "")),
             "reason": "same_surname" if same else "surname_ok",
-            "verdict_telugu": ("🚫 Okka inti-peru (%s) — pelli kudadhu (sampradayam). Vere profiles chudandi 🙏" % nm
-                               if same else "✅ Inti-peru veru — surname paranga OK")}
+            "verdict_telugu": ("🚫 ఒక్క ఇంటి-పేరు (%s) — పెళ్లి కూడదు (సంప్రదాయం). Vere profiles చూడండి 🙏" % nm
+                               if same else "✅ Inti-పేరు వేరు — surname paranga OK")}
 
 
 def filter_same_surname(me: Dict, pool: list) -> Dict:
-    """Pool nunchi same-surname profiles teesey (suggestions/matches kosam)."""
+    """Pool నుంచి same-surname profiles teesey (suggestions/matches కోసం)."""
     kept, skipped = [], []
     for u in (pool or []):
         if (u or {}).get("tsap_id") == (me or {}).get("tsap_id"):

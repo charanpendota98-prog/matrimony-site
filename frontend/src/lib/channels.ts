@@ -44,7 +44,7 @@ export const CHANNEL_TIERS = [
     "key": "L3_CASTE",
     "label": "Caste-wise",
     "icon": "💍",
-    "hint": "Caste prakaram — top 18 castes ki bride/groom separate, migilina 25 castes ki mixed",
+    "hint": "Caste ప్రకారం — top 18 castes కి bride/groom separate, మిగిలిన 25 castes కి mixed",
     "count": 27
   },
   {
@@ -64,7 +64,7 @@ export const ALL_CHANNELS: Channel[] = [
     "username": "@TSAP_MATRIMONY",
     "link": "https://t.me/TSAP_MATRIMONY",
     "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_tsap_matrimony",
-    "desc": "మన వివాహ — TS/AP నం.1 తెలుగు మ్యాట్రిమోని. రోజూ టాప్-3 సంబంధాలు, విజయ గాథలు, మోసం హెచ్చరికలు. 3 requests FREE, ₹99లో 5. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
+    "desc": "మన వివాహ — TS/AP తెలుగు మ్యాట్రిమోని. రోజూ టాప్-3 సంబంధాలు, విజయ గాథలు, మోసం హెచ్చరికలు. 3 requests FREE, ₹99లో 5. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot",
     "hashtags": [
       "#ManaVivaha",
       "#TSAPMatrimony",
