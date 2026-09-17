@@ -217,6 +217,29 @@ sudo cp Caddyfile.example /etc/caddy/Caddyfile && sudo systemctl reload caddy
 MilesWeb → manavivaha.in → DNS: `A @ → OCI reserved IP`, `A www → OCI reserved IP`.
 30 mins lo `https://manavivaha.in` 🔒 LIVE!
 
+### E2 Micro (1GB RAM) VM unte? — Ampere ki marchandi (5 min, FREE)
+
+`VM.Standard.E2.1.Micro` (1 OCPU + **1GB RAM**) mana app ki **saripodu**:
+`npm run build` time lo 1GB RAM tho **OOM crash** avutundi (build ki ~2GB kavali).
+Run aina slow + risky. **Fix (dabbulu levu):**
+
+1. OCI → Compute → **Create Instance** (same VCN/day compartment — kottha VM):
+   Shape = **VM.Standard.A1.Flex** (Ampere ARM) — 2 OCPU + 12GB (chalu!) or 4 + 24
+2. Ubuntu 22.04 Minimal + same SSH key + public subnet
+3. Old Micro IP meeda unna DNS records ni **kottha Ampere IP** ki marchandi (deploy ayyaka)
+4. Micro ni **Stop** cheyandi (free kabatti delete avasaram ledu — backup/spare ga untundi)
+
+> Always Free lo **Micro (x2) + Ampere (4/24) kalipi** free — rendu unchukovachu!
+> Ampere "Out of capacity" vasthe: vere AD (AD-2/AD-3) try cheyandi, leda
+> 1 OCPU + 6GB shape tho try cheyandi (adi kuda mana app ki chalu).
+
+**Emergency (Ampere dorakakapothe, Micro lone try):** 4GB swap file:
+```bash
+sudo fallocate -l 4G /swapfile && sudo chmod 600 /swapfile && sudo mkswap /swapfile && sudo swapon /swapfile
+```
++ `docker compose -f ...prod.yml up -d --build backend frontend` (postgres/redis vaddu —
+mana app JSON files vadutundi). Slow ga aina avvachu — kani Ampere ey BEST.
+
 **Oracle gotchas (telusukondi):**
 
 1. Account ki **card verify** kavali (charge avvadu, ₹0/hold only)
