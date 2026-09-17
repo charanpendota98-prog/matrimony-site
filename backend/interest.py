@@ -189,12 +189,12 @@ def apply_payment(user: Dict, amount: int, plan_code: str = "") -> Dict:
         user["credits"] = int(user.get("credits", 0)) + profiles
     user["plan"] = plan["code"]
     if kind in ("plan", "renewal"):
-        user["plan_expiry"] = datetime.utcnow() + timedelta(days=int(plan.get("validity_days", 30)))
+        user["plan_expiry"] = (datetime.utcnow() + timedelta(days=int(plan.get("validity_days", 30)))).isoformat()  # WAVE 26: ISO str
     user["last_payment"] = {"amount": amount, "plan": plan["code"], "kind": kind,
                             "at": datetime.utcnow().isoformat()}
     return {"ok": True, "kind": kind, "plan": plan,
             "profiles_added": profiles, "credits": user.get("credits", 0),
-            "expiry": user.get("plan_expiry").isoformat() if user.get("plan_expiry") else "",
+            "expiry": str(user.get("plan_expiry") or ""),
             "message_telugu": ("🎉 ₹%d payment success — %s" % (amount, plan.get("telugu", plan.get("label", ""))))
                               + (" • Mee daggara ippudu %d profiles" % user.get("credits", 0) if profiles else "")}
 

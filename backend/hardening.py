@@ -164,6 +164,12 @@ RL_RULES: Dict[str, Tuple[int, int]] = {          # route-prefix → (max hits, 
     "POST /api/vendors/register": (10, 3600),
     "POST /api/report": (20, 3600),
     "POST /api/track": (120, 60),
+    # 🌊 WAVE 26 — money routes (order spam / verify brute / claim flood / payout spam)
+    "POST /api/pay/order": (20, 600),
+    "POST /api/pay/verify": (30, 300),
+    "POST /api/pay/claim": (10, 600),
+    "POST /api/pay/webhook": (120, 60),
+    "POST /api/referral/payout": (10, 3600),
 }
 RL_DEFAULT = (120, 60)
 RL_DISABLED = _flag("TSAP_RATE_LIMIT") in ("0", "false", "no", "off")

@@ -43,7 +43,8 @@ def add_credits(user: Dict, plan_key: str, payment_verified: bool = True) -> Dic
     plan = get_plan_details(plan_key)
     user["credits"] += plan["credits"]
     user["plan"] = plan_key
-    user["plan_expiry"] = datetime.utcnow() + timedelta(days=plan["validity_days"])
+    # 🌊 WAVE 26 — ISO string (datetime object → JSON save fail + restore TypeError)
+    user["plan_expiry"] = (datetime.utcnow() + timedelta(days=plan["validity_days"])).isoformat()
     return {"success": True, "credits": user["credits"], "plan": plan_key, "expiry": user["plan_expiry"], "message_telugu": f"🎉 {plan['credits']} credits add ayyayi! Plan: {plan['name_telugu']}"}
 
 def add_referral_bonus(user: Dict, bonus_credits: int = 2) -> Dict:
@@ -56,8 +57,14 @@ def add_admin_gift(user: Dict, gift_credits: int = 10) -> Dict:
     return {"success": True, "credits": user["credits"], "message_telugu": f"💎 Admin gift! Meeku {gift_credits} credits FREE + Premium! — TSAP Team"}
 
 def is_plan_expired(user: Dict) -> bool:
-    if not user.get("plan_expiry"): return False
-    return datetime.utcnow() > user["plan_expiry"]
+    exp = user.get("plan_expiry")
+    if not exp:
+        return False
+    try:
+        exp_dt = exp if isinstance(exp, datetime) else datetime.fromisoformat(str(exp)[:19])
+        return datetime.utcnow() > exp_dt
+    except Exception:
+        return False
 
 def get_daily_quota(plan_key: str) -> int:
     return get_plan_details(plan_key).get("daily", 0)

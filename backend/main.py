@@ -60,6 +60,7 @@ from publisher import (dead_letters, requeue_dead,
 from wa_antiban import ENGINE as WA_ENGINE
 # 🛡️ WAVE 9 — hardening layer (auth tokens, admin key, rate limit, validation, abuse ledger)
 import db_store as DBSTORE  # noqa: E402  # 🌊 WAVE 22 — core DB persistence
+import money_audit as MAUD  # noqa: E402  # 🌊 WAVE 26 — money audit trail
 from hardening import (
     auth_enforced, require_owner, require_admin, rate_limit_hit, too_many,
     apply_security_headers, posture as security_posture, abuse_snapshot, abuse_log,
@@ -120,6 +121,26 @@ from welcome_pack import build_welcome_pack, pack_public, channels_count as wa_l
 import advanced11 as A11
 
 app = FastAPI(title="TSAP Matrimony API — Ultra Advanced", version="2.0")
+
+
+# 🌊 WAVE 26 — GLOBAL SAFETY NET: ekkada crash aina Telugu JSON (raw 500 never).
+#    User ki easy message + ref code (support ki chepthe admin log lo chusthadu).
+@app.exception_handler(Exception)
+async def _telugu_500_handler(request: Request, exc: Exception):
+    try:
+        import traceback as _tb
+        ref = "ERR-%s" % datetime.utcnow().strftime("%d%H%M%S")
+        try:
+            abuse_log("unhandled_500", request.url.path if request else "?", {"ref": ref, "err": str(exc)[:160]})
+        except Exception:
+            pass
+        print(f"[500 {ref}] {request.url.path if request else '?'}: {exc!r}")
+        print(_tb.format_exc()[-1500:])
+    except Exception:
+        ref = "ERR-?"
+    return JSONResponse(status_code=500, content={
+        "success": False, "error": "server_error", "ref": ref,
+        "message_telugu": "⚠️ Konchem technical problem (ref: %s) — malli try cheyyandi, kakapothe support ki ref code pampandi 🙏" % ref})
 
 # Card + photo files static ga serve — /cards/{id}.png browser lo direct open avutundi
 try:
@@ -301,7 +322,19 @@ async def _security_middleware(request: Request, call_next):
             "message_telugu": "🔒 API docs public ga ledu — admin key (X-Admin-Key) tho matrame chudochu"})
         apply_security_headers(resp.headers)
         return resp
+    _t0 = None
+    try:
+        import time as _time
+        _t0 = _time.time()
+    except Exception:
+        pass
     response = await call_next(request)
+    try:
+        if _t0 is not None:
+            import time as _time
+            response.headers["X-Process-Time"] = "%.3f" % (_time.time() - _t0)
+    except Exception:
+        pass
     try:
         # 🌊 WAVE 22 — mutation autosave (debounced 5s, 2xx only)
         if request.method in ("POST", "PUT", "PATCH", "DELETE") and 200 <= response.status_code < 300:
@@ -576,7 +609,7 @@ async def register(
         raise HTTPException(400, "🔒 About lo phone number / email pettakandi — privacy kosam numbers ivvamu (interest accept ayithe matrame exchange)")
     email = req_text(email, "email", 0, 80, required=False)
     country = req_text(country, "country", 0, 60, required=False) or "India"
-    if age < 18: raise HTTPException(400, "Age must be 18+ (Bride) / 21+ (Groom)")
+    if age < 18: raise HTTPException(400, "⚠️ Vayasu 18+ (bride) / 21+ (groom) undali 🙂")
 
     # 2. ID Gen
     tsap_id = unique_tsap_id(gender, 2025)
@@ -1018,7 +1051,7 @@ def get_matches(tsap_id: str, min_score: int = 70, limit: int = 20, caste_filter
     """
     user = next((u for u in DB_USERS if u["tsap_id"]==tsap_id), None)
     if not user:
-        raise HTTPException(404, "User not found")
+        raise HTTPException(404, "⚠️ User dorakaledu — TSAP ID check cheyyandi")
 
     # 🛡️ clamps (mundu limit=-1 → 75 rows; min_score=99999 → garbage)
     min_score = clamp_int(min_score, "min_score", 0, 100, 70)
@@ -1109,7 +1142,7 @@ async def payment_webhook(user_id: str = "", amount: int = 0, razorpay_payment_i
     user_id = req_text(user_id, "user_id", 3, 60)
     user = next((u for u in DB_USERS if u["tsap_id"] == user_id), None)
     if not user:
-        raise HTTPException(404, "User not found")
+        raise HTTPException(404, "⚠️ User dorakaledu — TSAP ID check cheyyandi")
 
     sig_header = ""
     try:
@@ -1471,6 +1504,10 @@ def admin_payout_action(request_id: str, action: str, utr: str = "", reason: str
     res = payout_action(request_id, action, DB_USERS, utr=utr, reason=reason)
     if not res.get("ok"):
         return JSONResponse(status_code=400, content={"success": False, **res})
+    _rq = res.get("request", {}) or {}
+    MAUD.audit("payout_" + str(_rq.get("status", action)), "admin",
+               {"request_id": request_id, "amount": _rq.get("amount"), "utr": _rq.get("utr", ""),
+                "tsap_id": _rq.get("tsap_id", ""), "partner_id": _rq.get("partner_id", "")})
     return {"success": True, **res}
 
 
@@ -1484,6 +1521,9 @@ def admin_pay_wallet_full(payload: dict, request: Request):
                           method=str(d.get("method", "upi")), note=str(d.get("note", "")))
     if not res.get("ok"):
         raise HTTPException(400, res.get("message_telugu"))
+    _rq = res.get("request", {}) or {}
+    MAUD.audit("wallet_paid_full", "admin", {"code": str(d.get("code", "")), "amount": _rq.get("amount"),
+                                             "utr": _rq.get("utr", "")})
     return {"success": True, **res}
 
 
@@ -1501,6 +1541,9 @@ def admin_refund(tsap_id: str, amount: int = 0, reason: str = "refund", token: s
     if not user.get("referred_by"):
         return {"success": True, "reason": "no_referral", "message_telugu": "Ee user ki referral ledu"}
     res = reverse_referral_payment(user, amount, DB_USERS, reason=reason)
+    if res.get("success"):
+        MAUD.audit("refunded", "admin", {"tsap_id": tsap_id, "amount": amount,
+                                         "reversed": res.get("reversed"), "reason": reason})
     return {"success": bool(res.get("success")), **res}
 
 
@@ -1527,7 +1570,7 @@ def admin_approve(tsap_id: str, request: Request):
     """Admin approve → auto-post to channels"""
     require_admin(request)  # 🛡️ WAVE 25: CRITICAL FIX — auth lekunda approve = fake trust badges!
     user = next((u for u in DB_USERS if u["tsap_id"]==tsap_id), None)
-    if not user: raise HTTPException(404, "Not found")
+    if not user: raise HTTPException(404, "⚠️ Dorakaledu — ID check cheyyandi")
     user["is_approved"] = True
     user["is_verified"] = True
 
@@ -1543,6 +1586,7 @@ def admin_approve(tsap_id: str, request: Request):
         DB_POSTS.append({"user_id": tsap_id, "channel": ch, "hashtags": route["hashtags"],
                          "posted_at": datetime.utcnow().isoformat()})
 
+    MAUD.audit("profile_approve", "admin", {"tsap_id": tsap_id, "channels": queue})
     return {"success": True, "tsap_id": tsap_id, "posted_to": queue,
             "count": len(queue), "hashtags": route["hashtags"],
             "caption_preview": caption,
@@ -1553,7 +1597,7 @@ def admin_make_premium(tsap_id: str, gift_credits: int = 10, request: Request = 
     """Manual premium — admin gift"""
     require_admin(request)   # 🛡️ WAVE 9: admin key lekunda 403 (PII/money/)
     user = next((u for u in DB_USERS if u["tsap_id"]==tsap_id), None)
-    if not user: raise HTTPException(404, "Not found")
+    if not user: raise HTTPException(404, "⚠️ Dorakaledu — ID check cheyyandi")
     user["credits"] += gift_credits
     user["plan"] = "S_199"
     return {"success": True, "tsap_id": tsap_id, "new_credits": user["credits"], "message_telugu": f"💎 Admin gift! {gift_credits} credits FREE + Premium!"}
@@ -1755,7 +1799,7 @@ def credits_endpoint(tsap_id: str, request: Request = None):
     require_owner(request, tsap_id)   # 🛡️ WAVE 9: IDOR fix — own data matrame
     u = _find_user(tsap_id)
     if not u:
-        raise HTTPException(404, "User not found")
+        raise HTTPException(404, "⚠️ User dorakaledu — TSAP ID check cheyyandi")
     sent = [i for i in DB_INTERESTS if i["from_id"] == tsap_id]
     return {
         "tsap_id": tsap_id,
@@ -1987,7 +2031,7 @@ def interest_inbox(tsap_id: str, request: Request = None):
     require_owner(request, tsap_id)   # 🛡️ WAVE 9: IDOR fix — own data matrame
     u = _find_user(tsap_id)
     if not u:
-        raise HTTPException(404, "User not found")
+        raise HTTPException(404, "⚠️ User dorakaledu — TSAP ID check cheyyandi")
     expire_old(DB_INTERESTS)
     data = inbox_for(u, DB_USERS, DB_INTERESTS)
     data["credits"] = u.get("credits", 0)
@@ -2000,7 +2044,7 @@ def interest_sent(tsap_id: str, request: Request = None):
     require_owner(request, tsap_id)   # 🛡️ WAVE 9: IDOR fix — own data matrame
     u = _find_user(tsap_id)
     if not u:
-        raise HTTPException(404, "User not found")
+        raise HTTPException(404, "⚠️ User dorakaledu — TSAP ID check cheyyandi")
     expire_old(DB_INTERESTS)
     data = sent_for(u, DB_USERS, DB_INTERESTS)
     data["credits"] = u.get("credits", 0)
@@ -2017,7 +2061,7 @@ async def interest_respond(payload: dict, request: Request = None):
     require_owner(request, tsap_id)   # 🛡️ IDOR: ee request owner ki matrame
     owner = _find_user(tsap_id)
     if not owner:
-        raise HTTPException(404, "User not found")
+        raise HTTPException(404, "⚠️ User dorakaledu — TSAP ID check cheyyandi")
     rec = next((i for i in DB_INTERESTS if i["request_id"] == request_id), None)
     if not rec:
         raise HTTPException(404, f"Request dorakaledu: {request_id}")
@@ -4714,6 +4758,32 @@ def api_meta_castes(religion: str = "Hindu"):
             "message_telugu": f"🙏 {info['religion']} — {len(info['castes'])} kulalu/groups (A–Z)"}
 
 
+@app.get("/api/health")
+def api_health():
+    """🌊 WAVE 26 — EASY debug: server live? data ok? workers on? (no secrets)."""
+    try:
+        import publisher as _PUB
+        wa_q = len(getattr(_PUB, "WA_QUEUE", []) or [])
+    except Exception:
+        wa_q = -1
+    return {"success": True, "service": "manavivaha-api", "version": "2.0-w26",
+            "time": datetime.utcnow().isoformat(),
+            "pay_mode": PP.pay_config().get("mode", ""),
+            "counts": {"users": len(DB_USERS), "interests": len(DB_INTERESTS),
+                       "payments": len(DB_PAYMENTS), "orders": len(PP.PAY_ORDERS)},
+            "wa_queue": wa_q,
+            "message_telugu": "✅ Server bane undi"}
+
+
+@app.get("/api/admin/audit")
+def api_admin_audit(request: Request, event: str = "", limit: int = 100, since: str = ""):
+    """🌊 WAVE 26 — Money audit trail (admin): approve/pay/payout/refund history."""
+    require_admin(request)
+    items = MAUD.read_audit(event=(event or "").strip(), limit=limit, since=(since or "").strip())
+    return {"success": True, "count": len(items), "events": items,
+            "message_telugu": f"🧾 {len(items)} audit records"}
+
+
 @app.get("/api/pay/config")
 def api_pay_config():
     """Public: Razorpay key_id (publishable) + plans + active offers. Secret NEVER."""
@@ -4747,6 +4817,10 @@ def api_pay_verify(payload: dict, request: Request):
                             str(d.get("razorpay_signature", "")))
     if not res.get("success"):
         raise HTTPException(400, res.get("message_telugu"))
+    if not res.get("duplicate"):
+        _rc = res.get("receipt", {}) or {}
+        MAUD.audit("pay_verified", str(_rc.get("tsap_id", "") or (po.get("tsap_id", "") if po else "")),
+                   {"order_id": oid, "payment_id": _rc.get("payment_id", ""), "amount": _rc.get("amount")})
     return res
 
 
@@ -4787,6 +4861,11 @@ async def api_pay_webhook(request: Request):
     except Exception:
         raise HTTPException(400, "Bad webhook body")
     res = PP.handle_razorpay_webhook(event)
+    if res.get("ok") and not res.get("duplicate") and not res.get("ignored"):
+        _rc = res.get("receipt", {}) or {}
+        MAUD.audit("webhook_fulfilled", "razorpay", {"order_id": _rc.get("pay_order_id", ""),
+                                                     "payment_id": _rc.get("payment_id", ""),
+                                                     "amount": _rc.get("amount")})
     return {"success": bool(res.get("ok")), **res}
 
 
@@ -4805,6 +4884,10 @@ def api_admin_pay_confirm(order_id: str, payload: dict, request: Request):
     res = PP.confirm_manual(order_id, str((payload or {}).get("utr", "")))
     if not res.get("success"):
         raise HTTPException(400, res.get("message_telugu"))
+    if not res.get("duplicate"):
+        _rc = res.get("receipt", {}) or {}
+        MAUD.audit("pay_confirmed", "admin", {"order_id": order_id, "utr": _rc.get("utr", ""),
+                                              "amount": _rc.get("amount"), "tsap_id": _rc.get("tsap_id", "")})
     return res
 
 

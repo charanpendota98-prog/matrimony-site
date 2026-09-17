@@ -38,7 +38,9 @@ def save(payload: dict, force: bool = False) -> bool:
     try:
         tmp = DB_FILE + ".tmp"
         with open(tmp, "w", encoding="utf-8") as f:
-            json.dump(payload, f, ensure_ascii=False)
+            # 🌊 WAVE 26 — default=str: plan_expiry (datetime) laanti objects vachina
+            # save FAIL avvadu (mundu purchase tarvata WHOLE save fail = data loss!)
+            json.dump(payload, f, ensure_ascii=False, default=str)
         os.replace(tmp, DB_FILE)
         return True
     except Exception as e:
