@@ -7,6 +7,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from typing import Any, Dict, Optional
 import os, random, json, re
+import threading
+from collections import defaultdict
 from datetime import datetime, timedelta
 
 # Import our modules
@@ -483,6 +485,10 @@ def root():
                           "/api/interest/respond","/api/interest/status/{id}","/api/wa/status","/api/wa/pause","/api/wa/resume",
                           "/api/payment/webhook","/api/channels","/api/publish/status","/api/publish/log"]}
 
+_REGISTER_LOCK = threading.Lock()  # WAVE 27: concurrent register same-ID ban
+_INTEREST_LOCKS = defaultdict(threading.Lock)  # WAVE 27: per-sender lock (double-send ban)
+
+
 @app.post("/api/register", response_model=RegisterResponse)
 async def register(
     gender: str = Form(...),
@@ -612,100 +618,102 @@ async def register(
     if age < 18: raise HTTPException(400, "⚠️ Vayasu 18+ (bride) / 21+ (groom) undali 🙂")
 
     # 2. ID Gen
-    tsap_id = unique_tsap_id(gender, 2025)
-    # referral code — TSAP ID nunchi derive (unique, deterministic) [FIX: mundu undefined `seq` tho crash avutundi]
-    _dup_phone = any(u.get("phone") == phone for u in DB_USERS)
-    if _dup_phone:
-        abuse_log("duplicate_phone_register", tsap_id)
-        abuse_count("duplicate_phone_registers")
-    _ref_seq = "".join(ch for ch in tsap_id if ch.isdigit())[-5:] or str(random.randint(10000, 99999))
-    my_ref_code = f"TSAP-REF-{_ref_seq}"
+    # WAVE 27 — ID-gen + append atomic (double-submit → rendu veru IDs, duplicate ID never)
+    with _REGISTER_LOCK:
+        tsap_id = unique_tsap_id(gender, 2025)
+        # referral code — TSAP ID nunchi derive (unique, deterministic) [FIX: mundu undefined `seq` tho crash avutundi]
+        _dup_phone = any(u.get("phone") == phone for u in DB_USERS)
+        if _dup_phone:
+            abuse_log("duplicate_phone_register", tsap_id)
+            abuse_count("duplicate_phone_registers")
+        _ref_seq = "".join(ch for ch in tsap_id if ch.isdigit())[-5:] or str(random.randint(10000, 99999))
+        my_ref_code = f"TSAP-REF-{_ref_seq}"
 
-    # 3. Save DB - Advanced Full
-    user = {
-        "tsap_id": tsap_id,
-        "full_name": full_name or f"{gender} User",
-        "gender": gender,
-        "dob": dob,
-        "dob_correct": dob_correct,
-        "birth_time": birth_time,
-        "age": age,
-        "height": height,
-        "marital_status": marital_status,
-        "children": children,
-        "caste": caste,
-        "sub_caste": sub_caste,
-        "gothram": gothram,
-        "star": star,
-        "rasi": rasi,
-        "dosham": dosham,
-        "education": education,
-        "education_detail": education_detail,
-        "job": job,
-        "company": company,
-        "salary": salary,
-        "work_location": work_location,
-        "about_myself": about_myself,
-        "father_name": father_name,
-        "mother_name": mother_name,
-        "father_occupation": father_occupation,
-        "mother_occupation": mother_occupation,
-        "family_type": family_type,
-        "native_place": native_place,
-        "weight": weight,
-        "blood_group": blood_group,
-        "mother_tongue": mother_tongue,
-        "physical_status": physical_status,
-        "body_type": body_type,
-        "complexion": complexion,
-        "family_values": family_values,
-        "family_status": family_status,
-        "brothers": brothers,
-        "brothers_married": brothers_married,
-        "sisters": sisters,
-        "sisters_married": sisters_married,
-        "moola_nakshatram": moola_nakshatram,
-        "religion": religion,
-        "country": country,
-        "is_nri": _is_nri({"state": state, "country": country, "work_location": work_location, "current_city": current_city}),
-        "college": college,
-        "experience": experience,
-        "work_type": work_type,
-        "pincode": pincode,
-        "state": state,
-        "district": district,
-        "mandal": mandal,
-        "current_city": current_city,
-        "email": email,
-        "phone_encrypted": encrypt_phone(phone),
-        "phone_last4": phone[-4:],
-        "phone": phone,
-        "password_hash": _hash_password(password) if password else "",
-        "referral_code": my_ref_code,
-        "referred_by": "",                    # attach_referral() validate chesi lock chestundi (kinda)
-        "referred_by_raw": referral_code,     # form lo vachina code (audit)
-        "photo_urls": ([photo_url] if photo_url else []),   # FIX: fake path valla photo_only filter ellappudu match ayyedi
-        "card_url": f"/cards/{tsap_id}.png",   # web URL (card files static mount lo undi)
-        "is_verified": False,
-        # 🌊 WAVE 23 — SECURITY: form nunchi phone_verified=true pampina nammamu!
-        #    OTP verify ayithe matrame VERIFIED_PHONES lo untundi (bypass closed).
-        "phone_verified": (phone in VERIFIED_PHONES),
-        "is_approved": False,
-        "privacy_mode": "private" if photo_private else "public",
-        "credits": 3,
-        "plan": "FREE",
-        "created_at": datetime.utcnow().isoformat(),
-        "wallet": 0,
-        "referral_stats": {"total":0, "paid_count":0},
-        "expectations": expectations,
-        "exp_filters": {"ageMin": exp_age_min, "ageMax": exp_age_max, "job": exp_job, "location": exp_location, "caste": exp_caste},
-    }
-    # 3b. Card/caption lo chupinchE personalized highlights + completeness score
-    user["reasons"] = generate_profile_highlights(user)
-    filled = [k for k, v in user.items() if v not in ("", None, [], 0) and not k.startswith("_")]
-    user["completeness"] = min(100, int(len(filled) * 100 / max(1, len(user))))
-    user["score"] = max(70, min(99, 70 + int(user["completeness"] * 0.3)))
-    DB_USERS.append(user)
+        # 3. Save DB - Advanced Full
+        user = {
+            "tsap_id": tsap_id,
+            "full_name": full_name or f"{gender} User",
+            "gender": gender,
+            "dob": dob,
+            "dob_correct": dob_correct,
+            "birth_time": birth_time,
+            "age": age,
+            "height": height,
+            "marital_status": marital_status,
+            "children": children,
+            "caste": caste,
+            "sub_caste": sub_caste,
+            "gothram": gothram,
+            "star": star,
+            "rasi": rasi,
+            "dosham": dosham,
+            "education": education,
+            "education_detail": education_detail,
+            "job": job,
+            "company": company,
+            "salary": salary,
+            "work_location": work_location,
+            "about_myself": about_myself,
+            "father_name": father_name,
+            "mother_name": mother_name,
+            "father_occupation": father_occupation,
+            "mother_occupation": mother_occupation,
+            "family_type": family_type,
+            "native_place": native_place,
+            "weight": weight,
+            "blood_group": blood_group,
+            "mother_tongue": mother_tongue,
+            "physical_status": physical_status,
+            "body_type": body_type,
+            "complexion": complexion,
+            "family_values": family_values,
+            "family_status": family_status,
+            "brothers": brothers,
+            "brothers_married": brothers_married,
+            "sisters": sisters,
+            "sisters_married": sisters_married,
+            "moola_nakshatram": moola_nakshatram,
+            "religion": religion,
+            "country": country,
+            "is_nri": _is_nri({"state": state, "country": country, "work_location": work_location, "current_city": current_city}),
+            "college": college,
+            "experience": experience,
+            "work_type": work_type,
+            "pincode": pincode,
+            "state": state,
+            "district": district,
+            "mandal": mandal,
+            "current_city": current_city,
+            "email": email,
+            "phone_encrypted": encrypt_phone(phone),
+            "phone_last4": phone[-4:],
+            "phone": phone,
+            "password_hash": _hash_password(password) if password else "",
+            "referral_code": my_ref_code,
+            "referred_by": "",                    # attach_referral() validate chesi lock chestundi (kinda)
+            "referred_by_raw": referral_code,     # form lo vachina code (audit)
+            "photo_urls": ([photo_url] if photo_url else []),   # FIX: fake path valla photo_only filter ellappudu match ayyedi
+            "card_url": f"/cards/{tsap_id}.png",   # web URL (card files static mount lo undi)
+            "is_verified": False,
+            # 🌊 WAVE 23 — SECURITY: form nunchi phone_verified=true pampina nammamu!
+            #    OTP verify ayithe matrame VERIFIED_PHONES lo untundi (bypass closed).
+            "phone_verified": (phone in VERIFIED_PHONES),
+            "is_approved": False,
+            "privacy_mode": "private" if photo_private else "public",
+            "credits": 3,
+            "plan": "FREE",
+            "created_at": datetime.utcnow().isoformat(),
+            "wallet": 0,
+            "referral_stats": {"total":0, "paid_count":0},
+            "expectations": expectations,
+            "exp_filters": {"ageMin": exp_age_min, "ageMax": exp_age_max, "job": exp_job, "location": exp_location, "caste": exp_caste},
+        }
+        # 3b. Card/caption lo chupinchE personalized highlights + completeness score
+        user["reasons"] = generate_profile_highlights(user)
+        filled = [k for k, v in user.items() if v not in ("", None, [], 0) and not k.startswith("_")]
+        user["completeness"] = min(100, int(len(filled) * 100 / max(1, len(user))))
+        user["score"] = max(70, min(99, 70 + int(user["completeness"] * 0.3)))
+        DB_USERS.append(user)
 
     # 4. Card Gen — FULL DETAIL NEAT CARD (Pillow). Fail ayithe path matrame istundi.
     card_path = f"/tmp/cards/{tsap_id}.png"          # filesystem (internal use)
@@ -820,7 +828,7 @@ async def register(
 
     # 7. Top 3 matches (from existing DB)
     opposite = "Bride" if gender=="Groom" else "Groom"
-    candidates = [u for u in DB_USERS if u["gender"]==opposite and u["tsap_id"]!=tsap_id]
+    candidates = [u for u in DB_USERS if (u or {}).get("gender") == opposite and (u or {}).get("tsap_id") != tsap_id]  # WAVE 27: gender/tsap .get (key crash ban)
     # 🐞 FIX (WAVE 10): mundu candidates[:20] + score>=70 filter valla konni sarlu 2 profiles
     #    matrame vachedi — kaani user ki **eppudu 3 profiles** vellali ("3 profiles FREE" promise).
     #    Ippudu: 60 candidates score chesi, top-3 theesukuntam (70+ lekapote best available tho fill).
@@ -1956,30 +1964,32 @@ async def interest_send(payload: dict, request: Request = None):
     _tpl = str(d.get("template_id", "")).strip()
     if _tpl and not note:
         note = next((t["text"] for t in quality_templates() if t["id"] == _tpl), "")
-    ok, reason = can_send_interest(frm, to, DB_INTERESTS)
-    if not ok:
-        if reason == "credits_ledu":
-            return JSONResponse(status_code=402, content={
-                "success": False, "reason": "credits_ledu", "credits": frm.get("credits", 0),
-                "plans": plan_list(), "pay_url": "/requests#plans",
-                "message_telugu": "⚠️ Credits ayipoyayi — ₹99 tho 3 profiles, ₹199 tho 10, ₹299 tho 20 pondandi",
-            })
-        return JSONResponse(status_code=400, content={"success": False, "reason": reason,
-                                                      "message_telugu": reason})
+    # WAVE 27 — check+deduct+append atomic per sender (double-click → okati matrame)
+    with _INTEREST_LOCKS[from_id]:
+        ok, reason = can_send_interest(frm, to, DB_INTERESTS)
+        if not ok:
+            if reason == "credits_ledu":
+                return JSONResponse(status_code=402, content={
+                    "success": False, "reason": "credits_ledu", "credits": frm.get("credits", 0),
+                    "plans": plan_list(), "pay_url": "/requests#plans",
+                    "message_telugu": "⚠️ Credits ayipoyayi — ₹99 tho 3 profiles, ₹199 tho 10, ₹299 tho 20 pondandi",
+                })
+            return JSONResponse(status_code=400, content={"success": False, "reason": reason,
+                                                          "message_telugu": reason})
 
-    try:
-        v2 = topmatch.score_match_v2(frm, to)
-        score, reasons = v2["score"], (v2["strengths"] + [v2["verdict_telugu"]])
-    except Exception:
-        score, reasons = _score_pair(frm, to)
+        try:
+            v2 = topmatch.score_match_v2(frm, to)
+            score, reasons = v2["score"], (v2["strengths"] + [v2["verdict_telugu"]])
+        except Exception:
+            score, reasons = _score_pair(frm, to)
 
-    rec = create_interest(frm, to, note=note, score=score, reasons=reasons,
-                          channel=d.get("channel", "website"))
-    deduct = deduct_credit(frm)
-    if not deduct.get("success"):
-        return JSONResponse(status_code=402, content={"success": False, "plans": plan_list(),
-                                                      "message_telugu": deduct.get("message_telugu", "Credits ledu")})
-    DB_INTERESTS.append(rec)
+        rec = create_interest(frm, to, note=note, score=score, reasons=reasons,
+                              channel=d.get("channel", "website"))
+        deduct = deduct_credit(frm)
+        if not deduct.get("success"):
+            return JSONResponse(status_code=402, content={"success": False, "plans": plan_list(),
+                                                          "message_telugu": deduct.get("message_telugu", "Credits ledu")})
+        DB_INTERESTS.append(rec)
 
     # ── WhatsApp: owner ki requester profile (+ card image) | requester ki confirmation ──
     owner_text = interest_to_owner_text(frm, to, rec)

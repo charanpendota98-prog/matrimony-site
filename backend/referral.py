@@ -320,6 +320,11 @@ def attach_referral(user: Dict, code: str, all_users: List[Dict]) -> Dict:
     Register time lo referral ni **lock** chestundi + referee bonus credit isthundi.
     Guards: self-referral (same phone / same tsap), already-referred lock, code invalid.
     """
+    with _REF_LOCKS["attach:" + _ref_lock_key(user)]:
+        return _attach_referral_locked(user, code, all_users)
+
+
+def _attach_referral_locked(user: Dict, code: str, all_users: List[Dict]) -> Dict:
     code = (code or "").strip()
     if not code:
         return {"ok": False, "reason": "no_code"}
@@ -395,6 +400,13 @@ def _fraud_flags(referrer: Dict, referred_user: Dict, all_users: List[Dict]) -> 
 
 def process_referral_payment(referred_user: Dict, referrer_code: str, plan_amount: int,
                              all_users: List[Dict], payment_id: str = "") -> Dict:
+    with _REF_LOCKS["commission:" + _ref_lock_key(referred_user)]:
+        return _process_referral_payment_locked(referred_user, referrer_code, plan_amount,
+                                                all_users, payment_id)
+
+
+def _process_referral_payment_locked(referred_user: Dict, referrer_code: str, plan_amount: int,
+                                     all_users: List[Dict], payment_id: str = "") -> Dict:
     """
     Referred friend pay chesaka → referrer ki ₹50 wallet (FLAT, first payment only).
     · First payment  → ₹50 flat — "andariki ₹50, anthe" (WAVE 25)
@@ -543,6 +555,12 @@ IFSC_RE = re.compile(r"^[A-Z]{4}0[A-Z0-9]{6}$")
 # 🌊 WAVE 25 — payout UTR/reference: UPI 12-digit ref / bank UTR (audit must be traceable)
 PAYOUT_UTR_RE = re.compile(r"^[A-Za-z0-9]{6,30}$")
 _PAYOUT_LOCKS: Dict[str, threading.Lock] = defaultdict(threading.Lock)
+# 🌊 WAVE 27 — race locks: concurrent request/commission/attach → double-money ban
+_REF_LOCKS: Dict[str, threading.Lock] = defaultdict(threading.Lock)
+
+
+def _ref_lock_key(user: Dict) -> str:
+    return str((user or {}).get("tsap_id") or (user or {}).get("partner_id") or "anon")
 
 
 def valid_payout_utr(utr: str) -> bool:
@@ -558,6 +576,12 @@ def valid_payout_utr(utr: str) -> bool:
 def payout_request(user: Dict, amount: int, method: str = "upi", upi_id: str = "",
                    bank: Optional[Dict] = None, note: str = "") -> Dict:
     """Wallet → payout request (₹100 min). UPI id validate + duplicate pending guard."""
+    with _REF_LOCKS["payreq:" + _ref_lock_key(user)]:
+        return _payout_request_locked(user, amount, method, upi_id, bank, note)
+
+
+def _payout_request_locked(user: Dict, amount: int, method: str = "upi", upi_id: str = "",
+                           bank: Optional[Dict] = None, note: str = "") -> Dict:
     st = stats_of(user)
     method = (method or "upi").lower()
     try:
