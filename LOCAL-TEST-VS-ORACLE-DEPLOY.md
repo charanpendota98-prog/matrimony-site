@@ -99,7 +99,7 @@ cd matrimony-site
 git checkout arena/01a0879c-matrimony-site
 # Create backend/.env with live token (already in repo but gitignore — create manually)
 cat > backend/.env << 'EOF'
-BOT_TOKEN=8844112261:AAH3Gihsg-FM05J4poBlfNpcrCYg9yPkS20
+BOT_TOKEN=REDACTED-put-real-token-in-env-only
 BOT_USERNAME=@telugumatrimony1_bot
 CHANNELS=TSBRIDE,TSGROOM1
 MAIN_CHANNELS=@TSBRIDE,@TSGROOM1

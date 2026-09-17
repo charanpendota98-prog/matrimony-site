@@ -1,0 +1,48 @@
+# ============================================================
+# MANA VIVAHA — PRODUCTION overrides (deploy ki idi vadandi)
+# Deploy: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+# Base file = dev (reload + npm run dev). Ee file = prod (no reload, restart, safe flags).
+# ⚠️ backend --workers 1 ONLY (data in-memory + JSON snapshot — ekkuva workers = data split!)
+# ============================================================
+services:
+  backend:
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --workers 1
+    restart: unless-stopped
+    environment:
+      - TSAP_AUTH_MODE=${TSAP_AUTH_MODE:-on}
+      - TSAP_API_KEY=${TSAP_API_KEY}
+      - ADMIN_KEY=${ADMIN_KEY}
+      - JWT_SECRET=${JWT_SECRET}
+      - CORS_ORIGINS=${CORS_ORIGINS}
+      - PUBLIC_SITE_URL=${PUBLIC_SITE_URL}
+      - OTP_CHANNELS=${OTP_CHANNELS:-sms}
+      - SMS_ROUTE=${SMS_ROUTE:-msg91}
+      - SMS_SENDER=${SMS_SENDER}
+      - MSG91_KEY=${MSG91_KEY}
+      - MSG91_TEMPLATE=${MSG91_TEMPLATE}
+      - FAST2SMS_KEY=${FAST2SMS_KEY}
+      - PAYMENTS_LIVE=${PAYMENTS_LIVE:-true}
+      - PAYMENT_AUTO_APPROVE=${PAYMENT_AUTO_APPROVE:-false}
+      - DEMO_SEED_ENABLED=false
+      - LAUNCH_SEED_COUNT=0
+      - OTP_DEV_MODE=false
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        NEXT_PUBLIC_SUPPORT_PHONE: ${NEXT_PUBLIC_SUPPORT_PHONE}
+        NEXT_PUBLIC_SUPPORT_WHATSAPP: ${NEXT_PUBLIC_SUPPORT_WHATSAPP}
+        NEXT_PUBLIC_SUPPORT_EMAIL: ${NEXT_PUBLIC_SUPPORT_EMAIL}
+    command: npm run start -- -p 3000 -H 0.0.0.0
+    restart: unless-stopped
+    environment:
+      - BACKEND_URL=http://backend:8000
+      - NEXT_PUBLIC_SUPPORT_PHONE=${NEXT_PUBLIC_SUPPORT_PHONE}
+      - NEXT_PUBLIC_SUPPORT_WHATSAPP=${NEXT_PUBLIC_SUPPORT_WHATSAPP}
+      - NEXT_PUBLIC_SUPPORT_EMAIL=${NEXT_PUBLIC_SUPPORT_EMAIL}
+
+  bot:
+    restart: unless-stopped
+    environment:
+      - TSAP_API_KEY=${TSAP_API_KEY}
