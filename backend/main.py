@@ -4611,6 +4611,24 @@ def api_dosha(tsap_id: str):
     return res
 
 
+@app.get("/api/astro/chart/{tsap_id}")
+def api_astro_chart(tsap_id: str):
+    """🗺️ Rasi katam data — South-Indian fixed chart (Moon house = stored rasi).
+    Lagna + planets manaki teliyavu (birth time/place accurate ga lekapothe guess vaddhu)
+    kabatti honest Moon-only chart — migathadi ki jathakam upload → pandit review."""
+    u = _find_user(tsap_id.upper())
+    if not u:
+        raise HTTPException(404, "Profile dorakaledu")
+    ri = AST.rasi_index(str(u.get("rasi", "") or ""))
+    houses = [{"house": i + 1, "rasi_en": AST.rasi_name(i), "moon": (ri == i)} for i in range(12)]
+    return {"success": True, "tsap_id": u["tsap_id"], "style": "south-indian",
+            "star": str(u.get("star", "") or ""), "rasi": str(u.get("rasi", "") or ""),
+            "rasi_known": ri is not None, "moon_house": (ri + 1) if ri is not None else None,
+            "houses": houses,
+            "note_telugu": ("🌙 Chandra rasi chart — rasi intlo Moon (చంద్రుడు) gurthu. Lagna/grahalu teliyali ante jathakam upload cheyandi (pandit garu chustaru)"
+                            if ri is not None else "ℹ️ Rasi ledu — profile lo rasi add cheyandi, chart automatic ga vastundi")}
+
+
 @app.post("/api/astro/jathakam/upload")
 async def api_jathakam_upload(file: UploadFile = File(...), tsap_id: str = Form(""), request: Request = None):
     """📜 Jathakam upload (photo/PDF, max 8MB) → pandit queue."""

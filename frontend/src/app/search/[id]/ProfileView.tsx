@@ -14,6 +14,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import TrustBadge from "@/components/TrustBadge";
 import AuthGate from "@/components/AuthGate";
+import RasiChart from "@/components/RasiChart";
 import { apiGet, apiPost, authHeaders, getToken } from "@/lib/api";
 import { SITE_CONFIG } from "@/lib/site-config";
 import { firstName } from "@/lib/names";
@@ -51,6 +52,28 @@ export default function ProfileView() {
   const [reported, setReported] = useState(false);
   const [unlocked, setUnlocked] = useState("");
   const [unlocking, setUnlocking] = useState(false);
+  const [compat, setCompat] = useState<Row | null>(null);
+  const [voiceUrl, setVoiceUrl] = useState("");
+  const [chart, setChart] = useState<Row | null>(null);
+
+  useEffect(() => {
+    const id = (searchId || idFromUrl || "").trim();
+    if (!id) return;
+    setVoiceUrl(""); setChart(null);
+    void apiGet<Row>(`/api/voice/${encodeURIComponent(id)}`).then(({ ok, data }) => {
+      if (ok && data?.has_voice) setVoiceUrl(String(data.voice_url || ""));
+    });
+    void apiGet<Row>(`/api/astro/chart/${encodeURIComponent(id)}`).then(({ ok, data }) => {
+      if (ok && data?.success) setChart(data);
+    });
+  }, [searchId, idFromUrl]);
+
+  useEffect(() => {
+    if (!myTsapId || !searchId || myTsapId === searchId) { setCompat(null); return; }
+    void apiGet<Row>(`/api/match/score?a=${encodeURIComponent(myTsapId)}&b=${encodeURIComponent(searchId)}`).then(({ ok, data }) => {
+      setCompat(ok && data && typeof data.score === "number" ? data : null);
+    });
+  }, [myTsapId, searchId]);
 
   const profile: Row = data?.profile || {};
   const trust = (data?.trust as Row) || null;
@@ -195,6 +218,14 @@ export default function ProfileView() {
               </div>
             </div>
 
+            {voiceUrl ? (
+              <div className="mt-3 flex items-center gap-2 rounded-2xl bg-rose-50 p-2">
+                <span className="text-[12px] font-bold">🎙️</span>
+                {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+                <audio controls src={voiceUrl} className="h-8 flex-1" />
+              </div>
+            ) : null}
+
             <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-[13px] text-slate-700 sm:grid-cols-3">
               {[
                 ["🎂 వయస్సు", `${profile.age ?? "—"}y`],
@@ -234,6 +265,50 @@ export default function ProfileView() {
               </div>
             ) : null}
           </section>
+
+          {/* 💯 COMPATIBILITY — enduku ee score? (gothram/surname/age verdicts) */}
+          {compat ? (
+            <section className="mt-4 rounded-3xl border border-gold/30 bg-white p-5">
+              <h2 className="text-lg font-extrabold text-[#7A0C2E]">
+                💯 Compatibility — {compat.score}/100 ({compat.grade_telugu || compat.grade})
+              </h2>
+              <p className="mt-1 text-[13px] text-slate-700">{compat.verdict_telugu}</p>
+              {compat.mutual?.both_like ? (
+                <p className="mt-2 rounded-2xl border border-rose-300 bg-rose-50 p-2 text-[12px] font-bold text-rose-800">
+                  {compat.mutual.note} ({te ? "వాళ్ల side" : "their side"}: {compat.mutual.their_score}/100)
+                </p>
+              ) : null}
+              <div className="mt-3 space-y-1.5">
+                {(compat.breakdown || []).filter((b: Row) => b.key !== "mutual").map((b: Row) => (
+                  <div key={b.key} className="text-[12px]">
+                    <div className="flex justify-between">
+                      <span className="font-bold">{b.telugu || b.label}</span>
+                      <span className="text-slate-500">{b.points}/{b.max}</span>
+                    </div>
+                    <div className="h-1.5 rounded-full bg-slate-100">
+                      <div className="h-1.5 rounded-full bg-[#7A0C2E]" style={{ width: `${Math.round((b.ratio || 0) * 100)}%` }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-3 space-y-1.5 text-[12px]">
+                {[compat.gothram, compat.surname, compat.age_rule].filter(Boolean).map((v: Row, i: number) => (
+                  <p key={i} className={`rounded-xl border p-2 ${v.blocked ? "border-red-300 bg-red-50 text-red-800" : "border-emerald-200 bg-emerald-50/60 text-emerald-900"}`}>
+                    {v.verdict_telugu}
+                  </p>
+                ))}
+              </div>
+              {chart ? (
+                <div className="mt-3">
+                  <RasiChart houses={chart.houses} moonHouse={chart.moon_house} star={chart.star} rasi={chart.rasi} note={chart.note_telugu} title={te ? "🗺️ వీళ్ల రాశి చార్ట్" : "🗺️ Their rasi chart"} />
+                </div>
+              ) : null}
+            </section>
+          ) : myTsapId && myTsapId !== searchId ? (
+            <p className="mt-4 rounded-2xl border border-slate-200 bg-white p-3 text-center text-[12px] text-slate-500">
+              💯 Compatibility score — profile data tho auto-calculate
+            </p>
+          ) : null}
 
           {/* 🔒 NUMBER LOCK — policy: credit tho numbers ivvamu */}
           <section className="mt-4 rounded-3xl border-2 border-rose-300 bg-rose-50 p-5">

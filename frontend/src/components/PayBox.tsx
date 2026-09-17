@@ -33,6 +33,19 @@ export default function PayBox({ planCode, price, label }: { planCode: string; p
   const [done, setDone] = useState("");
   const [utr, setUtr] = useState("");
   const [claimBusy, setClaimBusy] = useState(false);
+  const [promo, setPromo] = useState("");
+  const [promoBusy, setPromoBusy] = useState(false);
+
+  const previewPromo = async () => {
+    const code = offer.trim().toUpperCase();
+    if (!code) { setPromo(te ? "ముందు offer code ఇవ్వండి" : "Enter offer code first"); return; }
+    setPromoBusy(true);
+    try {
+      const d = await fetch(`/api/promo/apply?code=${encodeURIComponent(code)}&purpose=credits&plan=${encodeURIComponent(planCode)}&user=${encodeURIComponent(myId())}`).then((r) => r.json());
+      setPromo(d.success ? String(d.message_telugu || "OK") : String(d.detail || "Invalid code"));
+    } catch { setPromo(te ? "Network problem" : "Network problem"); }
+    setPromoBusy(false);
+  };
 
   const myId = () => {
     try { return localStorage.getItem("tsap_id") || ""; } catch { return ""; }
@@ -139,13 +152,18 @@ export default function PayBox({ planCode, price, label }: { planCode: string; p
       {!order ? (
         <>
           <div className="flex gap-2">
-            <input value={offer} onChange={(e) => setOffer(e.target.value)} placeholder="Offer code (DIWALI25…)"
+            <input value={offer} onChange={(e) => { setOffer(e.target.value); setPromo(""); }} placeholder="Offer code (DIWALI25…)"
               className="flex-1 rounded-lg border px-3 py-2 text-xs font-mono uppercase" aria-label="Offer code" />
+            <button onClick={previewPromo} disabled={promoBusy}
+              className="rounded-lg border border-green-700 text-green-700 px-3 py-2 text-xs font-bold disabled:opacity-50">
+              {promoBusy ? "⏳…" : te ? "🎟️ Check" : "🎟️ Check"}
+            </button>
             <button onClick={createOrder} disabled={busy}
               className="rounded-lg bg-[#7A0C2E] text-white px-4 py-2 text-xs font-bold disabled:opacity-50">
               {busy ? "⏳…" : "Order →"}
             </button>
           </div>
+          {promo && <p className="text-[11px] font-bold text-green-700">{promo}</p>}
           <p className="text-[11px] text-gray-500">{te ? "Amount server నుంచి fix — offer auto-apply. Secret safe 🔒" : "Amount fixed by server — offer auto-applies. Secret safe 🔒"}</p>
         </>
       ) : (

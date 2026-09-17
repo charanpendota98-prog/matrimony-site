@@ -11,7 +11,7 @@
  */
 import { useCallback, useEffect, useState } from "react";
 import AuthGate from "@/components/AuthGate";
-import { authHeaders, apiPost, getToken } from "@/lib/api";
+import { authHeaders, apiPost, apiGet, getToken } from "@/lib/api";
 import Link from "next/link";
 import Reveal from "@/components/Reveal";
 import SectionHeading from "@/components/SectionHeading";
@@ -396,6 +396,7 @@ export default function RequestsPage() {
                   <Link href={`/search/${it.to_id}`} className="text-[12px] font-bold text-maroon underline">
                     Profile →
                   </Link>
+                  <TrackRequest requestId={it.request_id} />
                 </div>
               </Reveal>
             ))}
@@ -740,6 +741,36 @@ export default function RequestsPage() {
         </div>
       ) : null}
     </main>
+  );
+}
+
+/* 📍 WAVE 36 — sent-request tracker (status timeline) */
+function TrackRequest({ requestId }: { requestId: string }) {
+  const { lang } = useLang();
+  const te = lang === "te";
+  const [open, setOpen] = useState(false);
+  const [steps, setSteps] = useState<any[] | null>(null);
+  const toggle = async () => {
+    if (open) { setOpen(false); return; }
+    setOpen(true);
+    if (steps) return;
+    const { ok, data } = await apiGet<any>(`/api/interest/status/${encodeURIComponent(requestId)}`);
+    if (ok && data) setSteps(data.steps || []);
+  };
+  return (
+    <>
+      <button onClick={() => void toggle()} className="text-[12px] font-bold text-sky-700 underline">
+        📍 {te ? "Track" : "Track"}
+      </button>
+      {open && (
+        <div className="basis-full rounded-xl bg-slate-50 p-2 text-[11px]">
+          {(steps || []).map((s: any, i: number) => (
+            <p key={i} className={s.done ? "text-emerald-700" : "text-slate-500"}>{s.done ? "✅" : "⏳"} {s.step}</p>
+          ))}
+          {!steps && <p className="text-slate-400">⏳…</p>}
+        </div>
+      )}
+    </>
   );
 }
 

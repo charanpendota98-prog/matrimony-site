@@ -16,6 +16,7 @@ import { Duo, duo } from "@/lib/duo";
 import { useLang } from "@/lib/lang";
 import { useSearchParams } from "next/navigation";
 import { NAKSHATRAS, RASIS } from "@/lib/telugu-data";
+import RasiChart from "@/components/RasiChart";
 
 type Res = Record<string, any>;
 
@@ -35,6 +36,12 @@ function PoruthamInner() {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const [imgOk, setImgOk] = useState(true);
+  const [gA, setGA] = useState("");
+  const [gB, setGB] = useState("");
+  const [gRes, setGRes] = useState<Res | null>(null);
+  const [gBusy, setGBusy] = useState(false);
+  const [chartB, setChartB] = useState<Res | null>(null);
+  const [chartG, setChartG] = useState<Res | null>(null);
 
   useEffect(() => {
     const mine = (localStorage.getItem("tsap_id") || "").toUpperCase();
@@ -48,13 +55,33 @@ function PoruthamInner() {
 
   const calcById = useCallback(async (b: string, g: string) => {
     if (!b || !g) { setErr(te ? "రెండు TSAP IDs ఇవ్వండి (bride + groom)" : "Enter both TSAP IDs (bride + groom)"); return; }
-    setBusy(true); setErr("");
+    setBusy(true); setErr(""); setChartB(null); setChartG(null);
     try {
       const d = await fetch(`/api/porutham?bride=${encodeURIComponent(b)}&groom=${encodeURIComponent(g)}`).then((r) => r.json());
-      if (d.detail) { setErr(d.detail); setRes(null); } else { setRes({ ...d, _bride: b, _groom: g }); setImgOk(true); }
+      if (d.detail) { setErr(d.detail); setRes(null); } else {
+        setRes({ ...d, _bride: b, _groom: g }); setImgOk(true);
+        try {
+          const [cb, cg] = await Promise.all([
+            fetch(`/api/astro/chart/${encodeURIComponent(b)}`).then((r) => r.json()),
+            fetch(`/api/astro/chart/${encodeURIComponent(g)}`).then((r) => r.json()),
+          ]);
+          if (cb?.success) setChartB(cb);
+          if (cg?.success) setChartG(cg);
+        } catch { /* charts optional */ }
+      }
     } catch { setErr(te ? "Network problem — మళ్లీ try చెయ్యండి" : "Network problem — retry"); }
     setBusy(false);
   }, []);
+
+  const checkGothram = async () => {
+    if (!gA.trim() || !gB.trim()) { setGRes({ verdict_telugu: te ? "రెండు TSAP IDs ఇవ్వండి" : "Enter both TSAP IDs" }); return; }
+    setGBusy(true);
+    try {
+      const d = await fetch(`/api/gothram/check?a=${encodeURIComponent(gA.trim().toUpperCase())}&b=${encodeURIComponent(gB.trim().toUpperCase())}`).then((r) => r.json());
+      setGRes(d.detail ? { verdict_telugu: d.detail, blocked: false } : d);
+    } catch { setGRes({ verdict_telugu: te ? "Network problem" : "Network problem", blocked: false }); }
+    setGBusy(false);
+  };
 
   const calcByStar = async () => {
     if (!bStar || !gStar) { setErr(te ? "Bride + Groom star (నక్షత్రం) select చెయ్యండి" : "Select bride + groom stars (nakshatram)"); return; }
@@ -184,6 +211,24 @@ function PoruthamInner() {
           {err && <div className="mt-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl px-3 py-2 text-[12px]">{err}</div>}
         </div>
 
+        {/* ---------- gothram checker ---------- */}
+        <div className="bg-white rounded-[1.5rem] border border-gold/25 p-4 print:hidden">
+          <div className="font-bold text-maroon text-[14px]">{te ? "🛡️ గోత్రం check — same గోత్రం అయితే పెళ్లి కూడదు" : "🛡️ Gothram check — same gothram blocks marriage"}</div>
+          <div className="mt-2 grid md:grid-cols-3 gap-2">
+            <input value={gA} onChange={(e) => setGA(e.target.value.toUpperCase())} placeholder="TSAP ID - A" className="input-mobile font-mono" aria-label="TSAP ID A" />
+            <input value={gB} onChange={(e) => setGB(e.target.value.toUpperCase())} placeholder="TSAP ID - B" className="input-mobile font-mono" aria-label="TSAP ID B" />
+            <button onClick={() => void checkGothram()} disabled={gBusy}
+              className="py-3 rounded-2xl maroon-gradient text-white font-bold text-[13px] disabled:opacity-60">
+              {gBusy ? "…" : te ? "🛡️ Check" : "🛡️ Check"}
+            </button>
+          </div>
+          {gRes?.verdict_telugu && (
+            <p className={`mt-2 rounded-xl border p-2 text-[12px] font-bold ${gRes.blocked ? "border-red-300 bg-red-50 text-red-800" : "border-emerald-200 bg-emerald-50 text-emerald-900"}`}>
+              {gRes.verdict_telugu}
+            </p>
+          )}
+        </div>
+
         {/* ---------- report ---------- */}
         {res && (
           <>
@@ -241,6 +286,14 @@ function PoruthamInner() {
                 <Link href="/requests" className="px-4 py-3 rounded-2xl border border-maroon/25 text-maroon font-bold text-[12px]">{te ? "💌 Interest పంపు (1 credit)" : "💌 Send interest (1 credit)"}</Link>
               </div>
             </div>
+
+            {/* ---------- rasi charts ---------- */}
+            {(chartB || chartG) && (
+              <div className="grid md:grid-cols-2 gap-3 print:hidden">
+                {chartB && <RasiChart houses={chartB.houses} moonHouse={chartB.moon_house} star={chartB.star} rasi={chartB.rasi} title={`👰 ${res._bride}`} />}
+                {chartG && <RasiChart houses={chartG.houses} moonHouse={chartG.moon_house} star={chartG.star} rasi={chartG.rasi} title={`🤵 ${res._groom}`} />}
+              </div>
+            )}
 
             {/* ---------- report image preview ---------- */}
             {!res._byStar && imgOk && (

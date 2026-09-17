@@ -16,6 +16,7 @@ const NAV_MAIN: NavItem[] = [
   { href: "/", en: "Home", te: "హోమ్", icon: "🏠" },
   { href: "/matches", en: "Matches", te: "సంబంధాలు", icon: "💘" },
   { href: "/requests", en: "Requests", te: "రిక్వెస్టులు", icon: "💌" },
+  { href: "/me", en: "My Account", te: "నా అకౌంట్", icon: "🙋" },
   { href: "/channels", en: "Channels", te: "ఛానళ్లు", icon: "📢" },
   { href: "/castes", en: "Castes", te: "కులాలు", icon: "🪔" },
   { href: "/pricing", en: "Pricing", te: "ధరలు", icon: "💰" },
@@ -148,7 +149,7 @@ export default function SiteHeader() {
           </Link>
           {ready && tsapId && sessionOk ? (
             <span className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 text-[13px] font-semibold border border-emerald-300 bg-emerald-50 text-emerald-800 rounded-full">
-              👤 {tsapId.length > 14 ? `${tsapId.slice(0, 9)}…${tsapId.slice(-4)}` : tsapId}
+              <Link href="/me" className="hover:underline">👤 {tsapId.length > 14 ? `${tsapId.slice(0, 9)}…${tsapId.slice(-4)}` : tsapId}</Link>
               <button
                 onClick={() => { logout(); window.location.href = "/"; }}
                 className="ml-1 rounded-full bg-emerald-200 px-2 py-0.5 text-[11px] font-bold hover:bg-emerald-300"

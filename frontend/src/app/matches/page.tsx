@@ -22,6 +22,7 @@ import AuthGate from "@/components/AuthGate";
 import { apiGet, apiPost, getToken } from "@/lib/api";
 import { firstName } from "@/lib/names";
 import AdSlot from "@/components/AdSlot";
+import TopPicks from "@/components/TopPicks";
 import { Duo, duo } from "@/lib/duo";
 import { useLang } from "@/lib/lang";
 
@@ -802,6 +803,8 @@ export default function MatchesAdvanced() {
           </button>
           <div className="mt-3"><AdSlot slot="matches_sidebar" district={filters.district || ""} state={filters.state || ""} /></div>
         </aside>
+
+        <TopPicks />
 
         {/* ---------- results ---------- */}
         <section>
