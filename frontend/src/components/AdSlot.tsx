@@ -4,6 +4,7 @@
  * No ad → house promo (khaali vaddu, revenue + UX).
  */
 import { useEffect, useState } from "react";
+import { useLang } from "@/lib/lang";
 
 type Ad = {
   id: string; vendor_id: string; title: string; offer: string;
@@ -14,6 +15,8 @@ export default function AdSlot({ slot, district = "", state = "", className = ""
   slot: "home_hero" | "matches_sidebar" | "profile_banner" | "search_top";
   district?: string; state?: string; className?: string;
 }) {
+  const { lang } = useLang();
+  const te = lang === "te";
   const [ad, setAd] = useState<Ad | null>(null);
 
   useEffect(() => {
@@ -36,8 +39,8 @@ export default function AdSlot({ slot, district = "", state = "", className = ""
     // 🏠 house promo (default)
     return (
       <div className={`rounded-2xl border border-dashed border-[#D4AF37] bg-[#FFF8E7] p-4 text-center ${className}`}>
-        <p className="text-[12px] font-bold text-[#7A0C2E]">🏪 Mee business ki wedding-season customers kavala?</p>
-        <p className="mt-0.5 text-[11px] text-gray-600">📢 Ads — district nunchi (₹49/day) · <a href="/vendors/campaign" className="font-bold text-[#7A0C2E] underline">Campaign start cheyyandi →</a></p>
+        <p className="text-[12px] font-bold text-[#7A0C2E]">{te ? "🏪 మీ business కి wedding-season customers కావాలా?" : "🏪 Want wedding-season customers for your business?"}</p>
+        <p className="mt-0.5 text-[11px] text-gray-600">📢 {te ? <>Ads — district నుంచి (₹49/day) · <a href="/vendors/campaign" className="font-bold text-[#7A0C2E] underline">Campaign start చెయ్యండి →</a></> : <>Ads — from district level (₹49/day) · <a href="/vendors/campaign" className="font-bold text-[#7A0C2E] underline">Start campaign →</a></>}</p>
       </div>
     );
   }
@@ -53,7 +56,7 @@ export default function AdSlot({ slot, district = "", state = "", className = ""
           <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400">📢 Sponsored</p>
           <p className="text-sm font-extrabold text-[#0F1F3C]">{ad.title}</p>
           {ad.offer ? <p className="mt-0.5 text-[12px] font-bold text-green-700">🎁 {ad.offer}</p> : null}
-          {ad.video_url ? <p className="mt-1 text-[11px] text-[#7A0C2E]">▶️ Video chudandi</p> : null}
+          {ad.video_url ? <p className="mt-1 text-[11px] text-[#7A0C2E]">{te ? "▶️ Video చూడండి" : "▶️ Watch video"}</p> : null}
         </div>
       </button>
     </div>

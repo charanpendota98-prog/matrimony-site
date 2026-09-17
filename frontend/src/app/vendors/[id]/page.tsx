@@ -7,8 +7,11 @@
  */
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { useLang } from "@/lib/lang";
 
 export default function VendorDetailPage({ params }: { params: { id: string } }) {
+  const { lang } = useLang();
+  const te = lang === "te";
   const id = params?.id || "";
   const [data, setData] = useState<any>(null);
   const [dash, setDash] = useState<any>(null);
@@ -21,7 +24,7 @@ export default function VendorDetailPage({ params }: { params: { id: string } })
   const [tab, setTab] = useState<"customer" | "owner">("customer");
 
   const load = useCallback(() => {
-    fetch(`/api/vendors/${id}`).then((r) => r.json()).then((d) => d.success ? setData(d) : setErr(d.detail || "Vendor dorakaledu")).catch(() => setErr("Server nunchi data ravaledu"));
+    fetch(`/api/vendors/${id}`).then((r) => r.json()).then((d) => d.success ? setData(d) : setErr(d.detail || (te ? "Vendor దొరకలేదు" : "Vendor not found"))).catch(() => setErr(te ? "Server నుంచి data రాలేదు" : "No data from server"));
     // 🐞 FIX: vendor dashboard (impressions/clicks/leads) public ga chupinchakoodadu — vendor token kavali
     let vtok = "";
     try { vtok = localStorage.getItem("tsap_vendor_token") || ""; } catch { /* ignore */ }
@@ -44,7 +47,7 @@ export default function VendorDetailPage({ params }: { params: { id: string } })
       const d = await r.json();
       setLeadRes(d);
     } catch {
-      setLeadRes({ success: false, message_telugu: "Server problem — malli try cheyyandi" });
+      setLeadRes({ success: false, message_telugu: te ? "Server problem — మళ్లీ try చెయ్యండి" : "Server problem — retry" });
     } finally {
       setBusy(false);
     }
@@ -57,7 +60,7 @@ export default function VendorDetailPage({ params }: { params: { id: string } })
           <div className="text-4xl">🔍</div>
           <div className="mt-2 font-bold text-maroon">⚠️ {err}</div>
           <Link href="/vendors" className="mt-3 inline-block gold-gradient text-maroon font-bold text-[12px] px-4 py-2.5 rounded-xl">
-            🏪 Vendors list chudandi
+            {te ? "🏪 Vendors list చూడండి" : "🏪 See vendors list"}
           </Link>
         </div>
       </main>
@@ -89,13 +92,13 @@ export default function VendorDetailPage({ params }: { params: { id: string } })
               {v.whatsapp_link && (
                 <a href={v.whatsapp_link} target="_blank" rel="noreferrer"
                   onClick={() => fetch(`/api/vendors/${id}/click?source=detail_hero`, { method: "POST" }).catch(() => { })}
-                  className="bg-green-600 text-white font-bold text-[12px] px-4 py-2.5 rounded-xl">💬 WhatsApp cheyyandi</a>
+                  className="bg-green-600 text-white font-bold text-[12px] px-4 py-2.5 rounded-xl">{te ? "💬 WhatsApp చెయ్యండి" : "💬 WhatsApp"}</a>
               )}
               {v.call_link && <a href={v.call_link} className="bg-white/10 border border-white/25 font-bold text-[12px] px-4 py-2.5 rounded-xl">📞 Call</a>}
             </div>
           </div>
           <div className="mt-4 flex gap-2 text-[12px]">
-            <button onClick={() => setTab("customer")} className={`px-3 py-1.5 rounded-full font-bold ${tab === "customer" ? "bg-white text-maroon" : "bg-white/10"}`}>👰 Customer view</button>
+            <button onClick={() => setTab("customer")} className={`px-3 py-1.5 rounded-full font-bold ${tab === "customer" ? "bg-white text-maroon" : "bg-white/10"}`}>{te ? "👰 Customer view" : "👰 Customer view"}</button>
             <button onClick={() => setTab("owner")} className={`px-3 py-1.5 rounded-full font-bold ${tab === "owner" ? "bg-white text-maroon" : "bg-white/10"}`}>📊 Vendor dashboard</button>
           </div>
         </div>
@@ -107,7 +110,7 @@ export default function VendorDetailPage({ params }: { params: { id: string } })
             <div className="md:col-span-2 space-y-4">
               <div className="bg-white rounded-3xl border border-gold/30 p-5">
                 <div className="font-bold text-maroon">About</div>
-                <p className="mt-2 text-[13px] text-gray-700">{v.about || "Mana Vivaha verified vendor."}</p>
+                <p className="mt-2 text-[13px] text-gray-700">{v.about || (te ? "Mana Vivaha verified vendor." : "Mana Vivaha verified vendor.")}</p>
                 <div className="mt-3 grid sm:grid-cols-2 gap-2 text-[12px]">
                   {v.service_areas && <div className="bg-cream rounded-xl px-3 py-2">🗺️ Service areas: <b>{v.service_areas}</b></div>}
                   {v.price_range && <div className="bg-cream rounded-xl px-3 py-2">💰 Rates: <b>{v.price_range}</b></div>}
@@ -115,7 +118,7 @@ export default function VendorDetailPage({ params }: { params: { id: string } })
                   <div className="bg-cream rounded-xl px-3 py-2">🏷️ Category: <b>{v.category_te}</b></div>
                 </div>
                 <div className="mt-3 rounded-xl bg-[#FFF8E7] border border-gold/40 p-3 text-[11px] text-maroon">
-                  🖼️ Promo poster (QR tho) — mee friends/relatives tho share cheyyandi
+                  {te ? "🖼️ Promo poster (QR తో) — మీ friends/relatives తో share చెయ్యండి" : "🖼️ Promo poster (with QR) — share with friends/relatives"}
                   <div className="mt-2 flex flex-wrap gap-2">
                     <a href={`/api/vendors/${id}/poster.png?style=square`} download={`${id}-poster.png`}
                       className="gold-gradient text-maroon font-bold text-[11px] px-3 py-2 rounded-xl">⬇️ Poster (square)</a>
@@ -126,7 +129,7 @@ export default function VendorDetailPage({ params }: { params: { id: string } })
               </div>
 
               <div className="bg-white rounded-3xl border border-gold/30 p-5">
-                <div className="font-bold text-maroon">📩 Enquiry pampandi (FREE) — vendor ki ventane WhatsApp veltundi</div>
+                <div className="font-bold text-maroon">{te ? "📩 Enquiry పంపండి (FREE) — vendor కి వెంటనే WhatsApp వెళ్తుంది" : "📩 Send enquiry (FREE) — vendor gets WhatsApp instantly"}</div>
                 {leadRes?.success ? (
                   <div className="mt-3 bg-emerald-50 border border-emerald-200 rounded-2xl p-4 text-[12px] text-emerald-900">
                     ✅ {leadRes.message_telugu}
@@ -136,7 +139,7 @@ export default function VendorDetailPage({ params }: { params: { id: string } })
                         {(leadRes.more_options || []).map((m: any) => (
                           <div key={m.id} className="flex items-center justify-between bg-white rounded-xl px-3 py-2">
                             <span>{m.icon} {m.business_name} · {m.city}</span>
-                            <Link href={`/vendors/${m.id}`} className="text-maroon font-bold underline text-[11px]">chudandi</Link>
+                            <Link href={`/vendors/${m.id}`} className="text-maroon font-bold underline text-[11px]">{te ? "చూడండి" : "see"}</Link>
                           </div>
                         ))}
                       </div>
@@ -145,21 +148,21 @@ export default function VendorDetailPage({ params }: { params: { id: string } })
                 ) : (
                   <>
                     <div className="mt-3 grid sm:grid-cols-2 gap-3">
-                      <input className="input-mobile" placeholder="Mee peru *" value={lead.name} onChange={(e) => setLead({ ...lead, name: e.target.value })} aria-label="Mee peru *" />
-                      <input className="input-mobile" placeholder="Mee mobile (10 digits) *" value={lead.phone}
-                        onChange={(e) => setLead({ ...lead, phone: e.target.value })} inputMode="tel" aria-label="Mee mobile (10 digits) *" />
+                      <input className="input-mobile" placeholder={te ? "మీ పేరు *" : "Your name *"} value={lead.name} onChange={(e) => setLead({ ...lead, name: e.target.value })} aria-label={te ? "మీ పేరు" : "Your name"} />
+                      <input className="input-mobile" placeholder={te ? "మీ mobile (10 digits) *" : "Your mobile (10 digits) *"} value={lead.phone}
+                        onChange={(e) => setLead({ ...lead, phone: e.target.value })} inputMode="tel" aria-label={te ? "మీ mobile" : "Your mobile"} />
                       <input className="input-mobile" placeholder="District" value={lead.district} onChange={(e) => setLead({ ...lead, district: e.target.value })} aria-label="District" />
                       <input className="input-mobile" type="date" value={lead.event_date} onChange={(e) => setLead({ ...lead, event_date: e.target.value })} aria-label="Text input" />
-                      <input className="input-mobile" placeholder="Budget (udaharanam: ₹80,000)" value={lead.budget} onChange={(e) => setLead({ ...lead, budget: e.target.value })} aria-label="Budget (udaharanam: ₹80,000)" />
-                      <input className="input-mobile" placeholder="Requirement (udaharanam: 400 members lunch)" value={lead.message} onChange={(e) => setLead({ ...lead, message: e.target.value })} aria-label="Requirement (udaharanam: 400 members lunch)" />
+                      <input className="input-mobile" placeholder={te ? "Budget (ఉదాహరణ: ₹80,000)" : "Budget (e.g. ₹80,000)"} value={lead.budget} onChange={(e) => setLead({ ...lead, budget: e.target.value })} aria-label="Budget" />
+                      <input className="input-mobile" placeholder={te ? "Requirement (ఉదాహరణ: 400 members lunch)" : "Requirement (e.g. 400 members lunch)"} value={lead.message} onChange={(e) => setLead({ ...lead, message: e.target.value })} aria-label={te ? "Requirement" : "Requirement"} />
                     </div>
                     {leadRes?.success === false && <div className="mt-2 text-[12px] text-rose-700">⚠️ {leadRes.message_telugu}</div>}
                     <button onClick={sendLead} disabled={busy}
                       className="mt-3 w-full maroon-gradient text-white font-bold text-[13px] py-3 rounded-2xl disabled:opacity-60">
-                      {busy ? "⏳ pampistunnam…" : "📩 Enquiry pampandi"}
+                      {busy ? (te ? "⏳ పంపిస్తున్నాం…" : "⏳ Sending…") : te ? "📩 Enquiry పంపండి" : "📩 Send enquiry"}
                     </button>
                     <div className="mt-2 text-[11px] text-gray-500">
-                      Mee number ee vendor ki matrame velthundi. Chatting ledu — vendor direct ga call/WhatsApp chestadu.
+                      {te ? "మీ number ఈ vendor కే వెళ్తుంది. Chatting లేదు — vendor direct గా call/WhatsApp చేస్తారు." : "Your number goes to this vendor only. No chatting — vendor calls/WhatsApps you directly."}
                     </div>
                   </>
                 )}
@@ -167,12 +170,12 @@ export default function VendorDetailPage({ params }: { params: { id: string } })
 
               {(data?.similar || []).length > 0 && (
                 <div className="bg-white rounded-3xl border border-gold/30 p-5">
-                  <div className="font-bold text-maroon">🔄 Inka options (rate compare cheyyandi)</div>
+                  <div className="font-bold text-maroon">{te ? "🔄 ఇంకా options (rate compare చెయ్యండి)" : "🔄 More options (compare rates)"}</div>
                   <div className="mt-2 space-y-2">
                     {(data.similar || []).map((s: any) => (
                       <div key={s.id} className="flex items-center justify-between bg-cream rounded-xl px-3 py-2 text-[12px]">
                         <span>{s.icon} {s.business_name} · {s.city} {s.price_range ? `· ${s.price_range}` : ""}</span>
-                        <Link href={`/vendors/${s.id}`} className="text-maroon font-bold underline text-[11px]">chudandi</Link>
+                        <Link href={`/vendors/${s.id}`} className="text-maroon font-bold underline text-[11px]">{te ? "చూడండి" : "see"}</Link>
                       </div>
                     ))}
                   </div>
@@ -187,24 +190,24 @@ export default function VendorDetailPage({ params }: { params: { id: string } })
                   <div className="font-bold mt-1">{v.business_name}</div>
                   <a href={v.whatsapp_link} target="_blank" rel="noreferrer"
                     className="mt-3 block bg-white text-green-700 font-bold text-[13px] px-4 py-3 rounded-2xl">
-                    WhatsApp lo maatladandi
+                    {te ? "WhatsApp లో మాట్లాడండి" : "Chat on WhatsApp"}
                   </a>
                   {v.call_link && <a href={v.call_link} className="mt-2 block bg-green-700/60 border border-white/30 font-bold text-[12px] px-4 py-2.5 rounded-2xl">📞 Call now</a>}
                 </div>
               )}
               <div className="bg-white rounded-3xl border border-gold/30 p-5 text-[12px]">
-                <div className="font-bold text-maroon">🛡️ Safety (mana advice)</div>
+                <div className="font-bold text-maroon">{te ? "🛡️ Safety (మన advice)" : "🛡️ Safety (our advice)"}</div>
                 <ul className="mt-2 space-y-1 text-gray-700">
-                  <li>• Advance money ivvakandi — 30% varake</li>
-                  <li>• Agreement + bill thisukondi (GST unte inka manchi)</li>
-                  <li>• Sample work / photos adigi chudandi</li>
-                  <li>• Problem unte report cheyyandi: /safety</li>
+                  <li>{te ? "• Advance money ఇవ్వకండి — 30% వరకే" : "• Don\u2019t pay advance — max 30%"}</li>
+                  <li>{te ? "• Agreement + bill తీసుకోండి (GST ఉంటే ఇంకా మంచి)" : "• Take agreement + bill (GST even better)"}</li>
+                  <li>{te ? "• Sample work / photos అడిగి చూడండి" : "• Ask for sample work / photos"}</li>
+                  <li>{te ? "• Problem ఉంటే report చెయ్యండి: /safety" : "• Problem? Report: /safety"}</li>
                 </ul>
               </div>
               <div className="bg-navy text-white rounded-3xl p-5 text-[12px]">
-                <div className="font-bold">Mee business kooda?</div>
-                <div className="opacity-90 mt-1">₹149 nunchi promote cheyyandi — 52 channels + WhatsApp + website banner.</div>
-                <Link href="/vendors/register" className="mt-2 inline-block gold-gradient text-maroon font-bold text-[11px] px-3 py-2 rounded-xl">🏪 Add my business</Link>
+                <div className="font-bold">{te ? "మీ business కూడా?" : "Your business too?"}</div>
+                <div className="opacity-90 mt-1">{te ? "₹149 నుంచి promote చెయ్యండి — 52 channels + WhatsApp + website banner." : "Promote from ₹149 — 52 channels + WhatsApp + website banner."}</div>
+                <Link href="/vendors/register" className="mt-2 inline-block gold-gradient text-maroon font-bold text-[11px] px-3 py-2 rounded-xl">{te ? "🏪 నా business add చెయ్" : "🏪 Add my business"}</Link>
               </div>
             </div>
           </div>
@@ -226,7 +229,7 @@ export default function VendorDetailPage({ params }: { params: { id: string } })
               ))}
             </div>
             <div className="bg-white rounded-3xl border border-gold/30 p-5">
-              <div className="font-bold text-maroon">{dash?.message_telugu || "📊 Mee listing performance"}</div>
+              <div className="font-bold text-maroon">{dash?.message_telugu || (te ? "📊 మీ listing performance" : "📊 Your listing performance")}</div>
               <div className="mt-2 text-[12px] text-gray-700">
                 CTR: <b>{dash?.stats?.ctr_pct ?? 0}%</b> · Lead rate: <b>{dash?.stats?.lead_rate_pct ?? 0}%</b>
                 {" "}· {dash?.competition?.message_telugu}
@@ -236,7 +239,7 @@ export default function VendorDetailPage({ params }: { params: { id: string } })
               </div>
               {promo?.telegram_post && (
                 <div className="mt-3">
-                  <div className="text-[12px] font-bold text-maroon">📝 Mee promo post (channels ki ready)</div>
+                  <div className="text-[12px] font-bold text-maroon">{te ? "📝 మీ promo post (channels కి ready)" : "📝 Your promo post (ready for channels)"}</div>
                   <pre className="mt-2 bg-cream rounded-xl p-3 text-[11px] whitespace-pre-wrap">{promo.telegram_post}</pre>
                   <div className="mt-2 flex flex-wrap gap-2">
                     <button onClick={() => copy(promo.telegram_post, "tg")} className="gold-gradient text-maroon font-bold text-[11px] px-3 py-2 rounded-xl">
@@ -251,7 +254,7 @@ export default function VendorDetailPage({ params }: { params: { id: string } })
             </div>
             <div className="bg-white rounded-3xl border border-gold/30 p-5">
               <div className="font-bold text-maroon">📩 Recent enquiries</div>
-              {(dash?.recent_leads || []).length === 0 && <div className="text-[12px] text-gray-500 mt-2">Inka enquiries ledu — promo post pettandi, leads perugutayi.</div>}
+              {(dash?.recent_leads || []).length === 0 && <div className="text-[12px] text-gray-500 mt-2">{te ? "ఇంకా enquiries లేవు — promo post పెట్టండి, leads పెరుగుతాయి." : "No enquiries yet — post the promo, leads will grow."}</div>}
               <div className="mt-2 space-y-2">
                 {(dash?.recent_leads || []).map((l: any) => (
                   <div key={l.id} className="bg-cream rounded-xl px-3 py-2 text-[12px] flex flex-wrap items-center justify-between gap-2">

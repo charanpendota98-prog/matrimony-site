@@ -7,10 +7,9 @@ import Link from "next/link";
 import { Duo } from "@/lib/duo";
 import { useLang } from "@/lib/lang";
 import { useRouter } from "next/navigation";
-import { demoLogin, rememberSession, sendOtp, verifyOtp } from "@/lib/auth";
-import { apiPost, readLocal } from "@/lib/api";
+import { rememberSession, sendOtp, verifyOtp } from "@/lib/auth";
+import { apiPost } from "@/lib/api";
 
-type Profile = { tsap_id?: string; full_name?: string };
 
 export default function LoginPage() {
   const router = useRouter();
@@ -25,13 +24,11 @@ export default function LoginPage() {
   const [msg, setMsg] = useState("");
   const [devCode, setDevCode] = useState("");
   const [busy, setBusy] = useState(false);
-  const [demoId, setDemoId] = useState("");
   const [keep, setKeep] = useState(true);
   // forgot flow
   const [forgot, setForgot] = useState(false);
   const [fStage, setFStage] = useState<"phone" | "reset">("phone");
   const [newPw, setNewPw] = useState("");
-  const myProfiles = readLocal<Profile[]>("tsap_profiles", []);
 
   const digits = () => phone.replace(/\D/g, "");
   const go = (tsapId: string, token: string, hasAccount: boolean) => {
@@ -94,19 +91,6 @@ export default function LoginPage() {
     if (!ok) { setMsg(errorTelugu); return; }
     setMsg(data?.message_telugu || (te ? "✅ Password మార్చింది" : "✅ Password changed"));
     go(String(data?.tsap_id || ""), String(data?.auth_token || ""), true);
-  }
-
-  async function onDemo() {
-    const id = (demoId || "").trim().toUpperCase();
-    if (!id) { setMsg(te ? "⚠️ Demo TSAP ID ఇవ్వండి (example: TSAP-F-2025-1042)" : "⚠️ Enter a demo TSAP ID (example: TSAP-F-2025-1042)"); return; }
-    setBusy(true); setMsg("");
-    const { ok, data, errorTelugu } = await demoLogin(id);
-    setBusy(false);
-    if (!ok) { setMsg(errorTelugu); return; }
-    const d = (data || {}) as { auth_token?: string; message_telugu?: string };
-    rememberSession(id, String(d.auth_token || ""), keep);
-    setMsg(d.message_telugu || (te ? "🎬 Demo login అయ్యింది" : "🎬 Demo login done"));
-    setTimeout(() => router.push("/matches"), 700);
   }
 
   return (
@@ -229,29 +213,6 @@ export default function LoginPage() {
             </>
           )}
         </div>
-      </section>
-
-      <section className="mt-5 rounded-2xl border border-slate-200 bg-white p-4">
-        <h2 className="text-sm font-bold text-slate-800">🎬 <Duo en="Demo login (preview / testing)" te="డెమో లాగిన్" /></h2>
-        <p className="text-xs text-slate-500">{te ? "Demo profile ID తో login — real users కి number + password / OTP." : "Login with a demo profile ID — real users use number + password / OTP."}</p>
-        <div className="mt-2 flex gap-2">
-          <input value={demoId} onChange={(e) => setDemoId(e.target.value.toUpperCase())}
-            placeholder="TSAP-F-2025-1042" aria-label="Demo TSAP ID"
-            className="flex-1 rounded-xl border border-slate-300 px-3 py-2 text-sm focus:border-[#7A0C2E] focus:outline-none" />
-          <button onClick={onDemo} disabled={busy} className="rounded-xl border border-[#7A0C2E] px-3 py-2 text-sm font-semibold text-[#7A0C2E] disabled:opacity-50">
-            🎬 Enter
-          </button>
-        </div>
-        {myProfiles.length > 0 && (
-          <div className="mt-2 flex flex-wrap gap-1">
-            {myProfiles.slice(0, 6).map((p) => (
-              <button key={p.tsap_id} onClick={() => { setDemoId(String(p.tsap_id || "")); void onDemo(); }}
-                className="rounded-full bg-slate-100 px-2 py-1 text-[11px] hover:bg-slate-200">
-                {p.full_name || p.tsap_id}
-              </button>
-            ))}
-          </div>
-        )}
       </section>
 
       <p className="mt-5 text-center text-sm text-slate-600">

@@ -12,6 +12,7 @@
 import { useCallback, useEffect, useState } from "react";
 import AuthGate from "@/components/AuthGate";
 import { Duo, duo } from "@/lib/duo";
+import { useLang } from "@/lib/lang";
 import { authHeaders } from "@/lib/api";
 import Link from "next/link";
 
@@ -19,6 +20,8 @@ type Tip = { icon: string; title: string; telugu: string };
 type Cat = { key: string; te: string; severity: string; desc: string };
 
 export default function SafetyPage() {
+  const { lang } = useLang();
+  const te = lang === "te";
   const [tips, setTips] = useState<Tip[]>([]);
   const [needsLogin, setNeedsLogin] = useState(false);
   const [cats, setCats] = useState<Cat[]>([]);
@@ -61,7 +64,7 @@ export default function SafetyPage() {
   useEffect(() => { if (myId) loadMine(myId); }, [myId, loadMine]);
 
   const submitReport = async () => {
-    if (!report.target_id.trim()) { setMsg({ ok: false, text: "Evarini report cheyyali — TSAP ID ivvandi" }); return; }
+    if (!report.target_id.trim()) { setMsg({ ok: false, text: te ? "ఎవరిని report చెయ్యాలి — TSAP ID ఇవ్వండి" : "Whom to report — enter TSAP ID" }); return; }
     setBusy(true);
     try {
       const d = await fetch("/api/report", {
@@ -73,9 +76,9 @@ export default function SafetyPage() {
         setReport({ target_id: "", category: "fake_profile", detail: "" });
         loadMine(myId);
       } else {
-        setMsg({ ok: false, text: d.detail || "Report pampaledu" });
+        setMsg({ ok: false, text: d.detail || (te ? "Report పంపలేదు" : "Report not sent") });
       }
-    } catch { setMsg({ ok: false, text: "Network problem — malli try cheyyandi" }); }
+    } catch { setMsg({ ok: false, text: te ? "Network problem — మళ్లీ try చెయ్యండి" : "Network problem — retry" }); }
     setBusy(false);
   };
 
@@ -118,12 +121,13 @@ export default function SafetyPage() {
           </div>
           <h1 className="mt-3 text-2xl md:text-4xl font-bold"><Duo en="Your safety is our responsibility" te="మీ భద్రత మా బాధ్యత" /></h1>
           <p className="mt-2 text-[13px] md:text-sm opacity-90 telugu max-w-3xl">
-            Matrimony lo andaru manchi vallu kaaru — kaabatti manam mundu jagratha. Report/block 2 clicks lo,
-            verification badge tho nijamaina profiles matrame mundu kanipistayi. 🚫 Chatting ledu — spam ki chot ledu.
+{te ? <>Matrimony లో అందరూ మంచి వాళ్లు కారు — కాబట్టి మనం ముందు జాగ్రత్త. Report/block 2 clicks లో,
+            verification badge తో నిజమైన profiles మాత్రమే ముందు కనిపిస్తాయి. 🚫 Chatting లేదు — spam కి చోటు లేదు.</> : <>Not everyone in matrimony is genuine — so we stay careful first. Report/block in 2 clicks,
+            verified-badge profiles show first. 🚫 No chatting — no room for spam.</>}
           </p>
           <div className="mt-3 flex flex-wrap gap-2 text-[12px]">
             <span className="bg-white/10 border border-white/20 rounded-full px-3 py-1.5">🔒 Reports anonymous</span>
-            <span className="bg-white/10 border border-white/20 rounded-full px-3 py-1.5">⏱️ 24h lo action</span>
+            <span className="bg-white/10 border border-white/20 rounded-full px-3 py-1.5">{te ? "⏱️ 24h లో action" : "⏱️ Action in 24h"}</span>
             <span className="bg-white/10 border border-white/20 rounded-full px-3 py-1.5">🚫 3 reports → auto-hide</span>
             <Link href="/register" className="gold-gradient text-maroon font-bold rounded-full px-3 py-1.5">FREE register</Link>
           </div>
@@ -139,7 +143,7 @@ export default function SafetyPage() {
 
         {/* ---- tips ---- */}
         <div className="bg-white rounded-[1.5rem] border border-gold/25 p-5">
-          <div className="font-bold text-maroon text-[16px]">💡 Safety tips (Telugu lo chaduvandi — 2 nimushalu)</div>
+          <div className="font-bold text-maroon text-[16px]">{te ? "💡 Safety tips (Telugu లో చదవండి — 2 నిమిషాలు)" : "💡 Safety tips (read in Telugu — 2 minutes)"}</div>
           <div className="mt-3 grid md:grid-cols-2 gap-3">
             {tips.map((t) => (
               <div key={t.title} className="bg-cream rounded-2xl p-3 border border-gold/25">
@@ -147,24 +151,24 @@ export default function SafetyPage() {
                 <div className="text-[12px] text-gray-700 mt-1 telugu">{t.telugu}</div>
               </div>
             ))}
-            {!tips.length && <div className="text-[12px] text-gray-500">Load avutund…</div>}
+            {!tips.length && <div className="text-[12px] text-gray-500">{te ? "Load అవుతుంది…" : "Loading…"}</div>}
           </div>
         </div>
 
         {/* ---- report form ---- */}
         <div className="bg-white rounded-[1.5rem] border border-rose-200 p-5">
-          <div className="font-bold text-rose-800 text-[16px]">🚩 Report cheyyandi (100% anonymous)</div>
+          <div className="font-bold text-rose-800 text-[16px]">{te ? "🚩 Report చెయ్యండి (100% anonymous)" : "🚩 Report (100% anonymous)"}</div>
           <div className="text-[12px] text-gray-600 mt-1">
-            Fake profile / advance money / harassment / photo misuse — edaina report cheyyandi. Mana team 24h lo chusi action teesukuntundi.
+            {te ? "Fake profile / advance money / harassment / photo misuse — ఏదైనా report చెయ్యండి. మన team 24h లో చూసి action తీసుకుంటుంది." : "Fake profile / advance money / harassment / photo misuse — report anything. Our team reviews in 24h and acts."}
           </div>
           <div className="mt-4 grid md:grid-cols-3 gap-3">
             <div className="md:col-span-1">
-              <label className="text-[12px] font-bold">Evarini report? (TSAP ID)</label>
+              <label className="text-[12px] font-bold">{te ? "ఎవరిని report? (TSAP ID)" : "Whom to report? (TSAP ID)"}</label>
               <input value={report.target_id} onChange={(e) => setReport({ ...report, target_id: e.target.value.toUpperCase() })}
                 placeholder="TSAP-M-2025-1042" className="input-mobile font-mono" aria-label="TSAP-M-2025-1042" />
             </div>
             <div className="md:col-span-1">
-              <label className="text-[12px] font-bold">Mee TSAP ID (optional)</label>
+              <label className="text-[12px] font-bold">{te ? "మీ TSAP ID (optional)" : "Your TSAP ID (optional)"}</label>
               <input value={myId} onChange={(e) => { setMyId(e.target.value.toUpperCase()); localStorage.setItem("tsap_id", e.target.value.toUpperCase()); }}
                 placeholder="TSAP-F-2025-1042" className="input-mobile font-mono" aria-label="TSAP-F-2025-1042" />
             </div>
@@ -176,18 +180,18 @@ export default function SafetyPage() {
             </div>
           </div>
           <div className="mt-3">
-            <label className="text-[12px] font-bold">Em jarigindi? (detail — screenshots ki proof ga pettukondi)</label>
+            <label className="text-[12px] font-bold">{te ? "ఏం జరిగింది? (detail — screenshots proof గా పెట్టుకోండి)" : "What happened? (detail — keep screenshots as proof)"}</label>
             <textarea value={report.detail} onChange={(e) => setReport({ ...report, detail: e.target.value })}
-              rows={3} placeholder="Uda: advance ₹5,000 adigaru, registration fee ani chepparu…" className="input-mobile telugu" aria-label="Uda: advance ₹5,000 adigaru, registration fee ani chepparu…" />
+              rows={3} placeholder={te ? "ఉదా: advance ₹5,000 అడిగారు, registration fee అని చెప్పారు…" : "E.g. asked ₹5,000 advance as registration fee…"} className="input-mobile telugu" aria-label={te ? "ఏం జరిగింది" : "What happened"} />
           </div>
           <div className="mt-3 flex flex-wrap gap-2">
             <button onClick={submitReport} disabled={busy}
               className="px-5 py-3 rounded-2xl bg-rose-700 text-white font-bold text-[13px] disabled:opacity-60">
-              {busy ? "Pampisthunnam…" : "🚩 Report pampu"}
+              {busy ? (te ? "పంపిస్తున్నాం…" : "Sending…") : te ? "🚩 Report పంపు" : "🚩 Send report"}
             </button>
             <button onClick={() => doBlock(report.target_id)} disabled={!report.target_id || !myId}
               className="px-5 py-3 rounded-2xl border border-rose-300 text-rose-700 font-bold text-[13px] disabled:opacity-50">
-              🚫 Block cheyyi (ventane)
+              {te ? "🚫 Block చెయ్యి (వెంటనే)" : "🚫 Block now"}
             </button>
           </div>
           {cats.length > 0 && (
@@ -204,7 +208,7 @@ export default function SafetyPage() {
         {/* ---- verification + blocks ---- */}
         <div className="grid md:grid-cols-2 gap-4">
           <div className="bg-white rounded-[1.5rem] border border-gold/25 p-5">
-            <div className="font-bold text-maroon text-[15px]">✅ Mee verification level</div>
+            <div className="font-bold text-maroon text-[15px]">{te ? "✅ మీ verification level" : "✅ Your verification level"}</div>
             {verify ? (
               <>
                 <div className="mt-2 text-[13px] text-gray-700">
@@ -215,7 +219,7 @@ export default function SafetyPage() {
                   <div className="h-2 gold-gradient" style={{ width: `${verify.trust_score}%` }} />
                 </div>
               </>
-            ) : <div className="text-[12px] text-gray-500 mt-2">TSAP ID ivvandi — verification level chudataniki</div>}
+            ) : <div className="text-[12px] text-gray-500 mt-2">{te ? "TSAP ID ఇవ్వండి — verification level చూడటానికి" : "Enter TSAP ID — to see verification level"}</div>}
             <div className="mt-3 flex flex-wrap gap-2">
               {levels.filter((l) => l.level !== "none").map((l) => (
                 <button key={l.level} onClick={() => requestVerify(l.level)} disabled={!myId}
@@ -225,13 +229,13 @@ export default function SafetyPage() {
               ))}
             </div>
             <div className="mt-2 text-[11px] text-gray-500">
-              Photo/ID verify cheste mee profile <b>top lo</b> kanipisthundi + interest acceptance rate penchutundi.
+              {te ? <>Photo/ID verify చేస్తే మీ profile <b>top లో</b> కనిపిస్తుంది + interest acceptance rate పెంచుతుంది.</> : <>Verifying photo/ID puts your profile <b>on top</b> + raises interest acceptance rate.</>}
             </div>
           </div>
 
           <div className="bg-white rounded-[1.5rem] border border-gold/25 p-5">
-            <div className="font-bold text-maroon text-[15px]">🚫 Mee block list ({blocks.length})</div>
-            {blocks.length === 0 && <div className="text-[12px] text-gray-500 mt-2">Evaru block cheyyaledu 👍</div>}
+            <div className="font-bold text-maroon text-[15px]">{te ? <>🚫 మీ block list ({blocks.length})</> : <>🚫 Your block list ({blocks.length})</>}</div>
+            {blocks.length === 0 && <div className="text-[12px] text-gray-500 mt-2">{te ? "ఎవరూ block చెయ్యలేదు 👍" : "Nobody blocked 👍"}</div>}
             <div className="mt-2 space-y-2">
               {blocks.map((b) => (
                 <div key={b.blocked} className="flex items-center gap-2 bg-cream rounded-xl px-3 py-2">
@@ -248,8 +252,8 @@ export default function SafetyPage() {
         {queue && (
           <div className="bg-white rounded-[1.5rem] border border-gold/25 p-5">
             <div className="flex items-center justify-between">
-              <div className="font-bold text-maroon text-[15px]">👮 Moderation queue (admin) — {queue.open} open</div>
-              <div className="text-[11px] text-gray-500">high severity mundu: {queue.items?.filter((i: any) => i.severity === "high").length || 0}</div>
+              <div className="font-bold text-maroon text-[15px]">{te ? <>👮 Moderation queue (admin) — {queue.open} open</> : <>👮 Moderation queue (admin) — {queue.open} open</>}</div>
+              <div className="text-[11px] text-gray-500">{te ? <>high severity ముందు: {queue.items?.filter((i: any) => i.severity === "high").length || 0}</> : <>high severity first: {queue.items?.filter((i: any) => i.severity === "high").length || 0}</>}</div>
             </div>
             <div className="text-[11px] text-gray-600 mt-1 telugu">{queue.message_telugu}</div>
             <div className="mt-3 space-y-2">
@@ -265,14 +269,15 @@ export default function SafetyPage() {
                   {it.detail && <div className="text-[11px] text-gray-700 mt-1 telugu">{it.detail}</div>}
                 </div>
               ))}
-              {!(queue.items || []).length && <div className="text-[12px] text-gray-500">Queue khali — reports levu 👍</div>}
+              {!(queue.items || []).length && <div className="text-[12px] text-gray-500">{te ? "Queue ఖాళీ — reports లేవు 👍" : "Queue empty — no reports 👍"}</div>}
             </div>
           </div>
         )}
 
         <div className="text-[11px] text-gray-500 text-center">
-          Emergency / police case aithe ventane 100 ki call cheyyandi • Mana support: mana WhatsApp (profile lo) •
-          🚫 Chatting ledu — anduke manam middle lo undamu, direct meeru matladukovachu (consent tho).
+{te ? <>Emergency / police case అయితే వెంటనే 100 కి call చెయ్యండి • మన support: మన WhatsApp (profile లో) •
+          🚫 Chatting లేదు — అందుకే మనం middle లో ఉండం, direct మీరు మాట్లాడుకోవచ్చు (consent తో).</> : <>In emergency / police case call 100 immediately • Our support: our WhatsApp (in profile) •
+          🚫 No chatting — so we stay out of the middle, you talk directly (with consent).</>}
         </div>
       </div>
     </main>

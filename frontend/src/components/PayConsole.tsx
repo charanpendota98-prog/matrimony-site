@@ -6,6 +6,7 @@
  */
 import { useEffect, useState } from "react";
 import { authHeaders } from "@/lib/api";
+import { useLang } from "@/lib/lang";
 
 type Row = Record<string, any>;
 const adminToken = () => { try { return localStorage.getItem("tsap_admin_token") || ""; } catch { return ""; } };
@@ -15,6 +16,8 @@ const withToken = (url: string) => {
 };
 
 export default function PayConsole() {
+  const { lang } = useLang();
+  const te = lang === "te";
   const [items, setItems] = useState<Row[]>([]);
   const [stats, setStats] = useState<Row | null>(null);
   const [status, setStatus] = useState("");
@@ -33,7 +36,7 @@ export default function PayConsole() {
 
   const confirm = async (id: string) => {
     const u = (utr[id] ?? items.find((x: any) => x.id === id)?.claim_utr ?? "").trim();
-    if (!/^\d{12}$/.test(u)) { setFlash("⚠️ UTR = 12 digits (bank statement tho match cheyyandi, audit ki mandatory)"); return; }
+    if (!/^\d{12}$/.test(u)) { setFlash(te ? "⚠️ UTR = 12 digits (bank statement తో match చెయ్యండి, audit కి mandatory)" : "⚠️ UTR = 12 digits (match with bank statement, mandatory for audit)"); return; }
     const r = await fetch(withToken(`/api/admin/payments/${id}/confirm`),
       { method: "POST", headers: { ...authHeaders(true), "Content-Type": "application/json" },
         body: JSON.stringify({ utr: u }) });
@@ -60,7 +63,7 @@ export default function PayConsole() {
         </div>
       )}
       <div className="flex gap-2 my-2">
-        {[["", "anni"], ["created", "pending"], ["claimed", "utr-vachindi"], ["paid", "paid"], ["expired", "expired"]].map(([v, l]) => (
+        {([["", te ? "అన్నీ" : "all"], ["created", "pending"], ["claimed", te ? "UTR వచ్చింది" : "UTR received"], ["paid", "paid"], ["expired", "expired"]] as string[][]).map(([v, l]) => (
           <button key={v} onClick={() => setStatus(v)}
             className={`px-3 py-1 rounded-full text-xs font-bold ${status === v ? "maroon-gradient text-white" : "bg-gray-100"}`}>{l}</button>
         ))}
@@ -82,7 +85,7 @@ export default function PayConsole() {
             </div>
             <div className="mt-1 text-gray-600">{o.label}</div>
             {o.claim_utr && o.status !== "paid" && (
-              <div className="mt-1 text-[11px] text-blue-700 font-bold">📩 User ichina UTR: <span className="font-mono">{o.claim_utr}</span> · {o.claimed_at} — statement tho match chesi confirm cheyyandi</div>
+              <div className="mt-1 text-[11px] text-blue-700 font-bold">{te ? "📩 User ఇచ్చిన UTR:" : "📩 User-given UTR:"} <span className="font-mono">{o.claim_utr}</span> · {o.claimed_at} — {te ? "statement తో match చేసి confirm చెయ్యండి" : "match with statement, then confirm"}</div>
             )}
             {o.status !== "paid" && o.status !== "expired" && (
               <div className="mt-2 flex gap-2">
@@ -97,7 +100,7 @@ export default function PayConsole() {
             )}
           </div>
         ))}
-        {!items.length && <p className="text-xs text-gray-400">Orders levu.</p>}
+        {!items.length && <p className="text-xs text-gray-400">{te ? "Orders లేవు." : "No orders."}</p>}
       </div>
     </div>
   );

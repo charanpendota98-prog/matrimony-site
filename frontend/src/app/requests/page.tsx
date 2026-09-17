@@ -16,6 +16,7 @@ import Link from "next/link";
 import Reveal from "@/components/Reveal";
 import SectionHeading from "@/components/SectionHeading";
 import { Duo, duo } from "@/lib/duo";
+import { useLang } from "@/lib/lang";
 
 type Plan = { code: string; price: number; profiles: number; label: string; telugu: string; badge: string; per_profile: number; perks?: string[] };
 type Addon = { code: string; price: number; label: string; telugu: string; kind: string };
@@ -42,6 +43,8 @@ const STATUS_STYLE: Record<string, string> = {
 };
 
 export default function RequestsPage() {
+  const { lang } = useLang();
+  const te = lang === "te";
   const [needsLogin, setNeedsLogin] = useState(false);
   const [myId, setMyId] = useState("");
   const [tab, setTab] = useState<"inbox" | "sent" | "send" | "plans" | "porutham" | "saved" | "viewers">("inbox");
@@ -113,7 +116,7 @@ export default function RequestsPage() {
         if (cst?.tsap_id) setConsent(cst);
         if (ql?.tsap_id || ql?.completeness) setQuality(ql);
       } catch {
-        setToast({ kind: "err", text: "Server tho connect avvaledu — malli try cheyyandi" });
+        setToast({ kind: "err", text: te ? "Server తో connect అవ్వలేదు — మళ్లీ try చెయ్యండి" : "Could not connect to server — retry" });
       }
     },
     []
@@ -131,8 +134,8 @@ export default function RequestsPage() {
   };
 
   const sendInterest = async () => {
-    if (!myId) return setToast({ kind: "err", text: "Mundu mee TSAP ID ivvandi (register chesaka vastundi)" });
-    if (!toId.trim()) return setToast({ kind: "err", text: "Ee profile ki pampali — TSAP ID type cheyyandi" });
+    if (!myId) return setToast({ kind: "err", text: te ? "ముందు మీ TSAP ID ఇవ్వండి (register చేశాక వస్తుంది)" : "Enter your TSAP ID first (you get it after register)" });
+    if (!toId.trim()) return setToast({ kind: "err", text: te ? "ఏ profile కి పంపాలి — TSAP ID type చెయ్యండి" : "Which profile to send to — type the TSAP ID" });
     setBusy(true);
     setToast(null);
     try {
@@ -147,7 +150,7 @@ export default function RequestsPage() {
         setTab("plans");
         setCredits(0);
       } else if (!r.ok) {
-        setToast({ kind: "err", text: d.message_telugu || d.detail || "Request fail ayyindi" });
+        setToast({ kind: "err", text: d.message_telugu || d.detail || (te ? "Request fail అయ్యింది" : "Request failed") });
       } else {
         setLastSend(d);
         setToast({ kind: "ok", text: d.message_telugu });
@@ -156,7 +159,7 @@ export default function RequestsPage() {
         refresh(myId);
       }
     } catch {
-      setToast({ kind: "err", text: "Network problem — malli try cheyyandi" });
+      setToast({ kind: "err", text: te ? "Network problem — మళ్లీ try చెయ్యండి" : "Network problem — retry" });
     }
     setBusy(false);
   };
@@ -191,34 +194,22 @@ export default function RequestsPage() {
         setCredits(d.credits_now);
         setToast({ kind: "ok", text: d.message_telugu });
         if (d.upi_link) window.open(d.upi_link, "_blank");
-      } else setToast({ kind: "err", text: d.detail || "Payment start avvaledu" });
+      } else setToast({ kind: "err", text: d.detail || (te ? "Payment start అవ్వలేదు" : "Payment did not start") });
     } catch {
       setToast({ kind: "err", text: "Network problem" });
     }
     setBusy(false);
   };
 
-  const loadDemo = async () => {
-    setBusy(true);
-    try {
-      const d = await fetch("/api/demo/seed", { method: "POST" }).then((r) => r.json());
-      const list = (d.created || []).map((x: any) => x.tsap_id).join(", ");
-      setToast({ kind: "info", text: `Demo profiles: ${list} — veetilo oka ID me "Mee ID" ga petti, inkokati ki interest pampandi` });
-    } catch {
-      setToast({ kind: "err", text: "Demo load avvaledu" });
-    }
-    setBusy(false);
-  };
-
   const checkPorutham = async () => {
-    if (!porA || !porB) return setToast({ kind: "err", text: "Rendu TSAP ID ivvandi (bride + groom)" });
+    if (!porA || !porB) return setToast({ kind: "err", text: te ? "రెండు TSAP ID ఇవ్వండి (bride + groom)" : "Enter both TSAP IDs (bride + groom)" });
     setBusy(true);
     try {
       const d = await fetch(`/api/porutham?bride=${porA.trim().toUpperCase()}&groom=${porB.trim().toUpperCase()}`).then((r) => r.json());
       setPor(d);
       setToast({ kind: d.available ? "ok" : "info", text: d.available ? `🔮 Porutham ${d.score}/10 — ${d.verdict}` : d.reason });
     } catch {
-      setToast({ kind: "err", text: "Porutham check fail ayyindi" });
+      setToast({ kind: "err", text: te ? "Porutham check fail అయ్యింది" : "Porutham check failed" });
     }
     setBusy(false);
   };
@@ -239,19 +230,21 @@ export default function RequestsPage() {
         <div className="max-w-6xl mx-auto px-4 py-10">
           <Reveal>
             <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-3 py-1 text-[11px] font-bold">
-              🚫 Chatting ledu • 💌 Interest request • 🛡️ Anti-ban WhatsApp delivery
+              {te ? "🚫 Chatting లేదు • 💌 Interest request • 🛡️ Anti-ban WhatsApp delivery" : "🚫 No chatting • 💌 Interest request • 🛡️ Anti-ban WhatsApp delivery"}
             </div>
             <h1 className="mt-3 text-2xl md:text-4xl font-bold"><Duo en="Requests Dashboard" te="రిక్వెస్ట్‌ల డాష్‌బోర్డ్" /></h1>
             <p className="mt-2 text-[13px] md:text-sm opacity-90 telugu max-w-3xl">
-              Nachhina profile ki <b>Interest pampu</b> — vaallaki WhatsApp lo mee profile card veltundi.
-              Vaallu <b>Accept</b> chesthe rendu numbers automatic ga exchange avutayi. <b>Decline</b> chesthe mee credit refund.
-              Chatting, spam calls, fake ids — anni ikkade aagutayi.
+{te ? <>నచ్చిన profile కి <b>Interest పంపు</b> — వాళ్లకి WhatsApp లో మీ profile card వెళ్తుంది.
+              వాళ్లు <b>Accept</b> చేస్తే రెండు numbers automatic గా exchange అవుతాయి. <b>Decline</b> చేస్తే మీ credit refund.
+              Chatting, spam calls, fake ids — అన్నీ ఇక్కడే ఆగుతాయి.</> : <>Send <b>Interest</b> to profiles you like — they get your profile card on WhatsApp.
+              If they <b>Accept</b>, both numbers exchange automatically. On <b>Decline</b>, your credit refunds.
+              Chatting, spam calls, fake ids — all stop here.</>}
             </p>
           </Reveal>
 
           <div className="mt-5 flex flex-wrap gap-3 items-end">
             <div>
-              <label className="text-[11px] font-bold opacity-90">Mee TSAP ID</label>
+              <label className="text-[11px] font-bold opacity-90">{te ? "మీ TSAP ID" : "Your TSAP ID"}</label>
               <input
                 value={myId}
                 onChange={(e) => setMyId(e.target.value.toUpperCase())}
@@ -260,10 +253,7 @@ export default function RequestsPage() {
                 className="mt-1 w-56 px-3 py-2 rounded-xl text-ink font-mono text-sm outline-none focus-brand" aria-label="TSAP-M-2025-1042" />
             </div>
             <button onClick={() => saveId(myId)} className="gold-gradient text-maroon font-bold text-sm px-4 py-2.5 rounded-xl hover-lift">
-              Load my dashboard
-            </button>
-            <button onClick={loadDemo} disabled={busy} className="bg-white/10 border border-white/25 text-white font-bold text-sm px-4 py-2.5 rounded-xl">
-              🎬 Demo profiles load
+              {te ? "నా dashboard చూడు" : "Load my dashboard"}
             </button>
             <div className="ml-auto bg-white/10 border border-white/20 rounded-xl px-4 py-2">
               <div className="text-[10px] opacity-80">Credits</div>
@@ -291,9 +281,9 @@ export default function RequestsPage() {
         {/* TABS */}
         <div className="flex flex-wrap gap-2 mb-4">
           {[
-            { k: "inbox", l: `📥 Vachina requests${inbox.pending ? ` (${inbox.pending})` : ""}` },
-            { k: "sent", l: `📤 Pampina requests${sent.sent?.length ? ` (${sent.sent.length})` : ""}` },
-            { k: "send", l: "💌 Interest pampu" },
+            { k: "inbox", l: te ? `📥 వచ్చిన requests${inbox.pending ? ` (${inbox.pending})` : ""}` : `📥 Received${inbox.pending ? ` (${inbox.pending})` : ""}` },
+            { k: "sent", l: te ? `📤 పంపిన requests${sent.sent?.length ? ` (${sent.sent.length})` : ""}` : `📤 Sent${sent.sent?.length ? ` (${sent.sent.length})` : ""}` },
+            { k: "send", l: te ? "💌 Interest పంపు" : "💌 Send interest" },
             { k: "porutham", l: "🔮 Porutham" },
             { k: "saved", l: `❤️ Saved${saved.count ? ` (${saved.count})` : ""}` },
             { k: "viewers", l: `👀 Viewers${views?.total_views ? ` (${views.total_views})` : ""}` },
@@ -314,8 +304,8 @@ export default function RequestsPage() {
         {/* INBOX */}
         {tab === "inbox" && (
           <div className="space-y-3">
-            {!myId && <Empty text="Mee TSAP ID ivvandi — inbox chudataniki." />}
-            {myId && inbox.received?.length === 0 && <Empty text="Inka requests raledu. Mee profile ni 1 channel lo post cheyyandi — reach perugutundi." />}
+            {!myId && <Empty text={te ? "మీ TSAP ID ఇవ్వండి — inbox చూడటానికి." : "Enter your TSAP ID — to see inbox."} />}
+            {myId && inbox.received?.length === 0 && <Empty text={te ? "ఇంకా requests రాలేదు. మీ profile ని 1 channel లో post చెయ్యండి — reach పెరుగుతుంది." : "No requests yet. Post your profile to 1 channel — reach grows."} />}
             {inbox.received?.map((it: Req) => (
               <Reveal key={it.request_id}>
                 <div className="bg-white rounded-2xl p-4 card-shadow border border-gold/20">
@@ -383,7 +373,7 @@ export default function RequestsPage() {
         {/* SENT */}
         {tab === "sent" && (
           <div className="space-y-3">
-            {myId && sent.sent?.length === 0 && <Empty text="Inka evariki interest pampaledu — 💌 'Interest pampu' tab lo start cheyyandi." />}
+            {myId && sent.sent?.length === 0 && <Empty text={te ? "ఇంకా ఎవరికీ interest పంపలేదు — 💌 'Interest పంపు' tab లో start చెయ్యండి." : "No interest sent yet — start in the 💌 'Send interest' tab."} />}
             {sent.sent?.map((it: Req) => (
               <Reveal key={it.request_id}>
                 <div className="bg-white rounded-2xl p-4 card-shadow border border-gold/20 flex flex-wrap items-center gap-3">
@@ -416,7 +406,7 @@ export default function RequestsPage() {
         {tab === "send" && (
           <div className="grid md:grid-cols-2 gap-5">
             <div className="bg-white rounded-2xl p-5 card-shadow border border-gold/20">
-              <SectionHeading eyebrow={duo("1 credit = 1 profile", "1 క్రెడిట్ = 1 ప్రొఫైల్")} title={`💌 ${duo("Send interest", "ఇంట్రెస్ట్ పంపండి")}`} subtitle="Profile ID ivvandi — vaallaki mana WhatsApp nunchi mee profile + card veltundi." telugu align="left" />
+              <SectionHeading eyebrow={duo("1 credit = 1 profile", "1 క్రెడిట్ = 1 ప్రొఫైల్")} title={`💌 ${duo("Send interest", "ఇంట్రెస్ట్ పంపండి")}`} subtitle={te ? "Profile ID ఇవ్వండి — వాళ్లకి మన WhatsApp నుంచి మీ profile + card వెళ్తుంది." : "Enter profile ID — they get your profile + card from our WhatsApp."} telugu align="left" />
               <div className="mt-4 space-y-3">
                 <div>
                   <label className="text-[12px] font-bold text-ink">Profile TSAP ID *</label>
@@ -428,7 +418,7 @@ export default function RequestsPage() {
                 </div>
                 {templates.length > 0 && (
                   <div>
-                    <div className="text-[11px] font-bold text-ink">💬 Ready-made Telugu messages (tap chesi edit cheyyandi)</div>
+                    <div className="text-[11px] font-bold text-ink">{te ? "💬 Ready-made Telugu messages (tap చేసి edit చెయ్యండి)" : "💬 Ready-made Telugu messages (tap to edit)"}</div>
                     <div className="mt-1 flex flex-wrap gap-1.5">
                       {templates.slice(0, 6).map((t) => (
                         <button key={t.id} type="button" onClick={() => setNote(t.text.slice(0, 280))}
@@ -441,20 +431,20 @@ export default function RequestsPage() {
                   </div>
                 )}
                 <div>
-                  <label className="text-[12px] font-bold text-ink">Chinna message (optional)</label>
+                  <label className="text-[12px] font-bold text-ink">{te ? "చిన్న message (optional)" : "Short message (optional)"}</label>
                   <textarea
                     value={note}
                     onChange={(e) => setNote(e.target.value.slice(0, 280))}
                     rows={3}
-                    placeholder="Mee profile chala bagundi — mana family values match avutunnayi. Matladukovachu."
+                    placeholder={te ? "మీ profile చాలా బాగుంది — మన family values match అవుతున్నాయి. మాట్లాడుకోవచ్చు." : "Your profile looks good — our family values match. Let\u2019s talk."}
                     className="mt-1 w-full px-3 py-2.5 rounded-xl border border-gold/40 text-sm outline-none focus-brand" aria-label="Text area" />
-                  <div className="text-[10px] text-gray-500 mt-1">{note.length}/280 • number/email pettaku (privacy policy)</div>
+                  <div className="text-[10px] text-gray-500 mt-1">{note.length}/280 • {te ? "number/email పెట్టకు (privacy policy)" : "no number/email (privacy policy)"}</div>
                 </div>
                 <button onClick={sendInterest} disabled={busy} className="w-full maroon-gradient text-white font-bold py-3 rounded-xl hover-lift disabled:opacity-60">
-                  {busy ? "Pampisthunnam…" : "💌 Interest pampu"}
+                  {busy ? (te ? "పంపిస్తున్నాం…" : "Sending…") : te ? "💌 Interest పంపు" : "💌 Send interest"}
                 </button>
                 <div className="text-[11px] text-gray-500">
-                  Credits: <b>{credits === null ? "—" : credits}</b> • Modati 3 requests FREE • Decline aithe refund
+                  Credits: <b>{credits === null ? "—" : credits}</b> • {te ? "మొదటి 3 requests FREE • Decline అయితే refund" : "First 3 requests FREE • Refund on decline"}
                 </div>
               </div>
             </div>
@@ -462,15 +452,15 @@ export default function RequestsPage() {
             <div className="space-y-4">
               {lastSend ? (
                 <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4">
-                  <div className="font-bold text-emerald-900">✅ {lastSend.request_id} pampincharu</div>
+                  <div className="font-bold text-emerald-900">{te ? <>✅ {lastSend.request_id} పంపించారు</> : <>✅ {lastSend.request_id} sent</>}</div>
                   <div className="text-[12px] text-emerald-900 mt-1">
-                    ⭐ {lastSend.score}% match • ⏳ {lastSend.expires_in_days} days valid • credits migilayi <b>{lastSend.credits_left}</b>
+                    ⭐ {lastSend.score}% match • ⏳ {lastSend.expires_in_days} {te ? "days valid • credits మిగిలాయి" : "days valid • credits left"} <b>{lastSend.credits_left}</b>
                   </div>
                   <div className="text-[12px] text-emerald-900 mt-2">
-                    📲 WhatsApp: {lastSend.whatsapp?.owner_queued ? "owner ki queue ayyindi" : "queue avvaledu (WHATSAPP_MODE chudu)"} • {lastSend.whatsapp?.anti_ban}
+                    📲 WhatsApp: {lastSend.whatsapp?.owner_queued ? (te ? "owner కి queue అయ్యింది" : "queued to owner") : (te ? "queue అవ్వలేదు" : "not queued")} • {lastSend.whatsapp?.anti_ban}
                   </div>
                   <button onClick={() => setShowOwnerMsg(!showOwnerMsg)} className="mt-3 text-[12px] font-bold text-emerald-800 underline">
-                    {showOwnerMsg ? "Message daachi pettu" : "Vaallaki velle message chudu (preview)"}
+                    {showOwnerMsg ? (te ? "Message దాచి పెట్టు" : "Hide message") : (te ? "వాళ్లకి వెళ్లే message చూడు (preview)" : "Preview their message")}
                   </button>
                   {showOwnerMsg && (
                     <pre className="mt-2 text-[11px] whitespace-pre-wrap bg-white border border-emerald-200 rounded-xl p-3 max-h-72 overflow-auto">{lastSend.owner_message_preview}</pre>
@@ -478,20 +468,20 @@ export default function RequestsPage() {
                 </div>
               ) : (
                 <div className="bg-cream border border-gold/30 rounded-2xl p-5">
-                  <div className="font-bold text-maroon">Ela pani chestundi?</div>
+                  <div className="font-bold text-maroon">{te ? "ఎలా పని చేస్తుంది?" : "How it works?"}</div>
                   <ol className="mt-2 text-[12px] text-gray-700 space-y-1 list-decimal list-inside">
-                    <li>Mee ID + vaalla ID ivvandi → request pampistham (1 credit)</li>
-                    <li>Vaallaki mana WhatsApp nunchi mee profile card + details</li>
-                    <li>Vaallu Accept chesthe — rendu numbers automatic ga WhatsApp lo</li>
-                    <li>Decline/expire aithe — mee credit refund (expire ki kooda)</li>
+                    <li>{te ? "మీ ID + వాళ్ల ID ఇవ్వండి → request పంపిస్తాం (1 credit)" : "Enter your ID + their ID → we send request (1 credit)"}</li>
+                    <li>{te ? "వాళ్లకి మన WhatsApp నుంచి మీ profile card + details" : "They get your profile card + details from our WhatsApp"}</li>
+                    <li>{te ? "వాళ్లు Accept చేస్తే — రెండు numbers automatic గా WhatsApp లో" : "If they Accept — both numbers automatically on WhatsApp"}</li>
+                    <li>{te ? "Decline/expire అయితే — మీ credit refund (expire కి కూడా)" : "On decline/expire — your credit refunds (expire too)"}</li>
                   </ol>
-                  <div className="mt-3 text-[11px] text-gray-600">🚫 Chatting ledu — consent-based contact exchange matrame. Fake ids, spam calls block.</div>
+                  <div className="mt-3 text-[11px] text-gray-600">{te ? "🚫 Chatting లేదు — consent-based contact exchange మాత్రమే. Fake ids, spam calls block." : "🚫 No chatting — consent-based contact exchange only. Fake ids, spam calls blocked."}</div>
                 </div>
               )}
 
               {quality && (
                 <div className="bg-white border border-gold/30 rounded-2xl p-4">
-                  <div className="font-bold text-maroon text-[13px]">📝 Mee profile strength: {quality.completeness?.percent ?? "—"}%</div>
+                  <div className="font-bold text-maroon text-[13px]">{te ? "📝 మీ profile strength:" : "📝 Your profile strength:"} {quality.completeness?.percent ?? "—"}%</div>
                   <div className="mt-1 text-[11px] text-gray-600">{quality.grade_telugu || quality.completeness?.verdict_telugu || ""}</div>
                   <div className="mt-2 h-2 bg-gray-100 rounded-full overflow-hidden">
                     <div className="h-2 gold-gradient" style={{ width: `${Math.min(100, Number(quality.completeness?.percent ?? 0))}%` }} />
@@ -515,7 +505,7 @@ export default function RequestsPage() {
                 <div className="bg-white border border-emerald-200 rounded-2xl p-4">
                   <div className="font-bold text-emerald-900 text-[13px]">🔐 Consent ledger (number exchange audit)</div>
                   <div className="mt-1 text-[11px] text-emerald-800">
-                    Mee number eppudu evariki ichharo ikkada record untundi — {consent.total ?? 0} events.
+                    {te ? <>మీ number ఎప్పుడు ఎవరికి ఇచ్చారో ఇక్కడ record ఉంటుంది — {consent.total ?? 0} events.</> : <>Record of when your number was shared — {consent.total ?? 0} events.</>}
                   </div>
                   {Array.isArray(consent.events) && consent.events.length > 0 ? (
                     <ul className="mt-2 space-y-1">
@@ -526,7 +516,7 @@ export default function RequestsPage() {
                       ))}
                     </ul>
                   ) : (
-                    <div className="mt-2 text-[11px] text-gray-600">Inka number exchange ledu — interest accept ayithe ikkada kanipistundi (audit trail).</div>
+                    <div className="mt-2 text-[11px] text-gray-600">{te ? "ఇంకా number exchange లేదు — interest accept అయితే ఇక్కడ కనిపిస్తుంది (audit trail)." : "No number exchange yet — appears here after interest accept (audit trail)."}</div>
                   )}
                 </div>
               )}
@@ -536,13 +526,13 @@ export default function RequestsPage() {
                   <div className="font-bold text-[13px]">🛡️ WhatsApp anti-ban status</div>
                   <div className="mt-2 text-[11px] opacity-90 grid grid-cols-2 gap-1">
                     <span>Gap: {wa.antiban.random_gap}</span>
-                    <span>Roju cap: {wa.antiban.daily_cap}</span>
+                    <span>{te ? "రోజు cap" : "Daily cap"}: {wa.antiban.daily_cap}</span>
                     <span>Today sent: {wa.antiban.sent_today}</span>
                     <span>Queue: {wa.queued}</span>
                     <span>Type sim: {wa.antiban.sent_since_break >= 0 ? "ON" : "OFF"}</span>
                     <span>Hours: {wa.antiban.active_hours_ist?.[0]}–{wa.antiban.active_hours_ist?.[1]} IST</span>
                   </div>
-                  <div className="text-[10px] opacity-70 mt-2">Telegram post ayyaka → WhatsApp (random gap) — ban risk thakkuva</div>
+                  <div className="text-[10px] opacity-70 mt-2">{te ? "Telegram post అయ్యాక → WhatsApp (random gap) — ban risk తక్కువ" : "After Telegram post → WhatsApp (random gap) — low ban risk"}</div>
                 </div>
               )}
             </div>
@@ -554,16 +544,16 @@ export default function RequestsPage() {
           <div className="grid md:grid-cols-2 gap-5">
             <div className="bg-white rounded-2xl p-5 card-shadow border border-gold/20">
               <SectionHeading eyebrow={duo("Traditional 10 poruthams", "సాంప్రదాయ 10 పొరుతాలు")} title={`🔮 ${duo("Kundli / Porutham check", "జాతక / పొరుతం చూడండి")}`}
-                subtitle="Bride + groom TSAP ID ivvandi — 10 porutham (rasi, nakshatra, gana, yoni, rajju, vedha, mahendra, stree deergha, vashya, adhipathi) calculate chestham." telugu align="left" />
+                subtitle={te ? "Bride + groom TSAP ID ఇవ్వండి — 10 పొరుతాలు (rasi, nakshatra, gana, yoni, rajju, vedha, mahendra, stree deergha, vashya, adhipathi) calculate చేస్తాం." : "Enter bride + groom TSAP IDs — we calculate 10 poruthams (rasi, nakshatra, gana, yoni, rajju, vedha, mahendra, stree deergha, vashya, adhipathi)."} telugu align="left" />
               <div className="mt-4 space-y-3">
                 <input value={porA} onChange={(e) => setPorA(e.target.value.toUpperCase())} placeholder="Bride TSAP ID — TSAP-F-2025-1042"
                   className="w-full px-3 py-2.5 rounded-xl border border-gold/40 font-mono text-sm outline-none focus-brand" aria-label="Bride TSAP ID — TSAP-F-2025-1042" />
                 <input value={porB} onChange={(e) => setPorB(e.target.value.toUpperCase())} placeholder="Groom TSAP ID — TSAP-M-2025-1042"
                   className="w-full px-3 py-2.5 rounded-xl border border-gold/40 font-mono text-sm outline-none focus-brand" aria-label="Groom TSAP ID — TSAP-M-2025-1042" />
                 <button onClick={checkPorutham} disabled={busy} className="w-full maroon-gradient text-white font-bold py-3 rounded-xl hover-lift disabled:opacity-60">
-                  🔮 Porutham calculate chey
+                  {te ? "🔮 Porutham calculate చెయ్" : "🔮 Calculate porutham"}
                 </button>
-                <div className="text-[11px] text-gray-500">Idi traditional tables batti software estimate — final ga purohit/panchangam tho confirm cheyyandi.</div>
+                <div className="text-[11px] text-gray-500">{te ? "ఇది traditional tables బట్టి software estimate — final గా purohit/panchangam తో confirm చెయ్యండి." : "Software estimate from traditional tables — confirm finally with purohit/panchangam."}</div>
               </div>
             </div>
             <div className="space-y-3">
@@ -589,14 +579,14 @@ export default function RequestsPage() {
                   </div>
                   {por.doshas?.length ? (
                     <div className="mt-3 text-[12px] bg-rose-50 border border-rose-200 text-rose-800 rounded-xl px-3 py-2">
-                      ⚠️ Critical: {por.doshas.join(", ")} — peddalu + purohitulu tho discuss cheyyandi
+                      {te ? <>⚠️ Critical: {por.doshas.join(", ")} — పెద్దలు + పురోహితులతో discuss చెయ్యండి</> : <>⚠️ Critical: {por.doshas.join(", ")} — discuss with elders + purohit</>}
                     </div>
                   ) : null}
                   <div className="mt-3 text-[11px] text-gray-500">{por.advice_telugu}</div>
                 </div>
               ) : (
                 <div className="bg-cream border border-gold/30 rounded-2xl p-5">
-                  <div className="font-bold text-maroon">10 poruthams enti?</div>
+                  <div className="font-bold text-maroon">{te ? "10 poruthams ఏంటి?" : "What are 10 poruthams?"}</div>
                   <ol className="mt-2 text-[12px] text-gray-700 space-y-1 list-decimal list-inside">
                     <li>Rasi porutham (6/8 dosham check)</li>
                     <li>Nakshatra porutham</li>
@@ -609,7 +599,7 @@ export default function RequestsPage() {
                     <li>Vashya porutham</li>
                     <li>Rasi adhipathi</li>
                   </ol>
-                  <div className="mt-3 text-[11px] text-gray-600">Mee profile lo <b>Star (Nakshatram)</b> + <b>Rasi</b> fill chesi unte automatic ga vastundi.</div>
+                  <div className="mt-3 text-[11px] text-gray-600">{te ? <>మీ profile లో <b>Star (Nakshatram)</b> + <b>Rasi</b> fill చేసి ఉంటే automatic గా వస్తుంది.</> : <>If <b>Star (Nakshatram)</b> + <b>Rasi</b> are filled in your profile, it comes automatically.</>}</div>
                 </div>
               )}
             </div>
@@ -619,7 +609,7 @@ export default function RequestsPage() {
         {/* SAVED / SHORTLIST */}
         {tab === "saved" && (
           <div className="space-y-3">
-            {saved.count === 0 && <Empty text="Inka emi save cheyyaledu — /matches lo ❤️ button press cheyyandi." />}
+            {saved.count === 0 && <Empty text={te ? "ఇంకా ఏమీ save చెయ్యలేదు — /matches లో ❤️ button press చెయ్యండి." : "Nothing saved yet — press the ❤️ button in /matches."} />}
             {saved.saved.map((x: Saved) => (
               <Reveal key={x.profile.tsap_id}>
                 <div className="bg-white rounded-2xl p-4 card-shadow border border-gold/20 flex flex-wrap items-center gap-3">
@@ -636,7 +626,7 @@ export default function RequestsPage() {
                     ) : null}
                   </div>
                   <button onClick={() => { setToId(x.profile.tsap_id); setTab("send"); }} className="text-[12px] font-bold maroon-gradient text-white px-3 py-2 rounded-xl">
-                    💌 Interest pampu
+                    {te ? "💌 Interest పంపు" : "💌 Send interest"}
                   </button>
                   <Link href={`/search/${x.profile.tsap_id}`} className="text-[12px] font-bold text-maroon underline">Profile →</Link>
                   <button onClick={() => removeSaved(x.profile.tsap_id)} className="text-[12px] text-gray-500 underline">Remove</button>
@@ -649,7 +639,7 @@ export default function RequestsPage() {
         {/* VIEWERS */}
         {tab === "viewers" && (
           <div className="space-y-3">
-            {!views ? <Empty text="Mee TSAP ID load cheyyandi — viewers chudataniki." /> : (
+            {!views ? <Empty text={te ? "మీ TSAP ID load చెయ్యండి — viewers చూడటానికి." : "Load your TSAP ID — to see viewers."} /> : (
               <>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   {[["👀 Total views", views.total_views], ["🧑 Unique viewers", views.unique_viewers],
@@ -663,7 +653,7 @@ export default function RequestsPage() {
                 {!views.whoviewed_unlocked && (
                   <div className="bg-cream border border-gold/30 rounded-2xl p-4 flex flex-wrap items-center gap-3">
                     <div className="text-[13px] text-gray-700 flex-1">
-                      🔒 Evaru chusaro names chudali ante <b>₹49</b> (30 days) — leda ₹299+ plan lo free ga vastundi.
+                      {te ? <>🔒 ఎవరు చూశారో names చూడాలంటే <b>₹49</b> (30 days) — లేదా ₹299+ plan లో free గా వస్తుంది.</> : <>🔒 To see viewer names <b>₹49</b> (30 days) — or free with ₹299+ plan.</>}
                     </div>
                     <button onClick={() => buy("WHOVIEWED_49")} className="gold-gradient text-maroon font-bold text-[12px] px-4 py-2 rounded-xl">₹49 unlock</button>
                   </div>
@@ -677,7 +667,7 @@ export default function RequestsPage() {
                     </div>
                   ))}
                   {!(views.viewers?.length || views.viewers_masked?.length) && (
-                    <div className="text-[12px] text-gray-500">Inka evaru chudaledu — mee profile ni oka channel lo boost cheyyandi (₹49).</div>
+                    <div className="text-[12px] text-gray-500">{te ? "ఇంకా ఎవరూ చూడలేదు — మీ profile ని ఒక channel లో boost చెయ్యండి (₹49)." : "No viewers yet — boost your profile in a channel (₹49)."}</div>
                   )}
                 </div>
               </>
@@ -688,11 +678,11 @@ export default function RequestsPage() {
         {/* PLANS */}
         {tab === "plans" && (
           <div>
-            <SectionHeading eyebrow={duo("Credits", "క్రెడిట్లు")} title={duo("Plans — 1 credit = 1 profile", "ప్లాన్లు — 1 క్రెడిట్ = 1 ప్రొఫైల్")} subtitle="₹/profile prati tier lo thaggutundi (₹20 → ₹10). Decline aithe credit refund. Razorpay live ayyaka automatic — ippudu UPI link tho." telugu align="left" />
+            <SectionHeading eyebrow={duo("Credits", "క్రెడిట్లు")} title={duo("Plans — 1 credit = 1 profile", "ప్లాన్లు — 1 క్రెడిట్ = 1 ప్రొఫైల్")} subtitle={te ? "₹/profile ప్రతి tier లో తగ్గుతుంది (₹20 → ₹10). Decline అయితే credit refund. Razorpay live అయ్యాక automatic — ఇప్పుడు UPI link తో." : "₹/profile drops every tier (₹20 → ₹10). Credit refund on decline. Automatic after Razorpay live — UPI link now."} telugu align="left" />
             {renewal && (
               <div className="mt-3 rounded-2xl bg-cream border border-gold/30 p-3 text-[12px] text-gray-700">
-                🔁 <b>Renewal offer (pata customers):</b> ₹{renewal.price} → <b>{renewal.profiles} profiles</b> — first-time ₹99 → 5 profiles.
-                <button onClick={() => buy(renewal.code)} className="ml-2 text-maroon font-bold underline">renew chey</button>
+                {te ? <>🔁 <b>Renewal offer (పాత customers):</b> ₹{renewal.price} → <b>{renewal.profiles} profiles</b> — first-time ₹99 → 5 profiles.</> : <>🔁 <b>Renewal offer (old customers):</b> ₹{renewal.price} → <b>{renewal.profiles} profiles</b> — first-time ₹99 → 5 profiles.</>}
+                <button onClick={() => buy(renewal.code)} className="ml-2 text-maroon font-bold underline">{te ? "renew చెయ్" : "renew"}</button>
               </div>
             )}
             <div className="mt-4 grid md:grid-cols-3 gap-4">
@@ -704,8 +694,7 @@ export default function RequestsPage() {
                     <div className="font-bold text-[14px] text-ink">{p.profiles} profiles</div>
                     <div className="text-[11px] text-gray-500">₹{p.per_profile}/profile • {p.label}</div>
                     <ul className="mt-3 text-[12px] text-gray-700 space-y-1">
-                      {(p.perks || [`${p.profiles} interest requests`, "WhatsApp lo profile share",
-                                    "Accept aithe number exchange", "Decline aithe refund"]).map((x: string) => (
+                      {(p.perks || (te ? [`${p.profiles} interest requests`, "WhatsApp లో profile share", "Accept అయితే number exchange", "Decline అయితే refund"] : [`${p.profiles} interest requests`, "Profile share on WhatsApp", "Number exchange on accept", "Refund on decline"])).map((x: string) => (
                         <li key={x}>✅ {x}</li>
                       ))}
                     </ul>
@@ -714,20 +703,19 @@ export default function RequestsPage() {
                       disabled={busy || !myId}
                       className="mt-4 w-full gold-gradient text-maroon font-bold py-2.5 rounded-xl hover-lift disabled:opacity-50"
                     >
-                      {myId ? `₹${p.price} pay → ${p.profiles} profiles` : "Mee TSAP ID ivvandi"}
+                      {myId ? `₹${p.price} pay → ${p.profiles} profiles` : te ? "మీ TSAP ID ఇవ్వండి" : "Enter your TSAP ID"}
                     </button>
                   </div>
                 </Reveal>
               ))}
             </div>
             <div className="mt-4 text-[12px] text-gray-600 bg-cream border border-gold/30 rounded-2xl p-4">
-              💡 <b>Free plan:</b> register cheyagane 3 interest requests FREE. <b>Referral:</b> friend ni pilichi vaallu ₹99 pay chesthe meeku ₹50 +
-              vaallaki extra credit. <b>Bureau/agents:</b> ₹999/mo → 25 profiles + monthly report.
+{te ? <>💡 <b>Free plan:</b> register చెయ్యగానే 3 interest requests FREE. <b>Referral:</b> friend ని పిలిచి వాళ్లు ₹99 pay చేస్తే మీకు ₹50 + వాళ్లకి extra credit. <b>Bureau/agents:</b> ₹999/mo → 25 profiles + monthly report.</> : <>💡 <b>Free plan:</b> 3 interest requests FREE on register. <b>Referral:</b> invite a friend, they pay ₹99, you get ₹50 + they get extra credit. <b>Bureau/agents:</b> ₹999/mo → 25 profiles + monthly report.</>}
             </div>
 
             {/* 🎁 ADD-ONS */}
             <div className="mt-6">
-              <SectionHeading eyebrow={duo("Add-ons", "అదనపువి")} title={`🎁 ${duo("Extra value — beyond credits", "క్రెడిట్లకు మించి")}`} subtitle="Ivi per-item: boost, who-viewed, porutham report, verification badge." telugu align="left" />
+              <SectionHeading eyebrow={duo("Add-ons", "అదనపువి")} title={`🎁 ${duo("Extra value — beyond credits", "క్రెడిట్లకు మించి")}`} subtitle={te ? "ఇవి per-item: boost, who-viewed, porutham report, verification badge." : "Per-item extras: boost, who-viewed, porutham report, verification badge."} telugu align="left" />
               <div className="mt-3 grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 {addons.map((a) => (
                   <div key={a.code} className="bg-white rounded-2xl p-4 card-shadow border border-gold/25 flex flex-col">
@@ -736,7 +724,7 @@ export default function RequestsPage() {
                     <div className="text-[11px] text-gray-600 flex-1">{a.telugu}</div>
                     <button onClick={() => buy(a.code)} disabled={busy || !myId}
                       className="mt-3 gold-gradient text-maroon font-bold text-[12px] py-2 rounded-xl disabled:opacity-50">
-                      ₹{a.price} teesukondi
+                      {te ? <>₹{a.price} తీసుకోండి</> : <>Take for ₹{a.price}</>}
                     </button>
                   </div>
                 ))}
@@ -748,7 +736,7 @@ export default function RequestsPage() {
       {needsLogin ? (
         <div className="mt-6">
           <AuthGate title={`🔒 ${duo("Login for your inbox / credits / shortlist", "ఇన్‌బాక్స్ / క్రెడిట్లు / షార్ట్‌లిస్ట్‌కు లాగిన్ చేయండి")}`}
-            note="Ee private data token tho protect chesam (vere vaallu mee inbox chudalenu). Phone OTP login 10 seconds." />
+            note={te ? "ఈ private data token తో protect చేశాం (వేరే వాళ్లు మీ inbox చూడలేరు). Phone OTP login 10 seconds." : "This private data is token-protected (others can\u2019t see your inbox). Phone OTP login takes 10 seconds."} />
         </div>
       ) : null}
     </main>

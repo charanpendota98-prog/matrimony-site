@@ -33,11 +33,11 @@ import {
 
 const DRAFT_KEY = "tsap_reg_draft_v3";
 const STEPS = [
-  { n: 1, label: "Basic", labelTe: "ప్రాథమిక", icon: "🙋", hint: "Mee basic details — 30 seconds", hintEn: "Your basic details — 30 seconds" },
-  { n: 2, label: "Community", labelTe: "సామాజిక", icon: "💍", hint: "Caste + star details — card ki kavali", hintEn: "Caste + star details — needed for card" },
-  { n: 3, label: "Education", labelTe: "విద్య", icon: "🎓", hint: "Chaduvu + udyogam", hintEn: "Education + job" },
+  { n: 1, label: "Basic", labelTe: "ప్రాథమిక", icon: "🙋", hint: "మీ basic details — 30 seconds", hintEn: "Your basic details — 30 seconds" },
+  { n: 2, label: "Community", labelTe: "సామాజిక", icon: "💍", hint: "Caste + star details — card కి కావాలి", hintEn: "Caste + star details — needed for card" },
+  { n: 3, label: "Education", labelTe: "విద్య", icon: "🎓", hint: "చదువు + ఉద్యోగం", hintEn: "Education + job" },
   { n: 4, label: "Family", labelTe: "కుటుంబం", icon: "👨‍👩‍👧", hint: "Family + contact", hintEn: "Family + contact" },
-  { n: 5, label: "Photo", labelTe: "ఫోటో", icon: "📸", hint: "Photo + finish (chi-vi details)", hintEn: "Photo + finish (settlement details)" },
+  { n: 5, label: "Photo", labelTe: "ఫోటో", icon: "📸", hint: "Photo + finish (చివరి details)", hintEn: "Photo + finish (settlement details)" },
 ];
 
 const DEFAULT_FORM: Record<string, any> = {
@@ -475,7 +475,7 @@ const set = (k: string, v: any) => {
         body: JSON.stringify({ phone: f.phone }),
       }).then((r) => r.json());
       setOtpSent(true);
-      setOtpMsg(d.message_telugu || "OTP pampinchaam");
+      setOtpMsg(d.message_telugu || T("OTP పంపించాం", "OTP sent"));
       if (d.dev_code) setOtpCode(d.dev_code);
     } catch {
       setErrs([T("OTP పంపలేదు — మళ్లీ try చెయ్యండి", "OTP not sent — retry")]);
@@ -556,7 +556,7 @@ const set = (k: string, v: any) => {
 
       const r = await fetch("/api/register", { method: "POST", body: fd });
       const d = await r.json();
-      if (!r.ok) throw new Error(d.detail || "Register avvaledu");
+      if (!r.ok) throw new Error(d.detail || T("Register అవ్వలేదు", "Registration failed"));
       setResult(d);
       localStorage.removeItem(DRAFT_KEY);
       // 🔐 WAVE 9 — auth token save (private API: inbox/credits/views/saved ki) + demo login ready
@@ -573,7 +573,7 @@ const set = (k: string, v: any) => {
             [{ id: newId, name: f.full_name, gender: f.gender, at: Date.now() },
               ...list.filter((p: any) => (p?.id || p?.tsap_id) !== newId)].slice(0, 5)));
         }
-      } catch { /* private mode lo localStorage block ayithe parvaledu */ }
+      } catch { /* private mode: localStorage may be blocked — fine */ }
       scrollTop();
     } catch (e: any) {
       setErrs([e?.message || T("Register లో problem — మళ్లీ try చెయ్యండి", "Problem in registration — please retry")]);
@@ -623,7 +623,7 @@ const set = (k: string, v: any) => {
 
           <div className="rounded-2xl maroon-gradient text-white p-4 flex flex-wrap items-center justify-between gap-3">
             <div>
-              <div className="font-bold text-[15px]">🔓 3 profiles FULL unlock — ₹99 ke Sambandham</div>
+              <div className="font-bold text-[15px]">{T("🔓 3 profiles FULL unlock — ₹99 సంబంధం", "🔓 3 profiles FULL unlock — ₹99 Sambandham")}</div>
               <div className="text-[12px] opacity-90 telugu">{T("Register అయ్యాక 3 matches FREE చూశారు — full details + numbers కోసం ₹99 (5 profiles + boost, 30 days).", "After register you saw 3 matches FREE — ₹99 for full details + numbers (5 profiles + boost, 30 days).")}</div>
             </div>
             <a href="/pricing" className="gold-gradient text-maroon font-bold text-[13px] px-5 py-2.5 rounded-xl whitespace-nowrap">
@@ -653,19 +653,19 @@ const set = (k: string, v: any) => {
                     ? ` · ${result.quality.important_telugu.slice(0, 2).join(" · ")}` : ""}
                 </div>
                 <div className="mt-1 text-[11px] text-emerald-700">
-                  ✅ Login token save ayyindi — mee inbox/credits/shortlist ippudu mee browser lo secure ({result.phone_masked ? `number: ${result.phone_masked}` : "number masked"})
+                  {T("✅ Login token save అయ్యింది — మీ inbox/credits/shortlist ఇప్పుడు మీ browser లో secure", "✅ Login token saved — your inbox/credits/shortlist now secure in your browser")} ({result.phone_masked ? `number: ${result.phone_masked}` : "number masked"})
                 </div>
               </div>
             ) : null}
             {result.welcome_pack ? (
               <div className="mt-2 rounded-xl border-2 border-emerald-300 bg-emerald-50 p-3">
                 <div className="font-bold text-emerald-900 text-[13px]">
-                  📲 Mee WhatsApp ki pampinam — 3 profiles + mee caste channel links
+                  {T("📲 మీ WhatsApp కి పంపినాం — 3 profiles + మీ caste channel links", "📲 Sent to your WhatsApp — 3 profiles + your caste channel links")}
                 </div>
                 <div className="mt-1 text-[11px] text-emerald-800">
                   {result.welcome_pack.queue?.queued
-                    ? `✅ WhatsApp lo vellindi (${result.welcome_pack.queue?.kind || "welcome_pack"}) — mee number ${result.phone_masked || ""} ki`
-                    : "🕒 WhatsApp bridge connect ayye varaku queue lo undi — kaani ee 3 profiles ikkade chudandi:"}
+                    ? (te ? `✅ WhatsApp లో వెళ్లింది (${result.welcome_pack.queue?.kind || "welcome_pack"}) — మీ number ${result.phone_masked || ""} కి` : `✅ Sent on WhatsApp (${result.welcome_pack.queue?.kind || "welcome_pack"}) — to your number ${result.phone_masked || ""}`)
+                    : T("🕒 WhatsApp bridge connect అయ్యే వరకు queue లో ఉంది — కానీ ఈ 3 profiles ఇక్కడే చూడండి:", "🕒 Queued till WhatsApp bridge connects — but see these 3 profiles here:")}
                 </div>
                 <div className="mt-2 grid gap-2 sm:grid-cols-3">
                   {(result.welcome_pack.profiles || []).map((pf: any, i: number) => (
@@ -699,27 +699,27 @@ const set = (k: string, v: any) => {
                       try {
                         const r = await fetch(`/api/welcome-pack/${tsap}/resend`, { method: "POST", headers: authHeaders() });
                         const d = await r.json();
-                        setPackResend({ busy: false, msg: d.message_telugu || (r.ok ? "✅ Malli pampinam" : "⚠️ Pampaledu") });
-                      } catch { setPackResend({ busy: false, msg: "⚠️ Server tho connect avvaledu" }); }
+                        setPackResend({ busy: false, msg: d.message_telugu || (r.ok ? T("✅ మళ్లీ పంపినాం", "✅ Sent again") : T("⚠️ పంపలేదు", "⚠️ Not sent")) });
+                      } catch { setPackResend({ busy: false, msg: T("⚠️ Server తో connect అవ్వలేదు", "⚠️ Could not reach server") }); }
                     }}
                     disabled={packResend.busy}
                     className="rounded-xl border border-emerald-600 text-emerald-800 font-bold text-[11px] px-3 py-2 disabled:opacity-60">
-                    {packResend.busy ? "Pampisthunnam…" : "📲 Malli WhatsApp ki pampu (3 profiles + channels)"}
+                    {packResend.busy ? T("పంపిస్తున్నాం…", "Sending…") : T("📲 మళ్లీ WhatsApp కి పంపు (3 profiles + channels)", "📲 Resend to WhatsApp (3 profiles + channels)")}
                   </button>
                   <a href={SITE_CONFIG.supportLink} target="_blank" rel="noopener noreferrer"
                     className="rounded-xl border border-maroon/25 text-maroon font-bold text-[11px] px-3 py-2">
-                    💬 WhatsApp channel link kavali? Support ki ping
+                    {T("💬 WhatsApp channel link కావాలా? Support కి ping", "💬 Need WhatsApp channel link? Ping support")}
                   </a>
                   {packResend.msg && <span className="text-[11px] text-emerald-800">{packResend.msg}</span>}
                 </div>
                 <div className="mt-1 text-[10px] text-emerald-800">
-                  🔒 Numbers eppudu message lo pettamu — profile link + channel links matrame (consent tho matrame number exchange).
+                  {T("🔒 Numbers ఎప్పుడూ message లో పెట్టము — profile link + channel links మాత్రమే (consent తోనే number exchange).", "🔒 Numbers never go in messages — profile link + channel links only (number exchange only with consent).")}
                 </div>
               </div>
             ) : null}
             <div className="mt-2 flex flex-wrap gap-2">
               <Link href={`/matches?id=${tsap}`} className="maroon-gradient text-white font-bold text-[12px] px-4 py-2.5 rounded-xl">
-                🔎 Mee 3 profiles chudandi (FREE)
+                {T("🔎 మీ 3 profiles చూడండి (FREE)", "🔎 See your 3 profiles (FREE)")}
               </Link>
               <Link href={`/requests?id=${tsap}`} className="border border-maroon/25 text-maroon font-bold text-[12px] px-4 py-2.5 rounded-xl">
                 💌 Interests pampandi
@@ -740,9 +740,11 @@ const set = (k: string, v: any) => {
               </div>
               {result.referral.joined_with?.ok ? (
                 <div className="mt-2 bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-[12px]">
-                  🤝 <b>{result.referral.joined_with.referrer_name} garu</b> dwara vacharu — meeku{" "}
-                  <b>+{result.referral.joined_with.bonus_credits} FREE credit</b> vachindi (code {result.referral.joined_with.referrer_code}).
-                  Vaallaki kooda mee first payment tho ₹50 veltundi 🙌
+                  {T(<>🤝 <b>{result.referral.joined_with.referrer_name} గారు</b> ద్వారా వచ్చారు — మీకు{" "}
+                  <b>+{result.referral.joined_with.bonus_credits} FREE credit</b> వచ్చింది (code {result.referral.joined_with.referrer_code}).
+                  వాళ్లకి కూడా మీ first payment తో ₹50 వెళ్తుంది 🙌</>, <>🤝 You came via <b>{result.referral.joined_with.referrer_name} garu</b> — you got{" "}
+                  <b>+{result.referral.joined_with.bonus_credits} FREE credit</b> (code {result.referral.joined_with.referrer_code}).
+                  They also get ₹50 on your first payment 🙌</>)}
                 </div>
               ) : result.referral.joined_with?.reason && result.referral.joined_with.reason !== "no_code" ? (
                 <div className="mt-2 bg-amber-400/20 border border-amber-200/40 rounded-xl px-3 py-2 text-[11px]">
@@ -766,7 +768,7 @@ const set = (k: string, v: any) => {
                 <a href={`https://wa.me/?text=${encodeURIComponent(String(result.referral.share_message || ""))}`}
                   target="_blank" rel="noreferrer"
                   className="bg-green-600 text-white font-bold text-[12px] px-4 py-2.5 rounded-xl">
-                  📲 WhatsApp group ki pampu
+                  {T("📲 WhatsApp group కి పంపు", "📲 Send to WhatsApp group")}
                 </a>
                 <a href={result.referral.poster_url} download={`${result.referral.my_code}-manavivaha-referral.png`}
                   className="gold-gradient text-maroon font-bold text-[12px] px-4 py-2.5 rounded-xl">
@@ -791,8 +793,8 @@ const set = (k: string, v: any) => {
             <div className="bg-cream border border-gold/40 rounded-2xl p-4">
               <div className="font-bold text-maroon text-[14px]">🙏 Namaste message mee WhatsApp ki pampam</div>
               <div className="text-[12px] text-gray-700 mt-1 telugu">
-                Mana side nunchi mee profile card + full details + next steps mee number ki veltayi (chatting ledu — spam undadu).
-                {result.welcome_status?.manual_text ? " Bridge connect ayyaka automatic ga pothundi; ippudu support team manual ga pampisthundi." : ""}
+                {T("మన side నుంచి మీ profile card + full details + next steps మీ number కి వెళ్తాయి (chatting లేదు — spam ఉండదు).", "Your profile card + full details + next steps come to your number from us (no chatting — no spam).")}
+                {result.welcome_status?.manual_text ? T(" Bridge connect అయ్యాక automatic గా పోతుంది; ఇప్పుడు support team manual గా పంపిస్తుంది.", " Goes automatically after bridge connects; our support team sends it manually now.") : ""}
               </div>
               {result.welcome_status?.manual_text ? (
                 <button onClick={() => copy(String(result.welcome_status.manual_text), "namaste")}
@@ -805,7 +807,7 @@ const set = (k: string, v: any) => {
 
           {result.share_kit ? (
             <div className="bg-white rounded-2xl p-4 border border-gold/25 card-shadow">
-              <div className="font-bold text-maroon text-[14px]">🎴 Share kit — reach penchandi</div>
+              <div className="font-bold text-maroon text-[14px]">{T("🎴 Share kit — reach పెంచండి", "🎴 Share kit — boost reach")}</div>
               <div className="text-[12px] text-gray-600 mt-1 telugu">
                 {T(<>Card image + caption ready. Status లో పెట్టండి — {result.share_kit.best_time_to_post}.</>, <>Card image + caption ready. Put on status — {result.share_kit.best_time_to_post}.</>)}
               </div>
@@ -846,7 +848,7 @@ const set = (k: string, v: any) => {
                 {copied === "share" ? "copied ✓" : "📋 Share text copy"}
               </button>
               <a href={`https://wa.me/?text=${encodeURIComponent(share)}`} target="_blank" rel="noreferrer"
-                className="bg-green-600 text-white font-bold text-[13px] px-4 py-2.5 rounded-xl">WhatsApp lo pampu</a>
+                className="bg-green-600 text-white font-bold text-[13px] px-4 py-2.5 rounded-xl">{T("WhatsApp లో పంపు", "Send on WhatsApp")}</a>
             </div>
           </div>
 
@@ -945,25 +947,27 @@ const set = (k: string, v: any) => {
         {/* draft banner */}
         {draftFound && (
           <div className="mb-4 bg-cream border border-gold/40 rounded-2xl p-4">
-            <div className="font-bold text-maroon text-[14px]">{T("💾 మీ పాత form దొరికింది", "💾 Found your saved form")}{draftSavedLabel(savedAt)}</div>
+            <div className="font-bold text-maroon text-[14px]">{T("💾 మీ పాత form దొరికింది", "💾 Found your saved form")}{draftSavedLabel(savedAt, te)}</div>
             <div className="text-[12px] text-gray-600 mt-1">{T("ఎక్కడ ఆగిపోయిందో అక్కడ నుంచి continue చెయ్యొచ్చు — మళ్లీ type చెయ్యక్కర్లేదు.", "Continue where you left off — no need to type again.")}</div>
             <div className="mt-3 flex gap-2">
-              <button onClick={resumeDraft} className="maroon-gradient text-white font-bold text-[13px] px-4 py-2.5 rounded-xl">{T("▶️ Continue చెయ్", "▶️ Continue")}</button>
-              <button onClick={clearDraft} className="border border-maroon/25 text-maroon font-bold text-[13px] px-4 py-2.5 rounded-xl">Kotha ga start</button>
+              <button onClick={resumeDraft} className="maroon-gradient text-white font-bold text-[13px] px-4 py-2.5 rounded-xl">{T("▶️ కొనసాగించండి", "▶️ Continue")}</button>
+              <button onClick={clearDraft} className="border border-maroon/25 text-maroon font-bold text-[13px] px-4 py-2.5 rounded-xl">{T("కొత్తగా start", "Start fresh")}</button>
             </div>
           </div>
         )}
 
         {refLocked && (
           <div className="mb-4 bg-emerald-50 border border-emerald-200 rounded-2xl px-4 py-3 text-[12px] text-emerald-900">
-            🤝 <b>{refInfo?.referrer_name ? `${refInfo.referrer_name} garu` : "Mee friend"}</b> dwara vacharu
-            (<b>{refLocked}</b> lock ✅) — vaallaki ₹50 + meeku <b>+{refInfo?.bonus_credits || 1} credit FREE</b>.
-            {" "}Register FREE (3 profiles free) — tarvata mee ₹99 plan thisukunte aa ₹50 vaalla wallet ki veltundi.
+            {T(<>🤝 <b>{refInfo?.referrer_name ? `${refInfo.referrer_name} గారు` : "మీ friend"}</b> ద్వారా వచ్చారు
+            (<b>{refLocked}</b> lock ✅) — వాళ్లకి ₹50 + మీకు <b>+{refInfo?.bonus_credits || 1} credit FREE</b>.
+            {" "}Register FREE (3 profiles free) — తర్వాత మీ ₹99 plan తీసుకుంటే ఆ ₹50 వాళ్ల wallet కి వెళ్తుంది.</>, <>🤝 You came via <b>{refInfo?.referrer_name ? `${refInfo.referrer_name} garu` : "your friend"}</b>
+            (<b>{refLocked}</b> locked ✅) — ₹50 for them + <b>+{refInfo?.bonus_credits || 1} credit FREE</b> for you.
+            {" "}Register FREE (3 profiles free) — when you take your ₹99 plan, that ₹50 goes to their wallet.</>)}
           </div>
         )}
         {refInfo && refInfo.ok === false && (
           <div className="mb-4 bg-amber-50 border border-amber-300 rounded-2xl px-4 py-3 text-[12px] text-amber-900">
-            ⚠️ {refInfo.message_telugu || "Ee code dorakaledu"} — code lekunda register avvachu, leda kindha sari code veyyandi.
+            ⚠️ {refInfo.message_telugu || T("ఈ code దొరకలేదు", "Code not found")} — {T("code లేకుండా register అవ్వొచ్చు, లేదా కింద సరి code వెయ్యండి.", "you can register without a code, or enter the correct code below.")}
           </div>
         )}
 
@@ -995,16 +999,16 @@ const set = (k: string, v: any) => {
               </div>
 
               <TextField label="Full name" value={f.full_name} onChange={(v) => set("full_name", v)} required
-                placeholder="Lakshmi Reddy" hint="Card + channels lo ide peru kanipisthundi" />
+                placeholder="Lakshmi Reddy" hint={T("Card + channels లో ఇదే పేరు కనిపిస్తుంది", "This name shows on card + channels")} />
 
               <div className="grid grid-cols-2 gap-3">
                 <TextField label="Date of birth" value={f.dob} onChange={(v) => set("dob", v)} required
-                  type="date" max={maxDobFor18()} hint="Age automatic vastundi" />
+                  type="date" max={maxDobFor18()} hint={T("Age automatic వస్తుంది", "Age comes automatically")} />
                 <div>
                   <label className="text-[13px] font-bold text-ink">Age (auto)</label>
                   <div className="input-mobile mt-1 flex items-center justify-between bg-cream">
                     <span className="font-bold text-maroon">{f.age || "—"}</span>
-                    <span className="text-[10px] text-gray-500">DOB nunchi</span>
+                    <span className="text-[10px] text-gray-500">{T("DOB నుంచి", "from DOB")}</span>
                   </div>
                 </div>
               </div>
@@ -1048,14 +1052,14 @@ const set = (k: string, v: any) => {
             <>
               <ChipGroup label={`Caste — ${f.religion || "Hindu"} (${casteOpts.length})`} required searchable
                 options={casteOpts.map((c) => ({ v: c }))} value={f.caste} onChange={(v) => set("caste", v)}
-                hint={`${f.religion || "Hindu"} kulalu A–Z — mee caste channel lo profile post avutundi`} />
+                hint={T(`${f.religion || "Hindu"} కులాలు A–Z — మీ caste channel లో profile post అవుతుంది`, `${f.religion || "Hindu"} castes A–Z — profile posts to your caste channel`)} />
               <TextField label="Sub caste" optional value={f.sub_caste} onChange={(v) => set("sub_caste", v)}
                 placeholder="Pakanati / Deshathi / Telaga…" />
               <TextField label="Gothram" optional value={f.gothram} onChange={(v) => set("gothram", v)}
-                placeholder="Bharadwaj" hint="Porutham report ki kavali" />
+                placeholder="Bharadwaj" hint={T("Porutham report కి కావాలి", "Needed for porutham report")} />
               <ChipGroup label="Star / Nakshatram" searchable te
                 options={NAKSHATRAS.map((n) => ({ v: n.en, te: n.te }))} value={f.star}
-                onChange={(v) => set("star", v)} hint="Star select chesthe rasi automatic vastundi (porutham 10/10)" />
+                onChange={(v) => set("star", v)} hint={T("Star select చేస్తే rasi automatic వస్తుంది (porutham 10/10)", "Select star — rasi auto-suggests (porutham 10/10)")} />
               <ChipGroup label="Rasi" te options={RASIS.map((r) => ({ v: r.en, te: r.te }))} value={f.rasi}
                 onChange={(v) => set("rasi", v)} />
               <ChipGroup label={T("మూలా నక్షత్రమా?", "Moola nakshatram?")} options={[{ v: "No" }, { v: "Yes" }]} value={f.moola_nakshatram}
@@ -1084,7 +1088,7 @@ const set = (k: string, v: any) => {
                   onChange={(v) => set("work_type", v)} />
               </div>
               <ChipGroup label="Salary" required options={SALARIES.map((s) => ({ v: s }))} value={f.salary}
-                onChange={(v) => set("salary", v)} hint="Approximate range chalu — exact number vadalasina avasaram ledu" />
+                onChange={(v) => set("salary", v)} hint={T("Approximate range చాలు — exact number వదలాల్సిన అవసరం లేదు", "Approximate range is enough — no need for exact number")} />
               <TextField label="Work location" optional value={f.work_location} onChange={(v) => set("work_location", v)}
                 placeholder="Hyderabad / Gachibowli / USA" />
             </>
@@ -1099,11 +1103,11 @@ const set = (k: string, v: any) => {
               </div>
               <ChipGroup label="District" required searchable options={distList.map((d) => ({ v: d }))}
                 value={f.district} onChange={(v) => set("district", v)}
-                hint="District channel + local matches ki kavali" />
+                hint={T("District channel + local matches కి కావాలి", "Needed for district channel + local matches")} />
               <div className="grid grid-cols-1 gap-3">
                 <TextField label="Mandal / Area" optional value={f.mandal} onChange={(v) => set("mandal", v)} placeholder="Miryalaguda" />
                 <TextField label="Current city" optional value={f.current_city} onChange={(v) => set("current_city", v)} placeholder="Hyderabad" />
-                <TextField label="Country" optional value={f.country} onChange={(v) => set("country", v)} placeholder="India / USA / UK / UAE…" hint="🌍 India kakapothe NRI ✈️ — NRI section lo kooda kanipistharu" />
+                <TextField label="Country" optional value={f.country} onChange={(v) => set("country", v)} placeholder="India / USA / UK / UAE…" hint={T("🌍 India కాకపోతే NRI ✈️ — NRI section లో కూడా కనిపిస్తారు", "🌍 Non-India = NRI ✈️ — also shows in NRI section")} />
                 <TextField label="Pincode" optional value={f.pincode} onChange={(v) => set("pincode", v)} inputMode="numeric" placeholder="500032" />
                 <TextField label="Native place" optional value={f.native_place} onChange={(v) => set("native_place", v)} placeholder="Nalgonda" />
               </div>
@@ -1112,12 +1116,12 @@ const set = (k: string, v: any) => {
                 <div className="font-bold text-maroon text-[14px]">📱 Mobile number (verification)</div>
                 <TextField label="WhatsApp / Mobile" required value={f.phone} onChange={(v) => set("phone", v.replace(/\D/g, "").slice(0, 10))}
                   type="tel" inputMode="tel" placeholder="98480 12345"
-                  hint="Mee number evariki kanipinchadu — interest accept ayyaka matrame exchange avutundi" />
+                  hint={T("మీ number ఎవరికీ కనిపించదు — interest accept అయ్యాకే exchange అవుతుంది", "Your number shows to nobody — exchanged only after interest accept")} />
                 {!phoneOk ? (
                   <div className="flex flex-wrap items-center gap-2">
                     <button type="button" onClick={sendOtp} disabled={busy || f.phone.length !== 10}
                       className="maroon-gradient text-white font-bold text-[13px] px-4 py-2.5 rounded-xl disabled:opacity-50">
-                      {otpSent ? "OTP malli pampu" : "OTP pampu"}
+                      {otpSent ? T("OTP మళ్లీ పంపు", "Resend OTP") : T("OTP పంపు", "Send OTP")}
                     </button>
                     {otpSent && (
                       <>
@@ -1131,7 +1135,7 @@ const set = (k: string, v: any) => {
                   </div>
                 ) : (
                   <div className="text-[12px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2">
-                    ✅ Number verify ayyindi — verified badge profile ki vastundi
+                    {T("✅ Number verify అయ్యింది — verified badge profile కి వస్తుంది", "✅ Number verified — verified badge on your profile")}
                   </div>
                 )}
                 {otpMsg && <div className="text-[11px] text-gray-600">{otpMsg}</div>}
@@ -1183,8 +1187,8 @@ const set = (k: string, v: any) => {
           {step === 5 && (
             <>
               <div className="bg-white rounded-2xl border border-gold/30 p-4">
-                <div className="font-bold text-maroon text-[15px]">📸 Photo (3x ekkuva matches vastayi)</div>
-                <div className="hint">Phone gallery / camera nunchi teesukondi. Photo automatic ga compress avutundi (fast upload). Watermark + private mode tho safe.</div>
+                <div className="font-bold text-maroon text-[15px]">{T("📸 Photo (3x ఎక్కువ matches వస్తాయి)", "📸 Photo (3x more matches)")}</div>
+                <div className="hint">{T("Phone gallery / camera నుంచి తీసుకోండి. Photo automatic గా compress అవుతుంది (fast upload). Watermark + private mode తో safe.", "Pick from phone gallery / camera. Photo auto-compresses (fast upload). Safe with watermark + private mode.")}</div>
                 <div className="mt-3 flex items-center gap-3">
                   <label className="cursor-pointer">
                     <input type="file" accept="image/*" className="hidden"
@@ -1262,8 +1266,8 @@ const set = (k: string, v: any) => {
                   className="input-mobile mt-2 font-mono tracking-wide" />
                 <div className="hint mt-1">
                   {refLocked
-                    ? <>✅ <b>{refLocked}</b> lock ayyindi — meeku +{refInfo?.bonus_credits || 1} credit FREE 🎁</>
-                    : "Code unte meeku +1 credit FREE + vaallaki ₹50. Link tho vachunte automatic fill avutundi."}
+                    ? <>{T(<>✅ <b>{refLocked}</b> lock అయ్యింది — మీకు +{refInfo?.bonus_credits || 1} credit FREE 🎁</>, <>✅ <b>{refLocked}</b> locked — +{refInfo?.bonus_credits || 1} credit FREE for you 🎁</>)}</>
+                    : T("Code ఉంటే మీకు +1 credit FREE + వాళ్లకి ₹50. Link తో వచ్చుంటే automatic fill అవుతుంది.", "With a code: +1 credit FREE for you + ₹50 for them. Auto-fills if you came via link.")}
                 </div>
               </div>
 
@@ -1271,8 +1275,9 @@ const set = (k: string, v: any) => {
                 <input type="checkbox" checked={!!f.consent} onChange={(e) => set("consent", e.target.checked)}
                   className="mt-1 w-5 h-5 accent-[#7A0C2E]" />
                 <span className="text-[12px] text-gray-700">
-                  Naa details <b>nijam</b> ani confirm chesthunnanu. <b>Mana Vivaha</b> terms + privacy policy accept chesthunnanu —
-                  details channels lo post avutayi, number accept ayyaka matrame share avutundi.
+{T(<>నా details <b>నిజం</b> అని confirm చేస్తున్నాను. <b>Mana Vivaha</b> terms + privacy policy accept చేస్తున్నాను —
+                  details channels లో post అవుతాయి, number accept అయ్యాకే share అవుతుంది.</>, <>I confirm my details are <b>true</b>. I accept <b>Mana Vivaha</b> terms + privacy policy —
+                  details post in channels, number shared only after accept.</>)}
                 </span>
               </label>
             </>
@@ -1281,7 +1286,7 @@ const set = (k: string, v: any) => {
 
         {/* ---------------- trust strip ---------------- */}
         <div className="mt-6 grid grid-cols-2 gap-2 text-[11px] text-gray-600">
-          {["🔒 Number evariki ivvamu", "🛡️ Watermark + log", "↩️ Decline aithe refund", "🚫 Chatting ledu"].map((t) => (
+          {T(["🔒 Number ఎవరికీ ఇవ్వము", "🛡️ Watermark + log", "↩️ Decline అయితే refund", "🚫 Chatting లేదు"], ["🔒 Number never shared", "🛡️ Watermark + log", "↩️ Refund on decline", "🚫 No chatting"]).map((t) => (
             <div key={t} className="bg-white border border-gold/25 rounded-xl px-3 py-2">{t}</div>
           ))}
         </div>
@@ -1314,8 +1319,8 @@ const set = (k: string, v: any) => {
   );
 }
 
-function draftSavedLabel(savedAt: string) {
-  return savedAt ? ` (${savedAt} ki save ayyindi)` : "";
+function draftSavedLabel(savedAt: string, te = true) {
+  return savedAt ? (te ? ` (${savedAt} కి save అయ్యింది)` : ` (saved ${savedAt})`) : "";
 }
 
 export default function RegisterPage() {

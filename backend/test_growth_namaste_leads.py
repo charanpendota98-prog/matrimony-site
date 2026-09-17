@@ -391,13 +391,13 @@ def test_pricing_pages_and_payments():
     check("/pricing page undi + /api/plans nunchi data", "/api/plans" in pages["pricing"])
     check("/pricing lo anni tiers + addons + renewal", all(x in pages["pricing"] for x in
           ("S_499", "Vivaha VIP", "addons", "renewal", "Compare")))
-    check("/pricing lo micro tier explain + FAQ", pages["pricing"].count("details") > 0 and "Okka Request" in pages["pricing"])
+    check("/pricing lo micro tier explain + FAQ", pages["pricing"].count("details") > 0 and "Single Request" in pages["pricing"])
     check("/refund policy lo decline-refund + 7-day + GST", all(x in pages["refund"] for x in
           ("7 ", "declin", "GST", "6")))
     check("/terms lo eligibility 18+/21+ + chatting ledu + banned list", all(x in pages["terms"] for x in
           ("21+", "Chatting", "Prohibited", "Hyderabad")))
     check("/privacy lo DPDP + grievance officer + delete 30 days", all(x in pages["privacy"] for x in
-          ("Grievance", "30 ", "delete", "ammamu")))
+          ("Grievance", "30 ", "delete", "అమ్మము")))
     _links = {"pricing": ["/refund", "/terms", "/privacy"], "terms": ["/pricing", "/refund", "/privacy"],
               "privacy": ["/pricing", "/refund", "/safety"], "refund": ["/pricing", "/terms", "/privacy"]}
     _bad = [k for k, need in _links.items() if not all(('href="%s"' % u) in pages[k] for u in need)]

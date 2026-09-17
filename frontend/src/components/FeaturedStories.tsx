@@ -4,11 +4,14 @@
  */
 import { useEffect, useState } from "react";
 import { Duo } from "@/lib/duo";
+import { useLang } from "@/lib/lang";
 
 type Story = { id: string; groom: string; bride: string; photo: string;
   story_en: string; story_te: string; district: string; wedding_date: string; tags: string[] };
 
 export default function FeaturedStories({ limit = 6 }: { limit?: number }) {
+  const { lang } = useLang();
+  const te = lang === "te";
   const [items, setItems] = useState<Story[]>([]);
   const [tags, setTags] = useState<string[]>([]);
   const [tag, setTag] = useState("");
@@ -24,7 +27,7 @@ export default function FeaturedStories({ limit = 6 }: { limit?: number }) {
       <h2 className="text-xl font-extrabold text-rose-900">💑 <Duo en="Featured success stories" te="ప్రత్యేక విజయగాథలు" /></h2>
       {tags.length > 0 && (
         <div className="mt-2 flex flex-wrap gap-1.5">
-          <button onClick={() => setTag("")} className={`chip !py-1 !text-[11px] ${!tag ? "chip-on" : ""}`}>All</button>
+          <button onClick={() => setTag("")} className={`chip !py-1 !text-[11px] ${!tag ? "chip-on" : ""}`}>{te ? "అన్నీ" : "All"}</button>
           {tags.slice(0, 10).map((t) => (
             <button key={t} onClick={() => setTag(tag === t ? "" : t)}
               className={`chip !py-1 !text-[11px] ${tag === t ? "chip-on" : ""}`}>#{t}</button>
@@ -51,7 +54,7 @@ export default function FeaturedStories({ limit = 6 }: { limit?: number }) {
           </div>
         ))}
       </div>
-      {!items.length && <p className="mt-2 text-xs text-gray-400">Ee tag lo stories levu.</p>}
+      {!items.length && <p className="mt-2 text-xs text-gray-400">{te ? "ఈ tag లో stories లేవు." : "No stories in this tag."}</p>}
     </div>
   );
 }

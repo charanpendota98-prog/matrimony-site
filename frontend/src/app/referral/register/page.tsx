@@ -8,11 +8,14 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Duo, duo } from "@/lib/duo";
+import { useLang } from "@/lib/lang";
 import { DISTRICTS_BY_STATE } from "@/lib/telugu-data";
 
 const STATES = ["TS", "AP", "KA", "MH", "Other"];
 
 export default function PartnerRegisterPage() {
+  const { lang } = useLang();
+  const te = lang === "te";
   const [f, setF] = useState({ name: "", phone: "", phonepe: "", address: "", state: "TS", district: "" });
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
@@ -31,11 +34,11 @@ export default function PartnerRegisterPage() {
         method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(f),
       });
       const d = await r.json();
-      if (!r.ok) { setMsg(d.detail || "Fail ayyindi"); return; }
+      if (!r.ok) { setMsg(d.detail || (te ? "Fail అయ్యింది" : "Failed")); return; }
       setDone(d);
       setMsg(d.message_telugu || "Ready!");
     } catch {
-      setMsg("Network ledu — malli try cheyyandi");
+      setMsg(te ? "Network లేదు — మళ్లీ try చెయ్యండి" : "No network — retry");
     }
     setBusy(false);
   };
@@ -52,16 +55,16 @@ export default function PartnerRegisterPage() {
     try {
       const r = await fetch(`/api/referral/partner/${encodeURIComponent(id)}`);
       const d = await r.json();
-      if (!r.ok) { setMsg(d.detail || "ID dorakaledu"); return; }
+      if (!r.ok) { setMsg(d.detail || (te ? "ID దొరకలేదు" : "ID not found")); return; }
       setDash(d);
-    } catch { setMsg("Network ledu"); }
+    } catch { setMsg(te ? "Network లేదు" : "No network"); }
   };
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-8">
       <h1 className="text-2xl font-extrabold text-maroon">🤝 <Duo en="Become a Referral Partner" te="రిఫరల్ భాగస్వామి అవండి" /></h1>
       <p className="mt-1 text-sm text-slate-600 telugu">
-        {duo("Details ivvandi — mee ID + link vastundi. Friends join + pay chesthe meeku ₹50/payment (wallet → UPI).",
+        {duo("Enter details — you get your ID + link. Friends join + pay, you get ₹50/payment (wallet → UPI).",
              "వివరాలు ఇవ్వండి — మీ ID + లింక్ వస్తుంది. ఫ్రెండ్స్ జాయిన్ + పే చేస్తే మీకు ₹50/పేమెంట్.")}
       </p>
 
@@ -81,7 +84,7 @@ export default function PartnerRegisterPage() {
             <div>
               <label className="text-[13px] font-bold">💰 {duo("PhonePe number", "ఫోన్‌పే నంబర్")}</label>
               <input value={f.phonepe} onChange={(e) => set("phonepe", e.target.value.replace(/\D/g, "").slice(0, 10))}
-                inputMode="numeric" placeholder="Payouts ki (same aithe khali)" className="input-mobile mt-1" />
+                inputMode="numeric" placeholder={te ? "Payouts కి (same అయితే ఖాళీ)" : "For payouts (empty if same)"} className="input-mobile mt-1" />
             </div>
           </div>
           <div>
@@ -124,7 +127,7 @@ export default function PartnerRegisterPage() {
           <div className="mt-3 flex gap-2 justify-center">
             <button onClick={() => void copy(String(done.link || ""))}
               className="rounded-full bg-[#7A0C2E] text-white px-5 py-2.5 text-sm font-bold">
-              {copied ? "copied ✓" : "🔗 Link copy"}
+              {copied ? "copied ✓" : (te ? "🔗 Link copy" : "🔗 Copy link")}
             </button>
             <button onClick={() => { setDone(null); setMsg(""); }}
               className="rounded-full border border-emerald-400 px-5 py-2.5 text-sm font-bold text-emerald-800">
@@ -132,7 +135,7 @@ export default function PartnerRegisterPage() {
             </button>
           </div>
           <p className="mt-3 text-[12px] text-emerald-800 telugu">
-            {duo("Ee link tho evaru register ayina — vaalla payment ki meeku ₹50 wallet lo. Dashboard kindha chudandi.",
+            {duo("Whoever registers with this link — their payment puts ₹50 in your wallet. See dashboard below.",
                  "ఈ లింక్‌తో ఎవరు రిజిస్టర్ అయినా — వాళ్ల పేమెంట్‌కు మీకు ₹50 వాలెట్‌లో.")}
           </p>
         </section>
@@ -144,7 +147,7 @@ export default function PartnerRegisterPage() {
           <input value={lookup} onChange={(e) => setLookup(e.target.value)} placeholder="charan108"
             className="flex-1 rounded-xl border border-slate-300 px-3 py-2 text-sm" />
           <button onClick={loadDash} className="rounded-xl border border-[#7A0C2E] px-4 py-2 text-sm font-bold text-maroon">
-            Chudu
+            {te ? "చూడు" : "View"}
           </button>
         </div>
         {dash?.success ? (
@@ -158,9 +161,9 @@ export default function PartnerRegisterPage() {
               <div className="col-span-2 flex gap-2 justify-center">
                 <button onClick={() => void copy(String(dash.link))}
                   className="rounded-full bg-[#7A0C2E] text-white px-4 py-2 text-[12px] font-bold">
-                  {copied ? "copied ✓" : "🔗 Link copy"}
+                  {copied ? "copied ✓" : (te ? "🔗 Link copy" : "🔗 Copy link")}
                 </button>
-                <a href={`https://wa.me/?text=${encodeURIComponent(`Mana Vivaha lo register avvandi — naa link tho join ayithe meeku +1 credit FREE 🎁 ${dash.link}`)}`}
+                <a href={`https://wa.me/?text=${encodeURIComponent(te ? `Mana Vivaha లో register అవ్వండి — నా link తో join అయితే మీకు +1 credit FREE 🎁 ${dash.link}` : `Register in Mana Vivaha — join with my link, get +1 credit FREE 🎁 ${dash.link}`)}`}
                   target="_blank" rel="noreferrer"
                   className="rounded-full bg-[#25D366] text-white px-4 py-2 text-[12px] font-bold">
                   📲 WhatsApp share

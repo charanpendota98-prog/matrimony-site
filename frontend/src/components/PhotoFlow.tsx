@@ -7,6 +7,7 @@
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Duo, duo } from "@/lib/duo";
+import { useLang } from "@/lib/lang";
 
 type Status = {
   photo_url: string; photo_status: string;
@@ -14,6 +15,8 @@ type Status = {
 };
 
 export default function PhotoFlow({ tsapId, onDone }: { tsapId: string; onDone?: () => void }) {
+  const { lang } = useLang();
+  const te = lang === "te";
   const [st, setSt] = useState<Status | null>(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
@@ -40,13 +43,13 @@ export default function PhotoFlow({ tsapId, onDone }: { tsapId: string; onDone?:
       const d = await r.json().catch(() => ({}));
       if (!r.ok) {
         const det = d?.detail || d;
-        setErr(det?.te || det?.en || d?.message_telugu || "Upload fail ayyindi — malli try cheyyandi");
+        setErr(det?.te || det?.en || d?.message_telugu || (te ? "Upload fail అయ్యింది — మళ్లీ try చెయ్యండి" : "Upload failed — retry"));
         setSt((s) => ({ photo_url: "", photo_status: "rejected", photo_reason: det?.en || "", photo_reason_te: det?.te || "", ...(s || {}) }));
       } else {
         await load();
       }
     } catch {
-      setErr("Network ledu — malli try cheyyandi");
+      setErr(te ? "Network లేదు — మళ్లీ try చెయ్యండి" : "No network — retry");
     }
     setBusy(false);
   };
@@ -64,7 +67,7 @@ export default function PhotoFlow({ tsapId, onDone }: { tsapId: string; onDone?:
           // eslint-disable-next-line @next/next/no-img-element
           <img src={st.photo_url} alt="Approved profile photo" className="mx-auto mt-2 w-28 h-36 object-cover rounded-xl border border-emerald-300" />
         ) : null}
-        <p className="text-[12px] text-emerald-800 mt-2 telugu">Profile ippudu photo tho kanipistundi — responses 10x ekkuva!</p>
+        <p className="text-[12px] text-emerald-800 mt-2 telugu">{te ? "Profile ఇప్పుడు photo తో కనిపిస్తుంది — responses 10x ఎక్కువ!" : "Your profile now shows with photo — 10x more responses!"}</p>
       </div>
     );
   }
@@ -75,7 +78,7 @@ export default function PhotoFlow({ tsapId, onDone }: { tsapId: string; onDone?:
       <div className="bg-white rounded-2xl p-5 border border-gold/30 card-shadow text-center">
         <div className="mx-auto w-10 h-10 rounded-full border-4 border-gold/30 border-t-maroon animate-spin" />
         <div className="font-bold text-maroon mt-3"><Duo en="Photo validation in progress" te="ఫోటో పరిశీలన జరుగుతోంది" /></div>
-        <p className="text-[12px] text-gray-600 mt-1 telugu">Technical checks pass ayyayi ✅ — admin approval avvagane photo live avutundi (konni nimishalalo).</p>
+        <p className="text-[12px] text-gray-600 mt-1 telugu">{te ? "Technical checks pass అయ్యాయి ✅ — admin approval అవ్వగానే photo live అవుతుంది (కొన్ని నిమిషాల్లో)." : "Technical checks passed ✅ — photo goes live on admin approval (in a few minutes)."}</p>
         <button onClick={() => void load()} className="mt-3 text-[12px] font-bold text-maroon underline">↻ Status refresh</button>
       </div>
     );
@@ -90,7 +93,7 @@ export default function PhotoFlow({ tsapId, onDone }: { tsapId: string; onDone?:
           <span className="text-xl">⚠️</span>
           <div>
             <div className="font-bold text-red-700 text-[13px]">{st?.photo_reason || "Try another photo"}</div>
-            <div className="text-[12px] text-gray-700 telugu">{st?.photo_reason_te || err || "Clear original photo malli pampandi"}</div>
+            <div className="text-[12px] text-gray-700 telugu">{st?.photo_reason_te || err || (te ? "Clear original photo మళ్లీ పంపండి" : "Send a clear original photo again")}</div>
           </div>
         </div>
         <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden"

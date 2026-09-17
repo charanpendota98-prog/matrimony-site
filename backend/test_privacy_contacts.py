@@ -207,12 +207,12 @@ check("register page lo FREE-vs-PAID clarity box (/api/free-plan)", "/api/free-p
 check("register clarity: 'FREE లో ఇవ్వనిది' + numbers ivvamu",
       "FREE లో ఇచ్చేది" in reg_pg and "Phone numbers — ఇవ్వము" in reg_pg)
 check("register success lo 'enti vachindi' card (credits + lock + CTA)",
-      "Mee account ki enti vachindi" in reg_pg and "numbers 🔒 locked" in reg_pg)
+      "requests</b> ready" in reg_pg and "numbers 🔒 locked" in reg_pg)
 check("matches page lo 🔒 number locked chip + phone_masked", "phone_masked" in match_pg and "Number:" in match_pg)
 check("matches page lo clarity banner + pricing CTA",
       "Numbers ivvamu" in match_pg and "₹99 → 5 profiles" in match_pg)
 check("pricing page lo FREE vs PAID boxes + numbers ivvamu",
-      "FREE లో (₹0)" in pricing_pg and "🔒 phone numbers ivvamu" in pricing_pg)
+      "FREE లో (₹0)" in pricing_pg and "🔒 phone numbers ఇవ్వము" in pricing_pg)
 check("search page lo leak ki avakasam ledu (safe fields matrame)",
       "p.full_name" in search_pg or "profile" in search_pg)
 

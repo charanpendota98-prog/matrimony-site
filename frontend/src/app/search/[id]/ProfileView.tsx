@@ -18,16 +18,24 @@ import { apiGet, apiPost, authHeaders, getToken } from "@/lib/api";
 import { SITE_CONFIG } from "@/lib/site-config";
 import { firstName } from "@/lib/names";
 import { Duo, duo } from "@/lib/duo";
+import { useLang } from "@/lib/lang";
 
 type Row = Record<string, any>;
 
-const CONSENT_STEPS = [
-  "1️⃣ Interest pampandi (FREE 3 requests) — vaallaki mee profile WhatsApp lo veltundi",
-  "2️⃣ Vaallu accept cheste — rendu vaipula numbers WhatsApp lo exchange (consent)",
-  "3️⃣ Appudu matladukondi — mana side nunchi madhyastham kooda undi",
+const CONSENT_STEPS_TE = [
+  "1️⃣ Interest పంపండి (FREE 3 requests) — వాళ్లకి మీ profile WhatsApp లో వెళ్తుంది",
+  "2️⃣ వాళ్లు accept చేస్తే — రెండు వైపులా numbers WhatsApp లో exchange (consent)",
+  "3️⃣ అప్పుడు మాట్లాడుకోండి — మన side నుంచి మధ్యస్థం కూడా ఉంది",
+];
+const CONSENT_STEPS_EN = [
+  "1️⃣ Send Interest (FREE 3 requests) — they get your profile on WhatsApp",
+  "2️⃣ If they accept — numbers exchange on WhatsApp both sides (consent)",
+  "3️⃣ Then talk — our mediation support stays available",
 ];
 
 export default function ProfileView() {
+  const { lang } = useLang();
+  const te = lang === "te";
   const params = useParams();
   const idFromUrl = String(params?.id || "").toUpperCase();
   const [searchId, setSearchId] = useState(idFromUrl);
@@ -55,7 +63,7 @@ export default function ProfileView() {
     setLoading(false);
     if (!ok || !d) {
       setData(null);
-      setErr(status === 404 ? `🔍 TSAP ID dorakaledu: ${id} — ID correct ga unda check cheyyandi (register ayyara?)` : errorTelugu);
+      setErr(status === 404 ? (te ? `🔍 TSAP ID దొరకలేదు: ${id} — ID correct గా ఉందా check చెయ్యండి (register అయ్యారా?)` : `🔍 TSAP ID not found: ${id} — check the ID is correct (registered?)`) : errorTelugu);
       return;
     }
     setData(d);
@@ -83,9 +91,9 @@ export default function ProfileView() {
       { from_id: myTsapId, to_id: searchId, channel: "search_page", ...(templateId ? { template_id: templateId } : {}) });
     setSending(false);
     if (nl) { setNeedsLogin(true); return; }
-    if (ok) setMsg({ ok: true, text: String(d?.message_telugu || "Interest pampincharu ✅ — accept ayithe numbers exchange") });
-    else if (status === 402) setMsg({ ok: false, text: "⚠️ Credits ayipoyayi — ₹99 → 5 profiles. Numbers kooda accept tho ne (consent)." });
-    else if (status === 404) setMsg({ ok: false, text: "Mee TSAP ID register cheyyaledu — mundu FREE register cheyyandi." });
+    if (ok) setMsg({ ok: true, text: String(d?.message_telugu || (te ? "Interest పంపించారు ✅ — accept అయితే numbers exchange" : "Interest sent ✅ — numbers exchange on accept")) });
+    else if (status === 402) setMsg({ ok: false, text: te ? "⚠️ Credits అయిపోయాయి — ₹99 → 5 profiles. Numbers కూడా accept తోనే (consent)." : "⚠️ Credits over — ₹99 → 5 profiles. Numbers also only with accept (consent)." });
+    else if (status === 404) setMsg({ ok: false, text: te ? "మీ TSAP ID register చెయ్యలేదు — ముందు FREE register చెయ్యండి." : "Your TSAP ID is not registered — FREE register first." });
     else setMsg({ ok: false, text: eTel });
   };
 
@@ -98,7 +106,7 @@ export default function ProfileView() {
     if (nl) { setNeedsLogin(true); return; }
     if (ok && d?.success) {
       setUnlocked(String(d.phone || ""));
-      setMsg({ ok: true, text: String(d.message_telugu || "✅ Number unlock ayyindi!") });
+      setMsg({ ok: true, text: String(d.message_telugu || (te ? "✅ Number unlock అయ్యింది!" : "✅ Number unlocked!")) });
     } else {
       setMsg({ ok: false, text: String((d as Row)?.message_telugu || eTel) });
     }
@@ -109,20 +117,20 @@ export default function ProfileView() {
     if (nl) { setNeedsLogin(true); return; }
     if (!ok) { setMsg({ ok: false, text: eTel }); return; }
     setSavedNow(!!d?.saved);
-    setMsg({ ok: true, text: String(d?.message_telugu || "Shortlist update ayyindi") });
+    setMsg({ ok: true, text: String(d?.message_telugu || (te ? "Shortlist update అయ్యింది" : "Shortlist updated")) });
   };
 
   const doBlock = async () => {
-    const { ok, data: d, needsLogin: nl, errorTelugu: eTel } = await apiPost<Row>("/api/block", { tsap_id: myTsapId, block_id: searchId, reason: "profile page nunchi" });
+    const { ok, data: d, needsLogin: nl, errorTelugu: eTel } = await apiPost<Row>("/api/block", { tsap_id: myTsapId, block_id: searchId, reason: "profile page నుంచి" });
     if (nl) { setNeedsLogin(true); return; }
-    if (ok) { setBlocked(true); setMsg({ ok: true, text: String(d?.message_telugu || "Block ayyindi") }); }
+    if (ok) { setBlocked(true); setMsg({ ok: true, text: String(d?.message_telugu || (te ? "Block అయ్యింది" : "Blocked")) }); }
     else setMsg({ ok: false, text: eTel });
   };
 
   const doReport = async () => {
-    const { ok, data: d, needsLogin: nl, errorTelugu: eTel } = await apiPost<Row>("/api/report", { reporter_id: myTsapId, target_id: searchId, category: "fake_profile", detail: "Profile page nunchi report" });
+    const { ok, data: d, needsLogin: nl, errorTelugu: eTel } = await apiPost<Row>("/api/report", { reporter_id: myTsapId, target_id: searchId, category: "fake_profile", detail: "Profile page నుంచి report" });
     if (nl) { setNeedsLogin(true); return; }
-    if (ok) { setReported(true); setMsg({ ok: true, text: String(d?.message_telugu || d?.ack_telugu || "Report pampam — team 48h lo chustundi") }); }
+    if (ok) { setReported(true); setMsg({ ok: true, text: String(d?.message_telugu || d?.ack_telugu || (te ? "Report పంపాం — team 48h లో చూస్తుంది" : "Report sent — team reviews in 48h")) }); }
     else setMsg({ ok: false, text: eTel });
   };
 
@@ -131,7 +139,7 @@ export default function ProfileView() {
     const text = `🙏 Mana Vivaha profile — ${firstName(profile.full_name)} (${profile.tsap_id})\n` +
       `${profile.age}y • ${profile.height || "—"} • ${profile.caste} • ${profile.education} • ${profile.job}\n` +
       `📍 ${profile.district}, ${profile.state} • 💰 ${profile.salary}\n` +
-      `🔒 Number locked — interest accept ayithe exchange\n` +
+      `🔒 Number locked — ${te ? "interest accept అయితే exchange" : "exchange on interest accept"}\n` +
       `Full details: ${window.location.origin}/search/${profile.tsap_id}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
   };
@@ -146,7 +154,7 @@ export default function ProfileView() {
             onKeyDown={(e) => { if (e.key === "Enter") void load(searchId.trim()); }}
             placeholder="TSAP ID (ex: TSAP-F-2025-1042)" aria-label="TSAP ID search"
             className="flex-1 bg-transparent text-sm outline-none" />
-          <button onClick={() => void load(searchId.trim())} className="rounded-xl bg-[#7A0C2E] px-3 py-1.5 text-[12px] font-bold text-white">Chudu</button>
+          <button onClick={() => void load(searchId.trim())} className="rounded-xl bg-[#7A0C2E] px-3 py-1.5 text-[12px] font-bold text-white">{te ? "చూడు" : "View"}</button>
         </div>
       </div>
 
@@ -155,13 +163,13 @@ export default function ProfileView() {
         <div className="mt-6 rounded-2xl border-2 border-amber-300 bg-amber-50 p-5 text-center">
           <p className="font-bold text-amber-900">{err}</p>
           <div className="mt-3 flex flex-wrap justify-center gap-2">
-            <Link href="/matches" className="rounded-xl bg-[#7A0C2E] px-4 py-2 text-sm font-bold text-white">💞 Matches chudu</Link>
+            <Link href="/matches" className="rounded-xl bg-[#7A0C2E] px-4 py-2 text-sm font-bold text-white">{te ? "💞 Matches చూడు" : "💞 See matches"}</Link>
             <Link href="/register" className="rounded-xl border border-[#7A0C2E] px-4 py-2 text-sm font-bold text-[#7A0C2E]">🆓 Register FREE</Link>
           </div>
         </div>
       ) : null}
 
-      {needsLogin ? <div className="mt-4"><AuthGate note="Interest pampadam, shortlist, block — ee actions ki OTP login kavali (mee privacy koraku)." /></div> : null}
+      {needsLogin ? <div className="mt-4"><AuthGate note={te ? "Interest పంపడం, shortlist, block — ఈ actions కి OTP login కావాలి (మీ privacy కోసం)." : "Interest, shortlist, block — these actions need OTP login (for your privacy)."} /></div> : null}
 
       {!loading && !err && data ? (
         <>
@@ -212,14 +220,14 @@ export default function ProfileView() {
 
             {profile.about_myself ? (
               <div className="mt-4 rounded-2xl bg-slate-50 p-3">
-                <p className="text-[12px] font-bold text-slate-700">📝 Mee gurinchi</p>
+                <p className="text-[12px] font-bold text-slate-700">{te ? "📝 మీ గురించి" : "📝 About"}</p>
                 <p className="mt-1 text-[13px] text-slate-700">{profile.about_myself}</p>
               </div>
             ) : null}
 
             {Array.isArray(data.reasons) && data.reasons.length ? (
               <div className="mt-3 rounded-2xl bg-emerald-50 p-3">
-                <p className="text-[12px] font-bold text-emerald-900">💡 Enduku match avutharu?</p>
+                <p className="text-[12px] font-bold text-emerald-900">{te ? "💡 ఎందుకు match అవుతారు?" : "💡 Why you match?"}</p>
                 <ul className="mt-1 space-y-0.5 text-[12px] text-emerald-900">
                   {data.reasons.slice(0, 4).map((r: string, i: number) => <li key={i}>✔️ {r}</li>)}
                 </ul>
@@ -231,14 +239,14 @@ export default function ProfileView() {
           <section className="mt-4 rounded-3xl border-2 border-rose-300 bg-rose-50 p-5">
             <h2 className="text-lg font-extrabold text-[#7A0C2E]">🔒 Phone number — {data.phone_masked || "•••••"} (locked)</h2>
             <p className="mt-1 text-[13px] text-rose-900">
-              {data.can_view_number_reason || "Free lo numbers ivvamu — interest accept (consent) tho matrame exchange avutayi."}
+              {data.can_view_number_reason || (te ? "Free లో numbers ఇవ్వము — interest accept (consent) తోనే exchange అవుతాయి." : "No numbers in free — exchange only on interest accept (consent).")}
             </p>
             <ol className="mt-3 space-y-1 text-[13px] text-rose-900">
-              {(data.unlock_telugu || CONSENT_STEPS).map((s: string, i: number) => <li key={i}>{s}</li>)}
+              {(data.unlock_telugu || (te ? CONSENT_STEPS_TE : CONSENT_STEPS_EN)).map((s: string, i: number) => <li key={i}>{s}</li>)}
             </ol>
             {unlocked ? (
               <div className="mt-4 rounded-2xl bg-emerald-600 p-4 text-center text-white">
-                <p className="text-[12px] opacity-90">✅ Unlock ayyindi — gauravamga matladandi 🙏</p>
+                <p className="text-[12px] opacity-90">{te ? "✅ Unlock అయ్యింది — గౌరవంగా మాట్లాడండి 🙏" : "✅ Unlocked — talk respectfully 🙏"}</p>
                 <p className="mt-1 text-2xl font-extrabold tracking-wider">{unlocked}</p>
                 <div className="mt-2 flex justify-center gap-2">
                   <a href={`tel:${unlocked}`} className="rounded-xl bg-white px-4 py-2 text-sm font-bold text-emerald-700">📞 Call</a>
@@ -249,11 +257,11 @@ export default function ProfileView() {
             <div className="mt-4 flex flex-wrap gap-2">
               <button onClick={() => void sendInterest()} disabled={sending}
                 className="rounded-xl bg-[#7A0C2E] px-4 py-2.5 text-sm font-bold text-white disabled:opacity-60">
-                {sending ? "Pampisthunnam…" : "💌 Interest pampandi (FREE 3)"}
+                {sending ? (te ? "పంపిస్తున్నాం…" : "Sending…") : te ? "💌 Interest పంపండి (FREE 3)" : "💌 Send interest (FREE 3)"}
               </button>
               <button onClick={() => void sendInterest("traditional")} disabled={sending}
                 className="rounded-xl border border-[#7A0C2E] px-4 py-2.5 text-sm font-bold text-[#7A0C2E]">
-                🙏 Template tho pampu
+                {te ? "🙏 Template తో పంపు" : "🙏 Send with template"}
               </button>
               {unlocked ? (
                 <a href={`tel:${unlocked}`} className="rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white">
@@ -266,7 +274,7 @@ export default function ProfileView() {
                   {unlocking ? "Unlocking…" : "📞 Number Unlock (1 credit)"}
                 </button>
                 <a href={SITE_CONFIG.unlockBot(profile.tsap_id)} target="_blank" rel="noreferrer"
-                  title="Bot opens — 1 credit tho number vastundi"
+                  title={te ? "Bot opens — 1 credit తో number వస్తుంది" : "Bot opens — number for 1 credit"}
                   className="rounded-xl gold-gradient px-4 py-2.5 text-sm font-bold text-maroon">
                   📞 Full details + Number (Bot)
                 </a>
@@ -282,7 +290,7 @@ export default function ProfileView() {
           <section className="mt-4 flex flex-wrap gap-2">
             <button onClick={() => void toggleSave()}
               className={`rounded-xl px-4 py-2 text-sm font-bold ${savedNow ? "bg-rose-100 text-rose-700" : "border border-slate-300 text-slate-700"}`}>
-              {savedNow ? "❤️ Shortlist lo undi" : "🤍 Shortlist"}
+              {savedNow ? (te ? "❤️ Shortlist లో ఉంది" : "❤️ In shortlist") : "🤍 Shortlist"}
             </button>
             <button onClick={shareWhatsApp} className="rounded-xl bg-green-600 px-4 py-2 text-sm font-bold text-white">WhatsApp share</button>
             <button onClick={() => void doBlock()} disabled={blocked} className="rounded-xl border border-rose-300 px-4 py-2 text-sm font-bold text-rose-700 disabled:opacity-50">
@@ -330,7 +338,7 @@ export default function ProfileView() {
           ) : null}
 
           <p className="mt-4 text-center text-[11px] text-slate-500">
-            🔐 {data.consent_note_telugu || "Numbers consent tho matrame exchange — mana consent ledger lo record untundi"}
+            🔐 {data.consent_note_telugu || (te ? "Numbers consent తోనే exchange — మన consent ledger లో record ఉంటుంది" : "Numbers exchange with consent only — recorded in our consent ledger")}
           </p>
         </>
       ) : null}

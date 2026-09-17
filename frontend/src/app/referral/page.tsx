@@ -10,14 +10,15 @@ import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { SITE_CONFIG } from "@/lib/site-config";
 import { Duo, duo } from "@/lib/duo";
+import { useLang } from "@/lib/lang";
 import { authHeaders } from "@/lib/api";
 import AuthGate from "@/components/AuthGate";
 
 type Dash = any;
 
-const DEMO_ID = "TSAP-F-2025-1042";
-
 export default function ReferralPage() {
+  const { lang } = useLang();
+  const te = lang === "te";
   const [tsapId, setTsapId] = useState("");
   const [dash, setDash] = useState<Dash | null>(null);
   const [board, setBoard] = useState<any[]>([]);
@@ -35,8 +36,9 @@ export default function ReferralPage() {
     const q = new URLSearchParams(window.location.search);
     const fromUrl = (q.get("id") || q.get("tsap_id") || "").toUpperCase().trim();
     const profiles = JSON.parse(localStorage.getItem("tsap_profiles") || "[]");
-    const id = (fromUrl || profiles[0]?.id || profiles[0]?.tsap_id || localStorage.getItem("tsap_last_id") || DEMO_ID) as string;
+    const id = (fromUrl || profiles[0]?.id || profiles[0]?.tsap_id || localStorage.getItem("tsap_last_id") || "") as string;
     if (fromUrl) localStorage.setItem("tsap_last_id", fromUrl);
+    if (!id) { setNeedsLogin(true); return; }
     setTsapId(id);
   }, []);
 
@@ -44,9 +46,9 @@ export default function ReferralPage() {
     if (!id) return;
     // 🐞 FIX: private dashboard — X-Tsap-Token pampali (lekapote 401 → mee account lo login cheyyali)
     fetch(`/api/referral/${id}`, { headers: authHeaders() })
-      .then((r) => { if (r.status === 401) { setNeedsLogin(true); return { detail: "🔒 Mee account lo login cheyyandi (OTP) — appude mee referral dashboard kanipistundi" }; } return r.json(); })
-      .then((d) => { if (d.ok) setDash(d); else setErr(d.detail || "Dashboard load avvaledu"); })
-      .catch(() => setErr("Server nunchi data ravaledu — API check cheyyandi"));
+      .then((r) => { if (r.status === 401) { setNeedsLogin(true); return { detail: te ? "🔒 మీ account లో login చెయ్యండి (OTP) — అప్పుడే మీ referral dashboard కనిపిస్తుంది" : "🔒 Login to your account (OTP) — only then your referral dashboard shows" }; } return r.json(); })
+      .then((d) => { if (d.ok) setDash(d); else setErr(d.detail || (te ? "Dashboard load అవ్వలేదు" : "Dashboard failed to load")); })
+      .catch(() => setErr(te ? "Server నుంచి data రాలేదు — API check చెయ్యండి" : "No data from server — check API"));
     fetch(`/api/referral/${id}/payouts`, { headers: authHeaders() }).then((r) => r.json()).then((d) => d.success && setDash((prev: Dash) => prev ? { ...prev, payouts_live: d.payouts, payout_meta: d } : prev)).catch(() => { });
   }, []);
 
@@ -91,13 +93,14 @@ export default function ReferralPage() {
             <div>
               <h1 className="text-2xl md:text-3xl font-extrabold telugu">🤝 <Duo en="Referral Program" te="రెఫరల్ ప్రోగ్రామ్" /> — <span className="text-[#D4AF37]">{duo("₹50 per paying referral", "చెల్లించిన ప్రతి రెఫరల్‌కు ₹50")}</span></h1>
               <p className="text-xs md:text-sm opacity-90 telugu mt-1">
-                Mee friend ₹99 (leda edaina plan ≥₹29) pay chesthe — meeku <b>₹50 flat</b> · vaallaki <b>+1 credit FREE</b> · ₹50 okkasari matrame, anthe (tiers = badges)
-                {" "}<span className="text-[#D4AF37] font-bold">Evvaru enni aina refer cheyyochu — limit ledu, okate phone lo kooda conditions levu.</span>
+{te ? <>మీ friend ₹99 (లేదా ఏదైనా plan ≥₹29) pay చేస్తే — మీకు <b>₹50 flat</b> · వాళ్లకి <b>+1 credit FREE</b> · ₹50 ఒక్కసారి మాత్రమే, అంతే (tiers = badges)
+                {" "}<span className="text-[#D4AF37] font-bold">ఎవ్వరు ఎన్ని అయినా refer చెయ్యొచ్చు — limit లేదు, conditions లేవు.</span></> : <>When your friend pays ₹99 (or any plan ≥₹29) — you get <b>₹50 flat</b> · they get <b>+1 credit FREE</b> · ₹50 only once, that\u2019s it (tiers = badges)
+                {" "}<span className="text-[#D4AF37] font-bold">Anyone can refer any number — no limit, no conditions.</span></>}
               </p>
             </div>
-            <div className="flex gap-2">
-              <Link href="/referral/register" className="rounded-full bg-white/15 border border-white/25 px-4 py-2 text-xs font-bold">Mee code kanukondi →</Link>
-              <Link href="/pricing" className="rounded-full bg-[#D4AF37] text-[#7A0C2E] px-4 py-2 text-xs font-bold">Pricing 💰</Link>
+            <div className="flex flex-wrap gap-2">
+              <Link href="/referral/register" className="rounded-full bg-[#D4AF37] text-[#7A0C2E] px-4 py-2 text-xs font-bold shadow-soft">{te ? "🎁 రెఫరర్‌గా చేరండి →" : "🎁 Become a referrer →"}</Link>
+              <Link href="/pricing" className="rounded-full bg-white/15 border border-white/25 px-4 py-2 text-xs font-bold">Pricing 💰</Link>
             </div>
           </div>
 
@@ -105,7 +108,7 @@ export default function ReferralPage() {
             <span className="px-3 py-1 rounded-full bg-white/10">ID: <b>{tsapId || "…"}</b></span>
             <input value={tsapId} onChange={(e) => setTsapId(e.target.value.toUpperCase())}
               className="px-3 py-1.5 rounded-full bg-white/10 border border-white/25 text-white placeholder-white/60 text-xs w-56"
-              placeholder="Mee TSAP ID (TSAP-F-2025-1042)" aria-label="Mee TSAP ID (TSAP-F-2025-1042)" />
+              placeholder={te ? "మీ TSAP ID (TSAP-F-2025-1042)" : "Your TSAP ID (TSAP-F-2025-1042)"} aria-label={te ? "మీ TSAP ID" : "Your TSAP ID"} />
             <span className="px-3 py-1 rounded-full bg-[#D4AF37] text-[#7A0C2E] font-bold">{tier.icon} {tier.key}</span>
             {s.paid_count > 0 && <span className="px-3 py-1 rounded-full bg-white/10">{s.paid_count} paying referrals</span>}
           </div>
@@ -120,18 +123,18 @@ export default function ReferralPage() {
           <div className="md:col-span-2 bg-white rounded-3xl p-5 border border-[#D4AF37]/40 shadow-sm">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <div className="text-xs text-gray-500">Mee referral code</div>
+                <div className="text-xs text-gray-500">{te ? "మీ referral code" : "Your referral code"}</div>
                 <div className="text-3xl font-extrabold text-[#7A0C2E] tracking-wide">{dash?.code || "…"}</div>
-                {dash?.alias && <div className="text-[11px] text-gray-500 mt-1">alias: {dash.alias} (idi kooda pani chestundi)</div>}
+                {dash?.alias && <div className="text-[11px] text-gray-500 mt-1">alias: {dash.alias} {te ? "(ఇది కూడా పని చేస్తుంది)" : "(this works too)"}</div>}
               </div>
               <div className="flex flex-col gap-2 text-xs">
-                <button onClick={() => copy(link, "link")} className="rounded-full bg-[#7A0C2E] text-white px-4 py-2 font-bold">🔗 Link copy</button>
-                <button onClick={() => copy(dash?.code || "", "code")} className="rounded-full bg-gray-100 px-4 py-2 font-bold">#️⃣ Code copy</button>
+                <button onClick={() => copy(link, "link")} className="rounded-full bg-[#7A0C2E] text-white px-4 py-2 font-bold">{te ? "🔗 Link copy" : "🔗 Copy link"}</button>
+                <button onClick={() => copy(dash?.code || "", "code")} className="rounded-full bg-gray-100 px-4 py-2 font-bold">{te ? "#️⃣ Code copy" : "#️⃣ Copy code"}</button>
               </div>
             </div>
 
             <div className="mt-3 rounded-2xl bg-[#FFF8E7] border border-[#D4AF37]/40 p-3 text-xs font-mono break-all">{link || "https://manavivaha.in/r/…"}</div>
-            {copied && <div className="text-[11px] text-green-700 mt-1">✅ {copied} copy ayyindi</div>}
+            {copied && <div className="text-[11px] text-green-700 mt-1">{te ? <>✅ {copied} copy అయ్యింది</> : <>✅ {copied} copied</>}</div>}
 
             {/* STATS */}
             <div className="mt-4 grid grid-cols-3 md:grid-cols-6 gap-2 text-center">
@@ -174,7 +177,7 @@ export default function ReferralPage() {
               onClick={() => setPay({ ...pay, open: !pay.open, amount: String(Math.floor(s.wallet || 0)) })}
               disabled={!dash?.wallet_can_withdraw}
               className={`mt-3 w-full rounded-xl py-2.5 font-bold text-sm ${dash?.wallet_can_withdraw ? "gold-gradient text-[#7A0C2E]" : "bg-gray-100 text-gray-400"}`}>
-              {dash?.wallet_can_withdraw ? "💸 Payout adagandi (UPI)" : `₹${Math.max(0, 100 - (s.wallet || 0))} inka kavali`}
+              {dash?.wallet_can_withdraw ? (te ? "💸 Payout అడగండి (UPI)" : "💸 Request payout (UPI)") : te ? `₹${Math.max(0, 100 - (s.wallet || 0))} ఇంకా కావాలి` : `₹${Math.max(0, 100 - (s.wallet || 0))} more needed`}
             </button>
             <div className="mt-2 text-[11px] text-gray-500 telugu">{dash?.message_telugu}</div>
 
@@ -184,9 +187,9 @@ export default function ReferralPage() {
                 <input value={pay.amount} onChange={(e) => setPay({ ...pay, amount: e.target.value.replace(/\D/g, "") })}
                   className="mt-2 w-full rounded-lg border px-3 py-2" placeholder="Amount (min ₹100)" aria-label="Amount (min ₹100)" />
                 <input value={pay.upi} onChange={(e) => setPay({ ...pay, upi: e.target.value })}
-                  className="mt-2 w-full rounded-lg border px-3 py-2" placeholder="UPI ID — udaharanam: name@okhdfcbank" aria-label="UPI ID — udaharanam: name@okhdfcbank" />
-                <button onClick={submitPayout} className="mt-2 w-full rounded-lg bg-[#7A0C2E] text-white py-2 font-bold">Request pampu</button>
-                <div className="text-[10px] text-gray-500 mt-1">3 working days lo mee UPI ki — UTR tho confirm avutundi.</div>
+                  className="mt-2 w-full rounded-lg border px-3 py-2" placeholder={te ? "UPI ID — ఉదాహరణ: name@okhdfcbank" : "UPI ID — e.g. name@okhdfcbank"} aria-label="UPI ID" />
+                <button onClick={submitPayout} className="mt-2 w-full rounded-lg bg-[#7A0C2E] text-white py-2 font-bold">{te ? "Request పంపు" : "Send request"}</button>
+                <div className="text-[10px] text-gray-500 mt-1">{te ? "3 working days లో మీ UPI కి — UTR తో confirm అవుతుంది." : "To your UPI in 3 working days — confirmed with UTR."}</div>
               </div>
             )}
             {payRes && (
@@ -238,7 +241,7 @@ export default function ReferralPage() {
               <div className="mt-2 rounded-2xl bg-[#FFF8E7] border border-[#D4AF37]/40 p-3 text-xs whitespace-pre-wrap">{msgs[msgIdx]}</div>
               <div className="mt-3 flex flex-wrap gap-2 text-xs">
                 <a href={kit.whatsapp_share_variants?.[msgIdx] || kit.whatsapp_share} target="_blank" rel="noreferrer"
-                  className="rounded-full bg-[#25D366] text-white px-4 py-2 font-bold">💬 WhatsApp ki pampu</a>
+                  className="rounded-full bg-[#25D366] text-white px-4 py-2 font-bold">{te ? "💬 WhatsApp కి పంపు" : "💬 Send to WhatsApp"}</a>
                 <a href={kit.telegram_share} target="_blank" rel="noreferrer"
                   className="rounded-full bg-[#0088cc] text-white px-4 py-2 font-bold">✈️ Telegram share</a>
                 <button onClick={() => copy(msgs[msgIdx], "message")} className="rounded-full bg-gray-100 px-4 py-2 font-bold">📋 Copy</button>
@@ -268,7 +271,7 @@ export default function ReferralPage() {
                     <div className="font-bold">{t.icon} {t.key} <span className="text-gray-500 font-normal">({t.min}+ pays)</span></div>
                     <div className="text-[11px] text-gray-500">{(t.perks || []).join(" • ")}</div>
                   </div>
-                  <div className="font-bold text-[#7A0C2E]">{t.key === tier.key ? "← mee tier" : t.icon}</div>
+                  <div className="font-bold text-[#7A0C2E]">{t.key === tier.key ? (te ? "← మీ tier" : "← your tier") : t.icon}</div>
                 </div>
               ))}
             </div>
@@ -281,7 +284,7 @@ export default function ReferralPage() {
                 <div className="h-3 bg-[#7A0C2E]" style={{ width: `${progress}%` }} />
               </div>
               <div className="text-[11px] text-gray-500 mt-1">
-                {next ? `${next.need} more paying referrals → ${next.title} (badge)` : "👑 Anni milestones complete!"}
+                {next ? (te ? `${next.need} more paying referrals → ${next.title} (badge)` : `${next.need} more paying referrals → ${next.title} (badge)`) : (te ? "👑 అన్ని milestones complete!" : "👑 All milestones complete!")}
               </div>
             </div>
             <div className="mt-3 space-y-2 text-xs">
@@ -301,8 +304,8 @@ export default function ReferralPage() {
         {/* RECENT + LEDGER */}
         <section className="mt-6 grid md:grid-cols-2 gap-4">
           <div className="bg-white rounded-3xl p-5 border border-gray-200 shadow-sm">
-            <h2 className="font-bold text-[#7A0C2E] telugu">👥 Mee referrals (recent)</h2>
-            {(dash?.recent_registrations || []).length === 0 && <div className="mt-2 text-xs text-gray-500">Inka evaru register avvaledu — mee link share cheyyandi 🙂</div>}
+            <h2 className="font-bold text-[#7A0C2E] telugu">{te ? "👥 మీ referrals (recent)" : "👥 Your referrals (recent)"}</h2>
+            {(dash?.recent_registrations || []).length === 0 && <div className="mt-2 text-xs text-gray-500">{te ? "ఇంకా ఎవరూ register అవ్వలేదు — మీ link share చెయ్యండి 🙂" : "Nobody registered yet — share your link 🙂"}</div>}
             <div className="mt-2 space-y-1 text-xs">
               {(dash?.recent_registrations || []).map((r: any) => (
                 <div key={r.tsap_id} className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2 gap-2">
@@ -320,7 +323,7 @@ export default function ReferralPage() {
 
           <div className="bg-white rounded-3xl p-5 border border-gray-200 shadow-sm">
             <h2 className="font-bold text-[#7A0C2E] telugu">🧾 Wallet ledger (audit)</h2>
-            {(dash?.ledger || []).length === 0 && <div className="mt-2 text-xs text-gray-500">Ledger khali — modati referral tho start avutundi</div>}
+            {(dash?.ledger || []).length === 0 && <div className="mt-2 text-xs text-gray-500">{te ? "Ledger ఖాళీ — మొదటి referral తో start అవుతుంది" : "Ledger empty — starts with first referral"}</div>}
             <div className="mt-2 space-y-1 text-[11px] max-h-72 overflow-y-auto">
               {(dash?.ledger || []).map((l: any) => (
                 <div key={l.id} className="flex items-center justify-between border-b border-gray-100 py-1.5">
@@ -342,9 +345,9 @@ export default function ReferralPage() {
         {/* LEADERBOARD */}
         <section className="mt-6 bg-white rounded-3xl p-5 border border-gray-200 shadow-sm">
           <h2 className="font-bold text-[#7A0C2E] telugu">🏅 Top referrers — leaderboard</h2>
-          <div className="text-[11px] text-gray-500">Weekly top-1 ki ₹1000 + Elite badge</div>
+          <div className="text-[11px] text-gray-500">{te ? "Weekly top-1 కి ₹1000 + Elite badge" : "Weekly top-1 gets ₹1000 + Elite badge"}</div>
           <div className="mt-3 space-y-2 text-xs">
-            {board.length === 0 && <div className="text-gray-500">Inka evaru — modati place mee de avvachu! 🥇</div>}
+            {board.length === 0 && <div className="text-gray-500">{te ? "ఇంకా ఎవరూ — మొదటి place మీదే అవ్వచ్చు! 🥇" : "Nobody yet — first place could be yours! 🥇"}</div>}
             {board.map((b: any) => (
               <div key={b.code} className={`flex items-center gap-3 rounded-xl p-3 ${b.code === dash?.code ? "bg-[#D4AF37]/20 border border-[#D4AF37]" : "bg-gray-50"}`}>
                 <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center font-bold">{b.rank}</div>
@@ -367,12 +370,12 @@ export default function ReferralPage() {
             </ul>
           </div>
           <div className="bg-white rounded-3xl p-5 border border-gray-200 shadow-sm">
-            <h2 className="font-bold text-[#7A0C2E] telugu">🚫 Cheyyakoodadhu (ban avutundi)</h2>
+            <h2 className="font-bold text-[#7A0C2E] telugu">{te ? "🚫 చెయ్యకూడదు (ban అవుతుంది)" : "🚫 Don\u2019t do this (leads to ban)"}</h2>
             <ul className="mt-2 space-y-1 text-xs text-gray-700">
               {(terms?.not_allowed || ["Self-referral", "Fake registrations", "Spam/bots"]).map((r: string) => <li key={r}>⛔ {r}</li>)}
             </ul>
             <div className="mt-3 rounded-xl bg-[#FFF8E7] border border-[#D4AF37]/40 p-3 text-[11px] text-[#7A0C2E]">
-              💡 Tip: mee caste/district WhatsApp group lo poster + message pettandi — weekend lo ekkuva registrations vastayi.
+              {te ? "💡 Tip: మీ caste/district WhatsApp group లో poster + message పెట్టండి — weekend లో ఎక్కువ registrations వస్తాయి." : "💡 Tip: post the poster + message in your caste/district WhatsApp group — more registrations on weekends."}
             </div>
             <div className="mt-3 flex flex-wrap gap-2 text-xs">
               <Link href="/pricing" className="underline font-bold text-[#7A0C2E]">Pricing</Link>
@@ -382,8 +385,8 @@ export default function ReferralPage() {
           </div>
         </section>
         {needsLogin && <AuthGate
-          title="🔒 Mee referral dashboard ki OTP login kavali"
-          note="Mee referral code, clicks, wallet, payouts — ivi mee account data. OTP tho login cheyyandi, appude kanipistundi (vere vaallaki kanipinchadu)." />}
+          title={te ? "🔒 మీ referral dashboard కి OTP login కావాలి" : "🔒 OTP login needed for your referral dashboard"}
+          note={te ? "మీ referral code, clicks, wallet, payouts — ఇవి మీ account data. OTP తో login చెయ్యండి, అప్పుడే కనిపిస్తుంది (వేరే వాళ్లకి కనిపించదు)." : "Your referral code, clicks, wallet, payouts — this is your account data. Login with OTP to see it (others can\u2019t)."} />}
 
       </div>
     </main>

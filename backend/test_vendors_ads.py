@@ -282,7 +282,7 @@ check("/vendors/[id] customer view: enquiry form + similar",
 check("/vendors/[id] owner dashboard tab (impressions/clicks/leads)",
       "shows vendor dashboard" in det_pg.lower() or "Vendor dashboard" in det_pg)
 check("Home page lo vendor ad strip", "VendorStrip" in home_pg and "/api/vendors/ads" in home_pg)
-check("Home strip lo 'me business kooda' CTA", "Advertise cheyyandi" in home_pg)
+check("Home strip lo 'me business kooda' CTA", "Advertise " in home_pg)
 check("Admin lo vendor tab (approve/reject/revenue)", "Vendor Ads (live)" in admin_pg
       and "/api/admin/vendors" in admin_pg and "vRevenue" in admin_pg)
 check("Header lo Vendors link", "/vendors" in header)

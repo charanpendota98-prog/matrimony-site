@@ -57,7 +57,7 @@ const TEXT = {
     heroTitle: "మీ ఇంటి దగ్గరే సంబంధాలు",
     heroSubA: "తెలంగాణ + ఆంధ్రప్రదేశ్ తెలుగు మ్యాట్రిమోనీ",
     heroSubB: (castes: number, total: number) => `Region • Religion • ${castes} Castes • Special — ${total} channels, ఒక్క రిజిస్టర్‌తో మీ ప్రొఫైల్ సరిపోయే అన్ని చోట్లకీ ఆటోమేటిక్‌గా వెళ్తుంది.`,
-    heroSubC: (free: number) => `₹99 కే సంబంధం — మొదటి ${free} నంబర్లు FREE.`,
+    heroSubC: (free: number) => `₹99 కే సంబంధం — మొదటి ${free} ప్రొఫైళ్లు FREE.`,
     registerCta: "3 నిమిషాల్లో ఉచిత నమోదు",
     botCta: "Telegram Bot",
     trust: ["OTP + DOB వెరిఫైడ్", "ఫోటో-ప్రైవేట్ మోడ్", "యాక్సెప్ట్ తర్వాతే నంబర్", "వాటర్‌మార్క్ + ఫ్రాడ్ అలర్ట్స్"],
@@ -207,7 +207,7 @@ const TEXT = {
     heroTitle: "Perfect matches, close to home",
     heroSubA: "Telangana + Andhra Pradesh Telugu Matrimony",
     heroSubB: (castes: number, total: number) => `Region • Religion • ${castes} Castes • Special — ${total} channels. One registration auto-posts your profile everywhere it fits.`,
-    heroSubC: (free: number) => `₹99 ke Sambandham — first ${free} numbers FREE.`,
+    heroSubC: (free: number) => `₹99 Sambandham — first ${free} profiles FREE.`,
     registerCta: "Register FREE — 3 minutes",
     botCta: "Telegram Bot",
     trust: ["OTP + DOB verified", "Photo-private mode", "Number only after accept", "Watermark + fraud alerts"],
@@ -222,7 +222,7 @@ const TEXT = {
     cardNumber: "📞 Number (1 credit)",
     ticker: (total: number, castes: number, free: number) => [
       `${total} channels — Region • Religion • Caste • Special`,
-      `₹99 ke Sambandham — first ${free} numbers FREE`,
+      `₹99 Sambandham — first ${free} profiles FREE`,
       "Photo-Private • DOB Verified • Watermark protected",
       "Telegram + WhatsApp auto-post",
       `${castes} castes: Reddy to Madiga, Lambada, Boya`,
@@ -282,7 +282,7 @@ const TEXT = {
     spTitle: "A separate space for everyone — with dignity",
     spSub: "2nd marriage, differently abled, 35+, govt jobs, doctors, NRI — a dedicated channel for each.",
     pricingEyebrow: "Pricing",
-    pricingTitle: "Simple — ₹99 ke Sambandham",
+    pricingTitle: "Simple — ₹99 Sambandham",
     pricingSub: (free: number, p99: PlanStat, p199: PlanStat, p299: PlanStat, p499: PlanStat) =>
       `Register FREE. First ${free} interest requests FREE. Then ₹${p99.price} → ${p99.profiles} profiles, ₹${p199.price} → ${p199.profiles}, ₹${p299.price} → ${p299.profiles}, ₹${p499.price} → ${p499.profiles}. ₹/profile drops every tier — credit refund on decline.`,
     planTags: ["Start here", "Entry • ₹20/profile", "Most popular • ₹17/profile", "Best value • ₹12/profile", "VIP • ₹10/profile"],
@@ -357,6 +357,7 @@ const TEXT = {
 export default function Home() {
   const { lang } = useLang();
   const L = TEXT[lang as Lang];
+  const te = lang === "te";
   const [hs, setHs] = useState<HomeStats>(FALLBACK);
   const [trustBoard, setTrustBoard] = useState<{ count: number; average_trust: number; board: Record<string, unknown>[] } | null>(null);
   const [posture, setPosture] = useState<Record<string, unknown> | null>(null);
@@ -648,19 +649,19 @@ export default function Home() {
                 </div>
                 <div className="p-3 space-y-2 dotted-bg">
                   <div className="bg-[#005c4b] text-white text-[12px] rounded-xl rounded-tl-sm p-3 leading-relaxed max-w-[95%]">
-                    <div className="font-bold">💌 MANA VIVAHA — Mee profile ki INTEREST vachhindi!</div>
-                    <div className="opacity-90 mt-1">Oka person mee profile chusi <b>&quot;interesting ga unnaru&quot;</b> ani request pettaru 👇</div>
+                    <div className="font-bold">{te ? "💌 MANA VIVAHA — మీ profile కి INTEREST వచ్చింది!" : "💌 MANA VIVAHA — INTEREST on your profile!"}</div>
+                    <div className="opacity-90 mt-1">{te ? <>ఒక person మీ profile చూసి <b>&quot;interesting గా ఉన్నారు&quot;</b> అని request పెట్టారు 👇</> : <>Someone saw your profile and sent a request saying <b>&quot;you look interesting&quot;</b> 👇</>}</div>
                     <div className="mt-2 pl-1 border-l-2 border-white/30">
                       👤 <b>Kiran Kumar Reddy</b> (29y)<br />
                       🎓 MBBS MD • 💼 Doctor, Apollo<br />
                       📍 Nalgonda, TS • 💍 Reddy<br />
                       ⭐ <b>82% match</b>
                     </div>
-                    <div className="mt-2 opacity-90">✅ Accept chesthe → valla number meeku WhatsApp lo</div>
+                    <div className="mt-2 opacity-90">{te ? "✅ Accept చేస్తే → వాళ్ల number మీకు WhatsApp లో" : "✅ On accept → their number comes to your WhatsApp"}</div>
                     <div className="text-[10px] opacity-70 mt-2 text-right">11:42 ✓✓</div>
                   </div>
                   <div className="bg-[#202c33] text-white text-[12px] rounded-xl p-3 max-w-[80%]">
-                    Profile card + photo ikkade vasthundi 🎴
+{te ? "Profile card + photo ఇక్కడే వస్తుంది 🎴" : "Profile card + photo arrives here 🎴"}
                     <div className="text-[10px] opacity-70 mt-1">attachment: TSAP-M-2025-1042.png</div>
                   </div>
                   <div className="flex gap-2 pt-1">

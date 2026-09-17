@@ -8,9 +8,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Duo, duo } from "@/lib/duo";
+import { useLang } from "@/lib/lang";
 import { TSAP_KEY } from "@/lib/api";
 
 export default function VerifyPage() {
+  const { lang } = useLang();
+  const te = lang === "te";
   const qp = useSearchParams();
   const [tsapId, setTsapId] = useState("");
   const [status, setStatus] = useState("none");
@@ -48,13 +51,13 @@ export default function VerifyPage() {
       const d = await r.json().catch(() => ({}));
       if (!r.ok) {
         const det = d?.detail || d;
-        setMsg(det?.te || det?.en || "Selfie fail — malli try cheyyandi");
+        setMsg(det?.te || det?.en || (te ? "Selfie fail — మళ్లీ try చెయ్యండి" : "Selfie failed — retry"));
       } else {
-        setMsg(d.message_telugu || "Selfie vellindi ✅");
+        setMsg(d.message_telugu || (te ? "Selfie వెళ్లింది ✅" : "Selfie sent ✅"));
         await load();
       }
     } catch {
-      setMsg("Network ledu — malli try cheyyandi");
+      setMsg(te ? "Network లేదు — మళ్లీ try చెయ్యండి" : "No network — retry");
     }
     setBusy(false);
   };
@@ -80,7 +83,7 @@ export default function VerifyPage() {
               </div>
             ) : status === "pending" ? (
               <div className="mt-3 rounded-xl bg-amber-50 border border-amber-300 p-3 text-[13px] telugu">
-                ⏳ <b>{duo("Selfie under review", "సెల్ఫీ పరిశీలనలో ఉంది")}</b> — {duo("admin approve cheyagane badge vastundi", "అడ్మిన్ ఆమోదించగానే బ్యాడ్జ్ వస్తుంది")}
+                ⏳ <b>{duo("Selfie under review", "సెల్ఫీ పరిశీలనలో ఉంది")}</b> — {duo("you get the badge once admin approves", "అడ్మిన్ ఆమోదించగానే బ్యాడ్జ్ వస్తుంది")}
                 <button onClick={() => void load()} className="ml-2 font-bold text-maroon underline">↻</button>
               </div>
             ) : (
@@ -101,13 +104,13 @@ export default function VerifyPage() {
               </>
             )}
             {!tsapId ? (
-              <p className="mt-2 text-[12px] text-amber-700">⚠️ {duo("Login/register ayyaka verify cheyyandi", "లాగిన్/రిజిస్టర్ అయ్యాక ధృవీకరించండి")}</p>
+              <p className="mt-2 text-[12px] text-amber-700">⚠️ {duo("verify after login/register", "లాగిన్/రిజిస్టర్ అయ్యాక ధృవీకరించండి")}</p>
             ) : null}
             {msg ? <p className="mt-2 text-[13px] font-medium text-maroon telugu">{msg}</p> : null}
           </div>
         </div>
         <p className="mt-4 text-[11px] text-gray-500 telugu">
-          {duo("Blur/dark/screenshot selfies auto-reject. Verified badge unna profiles ki 3x ekkuva responses.",
+          {duo("Blur/dark/screenshot selfies auto-reject. Verified profiles get 3x more responses.",
                "బ్లర్/చీకటి/స్క్రీన్‌షాట్ సెల్ఫీలు ఆటో-రిజెక్ట్. ధృవీకరించిన ప్రొఫైళ్లకు 3 రెట్లు ఎక్కువ స్పందనలు.")}
         </p>
       </section>

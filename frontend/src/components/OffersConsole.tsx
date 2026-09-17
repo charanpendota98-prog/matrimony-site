@@ -5,6 +5,7 @@
  */
 import { useEffect, useState } from "react";
 import { authHeaders } from "@/lib/api";
+import { useLang } from "@/lib/lang";
 
 type Row = Record<string, any>;
 const adminToken = () => { try { return localStorage.getItem("tsap_admin_token") || ""; } catch { return ""; } };
@@ -15,6 +16,8 @@ const withToken = (url: string) => {
 const H = () => ({ ...authHeaders(true), "Content-Type": "application/json" });
 
 export default function OffersConsole() {
+  const { lang } = useLang();
+  const te = lang === "te";
   const [items, setItems] = useState<Row[]>([]);
   const [flash, setFlash] = useState("");
   const [f, setF] = useState<Row>({ code: "", title: "", pct_off: "10", flat_off: "", applies_to: "credits,assisted", valid_from: "", valid_to: "", max_uses: "100", min_amount: "", festival: "" });
@@ -45,7 +48,7 @@ export default function OffersConsole() {
     if (r.ok) { setF({ ...f, code: "", title: "" }); void load(); }
   };
   const del = async (code: string) => {
-    if (!confirm(`${code} — promo code ni permanent ga teeseyala?`)) return;
+    if (!confirm(te ? `${code} — promo code ని permanent గా తీసెయ్యాలా?` : `${code} — permanently delete this promo code?`)) return;
     const r = await fetch(withToken(`/api/admin/offers/${encodeURIComponent(code)}`), { method: "DELETE", headers: H() });
     const d = await r.json();
     setFlash(d.message_telugu || d.detail || "done");
@@ -99,7 +102,7 @@ export default function OffersConsole() {
             </span>
           </div>
         ))}
-        {!items.length && <p className="text-xs text-gray-400">Live offers levu — presets ON cheyyandi.</p>}
+        {!items.length && <p className="text-xs text-gray-400">{te ? "Live offers లేవు — presets ON చెయ్యండి." : "No live offers — turn presets ON."}</p>}
       </div>
     </div>
   );

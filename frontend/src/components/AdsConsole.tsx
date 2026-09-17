@@ -5,6 +5,7 @@
  */
 import { useEffect, useState } from "react";
 import { authHeaders } from "@/lib/api";
+import { useLang } from "@/lib/lang";
 
 type Row = Record<string, any>;
 const adminToken = () => {
@@ -16,6 +17,8 @@ const withToken = (url: string) => {
 };
 
 export default function AdsConsole() {
+  const { lang } = useLang();
+  const te = lang === "te";
   const [items, setItems] = useState<Row[]>([]);
   const [status, setStatus] = useState("pending");
   const [stats, setStats] = useState<Row | null>(null);
@@ -36,7 +39,7 @@ export default function AdsConsole() {
 
   const approve = async (id: string) => {
     const u = (utr[id] || "").trim();
-    if (!u) { setFlash("⚠️ UTR lekunda approve cheyyakoodadu"); return; }
+    if (!u) { setFlash(te ? "⚠️ UTR లేకుండా approve చెయ్యకూడదు" : "⚠️ Cannot approve without UTR"); return; }
     const r = await fetch(withToken(`/api/admin/ads/${id}/approve`),
       { method: "POST", headers: { ...authHeaders(true), "Content-Type": "application/json" },
         body: JSON.stringify({ utr: u }) });
@@ -78,8 +81,9 @@ export default function AdsConsole() {
   return (
     <div>
       <p className="telugu mt-2 text-xs text-gray-500">
-        Vendor (photo/decor/mall...) campaign → payment verify → <b>approve</b> chesthe district/state scope lo LIVE.
-        Days ayipothe auto-expire · impressions/clicks auto-track.
+{te ? <>Vendor (photo/decor/mall...) campaign → payment verify → <b>approve</b> చేస్తే district/state scope లో LIVE.
+        Days అయిపోతే auto-expire · impressions/clicks auto-track.</> : <>Vendor (photo/decor/mall...) campaign → payment verify → <b>approve</b> to go LIVE in district/state scope.
+        Auto-expires after days · impressions/clicks auto-tracked.</>}
       </p>
       {stats ? (
         <div className="mt-3 grid grid-cols-2 gap-3 text-center md:grid-cols-6">
@@ -110,7 +114,7 @@ export default function AdsConsole() {
             <th className="p-2">Campaign</th><th>Scope</th><th>Media/Slots</th><th>₹/Days</th><th>Stats</th><th>UTR / Action</th>
           </tr></thead>
           <tbody>
-            {items.length === 0 ? <tr><td colSpan={6} className="p-4 text-center text-gray-500">Ee status lo campaigns levu 🙂</td></tr> : null}
+            {items.length === 0 ? <tr><td colSpan={6} className="p-4 text-center text-gray-500">{te ? "ఈ status లో campaigns లేవు 🙂" : "No campaigns in this status 🙂"}</td></tr> : null}
             {items.map((c) => (
               <tr key={c.id} className="border-b align-top">
                 <td className="p-2">

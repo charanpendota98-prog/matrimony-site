@@ -199,7 +199,7 @@ F = os.path.join(ROOT, "frontend")
 reg_src = open(os.path.join(F, "src", "app", "register", "page.tsx"), encoding="utf-8").read()
 check("F1 family pills canonical", "Upper Middle Class" in reg_src and "Rich / Affluent (Elite)" in reg_src)
 check("F2 about mandatory+counter", "Minimum 50 characters" in reg_src and "minimum 50 characters" in reg_src)
-check("F3 about contact guard", "[6-9]" in reg_src and "pettakandi" in reg_src)
+check("F3 about contact guard", "[6-9]" in reg_src and "పెట్టకండి" in reg_src)
 check("F4 PhotoFlow on success", "PhotoFlow" in reg_src and "<PhotoFlow tsapId={tsap}" in reg_src)
 pf_src = open(os.path.join(F, "src", "components", "PhotoFlow.tsx"), encoding="utf-8").read()
 check("F5 PhotoFlow states", all(x in pf_src for x in

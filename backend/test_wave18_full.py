@@ -142,9 +142,9 @@ section("E. FRONTEND STATIC")
 F = os.path.join(ROOT, "frontend")
 reg_src = open(os.path.join(F, "src", "app", "register", "page.tsx"), encoding="utf-8").read()
 check("E1 register password field+show/hide", "Minimum 6 characters" in reg_src and "Show" in reg_src)
-check("E2 register password validation+submit", "Password minimum 6 characters pettandi" in reg_src
+check("E2 register password validation+submit", "Password minimum 6 characters పెట్టండి" in reg_src
       and '"password"' in reg_src)
-check("E3 99 nudge → pricing", "₹99 ke Sambandham" in reg_src and 'href="/pricing"' in reg_src)
+check("E3 99 nudge → pricing", "₹99 Sambandham" in reg_src and 'href="/pricing"' in reg_src)
 lg_src = open(os.path.join(F, "src", "app", "login", "page.tsx"), encoding="utf-8").read()
 check("E4 login tabs", '"password"' in lg_src and '"otp"' in lg_src and "Member Login" in lg_src)
 check("E5 forgot+reset wired", "/api/auth/forgot" in lg_src and "/api/auth/reset" in lg_src

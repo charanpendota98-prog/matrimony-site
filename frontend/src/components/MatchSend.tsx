@@ -11,6 +11,7 @@
  */
 import { useMemo, useState } from "react";
 import { authHeaders } from "@/lib/api";
+import { useLang } from "@/lib/lang";
 
 type Row = Record<string, any>;
 
@@ -23,6 +24,8 @@ const withToken = (url: string) => {
 };
 
 export default function MatchSend() {
+  const { lang } = useLang();
+  const te = lang === "te";
   const [buyerId, setBuyerId] = useState("");
   const [data, setData] = useState<Row | null>(null);
   const [loading, setLoading] = useState(false);
@@ -55,7 +58,7 @@ export default function MatchSend() {
 
   const load = async () => {
     const id = buyerId.trim().toUpperCase();
-    if (!id) { setFlash("⚠️ Buyer TSAP ID ivvandi"); return; }
+    if (!id) { setFlash(te ? "⚠️ Buyer TSAP ID ఇవ్వండి" : "⚠️ Enter buyer TSAP ID"); return; }
     setLoading(true); setFlash(""); setData(null); setSel({}); setDeliverRes(null); setCopyList("");
     const qs = new URLSearchParams();
     qs.set("age_min", String(fAgeMin)); qs.set("age_max", String(fAgeMax));
@@ -74,11 +77,11 @@ export default function MatchSend() {
       const r = await fetch(withToken(`/api/admin/match-send/${encodeURIComponent(id)}?limit=100&min_score=0&${qs.toString()}`),
         { headers: authHeaders(true) });
       const d = await r.json();
-      if (!r.ok) { setFlash(d.detail || "Load fail ayyindi"); return; }
+      if (!r.ok) { setFlash(d.detail || (te ? "Load fail అయ్యింది" : "Load failed")); return; }
       setData(d);
-      setFlash(`✅ ${d.count} perfect matches load ayyayi`);
+      setFlash(te ? `✅ ${d.count} perfect matches load అయ్యాయి` : `✅ ${d.count} perfect matches loaded`);
       void loadOrders();
-    } catch { setFlash("⚠️ API error — backend check cheyyandi"); }
+    } catch { setFlash(te ? "⚠️ API error — backend check చెయ్యండి" : "⚠️ API error — check backend"); }
     finally { setLoading(false); }
   };
 
@@ -123,13 +126,13 @@ export default function MatchSend() {
       { method: "POST", headers: { ...authHeaders(true), "Content-Type": "application/json" },
         body: JSON.stringify({ buyer_id: data?.buyer?.tsap_id, amount: 500, note: "match-send console" }) });
     const d = await r.json();
-    if (d.success) { setOrderId(d.order.id); setFlash(`✅ Order ${d.order.id} — ₹500 UTR vachhaka paid cheyyandi`); void loadOrders(); }
+    if (d.success) { setOrderId(d.order.id); setFlash(te ? `✅ Order ${d.order.id} — ₹500 UTR వచ్చాక paid చెయ్యండి` : `✅ Order ${d.order.id} — mark paid after ₹500 UTR arrives`); void loadOrders(); }
     else setFlash(d.detail || d.message_telugu || "Order fail");
   };
 
   const markPaid = async () => {
-    if (!orderId) { setFlash("⚠️ Order select/create cheyyandi"); return; }
-    if (!utr.trim()) { setFlash("⚠️ UTR ivvakunda paid cheyyakoodadu"); return; }
+    if (!orderId) { setFlash(te ? "⚠️ Order select/create చెయ్యండి" : "⚠️ Select/create an order"); return; }
+    if (!utr.trim()) { setFlash(te ? "⚠️ UTR ఇవ్వకుండా paid చెయ్యకూడదు" : "⚠️ Cannot mark paid without UTR"); return; }
     const r = await fetch(withToken(`/api/admin/assist-orders/${orderId}/paid`),
       { method: "POST", headers: { ...authHeaders(true), "Content-Type": "application/json" },
         body: JSON.stringify({ utr: utr.trim() }) });
@@ -139,7 +142,7 @@ export default function MatchSend() {
   };
 
   const deliver = async () => {
-    if (!selIds.length) { setFlash("⚠️ Profiles select cheyyandi (☑️)"); return; }
+    if (!selIds.length) { setFlash(te ? "⚠️ Profiles select చెయ్యండి (☑️)" : "⚠️ Select profiles (☑️)"); return; }
     setFlash("⏳ Delivering…");
     const r = await fetch(withToken("/api/admin/match-send/deliver"),
       { method: "POST", headers: { ...authHeaders(true), "Content-Type": "application/json" },
@@ -148,22 +151,22 @@ export default function MatchSend() {
     if (d.success) {
       setDeliverRes(d);
       setCopyList(d.copy_list || "");
-      setFlash(`✅ ${d.delivered} profiles → ${d.buyer_id} (STRICT unlock: ivi mathrame)`);
+      setFlash(te ? `✅ ${d.delivered} profiles → ${d.buyer_id} (STRICT unlock: ఇవి మాత్రమే)` : `✅ ${d.delivered} profiles → ${d.buyer_id} (STRICT unlock: only these)`);
       void loadOrders();
     } else setFlash(d.detail || "Deliver fail");
   };
 
   const refreshCopy = async () => {
-    if (!selIds.length) { setFlash("⚠️ Profiles select cheyyandi"); return; }
+    if (!selIds.length) { setFlash(te ? "⚠️ Profiles select చెయ్యండి" : "⚠️ Select profiles"); return; }
     const r = await fetch(withToken(`/api/admin/match-send/copy-list?buyer=${data?.buyer?.tsap_id}&ids=${selIds.join(",")}&order_id=${orderId}`),
       { headers: authHeaders(true) });
     const d = await r.json();
-    if (d.success) { setCopyList(d.text); setFlash(`📋 Copy-list ready (${d.count} profiles)`); }
+    if (d.success) { setCopyList(d.text); setFlash(te ? `📋 Copy-list ready (${d.count} profiles)` : `📋 Copy-list ready (${d.count} profiles)`); }
     else setFlash(d.detail || "Copy-list fail");
   };
 
   const linkTg = async () => {
-    if (!tgChat.trim()) { setFlash("⚠️ Buyer Telegram chat ID (/myid) ivvandi"); return; }
+    if (!tgChat.trim()) { setFlash(te ? "⚠️ Buyer Telegram chat ID (/myid) ఇవ్వండి" : "⚠️ Enter buyer Telegram chat ID (/myid)"); return; }
     const r = await fetch(withToken("/api/admin/link-telegram"),
       { method: "POST", headers: { ...authHeaders(true), "Content-Type": "application/json" },
         body: JSON.stringify({ buyer_id: data?.buyer?.tsap_id, chat_id: tgChat.trim() }) });
@@ -184,7 +187,7 @@ export default function MatchSend() {
     <div>
       <p className="telugu mt-2 text-xs text-gray-500">
         Buyer ID → perfect matches → filters → ☑️ select → ₹500 order (UTR) → 📩 Telegram / 💬 WhatsApp send.
-        Pampina profiles <b>mathrame</b> buyer ki unlock — bot lo <b>/mylist</b> lo ivi matrame kanipisthayi.
+{te ? <>పంపిన profiles <b>మాత్రమే</b> buyer కి unlock — bot లో <b>/mylist</b> లో ఇవి మాత్రమే కనిపిస్తాయి.</> : <>Only sent profiles unlock for the buyer — only these show in the bot <b>/mylist</b>.</>}
       </p>
 
       {/* buyer load */}
@@ -212,7 +215,7 @@ export default function MatchSend() {
               <div className="mt-1">
                 {data.buyer.telegram_linked
                   ? <span className="rounded-full bg-green-100 px-2 py-0.5 text-[11px] text-green-700">📩 Telegram linked ({data.buyer.telegram_chat_id})</span>
-                  : <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] text-amber-800">⚠️ Telegram link ledu — kinda link cheyyandi</span>}
+                  : <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] text-amber-800">{te ? "⚠️ Telegram link లేదు — కింద link చెయ్యండి" : "⚠️ Telegram not linked — link below"}</span>}
               </div>
               <div className="mt-2 flex gap-2">
                 <input value={tgChat} onChange={(e) => setTgChat(e.target.value)} placeholder="Buyer /myid (chat id)"
@@ -238,7 +241,7 @@ export default function MatchSend() {
                   aria-label="UTR" className="w-44 rounded-lg border px-2 py-1.5" />
                 <button onClick={() => void markPaid()} className="rounded-lg bg-green-600 px-3 py-1.5 font-bold text-white">✅ Paid</button>
               </div>
-              <p className="mt-1 text-[11px] text-gray-500">Order lekunda deliver chesthe → admin-gift grant (audit lo record).</p>
+              <p className="mt-1 text-[11px] text-gray-500">{te ? "Order లేకుండా deliver చేస్తే → admin-gift grant (audit లో record)." : "Delivering without order → admin-gift grant (recorded in audit)."}</p>
             </div>
           </div>
 
@@ -250,28 +253,28 @@ export default function MatchSend() {
               <span>–</span>
               <label><input type="number" value={fAgeMax} onChange={(e) => setFAgeMax(Number(e.target.value))} aria-label="Max age" className="w-14 rounded-lg border px-1 py-1" /></label>
               <select value={fCaste} onChange={(e) => setFCaste(e.target.value)} aria-label="Caste" className="rounded-lg border px-2 py-1">
-                <option value="">Caste: anni</option>{castes.map((c) => <option key={c} value={c}>{c}</option>)}
+                <option value="">{te ? "Caste: అన్నీ" : "Caste: all"}</option>{castes.map((c) => <option key={c} value={c}>{c}</option>)}
               </select>
               <select value={fDistrict} onChange={(e) => setFDistrict(e.target.value)} aria-label="District" className="rounded-lg border px-2 py-1">
-                <option value="">District: anni</option>{districts.map((c) => <option key={c} value={c}>{c}</option>)}
+                <option value="">{te ? "District: అన్నీ" : "District: all"}</option>{districts.map((c) => <option key={c} value={c}>{c}</option>)}
               </select>
               <select value={fMarital} onChange={(e) => setFMarital(e.target.value)} aria-label="Marital" className="rounded-lg border px-2 py-1">
-                <option value="">Marital: anni</option><option>Pelli Kaledu</option><option>Vivaha Bandham</option><option>Vithanthuvu</option><option>Vidower</option>
+                <option value="">{te ? "Marital: అన్నీ" : "Marital: all"}</option><option>Pelli Kaledu</option><option>Vivaha Bandham</option><option>Vithanthuvu</option><option>Vidower</option>
               </select>
               <label className="flex items-center gap-1"><input type="checkbox" checked={fVerified} onChange={(e) => setFVerified(e.target.checked)} /> ✅ verified</label>
               <label className="flex items-center gap-1"><input type="checkbox" checked={fPhoto} onChange={(e) => setFPhoto(e.target.checked)} /> 📸 photo</label>
               <select value={fReligion} onChange={(e) => setFReligion(e.target.value)} aria-label="Religion" className="rounded-lg border px-2 py-1">
-                <option value="">Religion: anni</option><option>Hindu</option><option>Muslim</option><option>Christian</option>
+                <option value="">{te ? "Religion: అన్నీ" : "Religion: all"}</option><option>Hindu</option><option>Muslim</option><option>Christian</option>
               </select>
               <select value={fState} onChange={(e) => setFState(e.target.value)} aria-label="State" className="rounded-lg border px-2 py-1">
-                <option value="">State: anni</option><option>TS</option><option>AP</option>
+                <option value="">{te ? "State: అన్నీ" : "State: all"}</option><option>TS</option><option>AP</option>
               </select>
               <input value={fJob} onChange={(e) => setFJob(e.target.value)} placeholder="Job (Software/Doctor…)"
                 aria-label="Job" className="w-32 rounded-lg border px-2 py-1" />
               <input value={fSalary} onChange={(e) => setFSalary(e.target.value.replace(/\D/g, ""))} placeholder="Min salary ₹"
                 aria-label="Min salary" inputMode="numeric" className="w-24 rounded-lg border px-2 py-1" />
               <select value={fNri} onChange={(e) => setFNri(e.target.value)} aria-label="NRI" className="rounded-lg border px-2 py-1">
-                <option value="">✈️ NRI: anni</option><option value="only">✈️ NRI ONLY</option><option value="exclude">NRI vaddu</option>
+                <option value="">{te ? "✈️ NRI: అన్నీ" : "✈️ NRI: all"}</option><option value="only">✈️ NRI ONLY</option><option value="exclude">{te ? "NRI వద్దు" : "No NRI"}</option>
               </select>
               <button onClick={() => void load()} disabled={loading}
                 className="rounded-lg bg-[#7A0C2E] px-3 py-1 font-bold text-white disabled:opacity-60">
@@ -282,7 +285,7 @@ export default function MatchSend() {
             </div>
             <div className="mt-2 flex items-center gap-2 text-xs">
               <b className="text-[#7A0C2E]">{filtered.length}/{results.length} profiles</b>{data.filters_skipped ? <span className="text-gray-500"> · 🔍 {data.filters_skipped} server-filter skip</span> : null}
-              <button onClick={() => selectAll(true)} className="rounded-full bg-gray-200 px-3 py-1">☑️ anni select</button>
+              <button onClick={() => selectAll(true)} className="rounded-full bg-gray-200 px-3 py-1">{te ? "☑️ అన్నీ select" : "☑️ select all"}</button>
               <button onClick={() => selectAll(false)} className="rounded-full bg-gray-200 px-3 py-1">⬜ clear</button>
               <b>Selected: {selIds.length}</b>
             </div>
@@ -298,7 +301,7 @@ export default function MatchSend() {
               </thead>
               <tbody>
                 {filtered.length === 0 ? (
-                  <tr><td colSpan={5} className="p-4 text-center text-gray-500">Filters ki match ayye profiles levu 🙂</td></tr>
+                  <tr><td colSpan={5} className="p-4 text-center text-gray-500">{te ? "Filters కి match అయ్యే profiles లేవు 🙂" : "No profiles match the filters 🙂"}</td></tr>
                 ) : filtered.map((x) => (
                   <tr key={x.tsap_id} className={`border-t ${sel[x.tsap_id] ? "bg-emerald-50" : ""}`}>
                     <td className="p-2 text-center">

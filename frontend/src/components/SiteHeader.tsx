@@ -9,26 +9,47 @@ import { apiGet } from "@/lib/api";
 import { Duo, duo } from "@/lib/duo";
 import { LangToggle, useLang } from "@/lib/lang";
 
-const NAV: { href: string; en: string; te: string; icon: string; xl?: boolean }[] = [
+type NavItem = { href: string; en: string; te: string; icon: string; xl?: boolean };
+
+/* Desktop pills — trimmed to the 10 most-used (rest live in the menu card) */
+const NAV_MAIN: NavItem[] = [
   { href: "/", en: "Home", te: "హోమ్", icon: "🏠" },
-  { href: "/channels", en: "Channels", te: "ఛానళ్లు", icon: "📢" },
-  { href: "/pricing", en: "Pricing", te: "ధరలు", icon: "💰" },
-  { href: "/vendors", en: "Vendors", te: "వెండర్లు", icon: "🏪" },
-  { href: "/porutham", en: "Porutham", te: "పొరుతం", icon: "💍", xl: true },
-  { href: "/safety", en: "Safety", te: "భద్రత", icon: "🛡️", xl: true },
-  { href: "/requests", en: "Requests", te: "రిక్వెస్టులు", icon: "💌" },
-  { href: "/growth", en: "Growth", te: "గ్రోత్", icon: "📈" },
-  { href: "/castes", en: "Castes", te: "కులాలు", icon: "🪔" },
   { href: "/matches", en: "Matches", te: "సంబంధాలు", icon: "💘" },
-  { href: "/stories", en: "Stories", te: "కథలు", icon: "💑" },
+  { href: "/requests", en: "Requests", te: "రిక్వెస్టులు", icon: "💌" },
+  { href: "/channels", en: "Channels", te: "ఛానళ్లు", icon: "📢" },
+  { href: "/castes", en: "Castes", te: "కులాలు", icon: "🪔" },
+  { href: "/pricing", en: "Pricing", te: "ధరలు", icon: "💰" },
   { href: "/referral", en: "Referral", te: "రెఫరల్", icon: "🤝" },
-  { href: "/bureau", en: "Bureau", te: "బ్యూరో", icon: "🏛️" },
+  { href: "/stories", en: "Stories", te: "కథలు", icon: "💑", xl: true },
+  { href: "/vendors", en: "Vendors", te: "వెండర్లు", icon: "🏪", xl: true },
+  { href: "/safety", en: "Safety", te: "భద్రత", icon: "🛡️", xl: true },
+];
+
+const NAV_EARN: NavItem[] = [
+  { href: "/referral", en: "Referral dashboard", te: "రెఫరల్ డాష్‌బోర్డ్", icon: "🤝" },
+  { href: "/referral/register", en: "Become a referrer", te: "రెఫరర్‌గా చేరండి", icon: "🎁" },
+  { href: "/bureau", en: "Bureau (B2B)", te: "బ్యూరో (B2B)", icon: "🏛️" },
+  { href: "/vendors", en: "Vendors", te: "వెండర్లు", icon: "🏪" },
+  { href: "/vendors/register", en: "List your business", te: "మీ business చేర్చండి", icon: "📝" },
+];
+
+const NAV_MORE: NavItem[] = [
+  { href: "/porutham", en: "Porutham", te: "పొరుతం", icon: "💍" },
+  { href: "/stories", en: "Stories", te: "కథలు", icon: "💑" },
+  { href: "/safety", en: "Safety", te: "భద్రత", icon: "🛡️" },
+  { href: "/verify", en: "Verify profile", te: "Profile verify", icon: "✅" },
+];
+
+const NAV_TEAM: NavItem[] = [
   { href: "/admin", en: "Admin", te: "అడ్మిన్", icon: "🔐" },
+  { href: "/growth", en: "Growth (leads)", te: "గ్రోత్ (leads)", icon: "📈" },
+  { href: "/admin/photos", en: "Photo review", te: "Photo review", icon: "📸" },
 ];
 
 export default function SiteHeader() {
   const pathname = usePathname();
   const { lang } = useLang();
+  const te = lang === "te";
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   // 🔐 WAVE 13 — persistent session chip (login ayithe eppudu kanipisthundi)
@@ -51,8 +72,35 @@ export default function SiteHeader() {
     setOpen(false);
   }, [pathname]);
 
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open ]);
+
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
+
+  const groupTitle = (en: string, teL: string) => (
+    <div className="px-4 pt-3 pb-1 text-[10px] font-extrabold uppercase tracking-[0.14em] text-gold-deep">
+      {te ? teL : en}
+    </div>
+  );
+
+  const menuLink = (n: NavItem) => (
+    <Link
+      key={n.href}
+      href={n.href}
+      className={`flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-sm font-semibold transition ${
+        isActive(n.href) ? "bg-maroon text-white shadow-soft" : "text-ink/80 hover:bg-white"
+      }`}
+    >
+      <span className="w-6 text-center">{n.icon}</span>
+      <Duo en={n.en} te={n.te} />
+      {isActive(n.href) && <span className="ml-auto text-[10px] opacity-80">●</span>}
+    </Link>
+  );
 
   return (
     <header
@@ -75,8 +123,8 @@ export default function SiteHeader() {
         </Link>
 
         {/* Desktop nav */}
-        <nav className="hidden lg:flex items-center gap-1">
-          {NAV.map((n) => (
+        <nav className="hidden lg:flex items-center gap-1" aria-label="Main">
+          {NAV_MAIN.map((n) => (
             <Link
               key={n.href}
               href={n.href}
@@ -87,7 +135,7 @@ export default function SiteHeader() {
                   : "text-ink/75 hover:text-maroon hover:bg-maroon-soft"
               }`}
             >
-              {n.icon} {lang === "te" ? n.te : n.en}
+              {n.icon} {te ? n.te : n.en}
             </Link>
           ))}
         </nav>
@@ -96,10 +144,10 @@ export default function SiteHeader() {
         <div className="flex items-center gap-2">
           <LangToggle compact />
           <Link
-            href="/search/TSAP-M-2025-1042"
+            href="/porutham"
             className="hidden md:inline-flex px-3.5 py-2 text-[13px] font-semibold border border-maroon/30 text-maroon rounded-full hover:bg-maroon-soft transition"
           >
-            <Duo en="ID Search" te="వెతకండి" />
+            💍 <Duo en="Porutham" te="పొరుతం" />
           </Link>
           {ready && tsapId && sessionOk ? (
             <span className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 text-[13px] font-semibold border border-emerald-300 bg-emerald-50 text-emerald-800 rounded-full">
@@ -127,8 +175,9 @@ export default function SiteHeader() {
             <Duo en="Register FREE" te="ఉచిత నమోదు" />
           </Link>
           <button
-            aria-label="Menu"
+            aria-label={te ? "మెనూ" : "Menu"}
             aria-expanded={open}
+            aria-controls="mobile-menu"
             onClick={() => setOpen((v) => !v)}
             className="lg:hidden w-10 h-10 rounded-xl border border-maroon/20 flex items-center justify-center text-maroon focus-brand"
           >
@@ -153,30 +202,36 @@ export default function SiteHeader() {
         </div>
       </div>
 
-      {/* Mobile drawer */}
+      {/* Mobile menu card — grouped + scrollable */}
       <div
+        id="mobile-menu"
         className={`lg:hidden overflow-hidden transition-all duration-300 ${
-          open ? "max-h-[420px]" : "max-h-0"
+          open ? "max-h-[75vh]" : "max-h-0"
         }`}
       >
-        <div className="glass border-t border-gold/25 px-4 py-3 space-y-1">
-          {NAV.map((n) => (
+        <div className="glass border-t border-gold/25 px-4 pt-1 pb-4 max-h-[75vh] overflow-y-auto overscroll-contain menu-scroll">
+          {groupTitle("Main", "మెయిన్")}
+          <div className="space-y-1">
+            {NAV_MAIN.filter((n) => !n.xl).map(menuLink)}
+          </div>
+          {groupTitle("Earn", "సంపాదించండి")}
+          <div className="space-y-1">
+            {NAV_EARN.map(menuLink)}
+          </div>
+          {groupTitle("More", "మరిన్ని")}
+          <div className="space-y-1">
+            {NAV_MORE.map(menuLink)}
+          </div>
+          {groupTitle("Team", "టీమ్")}
+          <div className="space-y-1">
+            {NAV_TEAM.map(menuLink)}
+          </div>
+          <div className="flex gap-2 pt-3">
             <Link
-              key={n.href}
-              href={n.href}
-              className={`block px-4 py-3 rounded-xl text-sm font-semibold ${
-                isActive(n.href) ? "bg-maroon text-white" : "text-ink/80 hover:bg-white"
-              }`}
-            >
-              {n.icon} <Duo en={n.en} te={n.te} />
-            </Link>
-          ))}
-          <div className="flex gap-2 pt-2">
-            <Link
-              href="/search/TSAP-M-2025-1042"
+              href="/matches"
               className="flex-1 text-center px-4 py-3 rounded-xl border border-maroon/25 text-maroon text-sm font-bold"
             >
-              <Duo en="ID Search" te="వెతకండి" />
+              <Duo en="🔍 Search matches" te="🔍 సంబంధాలు వెతకండి" />
             </Link>
             <a
               href={SITE_CONFIG.botUrl}
@@ -187,7 +242,7 @@ export default function SiteHeader() {
               Telegram Bot
             </a>
           </div>
-          <div className="flex justify-center pt-2">
+          <div className="flex justify-center pt-3">
             <LangToggle />
           </div>
           <div className="text-[11px] text-center text-gray-500 pt-1">

@@ -5,6 +5,7 @@
  */
 import { useEffect, useState } from "react";
 import { authHeaders } from "@/lib/api";
+import { useLang } from "@/lib/lang";
 
 type Row = Record<string, any>;
 const adminToken = () => {
@@ -16,6 +17,8 @@ const withToken = (url: string) => {
 };
 
 export default function AstroConsole() {
+  const { lang } = useLang();
+  const te = lang === "te";
   const [bride, setBride] = useState("");
   const [groom, setGroom] = useState("");
   const [guna, setGuna] = useState<Row | null>(null);
@@ -40,8 +43,8 @@ export default function AstroConsole() {
   useEffect(() => { void loadStats(); void loadQueue(""); }, []);
 
   const checkGuna = async () => {
-    if (!bride.trim() || !groom.trim()) { setFlash("⚠️ Bride + Groom IDs ivvandi"); return; }
-    setFlash("⏳ Guna chusthunnam…");
+    if (!bride.trim() || !groom.trim()) { setFlash(te ? "⚠️ Bride + Groom IDs ఇవ్వండి" : "⚠️ Enter Bride + Groom IDs"); return; }
+    setFlash(te ? "⏳ Guna చూస్తున్నాం…" : "⏳ Checking guna…");
     const r = await fetch(`/api/astro/guna?bride_id=${encodeURIComponent(bride.trim().toUpperCase())}&groom_id=${encodeURIComponent(groom.trim().toUpperCase())}`);
     const d = await r.json();
     if (!r.ok) { setFlash(d.detail || "Fail"); setGuna(null); return; }
@@ -61,7 +64,7 @@ export default function AstroConsole() {
   return (
     <div>
       <p className="telugu mt-2 text-xs text-gray-500">
-        36-guna Ashtakoota (classical) + dosha screening + jathakam pandit-verify. Star/rasi lekapothe honest ga cheptundi (guess vaddu).
+        {te ? "36-guna Ashtakoota (classical) + dosha screening + jathakam pandit-verify. Star/rasi లేకపోతే honest గా చెప్తుంది (guess వద్దు)." : "36-guna Ashtakoota (classical) + dosha screening + pandit-verified jathakam. Says so honestly when star/rasi is missing (no guessing)."}
       </p>
       {stats ? (
         <div className="mt-3 grid grid-cols-2 gap-3 text-center md:grid-cols-5">

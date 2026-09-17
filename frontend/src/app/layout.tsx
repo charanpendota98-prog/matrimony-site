@@ -6,6 +6,7 @@ import StickyCTA from "@/components/StickyCTA";
 import { CHANNEL_STATS } from "@/lib/channels";
 import PWA from "@/components/PWA";
 import SupportWidget from "@/components/SupportWidget";
+import BackToTop from "@/components/BackToTop";
 import { LangProvider } from "@/lib/lang";
 
 const SITE = process.env.SITE_URL || "https://manavivaha.in";
@@ -13,11 +14,11 @@ const SITE = process.env.SITE_URL || "https://manavivaha.in";
 export const metadata: Metadata = {
   metadataBase: new URL(SITE),
   title: {
-    default: "Mana Vivaha — TS-AP No.1 Telugu Matrimony | ₹99 ke Sambandham | Modati 3 FREE",
+    default: "Mana Vivaha — TS-AP No.1 Telugu Matrimony | ₹99 Sambandham | First 3 Profiles FREE",
     template: "%s | Mana Vivaha (TSAP Matrimony)",
   },
   description:
-    `Telangana + Andhra Pradesh No.1 Telugu Matrimony. ${CHANNEL_STATS.total} channels — 4 main (TS/AP × Bride/Groom), caste-wise (bride/groom separate), religion, special. ₹99 ke Sambandham, modati 3 numbers FREE, photo-private, DOB verified, Telegram + WhatsApp auto-post. 3 min lo register!`,
+`Telangana + Andhra Pradesh No.1 Telugu Matrimony. ${CHANNEL_STATS.total} channels — 4 main (TS/AP × Bride/Groom), caste-wise (bride/groom separate), religion, special. ₹99 Sambandham, first 3 profiles FREE, photo-private, DOB verified, Telegram + WhatsApp auto-post. Register in 3 minutes!`,
   keywords: [
     "Telugu matrimony", "TS matrimony", "AP matrimony", "Reddy matrimony", "Kamma matrimony",
     "Kapu matrimony", "Madiga matrimony", "Lambada matrimony", "Muslim matrimony Telugu",
@@ -32,14 +33,14 @@ export const metadata: Metadata = {
     locale: "te_IN",
     url: SITE,
     siteName: "Mana Vivaha — TSAP Matrimony",
-    title: "Mana Vivaha — TS-AP No.1 Telugu Matrimony | ₹99 ke Sambandham",
+    title: "Mana Vivaha — TS-AP No.1 Telugu Matrimony | ₹99 Sambandham",
     description:
-      `${CHANNEL_STATS.total} channels, 43 castes (top castes ki bride/groom separate), ₹99 lo 5 numbers, modati 3 FREE. Photo-private + DOB verified.`,
+`${CHANNEL_STATS.total} channels, 43 castes (top castes with bride/groom separate), ₹99 → 5 profiles, first 3 FREE. Photo-private + DOB verified.`,
   },
   twitter: {
     card: "summary_large_image",
     title: "Mana Vivaha — TS-AP Telugu Matrimony",
-    description: `₹99 ke Sambandham • Modati 3 FREE • ${CHANNEL_STATS.total} channels • caste prakaram`,
+    description: `₹99 Sambandham • First 3 FREE • ${CHANNEL_STATS.total} channels • caste-wise`,
   },
   robots: { index: true, follow: true },
   manifest: "/manifest.webmanifest",
@@ -72,9 +73,10 @@ export default function RootLayout({
           <SiteHeader />
           <main className="flex-1">{children}</main>
           <SiteFooter />
-          <StickyCTA />
+<StickyCTA />
           <PWA />
           <SupportWidget />
+          <BackToTop />
         </LangProvider>
       </body>
     </html>

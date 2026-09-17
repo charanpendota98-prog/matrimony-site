@@ -3,8 +3,11 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ALL_CHANNELS, CHANNEL_STATS, CHANNEL_TIERS, Channel } from "@/lib/channels";
 import { Duo, duo } from "@/lib/duo";
+import { useLang } from "@/lib/lang";
 
 export default function ChannelsPage() {
+  const { lang } = useLang();
+  const te = lang === "te";
   const [liveLinks, setLiveLinks] = useState<Record<string, { telegram?: string; whatsapp?: string }>>({});
   const [tier, setTier] = useState<string>("ALL");
   const [wave, setWave] = useState<number | 0>(0);
@@ -55,7 +58,7 @@ export default function ChannelsPage() {
     try {
       const d = await fetch(`/api/channels/${key}/kit`).then((r) => r.json());
       setKit({ key, data: d });
-    } catch { setKit({ key, data: { error: "Kit load avvaledu — API check cheyyandi" } }); }
+    } catch { setKit({ key, data: { error: te ? "Kit load అవ్వలేదు — API check చెయ్యండి" : "Kit failed to load — check API" } }); }
   };
   const copy = (label: string, text: string) => {
     navigator.clipboard?.writeText(text);
@@ -68,8 +71,8 @@ export default function ChannelsPage() {
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
-          <Link href="/" className="text-sm font-bold text-[#7A0C2E]">← Home</Link>
-          <div className="font-bold text-[#7A0C2E]">📂 Channels — {CHANNEL_STATS.total} total</div>
+          <Link href="/" className="text-sm font-bold text-[#7A0C2E]">← {te ? "హోమ్" : "Home"}</Link>
+          <div className="font-bold text-[#7A0C2E]">📂 {te ? "Channels" : "Channels"} — {CHANNEL_STATS.total} total</div>
           <Link href="/register" className="text-xs bg-[#7A0C2E] text-white px-3 py-1 rounded-full">Register FREE</Link>
         </div>
 
@@ -77,7 +80,7 @@ export default function ChannelsPage() {
         <div className="maroon-gradient rounded-[1.5rem] p-6 text-white">
           <h1 className="font-bold text-xl">📢 <Duo en="Mana Vivaha — Master Channel Network" te="మాస్టర్ ఛానల్ నెట్‌వర్క్" /></h1>
           <p className="text-xs mt-1 opacity-90">
-            One profile post → auto ga anni relevant channels lo ki. **4 main (TS/AP × Bride/Groom)** + **Muslim 4 (TS/AP × Bride/Groom)** + **Christian 4** + **caste clusters** (pedda communities ki bride/groom separate, chinna sub-castes grouped) + special — {CHANNEL_STATS.total} channels.
+{te ? <>One profile post → auto గా అన్ని relevant channels లోకి. **4 main (TS/AP × Bride/Groom)** + **Muslim 4** + **Christian 4** + **caste clusters** (పెద్ద communities కి bride/groom separate, చిన్న sub-castes grouped) + special — {CHANNEL_STATS.total} channels.</> : <>One profile post → automatically into all relevant channels. **4 main (TS/AP × Bride/Groom)** + **Muslim 4** + **Christian 4** + **caste clusters** (big communities get bride/groom separate, small sub-castes grouped) + special — {CHANNEL_STATS.total} channels.</>}
           </p>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mt-4">
             {[
@@ -104,10 +107,10 @@ export default function ChannelsPage() {
             &nbsp;(max 5 channels • #Reddy #Telangana #Bride #Nalgonda #Age24)
           </div>
           <div className="grid md:grid-cols-4 gap-2 mt-3 text-[11px]">
-            <div className="bg-gray-50 rounded-lg p-2">Muslim / Christian → religion channel, caste channel skip ✅</div>
-            <div className="bg-gray-50 rounded-lg p-2">Caste unte → general Hindu hub skip (duplicate oddu) ✅</div>
-            <div className="bg-gray-50 rounded-lg p-2">Divorcee / Handicapped / 35+ → special channels ✅</div>
-            <div className="bg-gray-50 rounded-lg p-2">Govt / Software / Doctors / Teachers → job channels ✅</div>
+            <div className="bg-gray-50 rounded-lg p-2">{te ? "Muslim / Christian → religion channel, caste channel skip ✅" : "Muslim / Christian → religion channel, caste channel skipped ✅"}</div>
+            <div className="bg-gray-50 rounded-lg p-2">{te ? "Caste ఉంటే → general Hindu hub skip (duplicate వద్దు) ✅" : "If caste known → general Hindu hub skipped (no duplicates) ✅"}</div>
+            <div className="bg-gray-50 rounded-lg p-2">{te ? "Divorcee / Handicapped / 35+ → special channels ✅" : "Divorcee / Handicapped / 35+ → special channels ✅"}</div>
+            <div className="bg-gray-50 rounded-lg p-2">{te ? "Govt / Software / Doctors / Teachers → job channels ✅" : "Govt / Software / Doctors / Teachers → job channels ✅"}</div>
           </div>
         </div>
 
@@ -130,7 +133,7 @@ export default function ChannelsPage() {
           </div>
           <div className="flex flex-wrap gap-2 mt-2 items-center">
             <span className="text-[11px] font-bold text-gray-500">Wave:</span>
-            {[0, 1, 2, 3, 4].map(w => (
+            {[0, 1, 2, 3].map(w => (
               <button key={w} onClick={() => setWave(w as number | 0)}
                 className={`px-3 py-1 rounded-full text-[11px] font-bold border ${wave === w ? "bg-[#D4AF37] text-[#7A0C2E]" : "bg-white"}`}>
                 {w === 0 ? "All" : `W${w}`}
@@ -140,16 +143,16 @@ export default function ChannelsPage() {
             {(["all", "Bride", "Groom"] as const).map((g) => (
               <button key={g} onClick={() => setGender(g)}
                 className={`px-3 py-1 rounded-full text-[11px] font-bold border ${gender === g ? "bg-[#7A0C2E] text-white" : "bg-white"}`}>
-                {g === "all" ? "Anni" : g === "Bride" ? "👰 Bride" : "🤵 Groom"}
+                {g === "all" ? (te ? "అన్నీ" : "All") : g === "Bride" ? "👰 Bride" : "🤵 Groom"}
               </button>
             ))}
             <label className="ml-auto flex items-center gap-2 text-[11px] font-bold">
               <input type="checkbox" checked={onlyLive} onChange={e => setOnlyLive(e.target.checked)} aria-label="Text input" />
-              LIVE matrame chupinchu
+              {te ? "LIVE మాత్రమే చూపించు" : "Show LIVE only"}
             </label>
           </div>
           <div className="text-[11px] text-gray-500 mt-2 flex flex-wrap items-center gap-2">
-            <span>{list.length} channels kanipisthunnayi</span>
+            <span>{te ? <>{list.length} channels కనిపిస్తున్నాయి</> : <>{list.length} channels showing</>}</span>
             {tier !== "ALL" && <span className="px-2 py-0.5 rounded-full bg-maroon-soft text-maroon font-bold">{tier.replace("_", " ")}</span>}
             {wave !== 0 && <span className="px-2 py-0.5 rounded-full bg-gold-soft text-maroon font-bold">Wave {wave}</span>}
             {q && <span className="px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 font-bold">“{q}”</span>}
@@ -158,10 +161,10 @@ export default function ChannelsPage() {
                 onClick={() => { setTier("ALL"); setWave(0); setQ(""); setOnlyLive(false); }}
                 className="px-2 py-0.5 rounded-full border border-maroon/30 text-maroon font-bold"
               >
-                ✕ filters clear
+                {te ? "✕ filters clear" : "✕ clear filters"}
               </button>
             )}
-            <span className="text-gray-400">• per channel ki bot admin + pinned post must</span>
+            <span className="text-gray-400">{te ? "• per channel కి bot admin + pinned post must" : "• each channel needs bot admin + pinned post"}</span>
           </div>
         </div>
 
@@ -170,7 +173,7 @@ export default function ChannelsPage() {
           <div className="mt-4 bg-white rounded-[1.5rem] p-5 card-shadow border-2 border-[#D4AF37]/40">
             <div className="flex items-center justify-between gap-2">
               <div className="font-bold text-[#7A0C2E] text-sm">📋 Channel kit — {kit.data?.name || kit.key}</div>
-              <button onClick={() => setKit(null)} className="px-3 py-1 rounded-full border text-[11px] font-bold">✕ moosu</button>
+              <button onClick={() => setKit(null)} className="px-3 py-1 rounded-full border text-[11px] font-bold">{te ? "✕ మూసెయ్" : "✕ close"}</button>
             </div>
             {kit.data?.error ? <div className="text-[12px] text-red-600 mt-2">{kit.data.error}</div> : (
               <div className="space-y-3 mt-3">
@@ -179,7 +182,7 @@ export default function ChannelsPage() {
                   <a href={kit.data.link} target="_blank" rel="noreferrer" className="px-2 py-1 bg-[#FFF8E7] rounded-full font-bold underline">t.me link</a>
                   <span className="px-2 py-1 bg-[#FFF8E7] rounded-full font-bold">Wave {kit.data.wave}</span>
                   <span className={`px-2 py-1 rounded-full font-bold ${kit.data.live ? "bg-green-100 text-green-700" : "bg-gray-100"}`}>
-                    {kit.data.live ? "LIVE ✅" : "create cheyyali"}
+                    {kit.data.live ? "LIVE ✅" : te ? "create చెయ్యాలి" : "to create"}
                   </span>
                 </div>
                 <div className="bg-[#FFF8E7] rounded-2xl p-3">
@@ -199,7 +202,7 @@ export default function ChannelsPage() {
                       <div className="text-[11px] font-bold text-[#7A0C2E]">{label}</div>
                       <button onClick={() => copy(label, text)}
                         className="px-3 py-1 rounded-full bg-[#7A0C2E] text-white text-[10px] font-bold">
-                        {copied === label ? "✅ copy ayyindi" : "📋 copy"}
+                        {copied === label ? (te ? "✅ copy అయ్యింది" : "✅ copied") : "📋 copy"}
                       </button>
                     </div>
                     <pre className="text-[10px] whitespace-pre-wrap mt-2 text-gray-700 max-h-56 overflow-y-auto telugu">{text}</pre>
@@ -252,7 +255,7 @@ export default function ChannelsPage() {
                               className="px-3 py-1.5 bg-green-600 text-white rounded-full text-[11px] font-bold">WhatsApp</a>
                           ) : null}
                           <a href={c.deepLink} target="_blank" rel="noreferrer"
-                            className="px-3 py-1.5 border border-[#7A0C2E] text-[#7A0C2E] rounded-full text-[11px] font-bold">Bot tho join</a>
+                            className="px-3 py-1.5 border border-[#7A0C2E] text-[#7A0C2E] rounded-full text-[11px] font-bold">{te ? "Bot తో join" : "Join via bot"}</a>
                           <button onClick={() => loadKit(c.key)}
                             className="px-3 py-1.5 bg-[#D4AF37] text-[#7A0C2E] rounded-full text-[11px] font-bold">📋 Kit</button>
                         </>
@@ -278,19 +281,18 @@ export default function ChannelsPage() {
 
         {list.length === 0 && (
           <div className="mt-4 bg-white rounded-[1.5rem] p-8 text-center text-sm text-gray-500">
-            Ee filter ki channels levu — verovati try chey 🔍
+            {te ? "ఈ filter కి channels లేవు — వేరొకటి try చెయ్ 🔍" : "No channels for this filter — try another 🔍"}
           </div>
         )}
 
         {/* Creation waves */}
         <div className="mt-4 bg-[#0F1F3C] text-white rounded-[1.5rem] p-6">
-          <h3 className="font-bold text-[#D4AF37]">🚀 Creation Waves — ee order lo cheyyi</h3>
+          <h3 className="font-bold text-[#D4AF37]">{te ? "🚀 Creation Waves — ఈ order లో చెయ్యి" : "🚀 Creation Waves — do in this order"}</h3>
           <div className="grid md:grid-cols-4 gap-3 mt-3 text-xs">
             {[
               { w: 1, t: "Day 1-3", d: "Official + TS/AP Bride&Groom + Reddy, Kamma, Kapu, Velama" },
               { w: 2, t: "Week 1-2", d: "Vysya, Brahmin, Goud, Yadav, Mala, Madiga, Lambada + Muslim, Christian, 2nd marriage, Govt" },
-              { w: 3, t: "Week 3-4", d: "Migitha BC castes + Doctors, Software, 35+, Success, Alerts, Bureau" },
-              { w: 4, t: "Month 2", d: "SC/ST + chinnadi castes + Other religions — 65 complete" },
+              { w: 3, t: "Week 3-4", d: te ? "మిగతా BC castes + SC/ST + Doctors, Software, 35+, Success, Alerts, Bureau — 52 complete" : "Remaining BC castes + SC/ST + Doctors, Software, 35+, Success, Alerts, Bureau — 52 complete" },
             ].map(x => (
               <div key={x.w} className="bg-white/10 rounded-xl p-3">
                 <div className="font-bold text-[#D4AF37]">Wave-{x.w} • {x.t}</div>
@@ -300,16 +302,16 @@ export default function ChannelsPage() {
             ))}
           </div>
           <div className="mt-4 bg-white/10 rounded-xl p-3 text-[11px] font-mono">
-            Server lo: <span className="text-[#D4AF37]">python backend/create_channels.py --wave 1</span> · check: --check · create ayyaka: --mark-live reddy
+            Server lo: <span className="text-[#D4AF37]">python backend/create_channels.py --wave 1</span> · check: --check · {te ? "create అయ్యాక: --mark-live reddy" : "after create: --mark-live reddy"}
           </div>
         </div>
 
         {/* Footer CTA */}
         <div className="mt-4 bg-white rounded-[1.5rem] p-6 card-shadow text-center">
-          <div className="font-bold text-[#7A0C2E]">Mana Vivaha — {CHANNEL_STATS.total} channels, okka platform</div>
-          <div className="text-xs text-gray-500 mt-1">₹99 ke Sambandham • Modati 3 FREE • {CHANNEL_STATS.bot}</div>
+          <div className="font-bold text-[#7A0C2E]">{te ? <>Mana Vivaha — {CHANNEL_STATS.total} channels, ఒక్క platform</> : <>Mana Vivaha — {CHANNEL_STATS.total} channels, one platform</>}</div>
+          <div className="text-xs text-gray-500 mt-1">{te ? <>₹99 సంబంధం • మొదటి 3 FREE • {CHANNEL_STATS.bot}</> : <>₹99 Sambandham • First 3 FREE • {CHANNEL_STATS.bot}</>}</div>
           <div className="flex justify-center gap-3 mt-3">
-            <Link href="/register" className="px-4 py-2 maroon-gradient text-white rounded-full text-xs font-bold">Register 3 min lo</Link>
+            <Link href="/register" className="px-4 py-2 maroon-gradient text-white rounded-full text-xs font-bold">{te ? "Register 3 min లో" : "Register in 3 min"}</Link>
             <Link href="/bureau" className="px-4 py-2 border border-[#D4AF37] text-[#7A0C2E] rounded-full text-xs font-bold">Bureau / Broker</Link>
           </div>
         </div>

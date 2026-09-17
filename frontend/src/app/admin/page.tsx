@@ -21,12 +21,15 @@ import ReferralReport from "@/components/ReferralReport";
 import { apiGet, apiPost, authHeaders, getAdminKey, setAdminKey } from "@/lib/api";
 import Link from "next/link";
 import { Duo, duo } from "@/lib/duo";
+import { useLang } from "@/lib/lang";
 
 const DEMO_PROFILES: any[] = [];
 // 🐞 FIX (F05): ee list lo mundu fake rows (98480xxxxx / 98481xxxxx fake phone numbers) unnayi —
 // admin ki nijam kaani data chupinche. Ippudu anni rows /api/admin/queue nunchi matrame.
 
 export default function AdminPage() {
+  const { lang } = useLang();
+  const te = lang === "te";
   const [tab, setTab] = useState("payouts");
   const [profiles, setProfiles] = useState<any[]>([]);
   const [queue, setQueue] = useState<any>({ items: [], count: 0, total_amount: 0 });
@@ -50,7 +53,7 @@ export default function AdminPage() {
   const saveAdminKey = () => {
     setAdminKey(adminKey.trim());
     setNeedKey(false);
-    setFlash(adminKey.trim() ? "🔐 Admin key save ayyindi (localStorage lo — browser tarvata kooda gurtu untundi)" : "🔐 Key teesesaaru");
+    setFlash(adminKey.trim() ? (te ? "🔐 Admin key save అయ్యింది (localStorage లో — browser తర్వాత కూడా గుర్తు ఉంటుంది)" : "🔐 Admin key saved (in localStorage — remembered later too)") : (te ? "🔐 Key తీసేశారు" : "🔐 Key removed"));
   };
 
   const loadAbuse = useCallback(async () => {
@@ -76,7 +79,7 @@ export default function AdminPage() {
     const tk = adminToken();
     fetch(`/api/admin/payouts?status=${st}${tk ? `&token=${encodeURIComponent(tk)}` : ""}`, { headers: authHeaders(true) })
       .then((r) => { if (r.status === 403) setNeedKey(true); return r.json(); })
-      .then((d) => (d.success ? setQueue(d) : setFlash(d.message_telugu || "⚠️ Admin key check cheyyandi (/admin lo key pettandi)")))
+      .then((d) => (d.success ? setQueue(d) : setFlash(d.message_telugu || (te ? "⚠️ Admin key check చెయ్యండి (/admin లో key పెట్టండి)" : "⚠️ Check admin key (put key in /admin)"))))
       .catch(() => { });
   }, []);
 
@@ -86,7 +89,7 @@ export default function AdminPage() {
     const tk = adminToken();
     fetch(`/api/admin/vendors?status=${st}${tk ? `&token=${encodeURIComponent(tk)}` : ""}`, { headers: authHeaders(true) })
       .then((r) => { if (r.status === 403) setNeedKey(true); return r.json(); })
-      .then((d) => (d.success ? setVQueue(d) : setFlash(d.message_telugu || "⚠️ Admin key check cheyyandi (/admin lo key pettandi)")))
+      .then((d) => (d.success ? setVQueue(d) : setFlash(d.message_telugu || (te ? "⚠️ Admin key check చెయ్యండి (/admin లో key పెట్టండి)" : "⚠️ Check admin key (put key in /admin)"))))
       .catch(() => { });
     fetch(`/api/admin/vendors/revenue/summary${tk ? `?token=${encodeURIComponent(tk)}` : ""}`, { headers: authHeaders(true) })
       .then((r) => r.json()).then((d) => d.success && setVRevenue(d)).catch(() => { });
@@ -100,11 +103,11 @@ export default function AdminPage() {
     if (tk) q.set("token", tk);
     if (action === "approve") {
       const v = (vUtr[id] || "").trim();
-      if (!v) { setFlash("⚠️ Payment reference (UTR) ivvakunda vendor activate cheyyakoodadu — audit ki. Free/demo ki 'FREE' ani type cheyyandi"); return; }
+      if (!v) { setFlash(te ? "⚠️ Payment reference (UTR) ఇవ్వకుండా vendor activate చెయ్యకూడదు — audit కి. Free కి 'FREE' అని type చెయ్యండి" : "⚠️ Don\u2019t activate vendor without payment reference (UTR) — for audit. Type 'FREE' for free"); return; }
       q.set("utr", v);
       if (pkg) q.set("package", pkg);
     } else if (action === "reject") {
-      q.set("reason", "admin_reject: payment/details verify avvaledu");
+      q.set("reason", te ? "admin_reject: payment/details verify అవ్వలేదు" : "admin_reject: payment/details not verified");
     }
     const r = await fetch(`/api/admin/vendors/${id}/action?${q.toString()}`, { method: "POST", headers: authHeaders(true) });
     const d = await r.json();
@@ -125,10 +128,10 @@ export default function AdminPage() {
     if (tk) q.set("token", tk);
     if (action === "approve") {
       const v = (utr[id] || "").trim();
-      if (!v) { setFlash("⚠️ UTR/reference number ivvakunda approve cheyyakoodadu (audit ki)"); return; }
+      if (!v) { setFlash(te ? "⚠️ UTR/reference number ఇవ్వకుండా approve చెయ్యకూడదు (audit కి)" : "⚠️ Don\u2019t approve without UTR/reference (for audit)"); return; }
       q.set("utr", v);
     } else {
-      q.set("reason", "admin_reject: details verify avvaledu");
+      q.set("reason", te ? "admin_reject: details verify అవ్వలేదు" : "admin_reject: details not verified");
     }
     const r = await fetch(`/api/admin/payouts/${id}/action?${q.toString()}`, { method: "POST", headers: authHeaders(true) });
     const d = await r.json();
@@ -141,8 +144,8 @@ export default function AdminPage() {
       const r = await fetch(`/api/admin/approve/${id}`, { method: "POST", headers: authHeaders(true) });
       const d = await r.json();
       setProfiles((prev) => prev.map((p) => (p.id === id ? { ...p, status: "Approved" } : p)));
-      setFlash(`✅ ${id} approve + auto-post queue: ${(d.auto_post_queue || []).slice(0, 3).join(", ")}`);
-    } catch { setFlash("Approve fail ayyindi — API check cheyyandi"); }
+      setFlash(te ? `✅ ${id} approve + auto-post queue: ${(d.auto_post_queue || []).slice(0, 3).join(", ")}` : `✅ ${id} approved + auto-post queue: ${(d.auto_post_queue || []).slice(0, 3).join(", ")}`);
+    } catch { setFlash(te ? "Approve fail అయ్యింది — API check చెయ్యండి" : "Approve failed — check API"); }
   };
 
   const filtered = profiles.filter((p) => (p.id + (p.caste || "") + (p.district || "")).toLowerCase().includes(search.toLowerCase()));
@@ -156,18 +159,18 @@ export default function AdminPage() {
         <div className="rounded-2xl border-2 border-[#7A0C2E]/25 bg-white p-4">
           <div className="flex flex-wrap items-end gap-2">
             <label className="flex-1 min-w-[240px] text-[12px] font-bold text-[#7A0C2E]">
-              🔐 Admin key (X-Admin-Key) — leads / payouts / moderation / abuse ki kavali
+              {te ? "🔐 Admin key (X-Admin-Key) — leads / payouts / moderation / abuse కి కావాలి" : "🔐 Admin key (X-Admin-Key) — needed for leads / payouts / moderation / abuse"}
               <input value={adminKey} onChange={(e) => setAdminKeyState(e.target.value)} type="password"
-                placeholder="ADMIN_KEY env value (server log lo kooda untundi)"
-                className="mt-1 w-full rounded-xl border border-[#7A0C2E]/30 px-3 py-2 font-mono text-[12px]" aria-label="ADMIN_KEY env value (server log lo kooda untundi)" />
+                placeholder={te ? "ADMIN_KEY env value (server log లో కూడా ఉంటుంది)" : "ADMIN_KEY env value (also in server log)"}
+                className="mt-1 w-full rounded-xl border border-[#7A0C2E]/30 px-3 py-2 font-mono text-[12px]" aria-label={te ? "ADMIN_KEY env value" : "ADMIN_KEY env value"} />
             </label>
             <button onClick={saveAdminKey} className="rounded-xl bg-[#7A0C2E] px-4 py-2 text-[12px] font-bold text-white">💾 Save key</button>
             <button onClick={() => void loadAbuse()} className="rounded-xl border border-[#7A0C2E] px-4 py-2 text-[12px] font-bold text-[#7A0C2E]">🔄 Abuse refresh</button>
           </div>
           {needKey ? (
             <div className="mt-3">
-              <AuthGate admin title="🔒 Admin key kavali"
-                note="PII (leads phones) + money (payouts) endpoints ippudu key tho protect chesam. Server start lo '[HARDENING] admin_key=…' line lo key untundi — leda ADMIN_KEY env lo pettandi." />
+              <AuthGate admin title={te ? "🔒 Admin key కావాలి" : "🔒 Admin key needed"}
+                note={te ? "PII (leads phones) + money (payouts) endpoints ఇప్పుడు key తో protect చేశాం. Server start లో \u2018[HARDENING] admin_key=…\u2019 line లో key ఉంటుంది — లేదా ADMIN_KEY env లో పెట్టండి." : "PII (leads phones) + money (payouts) endpoints are now key-protected. The key is in the server start \u2018[HARDENING] admin_key=…\u2019 line — or put ADMIN_KEY in env."} />
             </div>
           ) : null}
           {abuse ? (
@@ -294,7 +297,7 @@ export default function AdminPage() {
             <div className="mt-2 rounded-2xl border border-gold/30 bg-cream/50 p-5 text-center">
               <div className="text-3xl">📸</div>
               <h2 className="font-bold text-[#7A0C2E] mt-1">Photo + Selfie Review Queue</h2>
-              <p className="text-[12px] text-gray-600 telugu">Technical checks pass aina photos — wrong-person/group/celebrity ni reject cheyyandi.</p>
+              <p className="text-[12px] text-gray-600 telugu">{te ? "Technical checks pass అయిన photos — wrong-person/group/celebrity ని reject చెయ్యండి." : "Photos that passed technical checks — reject wrong-person/group/celebrity."}</p>
               <Link href="/admin/photos"
                 className="mt-3 inline-block rounded-xl maroon-gradient text-white font-bold px-6 py-2.5 text-sm">
                 Open Review Queue →
@@ -307,8 +310,9 @@ export default function AdminPage() {
             <>
               <ReferralReport />
               <p className="text-xs text-gray-500 mt-2 telugu">
-                ₹50 per paying referral — first payment ONLY (flat, anthe). UPI copy → PhonePe deep link → pay → UTR pettandi → approve → user transaction list lo PAID ✅
-                Reject chesthe wallet ki malli credit avutundi (automatic).
+{te ? <>₹50 per paying referral — first payment ONLY (flat, అంతే). UPI copy → PhonePe deep link → pay → UTR పెట్టండి → approve → user transaction list లో PAID ✅
+                Reject చేస్తే wallet కి మళ్లీ credit అవుతుంది (automatic).</> : <>₹50 per paying referral — first payment ONLY (flat, that\u2019s it). UPI copy → PhonePe deep link → pay → put UTR → approve → PAID in user transaction list ✅
+                On reject, wallet re-credits automatically.</>}
               </p>
               <div className="mt-4 overflow-x-auto">
                 <table className="w-full text-sm">
@@ -317,7 +321,7 @@ export default function AdminPage() {
                     <th>Amount</th><th>UTR / Action</th>
                   </tr></thead>
                   <tbody>
-                    {rows.length === 0 && <tr><td colSpan={5} className="p-4 text-center text-xs text-gray-500">Ee status lo requests levu 🙂</td></tr>}
+                    {rows.length === 0 && <tr><td colSpan={5} className="p-4 text-center text-xs text-gray-500">{te ? "ఈ status లో requests లేవు 🙂" : "No requests in this status 🙂"}</td></tr>}
                     {rows.map((p: any) => (
                       <tr key={p.id} className="border-b">
                         <td className="p-2 text-xs">
@@ -364,7 +368,7 @@ export default function AdminPage() {
                 <div className="font-bold text-[#D4AF37]">💡 Payout process (manual — 10 sec)</div>
                 <div className="mt-1 space-y-0.5 opacity-90">
                   <div>1. Copy UPI → 2. PhonePe deep link (amount auto) → 3. Send → 4. UTR paste → 5. ✅ Paid</div>
-                  <div>Reject ayithe → referrer wallet ki auto-credit + message veltundi. Anni entries ledger lo (audit) untayi.</div>
+                  <div>{te ? "Reject అయితే → referrer wallet కి auto-credit + message వెళ్తుంది. అన్ని entries ledger లో (audit) ఉంటాయి." : "On reject → referrer wallet auto-credits + message goes. All entries stay in ledger (audit)."}</div>
                 </div>
               </div>
             </>
@@ -374,8 +378,9 @@ export default function AdminPage() {
           {tab === "vendors" && (
             <>
               <p className="text-xs text-gray-500 mt-2 telugu">
-                Vendor signup (catering/photography/decorations/hall/pandit...) → payment verify → <b>activate</b> chesthe
-                listing + Telugu promo post + poster ready. Enquiries direct vendor WhatsApp ki veltayi.
+{te ? <>Vendor signup (catering/photography/decorations/hall/pandit...) → payment verify → <b>activate</b> చేస్తే
+                listing + Telugu promo post + poster ready. Enquiries direct vendor WhatsApp కి వెళ్తాయి.</> : <>Vendor signup (catering/photography/decorations/hall/pandit...) → payment verify → on <b>activate</b>,
+                listing + Telugu promo post + poster ready. Enquiries go direct to vendor WhatsApp.</>}
               </p>
               {vRevenue && (
                 <div className="mt-3 grid grid-cols-2 md:grid-cols-5 gap-3 text-center">
@@ -395,7 +400,7 @@ export default function AdminPage() {
               )}
               {vRevenue?.renewals_due?.length > 0 && (
                 <div className="mt-3 rounded-xl bg-[#FFF8E7] border border-[#D4AF37]/50 p-3 text-xs text-[#7A0C2E]">
-                  ⏳ <b>{vRevenue.renewals_due.length}</b> listings ee వారంలో expire avutunnayi — renewal call cheyyandi:
+                  ⏳ <b>{vRevenue.renewals_due.length}</b> {te ? <>listings ఈ వారంలో expire అవుతున్నాయి — renewal call చెయ్యండి:</> : <>listings expiring this week — make renewal calls:</>}
                   {" "}{vRevenue.renewals_due.map((r: any) => r.name).join(", ")}
                 </div>
               )}
@@ -407,7 +412,7 @@ export default function AdminPage() {
                   </tr></thead>
                   <tbody>
                     {(vQueue.items || []).length === 0 && (
-                      <tr><td colSpan={5} className="p-4 text-center text-xs text-gray-500">Ee status lo vendor requests levu 🙂</td></tr>
+                      <tr><td colSpan={5} className="p-4 text-center text-xs text-gray-500">{te ? "ఈ status లో vendor requests లేవు 🙂" : "No vendor requests in this status 🙂"}</td></tr>
                     )}
                     {(vQueue.items || []).map((v: any) => (
                       <tr key={v.id} className="border-b align-top">
@@ -463,7 +468,7 @@ export default function AdminPage() {
                 <div className="font-bold text-[#D4AF37]">🏪 Vendor process (30 sec)</div>
                 <div className="mt-1 space-y-0.5 opacity-90">
                   <div>1. Payment vachhinda check (UPI/phone) → 2. UTR paste → 3. ✅ Activate → 4. Listing + promo post live (+ poster download)</div>
-                  <div>Enquiries anni vendor WhatsApp ki auto-veltayi (lead text lo number, budget, event date untundi).</div>
+                  <div>{te ? "Enquiries అన్నీ vendor WhatsApp కి auto-వెళ్తాయి (lead text లో number, budget, event date ఉంటుంది)." : "All enquiries auto-go to vendor WhatsApp (lead text has number, budget, event date)."}</div>
                 </div>
               </div>
             </>
@@ -499,7 +504,7 @@ export default function AdminPage() {
               <div className="rounded-2xl border p-4">
                 <div className="font-bold text-[#7A0C2E]">🏆 Top referrers (live)</div>
                 <div className="mt-2 space-y-1">
-                  {board.length === 0 && <div className="text-gray-500">Data ledu — referrers start cheyyandi</div>}
+                  {board.length === 0 && <div className="text-gray-500">{te ? "Data లేదు — referrers start చెయ్యండి" : "No data yet — referrers will start it"}</div>}
                   {board.map((b) => (
                     <div key={b.code} className="flex justify-between bg-gray-50 rounded-lg px-3 py-2">
                       <span>{b.rank}. {b.name} ({b.code})</span>

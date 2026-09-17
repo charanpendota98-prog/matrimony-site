@@ -6,6 +6,7 @@
  */
 import { useCallback, useEffect, useState } from "react";
 import { Duo } from "@/lib/duo";
+import { useLang } from "@/lib/lang";
 import { apiGet, apiPost, getAdminKey, setAdminKey } from "@/lib/api";
 
 type Item = {
@@ -22,6 +23,8 @@ const REJECT_REASONS = [
 ];
 
 export default function AdminPhotosPage() {
+  const { lang } = useLang();
+  const te = lang === "te";
   const [key, setKey] = useState("");
   const [items, setItems] = useState<Item[]>([]);
   const [msg, setMsg] = useState("");
@@ -54,7 +57,7 @@ export default function AdminPhotosPage() {
   return (
     <main className="mx-auto max-w-5xl px-4 py-8">
       <h1 className="text-2xl font-extrabold text-maroon">📸 <Duo en="Photo Review Queue" te="ఫోటో పరిశీలన" /></h1>
-      <p className="text-[12px] text-gray-600 telugu">Technical checks pass aina photos matrame ikkada — wrong-person/group/celebrity ni reject cheyyandi.</p>
+      <p className="text-[12px] text-gray-600 telugu">{te ? "Technical checks pass అయిన photos మాత్రమే ఇక్కడ — wrong-person/group/celebrity ని reject చెయ్యండి." : "Only photos that passed technical checks — reject wrong-person/group/celebrity."}</p>
 
       <div className="mt-3 flex gap-2 items-center">
         <input value={key} onChange={(e) => setKey(e.target.value)} placeholder="Admin key"
@@ -67,7 +70,7 @@ export default function AdminPhotosPage() {
 
       {key && items.length === 0 && !msg ? (
         <div className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-6 text-center text-emerald-900 font-bold">
-          ✅ Queue khali — anni photos review ayyayi!
+          {te ? "✅ Queue ఖాళీ — అన్ని photos review అయ్యాయి!" : "✅ Queue empty — all photos reviewed!"}
         </div>
       ) : null}
 

@@ -5,11 +5,14 @@
  */
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useLang } from "@/lib/lang";
 
 const DISTRICTS = ["Hyderabad", "Rangareddy", "Medchal", "Warangal", "Nizamabad", "Karimnagar", "Khammam",
   "Vijayawada", "Guntur", "Visakhapatnam", "Nellore", "Tirupati", "Rajahmundry", "Kurnool"];
 
 export default function VendorCampaignPage() {
+  const { lang } = useLang();
+  const te = lang === "te";
   const [vendorId, setVendorId] = useState("");
   const [vToken, setVToken] = useState("");
   const [rates, setRates] = useState<any>(null);
@@ -43,7 +46,7 @@ export default function VendorCampaignPage() {
   };
 
   const create = async () => {
-    if (!vendorId.trim()) { setMsg("⚠️ Vendor ID ivvandi (register ayyaka vachindi)"); return; }
+    if (!vendorId.trim()) { setMsg(te ? "⚠️ Vendor ID ఇవ్వండి (register అయ్యాక వచ్చింది)" : "⚠️ Enter Vendor ID (you got it after register)"); return; }
     const r = await fetch(`/api/vendors/${encodeURIComponent(vendorId.trim())}/campaigns`,
       { method: "POST", headers: vHeaders(), body: JSON.stringify({ ...f, vendor_id: undefined }) });
     const d = await r.json();
@@ -69,10 +72,11 @@ export default function VendorCampaignPage() {
   return (
     <main className="mx-auto max-w-3xl px-4 py-6">
       <Link href="/vendors" className="text-[12px] font-bold text-[#7A0C2E]">← Vendors</Link>
-      <h1 className="mt-2 text-2xl font-extrabold text-[#7A0C2E]">📢 Ad Campaign — mee business, correct audience ke</h1>
+      <h1 className="mt-2 text-2xl font-extrabold text-[#7A0C2E]">{te ? "📢 Ad Campaign — మీ business, correct audience కే" : "📢 Ad Campaign — your business, to the right audience"}</h1>
       <p className="mt-1 text-[13px] text-gray-600">
-        District level → aa districts vallake · State → TS/AP motham · Photo/banner + video + offer ·
-        Days ayipothe auto-expire · Views/clicks track.
+{te ? <>District level → ఆ districts వాళ్లకే · State → TS/AP మొత్తం · Photo/banner + video + offer ·
+        Days అయిపోతే auto-expire · Views/clicks track.</> : <>District level → only those districts · State → all TS/AP · Photo/banner + video + offer ·
+        Auto-expires after days · Views/clicks tracked.</>}
       </p>
       {rates ? (
         <div className="mt-3 rounded-2xl bg-[#FFF8E7] p-3 text-[12px] text-[#7A0C2E]">
@@ -131,9 +135,9 @@ export default function VendorCampaignPage() {
             placeholder="https://youtu.be/..." aria-label="Video" className="mt-1 w-full rounded-xl border px-3 py-2" /></label>
         </div>
         <div className="flex flex-wrap gap-2">
-          <button onClick={() => void getQuote()} className="rounded-xl border border-[#7A0C2E] px-5 py-2.5 text-sm font-bold text-[#7A0C2E]">💰 Quote chudu</button>
+          <button onClick={() => void getQuote()} className="rounded-xl border border-[#7A0C2E] px-5 py-2.5 text-sm font-bold text-[#7A0C2E]">{te ? "💰 Quote చూడు" : "💰 See quote"}</button>
           <button onClick={() => void create()} className="rounded-xl bg-[#7A0C2E] px-5 py-2.5 text-sm font-bold text-white">🚀 Campaign request</button>
-          <button onClick={() => void loadMine()} className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-bold text-slate-700">📋 Naa campaigns</button>
+          <button onClick={() => void loadMine()} className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-bold text-slate-700">{te ? "📋 నా campaigns" : "📋 My campaigns"}</button>
         </div>
         {msg ? <p className="rounded-2xl bg-[#0F1F3C] p-3 text-[13px] text-white">{msg}</p> : null}
         {quote ? (
@@ -145,7 +149,7 @@ export default function VendorCampaignPage() {
 
       {mine.length ? (
         <div className="mt-4 rounded-3xl border bg-white p-4">
-          <h2 className="font-bold text-[#7A0C2E]">📋 Naa campaigns ({mine.length})</h2>
+          <h2 className="font-bold text-[#7A0C2E]">{te ? <>📋 నా campaigns ({mine.length})</> : <>📋 My campaigns ({mine.length})</>}</h2>
           <div className="mt-2 space-y-2">
             {mine.map((c: any) => (
               <div key={c.id} className="rounded-2xl bg-gray-50 p-3 text-xs">
@@ -154,7 +158,7 @@ export default function VendorCampaignPage() {
                   <span className={`rounded-full px-2 py-0.5 text-[10px] ${c.status === "active" ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-700"}`}>{c.status}</span>
                 </div>
                 <div className="mt-1 text-gray-600">{c.id} · {c.level} {(c.districts || []).join(", ")}{c.state} · {c.days}d · ₹{c.amount} · 👁️ {c.impressions} · 🖱️ {c.clicks}</div>
-                {c.status === "pending" ? <div className="mt-1 text-amber-800">⏳ ₹{c.amount} pay chesi UTR admin ki pampandi → LIVE chesthadu</div> : null}
+                {c.status === "pending" ? <div className="mt-1 text-amber-800">{te ? <>⏳ ₹{c.amount} pay చేసి UTR admin కి పంపండి → LIVE చేస్తారు</> : <>⏳ Pay ₹{c.amount} and send UTR to admin → they make it LIVE</>}</div> : null}
               </div>
             ))}
           </div>

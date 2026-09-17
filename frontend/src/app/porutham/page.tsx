@@ -13,12 +13,15 @@
 import { Suspense, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { Duo, duo } from "@/lib/duo";
+import { useLang } from "@/lib/lang";
 import { useSearchParams } from "next/navigation";
 import { NAKSHATRAS, RASIS } from "@/lib/telugu-data";
 
 type Res = Record<string, any>;
 
 function PoruthamInner() {
+  const { lang } = useLang();
+  const te = lang === "te";
   const sp = useSearchParams();
   const [bride, setBride] = useState("");
   const [groom, setGroom] = useState("");
@@ -44,17 +47,17 @@ function PoruthamInner() {
   }, [sp]);
 
   const calcById = useCallback(async (b: string, g: string) => {
-    if (!b || !g) { setErr("Rendu TSAP IDs ivvandi (bride + groom)"); return; }
+    if (!b || !g) { setErr(te ? "రెండు TSAP IDs ఇవ్వండి (bride + groom)" : "Enter both TSAP IDs (bride + groom)"); return; }
     setBusy(true); setErr("");
     try {
       const d = await fetch(`/api/porutham?bride=${encodeURIComponent(b)}&groom=${encodeURIComponent(g)}`).then((r) => r.json());
       if (d.detail) { setErr(d.detail); setRes(null); } else { setRes({ ...d, _bride: b, _groom: g }); setImgOk(true); }
-    } catch { setErr("Network problem — malli try cheyyandi"); }
+    } catch { setErr(te ? "Network problem — మళ్లీ try చెయ్యండి" : "Network problem — retry"); }
     setBusy(false);
   }, []);
 
   const calcByStar = async () => {
-    if (!bStar || !gStar) { setErr("Bride + Groom star (nakshatram) select cheyyandi"); return; }
+    if (!bStar || !gStar) { setErr(te ? "Bride + Groom star (నక్షత్రం) select చెయ్యండి" : "Select bride + groom stars (nakshatram)"); return; }
     setBusy(true); setErr("");
     try {
       const d = await fetch("/api/porutham", {
@@ -62,7 +65,7 @@ function PoruthamInner() {
         body: JSON.stringify({ bride_star: bStar, bride_rasi: bRasi, groom_star: gStar, groom_rasi: gRasi }),
       }).then((r) => r.json());
       setRes({ ...d, _bride: bStar, _groom: gStar, _byStar: true });
-    } catch { setErr("Network problem — malli try cheyyandi"); }
+    } catch { setErr(te ? "Network problem — మళ్లీ try చెయ్యండి" : "Network problem — retry"); }
     setBusy(false);
   };
 
@@ -91,8 +94,9 @@ function PoruthamInner() {
           </div>
           <h1 className="mt-3 text-2xl md:text-3xl font-bold"><Duo en="Marriage porutham full report" te="పెళ్లి పొరుతం పూర్తి రిపోర్ట్" /></h1>
           <p className="mt-2 text-[13px] md:text-sm opacity-90 telugu max-w-3xl">
-            Rasi • Nakshatra • Gana • Yoni • Rajju • Vedha • Mahendra • Stree Deergha • Vashya • Rasi Adhipathi —
-            10 porutham lu okate chota, Telugu explanation tho. Rajju/Vedha dosha unte manam mundhe warning istham.
+{te ? <>Rasi • Nakshatra • Gana • Yoni • Rajju • Vedha • Mahendra • Stree Deergha • Vashya • Rasi Adhipathi —
+            10 పొరుతాలు ఒకేచోట, Telugu explanation తో. Rajju/Vedha dosha ఉంటే మనం ముందే warning ఇస్తాం.</> : <>Rasi • Nakshatra • Gana • Yoni • Rajju • Vedha • Mahendra • Stree Deergha • Vashya • Rasi Adhipathi —
+            all 10 poruthams in one place with Telugu explanation. We warn early about Rajju/Vedha dosha.</>}
           </p>
           <div className="mt-3 flex flex-wrap gap-2 text-[11px]">
             <span className="bg-white/10 border border-white/20 rounded-full px-3 py-1.5">📄 Print/PDF report</span>
@@ -106,7 +110,7 @@ function PoruthamInner() {
         {/* ---------- input card ---------- */}
         <div className="bg-white rounded-[1.5rem] border border-gold/25 p-4 print:hidden">
           <div className="flex gap-2">
-            {([["id", "🎫 TSAP ID tho"], ["star", "⭐ Star tho (register avvakunda)"]] as const).map(([v, l]) => (
+            {([["id", te ? "🎫 TSAP ID తో" : "🎫 With TSAP ID"], ["star", te ? "⭐ Star తో (register అవ్వకుండా)" : "⭐ By star (no register)"]] as const).map(([v, l]) => (
               <button key={v} onClick={() => setMode(v)} className={`chip ${mode === v ? "chip-on" : ""}`}>{l}</button>
             ))}
           </div>
@@ -124,7 +128,7 @@ function PoruthamInner() {
               <div className="flex items-end">
                 <button onClick={() => calcById(bride, groom)} disabled={busy}
                   className="w-full py-3.5 rounded-2xl maroon-gradient text-white font-bold text-[13px] disabled:opacity-60">
-                  {busy ? "Calculate…" : "💍 Porutham chudu"}
+                  {busy ? "Calculate…" : te ? "💍 Porutham చూడు" : "💍 See porutham"}
                 </button>
               </div>
             </div>
@@ -161,17 +165,20 @@ function PoruthamInner() {
               <div className="col-span-2 md:col-span-4">
                 <button onClick={calcByStar} disabled={busy}
                   className="w-full py-3.5 rounded-2xl maroon-gradient text-white font-bold text-[13px] disabled:opacity-60">
-                  {busy ? "Calculate…" : "💍 Porutham chudu (star tho)"}
+                  {busy ? "Calculate…" : te ? "💍 Porutham చూడు (star తో)" : "💍 See porutham (by star)"}
                 </button>
               </div>
             </div>
           )}
           {myId && mode === "id" && (
             <div className="mt-2 text-[11px] text-gray-600">
-              Mee ID: <b className="font-mono">{myId}</b> —{" "}
+{te ? <>మీ ID: <b className="font-mono">{myId}</b> —{" "}
               <button onClick={() => calcById(myId, groom || bride)} className="text-maroon font-bold underline">
-                naa ID ki vere profile tho compare cheyyi
-              </button>
+                నా ID ని వేరే profile తో compare చెయ్యి
+              </button></> : <>Your ID: <b className="font-mono">{myId}</b> —{" "}
+              <button onClick={() => calcById(myId, groom || bride)} className="text-maroon font-bold underline">
+                compare my ID with another profile
+              </button></>}
             </div>
           )}
           {err && <div className="mt-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl px-3 py-2 text-[12px]">{err}</div>}
@@ -190,7 +197,7 @@ function PoruthamInner() {
                   <div className="text-[17px] font-bold text-maroon telugu">{res.verdict}</div>
                   <div className="mt-1 text-[13px] text-gray-700">
                     {"★".repeat(res.stars || 0)}{"☆".repeat(5 - (res.stars || 0))} •{" "}
-                    {res.available ? `${items.filter((i) => i.pass).length} porutham lu pass` : "data saripoledu"}
+                    {res.available ? (te ? `${items.filter((i) => i.pass).length} పొరుతాలు pass` : `${items.filter((i) => i.pass).length} poruthams pass`) : (te ? "data సరిపోలేదు" : "not enough data")}
                   </div>
                   {res.available && (
                     <div className="mt-1.5 text-[12px] text-gray-700">
@@ -200,7 +207,7 @@ function PoruthamInner() {
                   )}
                   {res.doshas?.length ? (
                     <div className="mt-2 inline-block bg-rose-50 border border-rose-200 text-rose-800 rounded-xl px-3 py-1.5 text-[11px] font-bold">
-                      ⚠️ Dosha: {res.doshas.join(" + ")} — పెద్దలు/పురోహితులను సంప్రదించండి
+                      {te ? <>⚠️ Dosha: {res.doshas.join(" + ")} — పెద్దలు/పురోహితులను సంప్రదించండి</> : <>⚠️ Dosha: {res.doshas.join(" + ")} — consult elders/purohit</>}
                     </div>
                   ) : null}
                 </div>
@@ -231,16 +238,16 @@ function PoruthamInner() {
                 <button onClick={() => window.print()} className="px-4 py-3 rounded-2xl maroon-gradient text-white font-bold text-[12px]">🖨️ Print / PDF report</button>
                 <button onClick={shareWa} className="px-4 py-3 rounded-2xl bg-green-600 text-white font-bold text-[12px]">WhatsApp share</button>
                 {!res._byStar && <button onClick={shareImg} className="px-4 py-3 rounded-2xl border border-maroon/25 text-maroon font-bold text-[12px]">🖼️ Report image</button>}
-                <Link href="/requests" className="px-4 py-3 rounded-2xl border border-maroon/25 text-maroon font-bold text-[12px]">💌 Interest pampu (1 credit)</Link>
+                <Link href="/requests" className="px-4 py-3 rounded-2xl border border-maroon/25 text-maroon font-bold text-[12px]">{te ? "💌 Interest పంపు (1 credit)" : "💌 Send interest (1 credit)"}</Link>
               </div>
             </div>
 
             {/* ---------- report image preview ---------- */}
             {!res._byStar && imgOk && (
               <div className="bg-white rounded-[1.5rem] border border-gold/25 p-4 print:hidden">
-                <div className="font-bold text-maroon text-[14px]">🖼️ WhatsApp lo share cheyyadaniki ready report image</div>
+                <div className="font-bold text-maroon text-[14px]">{te ? "🖼️ WhatsApp లో share చెయ్యడానికి ready report image" : "🖼️ Report image ready to share on WhatsApp"}</div>
                 <div className="text-[11px] text-gray-600 mt-1">
-                  Ee image ni WhatsApp group / family ki pampandi — score, porutham lu, verdict anni kanipistayi.
+                  {te ? "ఈ image ని WhatsApp group / family కి పంపండి — score, పొరుతాలు, verdict అన్నీ కనిపిస్తాయి." : "Send this image to WhatsApp group / family — score, poruthams, verdict all visible."}
                 </div>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -256,7 +263,7 @@ function PoruthamInner() {
 
         {/* ---------- glossary ---------- */}
         <div className="bg-white rounded-[1.5rem] border border-gold/25 p-5 print:hidden">
-          <div className="font-bold text-maroon text-[15px]">📚 10 porutham lu ante enti? (pelli peddalu ee 10 chustaru)</div>
+          <div className="font-bold text-maroon text-[15px]">{te ? "📚 10 పొరుతాలు అంటే ఏంటి? (పెళ్లి పెద్దలు ఈ 10 చూస్తారు)" : "📚 What are 10 poruthams? (elders check these 10)"}</div>
           <div className="mt-3 grid md:grid-cols-2 gap-2 text-[11px] text-gray-700 telugu leading-relaxed">
             {[
               ["రాశి పొరుత్తం", "బ్రైడ్–గ్రూమ్ రాశుల మధ్య దూరం 6/8 కాకూడదు (షష్టాష్టక దోషం)."],
@@ -277,7 +284,7 @@ function PoruthamInner() {
             ))}
           </div>
           <div className="mt-3 text-[11px] text-gray-500">
-            🎁 <b>Detailed porutham report (PDF + purohitulu contact)</b> — add-on ₹49 (Requests page lo add cheyyandi).
+            {te ? <>🎁 <b>Detailed porutham report (PDF + పురోహితుల contact)</b> — add-on ₹49 (Requests page లో add చెయ్యండి).</> : <>🎁 <b>Detailed porutham report (PDF + purohit contact)</b> — add-on ₹49 (add in Requests page).</>}
           </div>
         </div>
       </div>
@@ -287,7 +294,7 @@ function PoruthamInner() {
 
 export default function PoruthamPage() {
   return (
-    <Suspense fallback={<main className="min-h-screen bg-cream p-8 text-center text-[13px]">Porutham report load avutund…</main>}>
+    <Suspense fallback={<main className="min-h-screen bg-cream p-8 text-center text-[13px]">Porutham report load అవుతుంది…</main>}>
       <PoruthamInner />
     </Suspense>
   );

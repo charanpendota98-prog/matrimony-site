@@ -5,10 +5,13 @@
  */
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useLang } from "@/lib/lang";
 
 type Offer = { code: string; title: string; pct_off: number; flat_off: number; valid_to?: string };
 
 export default function OffersBanner() {
+  const { lang } = useLang();
+  const te = lang === "te";
   const [offers, setOffers] = useState<Offer[]>([]);
   useEffect(() => {
     fetch("/api/offers/active").then((r) => r.json()).then((d) => {
@@ -26,7 +29,7 @@ export default function OffersBanner() {
             {o.title} • <span className="font-mono">{o.code}</span>
           </span>
         ))}
-        <span className="ml-auto text-xs font-bold underline">Plans chudandi →</span>
+        <span className="ml-auto text-xs font-bold underline">{te ? "Plans చూడండి →" : "See plans →"}</span>
       </div>
     </Link>
   );

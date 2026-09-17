@@ -6,6 +6,7 @@
  */
 import { useEffect, useState } from "react";
 import { authHeaders } from "@/lib/api";
+import { useLang } from "@/lib/lang";
 
 type Row = Record<string, any>;
 const adminToken = () => { try { return localStorage.getItem("tsap_admin_token") || ""; } catch { return ""; } };
@@ -16,6 +17,8 @@ const withToken = (url: string) => {
 const H = () => ({ ...authHeaders(true), "Content-Type": "application/json" });
 
 export default function ContentConsole() {
+  const { lang } = useLang();
+  const te = lang === "te";
   const [data, setData] = useState<Row | null>(null);
   const [flash, setFlash] = useState("");
   const [sub, setSub] = useState("pages");
@@ -49,9 +52,9 @@ export default function ContentConsole() {
       fd.append("file", file);
       const r = await fetch("/api/photo/upload", { method: "POST", headers: authHeaders(), body: fd });
       const d = await r.json();
-      if (d?.photo_url || d?.url) { cb(d.photo_url || d.url); setFlash("📸 Photo upload ayyindi"); }
-      else setFlash(d.detail || "Upload fail — URL paste cheyyandi");
-    } catch { setFlash("Upload fail — URL paste cheyyandi"); }
+      if (d?.photo_url || d?.url) { cb(d.photo_url || d.url); setFlash(te ? "📸 Photo upload అయ్యింది" : "📸 Photo uploaded"); }
+      else setFlash(d.detail || (te ? "Upload fail — URL paste చెయ్యండి" : "Upload failed — paste URL"));
+    } catch { setFlash(te ? "Upload fail — URL paste చెయ్యండి" : "Upload failed — paste URL"); }
     setUploading(false);
   };
 
@@ -63,8 +66,9 @@ export default function ContentConsole() {
   return (
     <div>
       <p className="telugu mt-2 text-xs text-gray-500">
-        Website content ikkade — <b>pages</b> (/p/slug), <b>success stories</b> (photo + tags), <b>banners</b> (announcements).
-        Publish ON chesthe site lo live.
+{te ? <>Website content ఇక్కడే — <b>pages</b> (/p/slug), <b>success stories</b> (photo + tags), <b>banners</b> (announcements).
+        Publish ON చేస్తే site లో live.</> : <>Website content here — <b>pages</b> (/p/slug), <b>success stories</b> (photo + tags), <b>banners</b> (announcements).
+        Publish ON = live on site.</>}
       </p>
       <div className="grid grid-cols-3 md:grid-cols-6 gap-2 my-2">
         {[["Pages", `${stats.pages_live ?? 0}/${stats.pages ?? 0}`], ["Stories", `${stats.stories_live ?? 0}/${stats.stories ?? 0}`],

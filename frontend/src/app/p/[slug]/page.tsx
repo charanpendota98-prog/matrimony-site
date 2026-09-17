@@ -5,11 +5,14 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { useLang } from "@/lib/lang";
 
 type Page = { slug: string; title_en: string; title_te: string; body_en: string; body_te: string;
   photos: string[]; tags: string[]; updated_at: string };
 
 export default function CmsPage() {
+  const { lang } = useLang();
+  const te = lang === "te";
   const { slug } = useParams() as { slug: string };
   const [p, setP] = useState<Page | null>(null);
   const [missing, setMissing] = useState(false);
@@ -26,8 +29,8 @@ export default function CmsPage() {
   const paras = (t: string) => (t || "").split(/\n+/).map((x) => x.trim()).filter(Boolean);
   return (
     <main className="max-w-3xl mx-auto px-4 py-8">
-      <Link href="/" className="text-xs font-bold text-[#7A0C2E]">← Home • హోమ్</Link>
-      {missing && <p className="mt-6 text-center text-gray-500">⚠️ Page dorakaledu — admin publish cheyyaledu.</p>}
+      <Link href="/" className="text-xs font-bold text-[#7A0C2E]">← {te ? "హోమ్" : "Home"}</Link>
+      {missing && <p className="mt-6 text-center text-gray-500">{te ? "⚠️ Page దొరకలేదు — admin publish చెయ్యలేదు." : "⚠️ Page not found — admin hasn\u2019t published it."}</p>}
       {p && (
         <>
           <h1 className="mt-3 text-3xl font-extrabold text-[#7A0C2E]">{p.title_en}</h1>
@@ -56,7 +59,7 @@ export default function CmsPage() {
       )}
       {all.length > 0 && (
         <div className="mt-8 rounded-2xl border p-4">
-          <div className="font-bold text-sm text-[#7A0C2E]">📄 More pages • మరిన్ని పేజీలు</div>
+          <div className="font-bold text-sm text-[#7A0C2E]">{te ? "📄 మరిన్ని పేజీలు" : "📄 More pages"}</div>
           <div className="mt-2 flex flex-wrap gap-2">
             {all.map((x) => (
               <Link key={x.slug} href={`/p/${x.slug}`} className="chip !py-1.5 !text-xs">{x.title_en}</Link>

@@ -7,6 +7,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { authHeaders } from "@/lib/api";
 import { Duo } from "@/lib/duo";
+import { useLang } from "@/lib/lang";
 
 type Row = Record<string, any>;
 const adminToken = () => { try { return localStorage.getItem("tsap_admin_token") || ""; } catch { return ""; } };
@@ -17,6 +18,8 @@ const withToken = (url: string) => {
 const H = () => ({ ...authHeaders(true), "Content-Type": "application/json" });
 
 export default function ReferralReport() {
+  const { lang } = useLang();
+  const te = lang === "te";
   const [data, setData] = useState<Row | null>(null);
   const [q, setQ] = useState("");
   const [flash, setFlash] = useState("");
@@ -26,7 +29,7 @@ export default function ReferralReport() {
   const [ledgerBusy, setLedgerBusy] = useState(false);
 
   const payFull = async (id: string, wallet: number) => {
-    const utr = prompt(`PhonePe/bank lo ₹${wallet} pampinara? UTR/reference ivvandi (wallet ₹0 avutundi):`);
+    const utr = prompt(te ? `PhonePe/bank లో ₹${wallet} పంపినారా? UTR/reference ఇవ్వండి (wallet ₹0 అవుతుంది):` : `Sent ₹${wallet} via PhonePe/bank? Enter UTR/reference (wallet becomes ₹0):`);
     if (!utr || !utr.trim()) return;
     if (!confirm(`₹${wallet} → ${id} PAID mark + wallet ₹0? (UTR: ${utr.trim()})`)) return;
     setBusy(true);
@@ -114,11 +117,11 @@ export default function ReferralReport() {
                           <span className={`ml-auto font-bold ${j.paid ? "text-emerald-700" : "text-amber-700"}`}>{String(j.status)}</span>
                         </div>
                       ))}
-                      {!(ledger.joins || []).length ? <div className="text-[11px] text-gray-500">Joins levu.</div> : null}
+                      {!(ledger.joins || []).length ? <div className="text-[11px] text-gray-500">{te ? "Joins లేవు." : "No joins."}</div> : null}
                       <div className="text-[11px] text-gray-600 pt-1">
                         Wallet ₹{ledger.wallet} · Earned ₹{ledger.lifetime_earned} · Paid-out ₹{ledger.paid_out}
                         {Number(ledger.pending_payout) ? ` · ⏳ ₹${ledger.pending_payout} pending` : ""}
-                        {" "}— chusi kindha payout queue lo UTR tho approve cheyyandi.
+                        {" "}— {te ? "చూసి కింద payout queue లో UTR తో approve చెయ్యండి." : "check and approve below in payout queue with UTR."}
                       </div>
                     </div>
                   ) : <div className="text-[11px] text-gray-500">Ledger load kaledu.</div>}

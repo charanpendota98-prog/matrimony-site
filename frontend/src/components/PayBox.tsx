@@ -6,6 +6,7 @@
  */
 import { useState } from "react";
 import { authHeaders } from "@/lib/api";
+import { useLang } from "@/lib/lang";
 
 declare global { interface Window { Razorpay?: any } }
 
@@ -22,6 +23,8 @@ function loadRazorpay(): Promise<boolean> {
 }
 
 export default function PayBox({ planCode, price, label }: { planCode: string; price: number; label: string }) {
+  const { lang } = useLang();
+  const te = lang === "te";
   const [open, setOpen] = useState(false);
   const [offer, setOffer] = useState("");
   const [order, setOrder] = useState<any>(null);
@@ -37,7 +40,7 @@ export default function PayBox({ planCode, price, label }: { planCode: string; p
 
   const createOrder = async () => {
     const id = myId();
-    if (!id) { setMsg("⚠️ Mundhu login/register cheyyandi (Mee TSAP ID kavali)"); return; }
+    if (!id) { setMsg(te ? "⚠️ ముందు login/register చెయ్యండి (మీ TSAP ID కావాలి)" : "⚠️ Login/register first (your TSAP ID is needed)"); return; }
     setBusy(true); setMsg("");
     try {
       const r = await fetch("/api/pay/order", {
@@ -48,13 +51,13 @@ export default function PayBox({ planCode, price, label }: { planCode: string; p
       if (!r.ok) { setMsg(d.detail || d.message_telugu || "Order fail"); setBusy(false); return; }
       setOrder(d.pay_order);
       setMsg(d.message_telugu || "");
-    } catch { setMsg("Network problem — malli try cheyyandi"); }
+    } catch { setMsg(te ? "Network problem — మళ్లీ try చెయ్యండి" : "Network problem — retry"); }
     setBusy(false);
   };
 
   const submitClaim = async () => {
     if (!order) return;
-    if (!/^\d{12}$/.test(utr.trim())) { setMsg("⚠️ UTR = 12 digits (GPay/PhonePe statement nunchi copy cheyyandi)"); return; }
+    if (!/^\d{12}$/.test(utr.trim())) { setMsg(te ? "⚠️ UTR = 12 digits (GPay/PhonePe statement నుంచి copy చెయ్యండి)" : "⚠️ UTR = 12 digits (copy from GPay/PhonePe statement)"); return; }
     setClaimBusy(true); setMsg("");
     try {
       const r = await fetch("/api/pay/claim", {
@@ -62,21 +65,21 @@ export default function PayBox({ planCode, price, label }: { planCode: string; p
         body: JSON.stringify({ order_id: order.id, utr: utr.trim() }),
       });
       const d = await r.json();
-      setMsg(r.ok ? (d.message_telugu || "✅ UTR vachindi!") : (d.detail || d.message_telugu || "Claim fail"));
+      setMsg(r.ok ? (d.message_telugu || (te ? "✅ UTR వచ్చింది!" : "✅ UTR received!")) : (d.detail || d.message_telugu || (te ? "Claim fail" : "Claim failed")));
       if (r.ok) { setOrder({ ...order, status: "claimed" }); setUtr(""); }
-    } catch { setMsg("Network problem — malli try cheyyandi"); }
+    } catch { setMsg(te ? "Network problem — మళ్లీ try చెయ్యండి" : "Network problem — retry"); }
     setClaimBusy(false);
   };
 
   const payNow = async () => {
     if (!order) return;
     if (order.mode !== "razorpay" || !order.key_id) {
-      setMsg(`💳 ${order.upi_id || "manavivaha@upi"} ki ₹${order.final_amount} pay chesi — kindha UTR (12 digits) ivvandi. Admin bank statement verify chesi confirm chesthadu 🙏 (Order: ${order.id})`);
+      setMsg(te ? `💳 ${order.upi_id || "manavivaha@upi"} కి ₹${order.final_amount} pay చేసి — కింద UTR (12 digits) ఇవ్వండి. Admin bank statement verify చేసి confirm చేస్తాడు 🙏 (Order: ${order.id})` : `💳 Pay ₹${order.final_amount} to ${order.upi_id || "manavivaha@upi"} — enter UTR (12 digits) below. Admin verifies the bank statement and confirms 🙏 (Order: ${order.id})`);
       return;
     }
     const ok = await loadRazorpay();
-    if (!ok || !window.Razorpay) { setMsg("⚠️ Razorpay load avvaledu — UPI manual tho try cheyyandi"); return; }
-    if (!order.rzp_order_id) { setMsg("⚠️ Order ID ledu — kotha order create cheyyandi"); return; }
+    if (!ok || !window.Razorpay) { setMsg(te ? "⚠️ Razorpay load అవ్వలేదు — UPI manual తో try చెయ్యండి" : "⚠️ Razorpay failed to load — try manual UPI"); return; }
+    if (!order.rzp_order_id) { setMsg(te ? "⚠️ Order ID లేదు — కొత్త order create చెయ్యండి" : "⚠️ No Order ID — create a new order"); return; }
     const rzp = new window.Razorpay({
       key: order.key_id,
       order_id: order.rzp_order_id,
@@ -96,8 +99,8 @@ export default function PayBox({ planCode, price, label }: { planCode: string; p
           });
           const d = await r.json();
           if (r.ok) { setDone(d.message_telugu || "✅ Payment success!"); setOrder(null); }
-          else setMsg(d.detail || "Verify fail — amount cut ayithe support ki payment ID pampandi");
-        } catch { setMsg("Verify error — payment ID tho support ni contact cheyyandi"); }
+          else setMsg(d.detail || (te ? "Verify fail — amount cut అయితే support కి payment ID పంపండి" : "Verify failed — if amount was cut, send payment ID to support"));
+        } catch { setMsg(te ? "Verify error — payment ID తో support ని contact చెయ్యండి" : "Verify error — contact support with payment ID"); }
         setBusy(false);
       },
       prefill: {},
@@ -128,7 +131,7 @@ export default function PayBox({ planCode, price, label }: { planCode: string; p
               {busy ? "⏳…" : "Order →"}
             </button>
           </div>
-          <p className="text-[11px] text-gray-500">Amount server nunchi fix — offer auto-apply. Secret safe 🔒</p>
+          <p className="text-[11px] text-gray-500">{te ? "Amount server నుంచి fix — offer auto-apply. Secret safe 🔒" : "Amount fixed by server — offer auto-applies. Secret safe 🔒"}</p>
         </>
       ) : (
         <>
@@ -140,7 +143,7 @@ export default function PayBox({ planCode, price, label }: { planCode: string; p
             <div className="text-[11px] bg-white rounded-lg p-2 border space-y-2">
               <div>💳 UPI ID: <b className="font-mono">{order.upi_id}</b> • Amount: <b>₹{order.final_amount}</b></div>
               {order.status === "claimed" ? (
-                <div className="font-bold text-green-700">✅ UTR vachindi — admin verify chestunnadu, thwaralone credits add 🙏</div>
+                <div className="font-bold text-green-700">{te ? "✅ UTR వచ్చింది — admin verify చేస్తున్నాడు, త్వరలోనే credits add 🙏" : "✅ UTR received — admin is verifying, credits soon 🙏"}</div>
               ) : (
                 <div className="flex gap-2">
                   <input value={utr} onChange={(e) => setUtr(e.target.value.replace(/\D/g, "").slice(0, 12))}
@@ -148,7 +151,7 @@ export default function PayBox({ planCode, price, label }: { planCode: string; p
                     className="flex-1 rounded-lg border px-3 py-2 font-mono" aria-label="12-digit UTR" />
                   <button onClick={submitClaim} disabled={claimBusy}
                     className="rounded-lg bg-green-700 text-white px-3 py-2 font-bold disabled:opacity-50">
-                    {claimBusy ? "⏳…" : "UTR pampu"}
+                    {claimBusy ? "⏳…" : te ? "UTR పంపు" : "Send UTR"}
                   </button>
                 </div>
               )}
@@ -156,9 +159,9 @@ export default function PayBox({ planCode, price, label }: { planCode: string; p
           )}
           <button onClick={payNow} disabled={busy}
             className="w-full rounded-lg bg-green-700 text-white px-4 py-2 text-xs font-bold disabled:opacity-50">
-            {order.mode === "razorpay" ? "💳 Razorpay tho Pay" : "✅ Pay chesanu — details chudandi"}
+            {order.mode === "razorpay" ? (te ? "💳 Razorpay తో Pay" : "💳 Pay with Razorpay") : te ? "✅ Pay చేశాను — details చూడండి" : "✅ I paid — see details"}
           </button>
-          <button onClick={() => { setOrder(null); setMsg(""); }} className="text-[11px] underline text-gray-500">← Offer marchali</button>
+          <button onClick={() => { setOrder(null); setMsg(""); }} className="text-[11px] underline text-gray-500">{te ? "← Offer మార్చాలి" : "← Change offer"}</button>
         </>
       )}
       {msg && <p className="text-[11px] font-bold text-gray-700">{msg}</p>}

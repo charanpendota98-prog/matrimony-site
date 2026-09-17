@@ -37,7 +37,7 @@ export function TeaserStrip() {
         <SectionHeading
           eyebrow={duo("New profiles", "కొత్త ప్రొఫైళ్లు")}
           title={duo("Real people. Real families. Waiting for you.", "నిజమైన వ్యక్తులు. నిజమైన కుటుంబాలు. మీకోసం ఎదురుచూస్తున్నారు.")}
-          subtitle="🔒 Photos blur + details lock — REGISTER (FREE) chesthe full profiles open avutayi."
+          subtitle={duo("🔒 Photos blur + details lock — REGISTER (FREE) to open full profiles.", "🔒 Photos blur + details lock — REGISTER (FREE) చేస్తే full profiles open అవుతాయి.")}
           telugu
         />
       </Reveal>
@@ -81,7 +81,7 @@ export function StoriesStrip() {
         <SectionHeading
           eyebrow={duo("Success stories", "విజయ గాథలు")}
           title={duo("They met here. Married here. 💑", "వీరు ఇక్కడే కలిశారు. ఇక్కడే పెళ్లి చేసుకున్నారు. 💑")}
-          subtitle="Mee story kooda next — register FREE, 3 nimishalalo."
+          subtitle={duo("Your story could be next — register FREE, in 3 minutes.", "మీ story కూడా next — register FREE, 3 నిమిషాల్లో.")}
           telugu
         />
       </Reveal>
@@ -120,7 +120,7 @@ export function ReligionsStrip() {
         <SectionHeading
           eyebrow={duo("All faiths welcome", "అన్ని మతాలకు స్వాగతం")}
           title={duo("Hindu • Muslim • Christian", "హిందూ • ముస్లిం • క్రిస్టియన్")}
-          subtitle="Religion select cheyagane aa matham castes anni A–Z — mee caste channel lo auto-post."
+          subtitle={duo("Select a religion — all its castes A–Z, auto-posted to your caste channel.", "Religion select చెయ్యగానే ఆ మతం castes అన్నీ A–Z — మీ caste channel లో auto-post.")}
           telugu
         />
       </Reveal>
@@ -149,7 +149,7 @@ export function FinalCta() {
           <Duo en="Your life partner is already here." te="మీ జీవిత భాగస్వామి ఇక్కడే ఉన్నారు." />
         </h2>
         <p className="mt-2 text-[13px] md:text-sm opacity-90 telugu">
-          {duo("Register FREE in 3 minutes → 3 profiles → ₹99 ke Sambandham → number via Telegram bot (1 credit).",
+          {duo("Register FREE in 3 minutes → 3 profiles → ₹99 Sambandham → number via Telegram bot (1 credit).",
                "3 నిమిషాల్లో ఉచిత నమోదు → 3 ప్రొఫైళ్లు → ₹99 కే సంబంధం → టెలిగ్రామ్ బాట్ ద్వారా నంబర్ (1 క్రెడిట్).")}
         </p>
         <div className="mt-5 flex flex-wrap justify-center gap-3">

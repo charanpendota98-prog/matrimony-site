@@ -7,6 +7,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { authHeaders } from "@/lib/api";
 import { Duo } from "@/lib/duo";
+import { useLang } from "@/lib/lang";
 
 type Row = Record<string, any>;
 const adminToken = () => { try { return localStorage.getItem("tsap_admin_token") || ""; } catch { return ""; } };
@@ -17,13 +18,15 @@ const withToken = (url: string) => {
 const H = () => ({ ...authHeaders(true), "Content-Type": "application/json" });
 
 const LANE_META: Record<string, { icon: string; telugu: string }> = {
-  otp: { icon: "🔑", telugu: "OTP lu matrame (fast 25–60s)" },
+  otp: { icon: "🔑", telugu: "OTP లు మాత్రమే (fast 25–60s)" },
   channels: { icon: "📢", telugu: "Channel posts (120–170s gaps)" },
   personal: { icon: "💬", telugu: "Interest/referral DMs (60–120s)" },
   both: { icon: "🛟", telugu: "Backup (failover)" },
 };
 
 export default function WANumbersConsole() {
+  const { lang } = useLang();
+  const te = lang === "te";
   const [data, setData] = useState<Row | null>(null);
   const [queue, setQueue] = useState<Row | null>(null);
   const [flash, setFlash] = useState("");
@@ -59,7 +62,7 @@ export default function WANumbersConsole() {
         <h3 className="font-bold text-[#7A0C2E]">📱 <Duo en="WhatsApp Numbers (OTP / Channels / Personal)" te="వాట్సాప్ నంబర్లు" /></h3>
         <button onClick={() => void load()} className="text-xs underline">↻ refresh</button>
       </div>
-      <p className="text-[11px] text-gray-500 telugu">3 separate numbers — okati down ayithe backup automatic (duplicate avvadu). Pause = temporary off.</p>
+      <p className="text-[11px] text-gray-500 telugu">{te ? "3 separate numbers — ఒకటి down అయితే backup automatic (duplicate అవ్వదు). Pause = temporary off." : "3 separate numbers — if one goes down, backup is automatic (no duplicates). Pause = temporary off."}</p>
       {flash ? <p className="mt-1 text-[12px] font-medium text-maroon">{flash}</p> : null}
       {queue ? (
         <div className="mt-2 flex flex-wrap gap-2 text-[11px]">
@@ -93,7 +96,7 @@ export default function WANumbersConsole() {
                   className="rounded-lg border border-slate-300 px-3 py-1.5 font-bold">
                   {n.paused ? "▶️ Resume" : "⏸️ Pause"}
                 </button>
-                <button disabled={busy} onClick={() => { if (confirm(`${n.name} teeseyala?`)) void act("DELETE", `/api/admin/wa/numbers/${n.name}`); }}
+                <button disabled={busy} onClick={() => { if (confirm(te ? `${n.name} తీసెయ్యాలా?` : `Remove ${n.name}?`)) void act("DELETE", `/api/admin/wa/numbers/${n.name}`); }}
                   className="rounded-lg border border-rose-300 px-3 py-1.5 font-bold text-rose-700">🗑️</button>
               </div>
             </div>

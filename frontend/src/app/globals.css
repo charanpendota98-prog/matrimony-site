@@ -20,7 +20,26 @@
 
 html {
   scroll-behavior: smooth;
+  scroll-padding-top: calc(var(--header-h) + 12px);
 }
+
+@media (prefers-reduced-motion: no-preference) {
+  html:focus-within {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Branded slim scrollbar (webkit) */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: #f7eed8; }
+::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #7a0c2e, #a0143a); border-radius: 8px; border: 2px solid #f7eed8; }
+::-webkit-scrollbar-thumb:hover { background: #5c0822; }
+
+/* Slim inner scrollbar for the mobile menu card */
+.menu-scroll { scrollbar-width: thin; scrollbar-color: #7a0c2e #f7eed8; }
+.menu-scroll::-webkit-scrollbar { width: 6px; }
+.menu-scroll::-webkit-scrollbar-track { background: transparent; }
+.menu-scroll::-webkit-scrollbar-thumb { border: none; }
 
 body {
   font-family: 'Poppins', 'Noto Sans Telugu', system-ui, sans-serif;

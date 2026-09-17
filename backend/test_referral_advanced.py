@@ -399,7 +399,7 @@ check("/referral lo purathana ₹20/₹30 ledu (stale copy fix)", "₹20" not in
 check("/referral lo poster + 5 messages + payout form", "poster.png" in dash_pg and "whatsapp_messages" in dash_pg and "payout" in dash_pg)
 check("/referral lo leaderboard + terms API", "leaderboard" in dash_pg and "/api/referral/terms" in dash_pg)
 check("/r/[code] click ni API ki pampistundi (funnel)", "/api/referral/click/" in land_pg)
-check("/r/[code] invalid code handle + register redirect", "ref=${code}" in land_pg and "dorakaledu" in land_pg)
+check("/r/[code] invalid code handle + register redirect", "ref=${code}" in land_pg and "దొరకలేదు" in land_pg)
 check("/referral/register partner register API use chestundi", "/api/referral/partner/register" in code_pg and "/api/referral/partner/${" in code_pg)
 check("Admin payouts tab LIVE API (queue + approve/reject)",
       "/api/admin/payouts" in admin_pg and "utr" in admin_pg.lower() and "reject" in admin_pg.lower())

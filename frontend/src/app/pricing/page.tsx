@@ -17,24 +17,24 @@ import { useLang } from "@/lib/lang";
 
 type Plan = {
   code: string; price: number; profiles: number; label: string; telugu: string;
-  badge?: string; per_profile?: number; perks?: string[]; validity_days?: number;
+  badge?: string; per_profile?: number; perks?: string[]; perksTe?: string[]; validity_days?: number;
 };
 type Addon = { code: string; price: number; label: string; telugu: string };
 
 const FALLBACK_PLANS: Plan[] = [
-  { code: "FREE", price: 0, profiles: 3, label: "Free Start", telugu: "Modati 3 requests FREE", badge: "No card needed", perks: ["3 interest requests", "WhatsApp lo mee profile share", "Anni channels ki auto-post"] },
-  { code: "S_29", price: 29, profiles: 1, label: "Okka Request", telugu: "₹29 → 1 profile", badge: "Single • ₹29/profile", per_profile: 29, perks: ["1 interest request", "WhatsApp lo share + card", "Decline aithe refund"] },
-  { code: "S_99", price: 99, profiles: 5, label: "Sambandham", telugu: "₹99 → 5 profiles", badge: "Entry • ₹20/profile", per_profile: 20, perks: ["5 interest requests", "⚡ 7-day profile boost", "Decline aithe refund"] },
+  { code: "FREE", price: 0, profiles: 3, label: "Free Start", telugu: "మొదటి 3 requests FREE", badge: "No card needed", perks: ["3 interest requests", "Your profile shared on WhatsApp", "Auto-post to all channels"], perksTe: ["3 interest requests", "మీ profile WhatsApp లో share", "అన్ని channels కి auto-post"] },
+  { code: "S_29", price: 29, profiles: 1, label: "Single Request", telugu: "₹29 → 1 profile", badge: "Single • ₹29/profile", per_profile: 29, perks: ["1 interest request", "Share on WhatsApp + card", "Refund on decline"], perksTe: ["1 interest request", "WhatsApp లో share + card", "Decline అయితే refund"] },
+  { code: "S_99", price: 99, profiles: 5, label: "Sambandham", telugu: "₹99 → 5 profiles", badge: "Entry • ₹20/profile", per_profile: 20, perks: ["5 interest requests", "⚡ 7-day profile boost", "Refund on decline"], perksTe: ["5 interest requests", "⚡ 7-day profile boost", "Decline అయితే refund"] },
   { code: "S_199", price: 199, profiles: 12, label: "Family", telugu: "₹199 → 12 profiles", badge: "Most popular • ₹16.6/profile", per_profile: 17, perks: ["12 interest requests", "✅ Photo-verified badge", "⭐ 1 porutham report", "Family bureau assist"] },
   { code: "S_299", price: 299, profiles: 25, label: "Premium", telugu: "₹299 → 25 profiles", badge: "Best value • ₹12/profile", per_profile: 12, perks: ["25 interest requests", "⚡ 30-day boost", "✅ Verified badge", "👀 Who-viewed 60 days", "Telugu support"] },
   { code: "S_499", price: 499, profiles: 50, label: "Vivaha VIP", telugu: "₹499 → 50 profiles", badge: "VIP • ₹10/profile", per_profile: 10, perks: ["50 interest requests", "🎯 Matchmaker assist", "⚡ 90-day boost", "💍 Vendor discounts", "Priority support"] },
 ];
 
 const FALLBACK_ADDONS: Addon[] = [
-  { code: "BOOST_49", price: 49, label: "Profile Boost (7 days)", telugu: "Mee card 7 days channel top lo — 3× views" },
-  { code: "WHOVIEWED_49", price: 49, label: "Who viewed me (30 days)", telugu: "Mee profile ni evaru chusaru — names tho" },
+  { code: "BOOST_49", price: 49, label: "Profile Boost (7 days)", telugu: "మీ card 7 days channel top లో — 3× views" },
+  { code: "WHOVIEWED_49", price: 49, label: "Who viewed me (30 days)", telugu: "మీ profile ని ఎవరు చూశారు — names తో" },
   { code: "PORUTHAM_99", price: 99, label: "10-Porutham report", telugu: "Full kundli match report (Telugu)" },
-  { code: "VERIFY_199", price: 199, label: "Photo verification badge", telugu: "✅ Verified badge — 3× ekkuva acceptances" },
+  { code: "VERIFY_199", price: 199, label: "Photo verification badge", telugu: "✅ Verified badge — 3× ఎక్కువ acceptances" },
 ];
 
 const FAQ_TE: { q: string; a: string }[] = [
@@ -96,7 +96,7 @@ export default function PricingPage() {
           💰 {te ? "పారదర్శక ధరలు • దాచిన ఛార్జీలు లేవు • ఆటో-రెన్యూవల్ లేదు" : "Transparent Pricing • No hidden charges • No auto-renewal"}
         </div>
         <h1 className="mt-3 text-3xl md:text-4xl font-extrabold text-[#7A0C2E] telugu">
-          {te ? "మొదటి 3 రిక్వెస్టులు" : "₹99 ke Sambandham — first 3 requests"} <span className="text-[#B8860B]">FREE</span>
+          {te ? "మొదటి 3 రిక్వెస్టులు" : "₹99 Sambandham — first 3 requests"} <span className="text-[#B8860B]">FREE</span>
         </h1>
         <p className="mt-2 text-sm text-gray-600 telugu max-w-3xl mx-auto">
           {te ? <>Register <b>100% FREE</b> → <b>3 profiles</b> చూడొచ్చు + <b>3 interests</b> పంపొచ్చు. కానీ{" "}
@@ -175,7 +175,7 @@ export default function PricingPage() {
                   {p.validity_days && <span>{te ? `${p.validity_days} రోజుల validity` : `${p.validity_days}-day validity`}</span>}
                 </div>
                 <ul className="mt-3 space-y-1.5 text-xs text-gray-700">
-                  {(p.perks || []).map((k) => <li key={k} className="telugu">✅ {k}</li>)}
+                  {((te && p.perksTe ? p.perksTe : p.perks) || []).map((k) => <li key={k} className="telugu">✅ {k}</li>)}
                 </ul>
                 {p.price === 0 ? (
                   <Link href="/register"
@@ -335,7 +335,7 @@ export default function PricingPage() {
 
       {best && (
         <div className="mt-4 text-center text-[11px] text-gray-500 telugu">
-          ₹{best.price} plan lo profile ki ₹{best.per_profile || Math.round(best.price / best.profiles)} matrame — {CHANNEL_STATS.total} channels + WhatsApp share + matchmaker assist.
+{te ? <>₹{best.price} plan లో profile కి ₹{best.per_profile || Math.round(best.price / best.profiles)} మాత్రమే — {CHANNEL_STATS.total} channels + WhatsApp share + matchmaker assist.</> : <>Just ₹{best.per_profile || Math.round(best.price / best.profiles)} per profile on the ₹{best.price} plan — {CHANNEL_STATS.total} channels + WhatsApp share + matchmaker assist.</>}
         </div>
       )}
     </main>

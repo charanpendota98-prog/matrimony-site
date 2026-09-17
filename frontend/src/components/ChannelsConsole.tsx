@@ -6,6 +6,7 @@
  */
 import { useEffect, useState } from "react";
 import { authHeaders } from "@/lib/api";
+import { useLang } from "@/lib/lang";
 
 type Row = Record<string, any>;
 const adminToken = () => { try { return localStorage.getItem("tsap_admin_token") || ""; } catch { return ""; } };
@@ -16,6 +17,8 @@ const withToken = (url: string) => {
 const H = () => ({ ...authHeaders(true), "Content-Type": "application/json" });
 
 export default function ChannelsConsole() {
+  const { lang } = useLang();
+  const te = lang === "te";
   const [items, setItems] = useState<Row[]>([]);
   const [cov, setCov] = useState<Row | null>(null);
   const [q, setQ] = useState("");
@@ -71,7 +74,7 @@ export default function ChannelsConsole() {
   return (
     <div>
       <p className="telugu mt-2 text-xs text-gray-500">
-        Mee Telegram/WhatsApp channel links ikkada map cheyyandi — site Join buttons + welcome-kit auto-update.
+        {te ? "మీ Telegram/WhatsApp channel links ఇక్కడ map చెయ్యండి — site Join buttons + welcome-kit auto-update." : "Map your Telegram/WhatsApp channel links here — site Join buttons + welcome-kit auto-update."}
         Bulk paste → preview → 1-click apply.
       </p>
       {flash && <div className="my-2 rounded-xl bg-[#0F1F3C] text-white text-xs p-2">{flash}</div>}

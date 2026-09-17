@@ -130,7 +130,7 @@ reg = read("src/app/register/page.tsx")
 check("D1 register fires click (register_direct)", "register_direct" in reg and "/api/referral/click/" in reg)
 check("D2 sessionStorage dedupe", 'tsap_click_fired' in reg)
 check("D3 localStorage restore", 'tsap_ref_from_link' in reg)
-check("D4 referrer banner with name", "referrer_name" in reg and "dwara vacharu" in reg)
+check("D4 referrer banner with name", "referrer_name" in reg and "ద్వారా వచ్చారు" in reg)
 check("D5 manual code input + live validate", 'aria-label="Referral code"' in reg and "/api/referral/validate/" in reg)
 
 rp = read("src/app/r/[code]/page.tsx")
