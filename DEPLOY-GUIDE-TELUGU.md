@@ -133,4 +133,29 @@ mundu `/owner` nunchi backup zip download chesukondi.
 - Periginappudu: VPS upgrade (4GB) — code marchalsina avasaram ledu
 - Users 50k+ ayyaka: Postgres shift (data export script ready cheskovachu)
 
+---
+
+## 9. MilesWeb vallaki SPECIAL (domain + hosting)
+
+**Meedaggara MilesWeb PREMIUM (shared/cPanel) + manavivaha.in unte:**
+
+| Item | Verdict |
+|---|---|
+| MilesWeb shared PREMIUM hosting | ❌ **App RUN AVVADU** — Docker/Node/Python server process lu shared hosting lo work avvavu. Adi WordPress/PHP sites ke. |
+| manavivaha.in domain (MilesWeb lone) | ✅ **Perfect** — DNS akkade manage cheyandi, chalu. |
+| Kavalsindi | ✅ **VPS** (Ubuntu 22.04, 2GB RAM+) — MilesWeb lone VPS order cheyochu (same account, support easy) leda DigitalOcean/Hetzner. ~₹600–1000/nela. |
+
+**DNS steps (MilesWeb client area → Domains → manavivaha.in → DNS Management):**
+
+| Type | Host | Value |
+|---|---|---|
+| A | `@` | mee VPS IP (ex: `123.45.67.89`) |
+| A | `www` | mee VPS IP (same) |
+
+10–30 mins lo `http://manavivaha.in` VPS ki vastundi → Step 4 (Caddy) tho
+`https://` green lock 🔒 automatic.
+
+> Shared premium hosting waste kadu — future lo blog/landing pages ki, leda
+> email accounts ki vadukovachu. Kani APP matram VPS meeda.
+
 **Doubt unte developer ni adagandi — deploy day roju pakkana undandi. All the best! 🙏**

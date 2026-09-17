@@ -147,6 +147,20 @@ if os.path.exists(g):
 nc = open(os.path.join(ROOT, "frontend", "next.config.mjs"), encoding="utf-8").read()
 check("D6 api proxy", "BACKEND_URL" in nc and "/api/:path*" in nc)
 
+# ===========================================================================
+# D7 - deploy domain wiring (MilesWeb/manavivaha.in ready)
+# ===========================================================================
+section("D7 - domain wiring")
+check("D7 bot API_BASE prod", "API_BASE=http://backend:8000" in praw)
+check("D7 API_BASE in env", re.search(r"^API_BASE=", env, re.M) is not None)
+cx = os.path.join(ROOT, "Caddyfile.example")
+check("D7 Caddyfile", os.path.exists(cx))
+if os.path.exists(cx):
+    ct = open(cx, encoding="utf-8").read()
+    check("D7 Caddy domain+proxy", "manavivaha.in" in ct and "reverse_proxy" in ct
+          and "localhost:3000" in ct)
+check("D7 milesweb section", "MilesWeb" in gt)
+
 print(f"\n{'=' * 76}\nRESULT: {PASS} pass / {FAIL} fail\n{'=' * 76}")
 if FAILED:
     print("FAILED:", FAILED)

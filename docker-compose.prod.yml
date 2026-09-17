@@ -46,3 +46,4 @@ services:
     restart: unless-stopped
     environment:
       - TSAP_API_KEY=${TSAP_API_KEY}
+      - API_BASE=http://backend:8000
