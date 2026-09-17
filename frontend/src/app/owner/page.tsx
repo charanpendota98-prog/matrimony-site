@@ -34,7 +34,6 @@ export default function OwnerPage() {
   const [d, setD] = useState<Row | null>(null);
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
-
   const load = useCallback(async (k: string) => {
     if (!k) return;
     setBusy(true); setErr("");
@@ -54,6 +53,37 @@ export default function OwnerPage() {
       if (k) { setKey(k); void load(k); }
     } catch { /* ignore */ }
   }, [load]);
+
+  const [bmsg, setBmsg] = useState("");
+  const [bbusy, setBbusy] = useState(false);
+
+  const downloadBackup = useCallback(async () => {
+    setBbusy(true); setBmsg("");
+    try {
+      const r = await fetch("/api/admin/backup/export", { headers: { "x-admin-key": key } });
+      if (!r.ok) { setBmsg(te ? "❌ Backup fail — key check cheyandi" : "❌ Backup failed — check key"); setBbusy(false); return; }
+      const blob = await r.blob();
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "mana-vivaha-backup.zip";
+      a.click();
+      setBmsg(te ? "✅ Backup download ayindi — safe ga dachukondi" : "✅ Backup downloaded — keep it safe");
+    } catch { setBmsg("❌ Network problem"); }
+    setBbusy(false);
+  }, [key, te]);
+
+  const restoreBackup = useCallback(async (f: File | undefined) => {
+    if (!f) return;
+    if (!window.confirm(te ? "⚠️ Restore: current data replace అవుతుంది. Continue?" : "⚠️ Restore: current data will be replaced. Continue?")) return;
+    setBbusy(true); setBmsg("");
+    try {
+      const r = await fetch("/api/admin/backup/import", { method: "POST", headers: { "x-admin-key": key, "Content-Type": "application/zip" }, body: f });
+      const j = await r.json();
+      setBmsg(j.success ? `✅ Restore ok — ${j.restored?.length ?? 0} files (${j.note || ""})` : `❌ ${j.detail || "fail"}`);
+      if (j.success) void load(key);
+    } catch { setBmsg("❌ Network problem"); }
+    setBbusy(false);
+  }, [key, te, load]);
 
   const rev: Row = d?.revenue || {};
   const users: Row = d?.users || {};
@@ -169,6 +199,17 @@ export default function OwnerPage() {
             {(ch.gaps || []).length > 0 && (
               <p className="mt-2 text-[11px] text-amber-800">⚠️ {(ch.gaps || []).join(" • ")}</p>
             )}
+          </Card>
+
+          <Card title="💾 Backup / Restore">
+            <p className="text-[12px] text-slate-600">{te ? "అన్నీ (users, payments, interests, channels) okka zip లో. Crash అయినా ఈ zip + code ఉంటే site మళ్ళీ వస్తుంది." : "Everything (users, payments, interests, channels) in one zip. Even after a crash, this zip + code brings the site back."}</p>
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <button onClick={() => void downloadBackup()} disabled={bbusy} className="rounded-2xl bg-[#7A0C2E] px-4 py-2 text-[13px] font-bold text-white disabled:opacity-50">⬇️ {te ? "బ్యాకప్ download" : "Download backup"}</button>
+              <label className="cursor-pointer rounded-2xl border border-[#7A0C2E] px-4 py-2 text-[13px] font-bold text-[#7A0C2E]">⬆️ {te ? "Restore (zip)" : "Restore (zip)"}
+                <input type="file" accept=".zip" className="hidden" onChange={(e) => { void restoreBackup(e.target.files?.[0]); e.target.value = ""; }} />
+              </label>
+            </div>
+            {bmsg && <p className="mt-2 text-[12px] font-bold">{bmsg}</p>}
           </Card>
 
           <Card title="⚙️ System">

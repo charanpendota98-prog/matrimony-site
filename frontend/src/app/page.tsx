@@ -60,6 +60,8 @@ const TEXT = {
     heroSubC: (free: number) => `₹99 కే సంబంధం — మొదటి ${free} ప్రొఫైళ్లు FREE.`,
     registerCta: "3 నిమిషాల్లో ఉచిత నమోదు",
     botCta: "Telegram Bot",
+    installApp: "App లాగా install చేసుకోండి",
+    vibeTitle: "మీ ఇంటి శుభకార్యానికి — సరైన సంబంధం ఇక్కడే",
     trust: ["OTP + DOB వెరిఫైడ్", "ఫోటో-ప్రైవేట్ మోడ్", "యాక్సెప్ట్ తర్వాతే నంబర్", "వాటర్‌మార్క్ + ఫ్రాడ్ అలర్ట్స్"],
     idSearchPh: "Profile ID తో వెతకండి — TSAP-F-2025-5775",
     idSearchBtn: "వెతకండి",
@@ -210,6 +212,8 @@ const TEXT = {
     heroSubC: (free: number) => `₹99 Sambandham — first ${free} profiles FREE.`,
     registerCta: "Register FREE — 3 minutes",
     botCta: "Telegram Bot",
+    installApp: "Install as app",
+    vibeTitle: "For your family wedding — the right match is here",
     trust: ["OTP + DOB verified", "Photo-private mode", "Number only after accept", "Watermark + fraud alerts"],
     idSearchPh: "Search by Profile ID — TSAP-F-2025-5775",
     idSearchBtn: "Search",
@@ -435,6 +439,12 @@ export default function Home() {
               >
                 🤖 {L.botCta} — {SITE_CONFIG.botUsername}
               </a>
+              <button
+                onClick={() => window.dispatchEvent(new Event("tsap:install-show"))}
+                className="px-6 py-3.5 rounded-full bg-white border border-gold/50 text-maroon text-sm font-bold shadow-soft"
+              >
+                📲 {L.installApp}
+              </button>
             </div>
 
             <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-[12px] font-semibold text-gray-700">
@@ -480,9 +490,8 @@ export default function Home() {
                 </div>
 
                 <div className="mt-3 flex gap-3">
-                  <div className="w-20 h-24 rounded-xl maroon-gradient flex items-center justify-center text-gold font-bold text-xl shrink-0">
-                    LR
-                  </div>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/promo/bride-card.jpg" alt="Sample bride" className="w-20 h-24 rounded-xl object-cover border border-gold/40 shrink-0" />
                   <div className="min-w-0">
                     <div className="font-bold text-sm text-maroon">TSAP-F-2025-5775</div>
                     <div className="text-[12px] text-gray-700 mt-0.5">25y • 5'4" • Reddy</div>
@@ -535,6 +544,18 @@ export default function Home() {
                 {t}
               </span>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ================= WEDDING VIBE BANNER (AI promo) ================= */}
+      <section className="relative overflow-hidden">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/promo/hero-wedding.jpg" alt="Telugu wedding" className="w-full h-60 md:h-96 object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-t from-maroon/90 via-maroon/25 to-transparent flex items-end">
+          <div className="max-w-7xl mx-auto px-4 pb-6 w-full flex flex-wrap items-end justify-between gap-3">
+            <div className="text-white text-xl md:text-3xl font-bold drop-shadow">{L.vibeTitle}</div>
+            <Link href="/register" className="px-6 py-3 rounded-full gold-gradient text-maroon text-sm font-bold shadow-brand">🚀 {L.registerCta}</Link>
           </div>
         </div>
       </section>

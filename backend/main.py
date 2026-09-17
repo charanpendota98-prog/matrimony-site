@@ -5140,6 +5140,70 @@ def api_owner_summary(request: Request):
     return out
 
 
+@app.get("/api/admin/backup/export")
+def api_admin_backup_export(request: Request):
+    """💾 WAVE 39 — anni data files ZIP download (ADMIN KEY ONLY)."""
+    require_admin(request)
+    import backup39
+    from fastapi.responses import Response
+    blob, name = backup39.export_zip()
+    return Response(content=blob, media_type="application/zip",
+                    headers={"Content-Disposition": 'attachment; filename="%s"' % name})
+
+
+@app.post("/api/admin/backup/import")
+async def api_admin_backup_import(request: Request):
+    """💾 WAVE 39 — backup ZIP restore (ADMIN KEY ONLY). Body = zip bytes.
+    Files replace + core DB memory reload; wa/push satellites ki restart best."""
+    require_admin(request)
+    import backup39
+    data = await request.body()
+    if not data:
+        raise HTTPException(400, "empty body — zip bytes required")
+    try:
+        res = backup39.import_zip(data)
+    except ValueError as e:
+        raise HTTPException(400, "backup reject: %s" % e)
+    core = False
+    try:
+        _snap = DBSTORE.load()
+        if isinstance(_snap, dict) and _snap.get("users") is not None:
+            DB_USERS.clear()
+            DB_USERS.extend(_snap.get("users", []))
+            DB_INTERESTS.clear()
+            DB_INTERESTS.extend(_snap.get("interests", []))
+            DB_PAYMENTS.clear()
+            DB_PAYMENTS.extend(_snap.get("payments", []))
+            DB_OTPS.clear()
+            DB_OTPS.update(_snap.get("otps", {}))
+            VERIFIED_PHONES.clear()
+            for _ph in _snap.get("verified_phones", []) or []:
+                VERIFIED_PHONES.add(_ph)
+            DB_VIEWS.clear()
+            DB_VIEWS.extend(_snap.get("views", []))
+            DB_SAVES.clear()
+            DB_SAVES.extend(_snap.get("saves", []))
+            DB_DIGEST.clear()
+            DB_DIGEST.extend(_snap.get("digest", []))
+            core = True
+    except Exception:
+        core = False
+    res["core_reloaded"] = core
+    res["note"] = ("core reload ayindi; wa/push satellites kosam restart best"
+                   if core else "files restore ayayi — backend restart cheyandi")
+    return {"success": True, **res}
+
+
+@app.on_event("startup")
+async def _startup_backup39():
+    try:
+        import backup39
+        _p = backup39.auto_snapshot("startup")
+        print("[BACKUP39] startup snapshot:", _p)
+    except Exception as _e:
+        print("[BACKUP39] snapshot skip:", _e)
+
+
 @app.get("/api/offers/active")
 def api_offers_active():
     """Public: live festival offers (homepage banner కి)."""
