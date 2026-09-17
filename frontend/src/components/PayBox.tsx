@@ -72,14 +72,16 @@ export default function PayBox({ planCode, price, label }: { planCode: string; p
   };
 
   const payNow = async () => {
-    if (!order) return;
+    if (!order || busy) return;
+    setBusy(true);
     if (order.mode !== "razorpay" || !order.key_id) {
       setMsg(te ? `💳 ${order.upi_id || "manavivaha@upi"} కి ₹${order.final_amount} pay చేసి — కింద UTR (12 digits) ఇవ్వండి. Admin bank statement verify చేసి confirm చేస్తాడు 🙏 (Order: ${order.id})` : `💳 Pay ₹${order.final_amount} to ${order.upi_id || "manavivaha@upi"} — enter UTR (12 digits) below. Admin verifies the bank statement and confirms 🙏 (Order: ${order.id})`);
+      setBusy(false);
       return;
     }
     const ok = await loadRazorpay();
-    if (!ok || !window.Razorpay) { setMsg(te ? "⚠️ Razorpay load అవ్వలేదు — UPI manual తో try చెయ్యండి" : "⚠️ Razorpay failed to load — try manual UPI"); return; }
-    if (!order.rzp_order_id) { setMsg(te ? "⚠️ Order ID లేదు — కొత్త order create చెయ్యండి" : "⚠️ No Order ID — create a new order"); return; }
+    if (!ok || !window.Razorpay) { setMsg(te ? "⚠️ Razorpay load అవ్వలేదు — UPI manual తో try చెయ్యండి" : "⚠️ Razorpay failed to load — try manual UPI"); setBusy(false); return; }
+    if (!order.rzp_order_id) { setMsg(te ? "⚠️ Order ID లేదు — కొత్త order create చెయ్యండి" : "⚠️ No Order ID — create a new order"); setBusy(false); return; }
     const rzp = new window.Razorpay({
       key: order.key_id,
       order_id: order.rzp_order_id,
@@ -105,7 +107,20 @@ export default function PayBox({ planCode, price, label }: { planCode: string; p
       },
       prefill: {},
       theme: { color: "#7A0C2E" },
+      modal: {
+        ondismiss: () => {
+          setBusy(false);
+          setMsg(te ? "\u2139\ufe0f Payment window close \u0c1a\u0c47\u0c36\u0c3e\u0c30\u0c41 - order 24h valid, \u0c2e\u0c33\u0c4d\u0c32\u0c40 Pay \u0c28\u0c4a\u0c15\u0c4d\u0c15\u0c3f try \u0c1a\u0c46\u0c2f\u0c4d\u0c2f\u0c02\u0c21\u0c3f \U0001f642" : "\u2139\ufe0f Payment window closed - order valid 24h, press Pay to retry \U0001f642");
+        },
+      },
     });
+    try {
+      rzp.on("payment.failed", (resp: any) => {
+        setBusy(false);
+        const why = resp?.error?.description || "";
+        setMsg(te ? `\u274c Payment fail \u0c05\u0c2f\u0c4d\u0c2f\u0c3f\u0c02\u0c26\u0c3f${why ? ` (${why})` : ""} - \u0c21\u0c2c\u0c4d\u0c2c\u0c41\u0c32\u0c41 cut \u0c05\u0c35\u0c4d\u0c35\u0c32\u0c47\u0c26\u0c41, \u0c2e\u0c33\u0c4d\u0c32\u0c40 try \u0c1a\u0c46\u0c2f\u0c4d\u0c2f\u0c02\u0c21\u0c3f` : `\u274c Payment failed${why ? ` (${why})` : ""} - no money cut, please retry`);
+      });
+    } catch { /* older checkout.js - ignore */ }
     rzp.open();
   };
 
@@ -138,6 +153,7 @@ export default function PayBox({ planCode, price, label }: { planCode: string; p
           <div className="text-xs font-bold text-[#7A0C2E]">
             Order {order.id} • ₹{order.final_amount}
             {order.discount ? <span className="ml-1 text-green-700">(−₹{order.discount} {order.offer_code})</span> : null}
+            <span className="ml-1 font-normal text-gray-500">• {te ? "24h valid" : "valid 24h"}</span>
           </div>
           {order.mode !== "razorpay" && (
             <div className="text-[11px] bg-white rounded-lg p-2 border space-y-2">

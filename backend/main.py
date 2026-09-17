@@ -4837,6 +4837,8 @@ def api_pay_order(payload: dict, request: Request):
     d = payload or {}
     tsap = str(d.get("tsap_id", "")).upper()
     require_owner(request, tsap)  # 🛡️ WAVE 25: vere vaalla peruna orders vaddu
+    if not _find_user(tsap):  # 🌊 WAVE 34: fail fast — user lekapothe dangling paid order vaddu
+        raise HTTPException(404, "⚠️ User దొరకలేదు — ముందు register చెయ్యండి")
     res = PP.create_pay_order(tsap, str(d.get("purpose", "credits")),
                               str(d.get("ref", "")), str(d.get("offer_code", "") or ""))
     if not res.get("success"):
@@ -4928,6 +4930,21 @@ def api_admin_pay_confirm(order_id: str, payload: dict, request: Request):
         _rc = res.get("receipt", {}) or {}
         MAUD.audit("pay_confirmed", "admin", {"order_id": order_id, "utr": _rc.get("utr", ""),
                                               "amount": _rc.get("amount"), "tsap_id": _rc.get("tsap_id", "")})
+    return res
+
+
+@app.post("/api/admin/payments/{order_id}/refund")
+def api_admin_pay_refund(order_id: str, payload: dict, request: Request):
+    """WAVE 34 PREMIUM - REAL refund: Razorpay API (auto) leda manual-UPI (note+proof).
+    Money back + benefits reverse (credits/boost/campaign/assist) + commission clawback."""
+    require_admin(request)
+    d = payload or {}
+    res = PP.refund_order(order_id, str(d.get("reason", "") or ""), str(d.get("note", "") or ""))
+    if not res.get("success"):
+        raise HTTPException(400, res.get("message_telugu"))
+    if not res.get("duplicate"):
+        MAUD.audit("pay_refunded", "admin", {"order_id": order_id, "refund_id": res.get("refund_id", ""),
+                                             "via": res.get("via", ""), "reversed": res.get("reversed", [])})
     return res
 
 

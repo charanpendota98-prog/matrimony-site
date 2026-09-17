@@ -32,6 +32,7 @@ PAY_ORDERS: List[Dict] = []
 ORDER_EXPIRY_HOURS = 24          # pending order 24h lo pay kakapothe expire (stale confirm ban)
 UTR_RE = re.compile(r"^\d{12}$")  # UPI ref / bank UTR = 12 digits (PhonePe/GPay statement)
 _ORDER_LOCKS: Dict[str, threading.Lock] = defaultdict(threading.Lock)
+_OFFER_LOCK = threading.Lock()  # WAVE 34: offer consume race-proof (cap overshoot ban)
 
 
 def valid_utr(utr: str) -> bool:
@@ -238,12 +239,13 @@ def active_offers() -> List[Dict]:
 
 
 def _consume_offer(code: str, user_id: str = "") -> None:
-    o = get_offer(code) if code else None
-    if o:
-        o["used"] = int(o.get("used", 0)) + 1
-        if user_id and str(user_id).strip().upper() not in [str(x).upper() for x in (o.get("used_by") or [])]:
-            o.setdefault("used_by", []).append(str(user_id).strip().upper())
-        _persist()
+    with _OFFER_LOCK:  # 🌊 WAVE 34: concurrent verify → cap overshoot ban
+        o = get_offer(code) if code else None
+        if o:
+            o["used"] = int(o.get("used", 0)) + 1
+            if user_id and str(user_id).strip().upper() not in [str(x).upper() for x in (o.get("used_by") or [])]:
+                o.setdefault("used_by", []).append(str(user_id).strip().upper())
+            _persist()
 
 
 # ---------------------------------------------------------------------------
@@ -371,6 +373,33 @@ def _hmac_ok(rzp_order_id: str, payment_id: str, signature: str) -> bool:
     return hmac.compare_digest(good, str(signature))
 
 
+def _capture_check_enabled() -> bool:
+    """🌊 WAVE 34 PREMIUM: Razorpay-side capture confirm (prod recommended).
+    HMAC matrame authorized (not captured) payment ki kooda valid — kabatti
+    RAZORPAY_VERIFY_CAPTURE=1 ayithe /v1/payments/{id} lo captured+amount verify."""
+    return os.getenv("RAZORPAY_VERIFY_CAPTURE", "").strip().lower() in ("1", "true", "yes", "on")
+
+
+def _rzp_payment_status(payment_id: str) -> Dict:
+    """Razorpay payment live status (secret backend lone). Fail-closed dict."""
+    import requests  # lazy
+    key_id = os.getenv("RAZORPAY_KEY_ID", "").strip()
+    secret = _secret()
+    if not key_id or not secret or not payment_id:
+        return {"captured": False, "amount": 0, "status": "", "error": "no_keys"}
+    try:
+        r = requests.get("https://api.razorpay.com/v1/payments/%s" % payment_id,
+                         auth=(key_id, secret), timeout=12)
+        j = r.json() if r.status_code == 200 else {}
+        if not j.get("id"):
+            return {"captured": False, "amount": 0, "status": "",
+                    "error": str((j.get("error") or {}).get("description") or "fetch_fail")[:120]}
+        return {"captured": (j.get("status") == "captured"),
+                "amount": int(j.get("amount", 0) or 0), "status": str(j.get("status", ""))}
+    except Exception as e:
+        return {"captured": False, "amount": 0, "status": "", "error": str(e)[:100]}
+
+
 def _fire_referral_commission(user: Dict, po: Dict, payment_id: str) -> None:
     """WAVE 24 — GAP FIX: pay/order flow (Razorpay verify + manual UTR) lo commission
     padatledu! Fulfill success ayina ventane referrer ki Rs50/10% (rules engine vare)."""
@@ -473,6 +502,20 @@ def _verify_payment_locked(pay_order_id: str, rzp_order_id: str, payment_id: str
     if not _hmac_ok(rzp_order_id, payment_id, signature):
         return {"success": False, "reason": "bad_signature",
                 "message_telugu": "🚫 Payment verify FAIL — signature mismatch (amount cut అయితే 5-7 days లో auto-refund, leda support కి payment ID పంపండి)"}
+    if _capture_check_enabled():
+        # WAVE 34: uncaptured (authorized/failed) payment ki credits NEVER
+        cap = _rzp_payment_status(payment_id)
+        if not cap.get("captured"):
+            po["last_capture_check"] = {"at": _now(), "status": cap.get("status", ""),
+                                        "error": cap.get("error", "")}
+            _persist()
+            return {"success": False, "reason": "not_captured",
+                    "rzp_status": cap.get("status", ""),
+                    "message_telugu": "\u23F3 Payment inka bank side capture \u0C05\u0C35\u0C4D\u0C35\u0C32\u0C47\u0C26\u0C41 (status: %s) \u2014 2 \u0C28\u0C3F\u0C2E\u0C3F\u0C37\u0C3E\u0C32\u0C32\u0C4B \u0C2E\u0C33\u0C4D\u0C32\u0C40 try \u0C1A\u0C46\u0C2F\u0C4D\u0C2F\u0C02\u0C21\u0C3F (\u0C21\u0C2C\u0C4D\u0C2C\u0C41\u0C32\u0C41 safe, credits capture \u0C05\u0C2F\u0C4D\u0C2F\u0C3E\u0C15\u0C47 add)" % (cap.get("status") or "pending")}
+        if int(cap.get("amount", 0)) != int(po.get("final_amount", 0) or 0) * 100:
+            return {"success": False, "reason": "amount_mismatch",
+                    "message_telugu": "\U0001F6AB Razorpay amount (\u20B9%s) \u2260 order amount (\u20B9%s) \u2014 safe abort (support \u0C15\u0C3F payment ID \u0C2A\u0C02\u0C2A\u0C02\u0C21\u0C3F)" % (
+                        int(cap.get("amount", 0)) // 100, po.get("final_amount", 0))}
     po["rzp_order_id"] = rzp_order_id
     po["payment_id"] = payment_id
     done = fulfill_order(po, payment_id, "razorpay")
@@ -521,6 +564,14 @@ def handle_razorpay_webhook(event: Dict) -> Dict:
                 return {"ok": True, "duplicate": True, "receipt": po.get("receipt")}
             if payment_id and payment_id in RECEIPTS:
                 return {"ok": True, "duplicate": True, "receipt": RECEIPTS[payment_id]}
+            if name == "payment.authorized":
+                # 🌊 WAVE 34 PREMIUM: authorized ≠ captured — డబ్బులు inka bank దగ్గరే!
+                # Fulfill CHEYYAM (capture webhook / verify daggara fulfill avutundi).
+                po["payment_id"] = payment_id or po.get("payment_id", "")
+                po["authorized_at"] = _now()
+                _persist()
+                return {"ok": True, "pending_capture": True, "pay_order_id": po["id"],
+                        "message_telugu": "⏳ Payment authorized — capture webhook kosam wait (credits capture అయ్యాకే)"}
             if order_expired(po):
                 po["status"] = "expired"
                 _persist()
@@ -635,5 +686,148 @@ def pay_stats() -> Dict:
     paid = [o for o in PAY_ORDERS if o.get("status") == "paid"]
     return {"orders": len(PAY_ORDERS), "paid": len(paid),
             "pending": len([o for o in PAY_ORDERS if o.get("status") == "created"]),
+            "refunded": len([o for o in PAY_ORDERS if o.get("status") == "refunded"]),
             "collected": sum(int(o.get("final_amount", 0) or 0) for o in paid),
             "offers_live": len(active_offers())}
+
+
+# ---------------------------------------------------------------------------
+# WAVE 34 PREMIUM - REAL REFUNDS (Razorpay API + fulfillment reversal)
+# ---------------------------------------------------------------------------
+def razorpay_refund(payment_id: str, amount_rs: int, note: str = "") -> Dict:
+    """Server-side Razorpay refund (secret backend lone - frontend ki never).
+    Full amount only (partial refunds policy lo levu - simple + safe)."""
+    import requests  # lazy
+    key_id = os.getenv("RAZORPAY_KEY_ID", "").strip()
+    secret = _secret()
+    if not key_id or not secret:
+        return {"ok": False, "message_telugu": "\u26a0\ufe0f Razorpay keys \u0c32\u0c47\u0c26\u0c41 - manual-UPI refund (admin out-of-band return) \u0c35\u0c3e\u0c21\u0c02\u0c21\u0c3f"}
+    if not payment_id or int(amount_rs or 0) <= 0:
+        return {"ok": False, "message_telugu": "\u26a0\ufe0f payment_id + amount \u0c15\u0c3e\u0c35\u0c3e\u0c32\u0c3f"}
+    try:
+        r = requests.post("https://api.razorpay.com/v1/payments/%s/refund" % payment_id,
+                          auth=(key_id, secret),
+                          json={"amount": int(amount_rs) * 100, "speed": "normal",
+                                "notes": {"reason": (note or "customer refund")[:100]}},
+                          timeout=20)
+        j = r.json() if r.headers.get("content-type", "").startswith("application/json") else {}
+        if r.status_code in (200, 201) and j.get("id"):
+            return {"ok": True, "refund_id": j["id"], "status": str(j.get("status", "")),
+                    "message_telugu": "\u2705 Refund raise \u0c05\u0c2f\u0c4d\u0c2f\u0c3f\u0c02\u0c26\u0c3f (%s) - 5-7 working days \u0c32\u0c4b customer account \u0c15\u0c3f" % j["id"]}
+        desc = str((j.get("error") or {}).get("description") or "")[:160]
+        if "already" in desc.lower() and "refund" in desc.lower():
+            return {"ok": True, "duplicate": True, "refund_id": "",
+                    "message_telugu": "\u2705 \u0c08 payment \u0c15\u0c3f refund already raise \u0c05\u0c2f\u0c4d\u0c2f\u0c3f\u0c02\u0c26\u0c3f"}
+        return {"ok": False, "message_telugu": "\u26a0\ufe0f Razorpay refund fail: %s" % (desc or ("HTTP " + str(r.status_code)))}
+    except Exception as e:
+        return {"ok": False, "message_telugu": "\u26a0\ufe0f Razorpay reach \u0c05\u0c35\u0c4d\u0c35\u0c32\u0c47\u0c26\u0c41 - \u0c2e\u0c33\u0c4d\u0c32\u0c40 try \u0c1a\u0c46\u0c2f\u0c4d\u0c2f\u0c02\u0c21\u0c3f (%s)" % str(e)[:80]}
+
+
+def _reverse_fulfillment(po: Dict) -> Dict:
+    """Paid benefits venakki (credits deduct / boost off / campaign pause / assist mark).
+    Best-effort per purpose - em fail aina kooda record + continue."""
+    out = {"reversed": [], "notes": []}
+    try:
+        import main as MAIN  # lazy
+        user = MAIN._find_user(po.get("tsap_id", ""))
+    except Exception:
+        user = None
+    purpose, ref = po.get("purpose"), po.get("ref")
+    try:
+        if purpose == "credits" and user is not None:
+            exp = _expected_amount("credits", ref)
+            n = int(exp.get("credits", 0) or 0) if exp.get("ok") else 0
+            if n > 0:
+                user["credits"] = max(0, int(user.get("credits", 0) or 0) - n)
+                out["reversed"].append("credits -%d (balance %d)" % (n, user["credits"]))
+            try:
+                from interest import get_plan
+                _code = str(get_plan(ref).get("code", ""))
+                if _code and _code != "FREE" and user.get("plan") == _code:
+                    user["plan"] = "FREE"
+                    out["reversed"].append("plan -> FREE")
+            except Exception as e:
+                out["notes"].append("plan_keep: %s" % str(e)[:60])
+        elif purpose == "boost" and user is not None:
+            if user.get("boost_until"):
+                user["boost_until"] = ""
+                out["reversed"].append("boost OFF")
+        elif purpose == "ads":
+            try:
+                import ads as ADS  # lazy
+                r = ADS.campaign_action(ref, "pause", "refund %s" % po.get("id", ""))
+                out["reversed" if r.get("success") else "notes"].append(
+                    "campaign %s paused" % ref if r.get("success") else "campaign: %s" % r.get("message_telugu", "")[:60])
+            except Exception as e:
+                out["notes"].append("campaign_err: %s" % str(e)[:60])
+        elif purpose == "assisted":
+            try:
+                import smart12 as S12  # lazy
+                o = S12.get_order(ref)
+                if o:
+                    o["status"] = "refunded"
+                    o["refund_note"] = "pay %s refund" % po.get("id", "")
+                    S12._persist()
+                    out["reversed"].append("assisted %s -> refunded" % ref)
+            except Exception as e:
+                out["notes"].append("assisted_err: %s" % str(e)[:60])
+    except Exception as e:
+        out["notes"].append("reverse_err: %s" % str(e)[:80])
+    return out
+
+
+def refund_order(pay_order_id: str, reason: str = "", admin_note: str = "") -> Dict:
+    """ADMIN ONLY (caller gates): paid order -> money back + benefits reverse.
+    Razorpay mode: API refund MUST succeed (fail-closed).
+    Manual-UPI mode: admin out-of-band return confirm chesaka (note mandatory - audit)."""
+    with _ORDER_LOCKS[str(pay_order_id or "")]:
+        return _refund_order_locked(pay_order_id, reason, admin_note)
+
+
+def _refund_order_locked(pay_order_id: str, reason: str, admin_note: str) -> Dict:
+    po = get_pay_order(pay_order_id)
+    if not po:
+        return {"success": False, "message_telugu": "\u26a0\ufe0f Order \u0c26\u0c4a\u0c30\u0c15\u0c32\u0c47\u0c26\u0c41"}
+    if po.get("status") == "refunded":
+        return {"success": True, "duplicate": True, "order_id": po["id"],
+                "refund_id": po.get("refund_id", ""),
+                "message_telugu": "\u2705 \u0c08 order \u0c15\u0c3f refund already \u0c05\u0c2f\u0c4d\u0c2f\u0c3f\u0c02\u0c26\u0c3f (double refund \u0c32\u0c47\u0c26\u0c41)"}
+    if po.get("status") != "paid":
+        return {"success": False, "reason": "not_paid",
+                "message_telugu": "\u26a0\ufe0f Paid orders \u0c15\u0c3f \u0c2e\u0c3e\u0c24\u0c4d\u0c30\u0c2e\u0c47 refund (status: %s)" % po.get("status")}
+    reason = (reason or "").strip()[:200] or "customer_request"
+    refund_id, via = "", ""
+    if po.get("mode") == "razorpay" and po.get("payment_id") and pay_config()["mode"] == "razorpay":
+        rr = razorpay_refund(po["payment_id"], int(po.get("final_amount", 0) or 0), reason)
+        if not rr.get("ok"):
+            return {"success": False, "message_telugu": rr.get("message_telugu")}
+        refund_id, via = rr.get("refund_id", ""), "razorpay"
+    else:
+        if not (admin_note or "").strip():
+            return {"success": False, "reason": "note_required",
+                    "message_telugu": "\u26a0\ufe0f Manual refund \u0c15\u0c3f note mandatory (return UTR / proof - audit \u0c15\u0c4b\u0c38\u0c02)"}
+        refund_id, via = "MANUAL:" + (admin_note.strip()[:60]), "manual_upi"
+    rev = _reverse_fulfillment(po)
+    claw = {}
+    try:
+        import main as MAIN  # lazy
+        from referral import reverse_referral_payment
+        user = MAIN._find_user(po.get("tsap_id", ""))
+        if user is not None and user.get("referred_by"):
+            claw = reverse_referral_payment(user, int(po.get("final_amount", 0) or 0),
+                                            MAIN.DB_USERS, reason="refund:" + po["id"])
+    except Exception as e:
+        claw = {"success": False, "error": str(e)[:80]}
+    po["status"] = "refunded"
+    po["refunded_at"] = _now()
+    po["refund_reason"] = reason
+    po["refund_id"] = refund_id
+    po["refund_via"] = via
+    po["refund_reversal"] = rev
+    po["refund_clawback"] = {"success": bool((claw or {}).get("success")),
+                             "reversed": (claw or {}).get("reversed", 0)}
+    _persist()
+    return {"success": True, "order_id": po["id"], "refund_id": refund_id, "via": via,
+            "reversed": rev.get("reversed", []), "clawback": po["refund_clawback"],
+            "message_telugu": "\u2705 %s refund \u0c05\u0c2f\u0c4d\u0c2f\u0c3f\u0c02\u0c26\u0c3f (\u20b9%s, %s) - benefits reverse + commission clawback done" % (
+                po["id"], po.get("final_amount", 0), "Razorpay (5-7 days)" if via == "razorpay" else "manual return")}
