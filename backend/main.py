@@ -29,6 +29,7 @@ from referral import (
     referrer_join_text, referrer_commission_text, referee_welcome_text,
     mask_payout as referral_mask_payout,
     tier_of as referral_tier_of, MILESTONES as REFERRAL_MILESTONES, TIERS as REFERRAL_TIERS,
+    FIRST_PAY_COMMISSION,
 )  # noqa: E402
 import refpartners as RP19  # noqa: E402  # 🌊 WAVE 19 — referral partners
 from vendors import (                                                        # 🏪 vendor ads + promotions
@@ -4768,6 +4769,33 @@ def api_meta_castes(religion: str = "Hindu"):
     info = MP.castes_for(religion)
     return {"success": True, **info,
             "message_telugu": f"🙏 {info['religion']} — {len(info['castes'])} kulalu/groups (A–Z)"}
+
+
+@app.get("/api/meta/home-stats")
+def api_meta_home_stats():
+    """🌊 WAVE 30 — homepage live numbers (NO DUMMY): channels + castes + plans + referral + bureau."""
+    ch = channel_stats()
+    by_tier = ch.get("by_tier", {}) or {}
+    plans = [{"code": p.get("code"), "price": p.get("price"), "profiles": p.get("profiles"),
+              "label": p.get("label"), "telugu": p.get("telugu"), "badge": p.get("badge")}
+             for p in plan_list_with_free()]
+    return {"success": True,
+            "channels_total": ch.get("total", 0), "channels_live": ch.get("live", 0),
+            "channels_by_tier": by_tier,
+            "castes_covered": len(MP.castes_for("Hindu").get("castes", [])),
+            "free_first": 3,
+            "plans": plans,
+            "addons": [{"code": a.get("code"), "price": a.get("price"),
+                        "label": a.get("label"), "telugu": a.get("telugu")}
+                       for a in addon_list()],
+            "renewal": {"price": renewal_offer().get("price"),
+                        "profiles": renewal_offer().get("profiles")},
+            "bureau": bureau_list(),
+            "referral": {"per_pay": FIRST_PAY_COMMISSION,
+                         "milestones": [{"paid": m.get("paid"), "title": m.get("title"),
+                                         "telugu": m.get("telugu")}
+                                        for m in REFERRAL_MILESTONES]},
+            "message_telugu": "✅ Homepage numbers anni live — backend nunchi"}
 
 
 @app.get("/api/health")

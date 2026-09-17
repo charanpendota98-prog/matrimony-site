@@ -14,7 +14,7 @@
  *   • 📸 Photo phone lo ne compress (1200px) → upload → fast on 2G/3G too
  *   • 🎤 Voice input (about_myself) — supported browsers lo
  */
-import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { CHANNEL_STATS } from "@/lib/channels";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -22,6 +22,7 @@ import Reveal from "@/components/Reveal";
 import { SITE_CONFIG } from "@/lib/site-config";
 import { authHeaders } from "@/lib/api";
 import { Duo, duo } from "@/lib/duo";
+import { useLang } from "@/lib/lang";
 import PhotoFlow from "@/components/PhotoFlow";
 import {
   BLOOD_GROUPS, BODY_TYPES, CASTES, CHILDREN_OPTIONS, COMPLEXIONS, DISTRICTS_BY_STATE, EDUCATIONS, FAMILY_STATUSES,
@@ -32,11 +33,11 @@ import {
 
 const DRAFT_KEY = "tsap_reg_draft_v3";
 const STEPS = [
-  { n: 1, label: "Basic", labelTe: "ప్రాథమిక", icon: "🙋", hint: "Mee basic details — 30 seconds" },
-  { n: 2, label: "Community", labelTe: "సామాజిక", icon: "💍", hint: "Caste + star details — card ki kavali" },
-  { n: 3, label: "Education", labelTe: "విద్య", icon: "🎓", hint: "Chaduvu + udyogam" },
-  { n: 4, label: "Family", labelTe: "కుటుంబం", icon: "👨‍👩‍👧", hint: "Family + contact" },
-  { n: 5, label: "Photo", labelTe: "ఫోటో", icon: "📸", hint: "Photo + finish (chi-vi details)" },
+  { n: 1, label: "Basic", labelTe: "ప్రాథమిక", icon: "🙋", hint: "Mee basic details — 30 seconds", hintEn: "Your basic details — 30 seconds" },
+  { n: 2, label: "Community", labelTe: "సామాజిక", icon: "💍", hint: "Caste + star details — card ki kavali", hintEn: "Caste + star details — needed for card" },
+  { n: 3, label: "Education", labelTe: "విద్య", icon: "🎓", hint: "Chaduvu + udyogam", hintEn: "Education + job" },
+  { n: 4, label: "Family", labelTe: "కుటుంబం", icon: "👨‍👩‍👧", hint: "Family + contact", hintEn: "Family + contact" },
+  { n: 5, label: "Photo", labelTe: "ఫోటో", icon: "📸", hint: "Photo + finish (chi-vi details)", hintEn: "Photo + finish (settlement details)" },
 ];
 
 const DEFAULT_FORM: Record<string, any> = {
@@ -217,6 +218,9 @@ function Toggle({ label, sub, value, onChange }: { label: string; sub?: string; 
 
 /* ---------------------------------------------------------------- main */
 function Wizard() {
+  const { lang } = useLang();
+  const te = lang === "te";
+  const T = <V,>(a: V, b: V): V => (te ? a : b);
   const params = useSearchParams();
   const [step, setStep] = useState(1);
   const [f, setF] = useState<Record<string, any>>(DEFAULT_FORM);
@@ -370,34 +374,34 @@ const set = (k: string, v: any) => {
   const validate = (s: number): string[] => {
     const e: string[] = [];
     if (s === 1) {
-      if (!f.gender) e.push("Bride / Groom select cheyyandi");
-      if (!String(f.full_name).trim()) e.push("Full name type cheyyandi");
-      if (!f.dob) e.push("Date of birth select cheyyandi");
-      else if (!ageFromDob(f.dob)) e.push("DOB correct ga ledu");
-      if (!f.height) e.push("Height select cheyyandi");
-      if (!f.marital_status) e.push("Marital status select cheyyandi");
+      if (!f.gender) e.push(T("Bride / Groom select చెయ్యండి", "Select Bride / Groom"));
+      if (!String(f.full_name).trim()) e.push(T("Full name type చెయ్యండి", "Type your full name"));
+      if (!f.dob) e.push(T("Date of birth select చెయ్యండి", "Select date of birth"));
+      else if (!ageFromDob(f.dob)) e.push(T("DOB correct గా లేదు", "DOB is not valid"));
+      if (!f.height) e.push(T("Height select చెయ్యండి", "Select height"));
+      if (!f.marital_status) e.push(T("Marital status select చెయ్యండి", "Select marital status"));
       if (f.marital_status && f.marital_status !== "Pelli Kaledu" && !f.children)
-        e.push("Number of children select cheyyandi (None aina sare)");
+        e.push(T("Number of children select చెయ్యండి (None అయినా సరే)", "Select number of children (even if None)"));
     }
     if (s === 2) {
-      if (!f.caste) e.push("Caste select cheyyandi (channels ki kavali)");
+      if (!f.caste) e.push(T("Caste select చెయ్యండి (channels కి కావాలి)", "Select caste (needed for channels)"));
     }
     if (s === 3) {
-      if (!f.education) e.push("Education select cheyyandi");
-      if (!f.job) e.push("Job / udyogam select cheyyandi");
-      if (!f.salary) e.push("Salary range select cheyyandi");
+      if (!f.education) e.push(T("Education select చెయ్యండి", "Select education"));
+      if (!f.job) e.push(T("Job / ఉద్యోగం select చెయ్యండి", "Select job / occupation"));
+      if (!f.salary) e.push(T("Salary range select చెయ్యండి", "Select salary range"));
     }
     if (s === 4) {
-      if (!f.state) e.push("State select cheyyandi");
-      if (!f.district) e.push("District select cheyyandi");
-      if (!/^\d{10}$/.test(String(f.phone))) e.push("10 digit mobile number ivvandi");
-      if (String(f.password || "").length < 6) e.push("🔑 Password minimum 6 characters pettandi");
+      if (!f.state) e.push(T("State select చెయ్యండి", "Select state"));
+      if (!f.district) e.push(T("District select చెయ్యండి", "Select district"));
+      if (!/^\d{10}$/.test(String(f.phone))) e.push(T("10 digit mobile number ఇవ్వండి", "Enter a 10-digit mobile number"));
+      if (String(f.password || "").length < 6) e.push(T("🔑 Password minimum 6 characters పెట్టండి", "🔑 Set a password of minimum 6 characters"));
     }
     if (s === 5) {
       const _ab = String(f.about_myself || "").trim();
-      if (_ab.length < 50) e.push("About yourself — minimum 50 characters (మీ గురించి కనీసం 50 అక్షరాలు రాయండి)");
-      else if (/[6-9]\d{9}|@\S+\.\S+/.test(_ab)) e.push("🔒 About lo phone number / email pettakandi — privacy kosam");
-      if (!f.consent) e.push("Terms + privacy accept cheyyandi (kindha checkbox)");
+      if (_ab.length < 50) e.push(T("About yourself — minimum 50 characters (మీ గురించి రాయండి)", "About yourself — minimum 50 characters"));
+      else if (/[6-9]\d{9}|@\S+\.\S+/.test(_ab)) e.push(T("🔒 About లో phone number / email పెట్టకండి — privacy కోసం", "🔒 Don\u2019t put phone number / email in About — for privacy"));
+      if (!f.consent) e.push(T("Terms + privacy accept చెయ్యండి (కింద checkbox)", "Accept Terms + Privacy (checkbox below)"));
     }
     return e;
   };
@@ -436,8 +440,8 @@ const set = (k: string, v: any) => {
   /* ---------- photo pick + compress ---------- */
   const pickPhoto = async (file?: File | null) => {
     if (!file) return;
-    if (!file.type.startsWith("image/")) return setErrs(["Photo file matrame (JPG/PNG/WebP)"]);
-    if (file.size > 8 * 1024 * 1024) return setErrs(["Photo chala peddadi (8MB+) — chinna photo pettandi"]);
+    if (!file.type.startsWith("image/")) return setErrs([T("Photo file మాత్రమే (JPG/PNG/WebP)", "Photo file only (JPG/PNG/WebP)")]);
+    if (file.size > 8 * 1024 * 1024) return setErrs([T("Photo చాలా పెద్దది (8MB+) — చిన్న photo పెట్టండి", "Photo too large (8MB+) — upload a smaller photo")]);
     setBusy(true);
     const small = await compressImage(file, 1200, 0.85);
     setPhotoFile(small);
@@ -453,17 +457,17 @@ const set = (k: string, v: any) => {
         setPhotoInfo(`${d.kb} KB ✅ uploaded — card lo mee photo vasthundi`);
       } else {
         setPhotoInfo("");
-        setErrs([d.detail || "Photo upload avvaledu"]);
+        setErrs([d.detail || T("Photo upload అవ్వలేదు", "Photo upload failed")]);
       }
     } catch {
-      setErrs(["Network problem — photo malli try cheyyandi"]);
+      setErrs([T("Network problem — photo మళ్లీ try చెయ్యండి", "Network problem — retry photo upload")]);
     }
     setBusy(false);
   };
 
   /* ---------- OTP ---------- */
   const sendOtp = async () => {
-    if (!/^\d{10}$/.test(f.phone)) return setErrs(["Mundu 10 digit number ivvandi"]);
+    if (!/^\d{10}$/.test(f.phone)) return setErrs([T("ముందు 10 digit number ఇవ్వండి", "Enter your 10-digit number first")]);
     setBusy(true);
     try {
       const d = await fetch("/api/otp/send", {
@@ -474,7 +478,7 @@ const set = (k: string, v: any) => {
       setOtpMsg(d.message_telugu || "OTP pampinchaam");
       if (d.dev_code) setOtpCode(d.dev_code);
     } catch {
-      setErrs(["OTP pampaledu — malli try cheyyandi"]);
+      setErrs([T("OTP పంపలేదు — మళ్లీ try చెయ్యండి", "OTP not sent — retry")]);
     }
     setBusy(false);
   };
@@ -494,7 +498,7 @@ const set = (k: string, v: any) => {
         setOtpMsg(d.message_telugu || "OTP tappu");
       }
     } catch {
-      setOtpMsg("Verify avvaledu — malli try cheyyandi");
+      setOtpMsg(T("Verify అవ్వలేదు — మళ్లీ try చెయ్యండి", "Not verified — retry"));
     }
     setBusy(false);
   };
@@ -502,7 +506,7 @@ const set = (k: string, v: any) => {
   /* ---------- voice input (about_myself) ---------- */
   const startVoice = () => {
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SR) return setErrs(["Ee browser lo voice input ledu — type cheyyandi"]);
+    if (!SR) return setErrs([T("ఈ browser లో voice input లేదు — type చెయ్యండి", "No voice input in this browser — please type")]);
     try {
       const rec = new SR();
       rec.lang = "te-IN";
@@ -515,7 +519,7 @@ const set = (k: string, v: any) => {
       rec.start();
       voiceRef.current = rec;
     } catch {
-      setErrs(["Voice input start avvaledu"]);
+      setErrs([T("Voice input start అవ్వలేదు", "Voice input did not start")]);
     }
   };
 
@@ -572,7 +576,7 @@ const set = (k: string, v: any) => {
       } catch { /* private mode lo localStorage block ayithe parvaledu */ }
       scrollTop();
     } catch (e: any) {
-      setErrs([e?.message || "Register lo problem — malli try cheyyandi"]);
+      setErrs([e?.message || T("Register లో problem — మళ్లీ try చెయ్యండి", "Problem in registration — please retry")]);
     }
     setBusy(false);
   };
@@ -594,8 +598,8 @@ const set = (k: string, v: any) => {
         <section className="maroon-gradient text-white">
           <div className="max-w-3xl mx-auto px-4 py-9 text-center">
             <div className="text-5xl">🎉</div>
-            <h1 className="mt-2 text-2xl font-bold">Profile ready ayyindi!</h1>
-            <p className="text-[13px] opacity-90 mt-1 telugu">Mee ID + card kindha undi — WhatsApp status lo share cheyyandi, reach double avutundi.</p>
+            <h1 className="mt-2 text-2xl font-bold">{T("Profile ready అయ్యింది!", "Profile ready!")}</h1>
+            <p className="text-[13px] opacity-90 mt-1 telugu">{T("మీ ID + card కింద ఉంది — WhatsApp status లో share చెయ్యండి, reach double అవుతుంది.", "Your ID + card are below — share on WhatsApp status, reach doubles.")}</p>
             <div className="mt-4 inline-flex items-center gap-2 bg-white/10 border border-white/25 rounded-2xl px-4 py-3">
               <span className="font-mono text-lg font-bold">{tsap}</span>
               <button onClick={() => copy(tsap, "id")} className="text-[11px] font-bold gold-gradient text-maroon px-3 py-1.5 rounded-full">
@@ -608,9 +612,9 @@ const set = (k: string, v: any) => {
         <div className="max-w-3xl mx-auto px-4 py-6 space-y-4">
           {result.publish_targets?.length ? (
             <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4">
-              <div className="font-bold text-emerald-900">📢 Auto-post queue ayyindi</div>
+              <div className="font-bold text-emerald-900">{T("📢 Auto-post queue అయ్యింది", "📢 Auto-post queued")}</div>
               <div className="text-[12px] text-emerald-800 mt-1">
-                {result.publish_targets.join(" • ")} + WhatsApp (anti-ban random gap tho)
+                {result.publish_targets.join(" • ")} {T("+ WhatsApp (anti-ban random gap తో)", "+ WhatsApp (with anti-ban random gap)")}
               </div>
             </div>
           ) : null}
@@ -620,7 +624,7 @@ const set = (k: string, v: any) => {
           <div className="rounded-2xl maroon-gradient text-white p-4 flex flex-wrap items-center justify-between gap-3">
             <div>
               <div className="font-bold text-[15px]">🔓 3 profiles FULL unlock — ₹99 ke Sambandham</div>
-              <div className="text-[12px] opacity-90 telugu">Register ayyaka 3 matches FREE chusaru — full details + numbers kosam ₹99 (5 profiles + boost, 30 days).</div>
+              <div className="text-[12px] opacity-90 telugu">{T("Register అయ్యాక 3 matches FREE చూశారు — full details + numbers కోసం ₹99 (5 profiles + boost, 30 days).", "After register you saw 3 matches FREE — ₹99 for full details + numbers (5 profiles + boost, 30 days).")}</div>
             </div>
             <a href="/pricing" className="gold-gradient text-maroon font-bold text-[13px] px-5 py-2.5 rounded-xl whitespace-nowrap">
               ₹99 Unlock →
@@ -628,16 +632,16 @@ const set = (k: string, v: any) => {
           </div>
 
           <div className="bg-white rounded-2xl p-4 border border-gold/30 card-shadow">
-            <div className="font-bold text-maroon text-[15px]">🎁 Mee account ki enti vachindi</div>
+            <div className="font-bold text-maroon text-[15px]">{T("🎁 మీ account కి ఏంటి వచ్చింది", "🎁 What your account got")}</div>
             <div className="mt-2 grid sm:grid-cols-3 gap-2 text-[12px]">
               <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-emerald-900">
                 <b>{result.credits ?? 3} requests</b> ready<br /><span className="text-[11px]">(FREE 3 + referral bonus {result.referral?.joined_with?.ok ? "+1" : ""})</span>
               </div>
               <div className="bg-cream border border-gold/40 rounded-xl p-3 text-maroon">
-                <b>3 profiles</b> chudochu<br /><span className="text-[11px]">numbers 🔒 locked</span>
+                <b>3 profiles</b> {T("చూడొచ్చు", "to see")}<br /><span className="text-[11px]">numbers 🔒 locked</span>
               </div>
               <div className="bg-navy text-white rounded-xl p-3">
-                <b>Numbers eppudu?</b><br /><span className="text-[11px] opacity-90">interest pampi vaallu accept cheste (leda ₹99 plan tho ekkuva profiles)</span>
+                <b>{T("Numbers ఎప్పుడు?", "Numbers when?")}</b><br /><span className="text-[11px] opacity-90">{T("interest పంపి వాళ్లు accept చేస్తే (లేదా ₹99 plan తో ఎక్కువ profiles)", "when you send interest and they accept (or more profiles with ₹99 plan)")}</span>
               </div>
             </div>
             {result.quality ? (
@@ -742,7 +746,7 @@ const set = (k: string, v: any) => {
                 </div>
               ) : result.referral.joined_with?.reason && result.referral.joined_with.reason !== "no_code" ? (
                 <div className="mt-2 bg-amber-400/20 border border-amber-200/40 rounded-xl px-3 py-2 text-[11px]">
-                  ℹ️ {result.referral.joined_with.message_telugu || "Referral code lock avvaledu"} — parvaledu, mee sontha code tho ippudu start cheyyandi.
+                  ℹ️ {result.referral.joined_with.message_telugu || "Referral code lock అవ్వలేదు"} {T("— పర్వాలేదు, మీ సొంత code తో ఇప్పుడు start చెయ్యండి.", "— no problem, start now with your own code.")}
                 </div>
               ) : null}
               <div className="mt-3 bg-white/10 border border-white/20 rounded-xl px-3 py-2 flex items-center gap-2">
@@ -803,7 +807,7 @@ const set = (k: string, v: any) => {
             <div className="bg-white rounded-2xl p-4 border border-gold/25 card-shadow">
               <div className="font-bold text-maroon text-[14px]">🎴 Share kit — reach penchandi</div>
               <div className="text-[12px] text-gray-600 mt-1 telugu">
-                Card image + caption ready. Status lo pettandi — {result.share_kit.best_time_to_post}.
+                {T(<>Card image + caption ready. Status లో పెట్టండి — {result.share_kit.best_time_to_post}.</>, <>Card image + caption ready. Put on status — {result.share_kit.best_time_to_post}.</>)}
               </div>
               <pre className="mt-2 bg-cream rounded-xl p-3 text-[11px] whitespace-pre-wrap telugu">{result.share_kit.caption_short}</pre>
               <div className="mt-2 flex flex-wrap gap-2">
@@ -847,19 +851,19 @@ const set = (k: string, v: any) => {
           </div>
 
           <div className="bg-navy text-white rounded-2xl p-4">
-            <div className="font-bold text-[14px]">Ippudu em cheyyali? (2 steps)</div>
+            <div className="font-bold text-[14px]">{T("ఇప్పుడు ఏం చెయ్యాలి? (2 steps)", "What to do now? (2 steps)")}</div>
             <ol className="mt-2 text-[12px] space-y-1 opacity-90 list-decimal list-inside">
-              <li>Mee profile {CHANNEL_STATS.total} channels lo post avutundi (4 main + caste-wise) — 30 nimushalalo live</li>
-              <li>Matches chusi <b>💌 Interest pampu</b> — modati 3 FREE, vaallaki WhatsApp lo mee profile veltundi</li>
+              <li>{T(`మీ profile ${CHANNEL_STATS.total} channels లో post అవుతుంది (4 main + caste-wise) — 30 నిమిషాల్లో live`, `Your profile will post to ${CHANNEL_STATS.total} channels (4 main + caste-wise) — live in 30 minutes`)}</li>
+              <li>{T(<>Matches చూసి <b>💌 Interest పంపు</b> — మొదటి 3 FREE, వాళ్లకి WhatsApp లో మీ profile వెళ్తుంది</>, <>See matches, <b>💌 send Interest</b> — first 3 FREE, they get your profile on WhatsApp</>)}</li>
             </ol>
             <div className="mt-3 flex flex-wrap gap-2">
               <Link href={`/requests?id=${tsap}`} className="gold-gradient text-maroon font-bold text-[13px] px-4 py-2.5 rounded-xl">💌 Requests dashboard</Link>
-              <Link href={`/search/${tsap}`} className="bg-white/10 border border-white/25 text-white font-bold text-[13px] px-4 py-2.5 rounded-xl">Mee profile chudu</Link>
+              <Link href={`/search/${tsap}`} className="bg-white/10 border border-white/25 text-white font-bold text-[13px] px-4 py-2.5 rounded-xl">{T("మీ profile చూడు", "See your profile")}</Link>
             </div>
           </div>
 
           <div className="text-[11px] text-gray-500 text-center">
-            ⚠️ Photos/numbers watermark + log tho untayi • Advance money adigithe report cheyyandi: {SITE_CONFIG.supportPhoneDisplay}
+            {T("⚠️ Photos/numbers watermark + log తో ఉంటాయి • Advance money అడిగితే report చెయ్యండి:", "⚠️ Photos/numbers stay with watermark + log • Report advance-money demands:")} {SITE_CONFIG.supportPhoneDisplay}
           </div>
         </div>
       </main>
@@ -885,7 +889,7 @@ const set = (k: string, v: any) => {
                   <div className="text-[13px] font-bold text-ink truncate">
                     Step {step} of 5 — <Duo en={stepMeta.label} te={stepMeta.labelTe || ""} />
                   </div>
-                  <div className="text-[10px] text-gray-500 telugu truncate">{stepMeta.hint}</div>
+                  <div className="text-[10px] text-gray-500 telugu truncate">{te ? stepMeta.hint : (stepMeta.hintEn || stepMeta.hint)}</div>
                 </div>
               </div>
             </div>
@@ -901,8 +905,8 @@ const set = (k: string, v: any) => {
             ))}
           </div>
           <div className="mt-1.5 flex items-center justify-between text-[10px] text-gray-500">
-            <span>≈ {Math.max(1, 5 - step)} nimishalu migilindi</span>
-            <span>{savedAt ? `💾 draft save ${savedAt}` : "💾 auto-save ON"}</span>
+            <span>{T(`≈ ${Math.max(1, 5 - step)} నిమిషాలు మిగిలింది`, `≈ ${Math.max(1, 5 - step)} min left`)}</span>
+            <span>{savedAt ? T(`💾 draft save ${savedAt}`, `💾 draft saved ${savedAt}`) : "💾 auto-save ON"}</span>
           </div>
         </div>
       </div>
@@ -910,29 +914,29 @@ const set = (k: string, v: any) => {
       <div className="max-w-3xl mx-auto px-4 py-5">
         {/* 🆓 FREE vs PAID — SCREEN 1 lo ne clear ga (numbers rule kooda) */}
         <div className="mb-4 bg-white rounded-2xl border border-gold/40 card-shadow p-4">
-          <div className="font-bold text-maroon text-[14px]">🆓 Register 100% FREE — enti vasthundi, enti raadu (clear ga)</div>
+          <div className="font-bold text-maroon text-[14px]">{T("🆓 Register 100% FREE — ఏంటి వస్తుంది, ఏంటి రాదు (clear గా)", "🆓 Register 100% FREE — what you get, what you don\u2019t (clearly)")}</div>
           <div className="mt-2 grid sm:grid-cols-2 gap-3 text-[12px]">
             <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3">
-              <div className="font-bold text-emerald-900">FREE లో ఇచ్చేది</div>
+              <div className="font-bold text-emerald-900">{T("FREE లో ఇచ్చేది", "What FREE gives")}</div>
               <ul className="mt-1 space-y-0.5 text-emerald-900">
-                <li>✅ <b>{(clarity?.free?.profiles ?? 3)} profiles</b> chudochu (full details: caste, education, job, family, porutham)</li>
-                <li>✅ <b>{(clarity?.free?.requests ?? 3)} interests</b> pampochu — vaallaki mana WhatsApp nunchi mee profile veltundi</li>
-                <li>✅ Mee profile card FREE (Telugu, neat) + channels lo auto-post</li>
-                <li>✅ Vaallu <b>accept cheste → numbers exchange</b> (WhatsApp lo, consent tho)</li>
+                <li>✅ <b>{(clarity?.free?.profiles ?? 3)} profiles</b> {T("చూడొచ్చు (full details: caste, education, job, family, porutham)", "you can see (full details: caste, education, job, family, porutham)")}</li>
+                <li>✅ <b>{(clarity?.free?.requests ?? 3)} interests</b> {T("పంపొచ్చు — వాళ్లకి మన WhatsApp నుంచి మీ profile వెళ్తుంది", "you can send — they get your profile from our WhatsApp")}</li>
+                <li>✅ {T("మీ profile card FREE (Telugu, neat) + channels లో auto-post", "Your profile card FREE + auto-post to channels")}</li>
+                <li>✅ {T(<>వాళ్లు <b>accept చేస్తే → numbers exchange</b> (WhatsApp లో, consent తో)</>, <>If they <b>accept → numbers exchange</b> (on WhatsApp, with consent)</>)}</li>
               </ul>
             </div>
             <div className="bg-rose-50 border border-rose-200 rounded-xl p-3">
-              <div className="font-bold text-rose-900">FREE లో ఇవ్వనిది (🔒)</div>
+              <div className="font-bold text-rose-900">{T("FREE లో ఇవ్వనిది (🔒)", "What FREE doesn\u2019t give (🔒)")}</div>
               <ul className="mt-1 space-y-0.5 text-rose-900">
-                <li>🔒 <b>Phone numbers — ఇవ్వము</b> (98••••••45 ani matrame kanipisthundi)</li>
-                <li>🔒 Photo (privacy mode unna profiles ki blur)</li>
-                <li>🚫 Chatting ledu (manam chat platform kaadu — spam/report తగ్గడానికి)</li>
+                <li>🔒 <b>{T("Phone numbers — ఇవ్వము", "Phone numbers — we don\u2019t give")}</b> {T("(98••••••45 అని మాత్రమే కనిపిస్తుంది)", "(only shown as 98••••••45)")}</li>
+                <li>{T("🔒 Photo (privacy mode ఉన్న profiles కి blur)", "🔒 Photo (blurred for privacy-mode profiles)")}</li>
+                <li>{T("🚫 Chatting లేదు (మనం chat platform కాదు — spam తగ్గడానికి)", "🚫 No chatting (we are not a chat platform — keeps spam low)")}</li>
               </ul>
-              <div className="mt-1 text-[11px]">3 FREE taruvata: <b>₹99 → 5 profiles + boost</b> · ₹199 → 12 · ₹299 → 25 · ₹499 → 50</div>
+              <div className="mt-1 text-[11px]">{T(<>3 FREE తర్వాత: <b>₹99 → 5 profiles + boost</b> · ₹199 → 12 · ₹299 → 25 · ₹499 → 50</>, <>After 3 FREE: <b>₹99 → 5 profiles + boost</b> · ₹199 → 12 · ₹299 → 25 · ₹499 → 50</>)}</div>
             </div>
           </div>
           <div className="mt-2 text-[11px] text-gray-600">
-            🔐 Mee number DB lo encrypt ga untundi. Consent (accept) tho matrame evariki kanipisthundi.
+            {T("🔐 మీ number DB లో encrypt గా ఉంటుంది. Consent (accept) తోనే ఎవరికీ కనిపిస్తుంది.", "🔐 Your number stays encrypted in DB. Visible to others only with consent (accept).")}
             {" "}<a href="/pricing" className="underline font-bold text-maroon">Pricing</a> ·
             {" "}<a href="/safety" className="underline font-bold text-maroon">Safety</a>
           </div>
@@ -941,10 +945,10 @@ const set = (k: string, v: any) => {
         {/* draft banner */}
         {draftFound && (
           <div className="mb-4 bg-cream border border-gold/40 rounded-2xl p-4">
-            <div className="font-bold text-maroon text-[14px]">💾 Mee pura form dorkindi{draftSavedLabel(savedAt)}</div>
-            <div className="text-[12px] text-gray-600 mt-1">Ekkada aagipoyindo akkada nunchi continue cheyyochu — malli type cheyyakkarledu.</div>
+            <div className="font-bold text-maroon text-[14px]">{T("💾 మీ పాత form దొరికింది", "💾 Found your saved form")}{draftSavedLabel(savedAt)}</div>
+            <div className="text-[12px] text-gray-600 mt-1">{T("ఎక్కడ ఆగిపోయిందో అక్కడ నుంచి continue చెయ్యొచ్చు — మళ్లీ type చెయ్యక్కర్లేదు.", "Continue where you left off — no need to type again.")}</div>
             <div className="mt-3 flex gap-2">
-              <button onClick={resumeDraft} className="maroon-gradient text-white font-bold text-[13px] px-4 py-2.5 rounded-xl">▶️ Continue chey</button>
+              <button onClick={resumeDraft} className="maroon-gradient text-white font-bold text-[13px] px-4 py-2.5 rounded-xl">{T("▶️ Continue చెయ్", "▶️ Continue")}</button>
               <button onClick={clearDraft} className="border border-maroon/25 text-maroon font-bold text-[13px] px-4 py-2.5 rounded-xl">Kotha ga start</button>
             </div>
           </div>
@@ -965,7 +969,7 @@ const set = (k: string, v: any) => {
 
         {errs.length > 0 && (
           <div className={`mb-4 bg-rose-50 border border-rose-200 rounded-2xl px-4 py-3 ${shake ? "shake" : ""}`}>
-            <div className="font-bold text-rose-800 text-[13px]">Ivi saricheyyali:</div>
+            <div className="font-bold text-rose-800 text-[13px]">{T("ఇవి సరిచెయ్యాలి:", "Please fix these:")}</div>
             <ul className="mt-1 text-[12px] text-rose-700 list-disc list-inside">
               {errs.slice(0, 5).map((e) => <li key={e}>{e}</li>)}
             </ul>
@@ -977,7 +981,7 @@ const set = (k: string, v: any) => {
           {step === 1 && (
             <>
               <div>
-                <label className="text-[13px] font-bold text-ink">Evaru register chesthunnaru? <span className="req-star">*</span></label>
+                <label className="text-[13px] font-bold text-ink">{T("ఎవరు register చేస్తున్నారు?", "Who is registering?")} <span className="req-star">*</span></label>
                 <div className="mt-2 grid grid-cols-2 gap-3">
                   {[{ v: "Bride", l: "👰 పెళ్లి కూతురు", s: "Bride" }, { v: "Groom", l: "🤵 పెళ్లి కొడుకు", s: "Groom" }].map((g) => (
                     <button key={g.v} type="button" onClick={() => set("gender", g.v)}
@@ -1054,9 +1058,9 @@ const set = (k: string, v: any) => {
                 onChange={(v) => set("star", v)} hint="Star select chesthe rasi automatic vastundi (porutham 10/10)" />
               <ChipGroup label="Rasi" te options={RASIS.map((r) => ({ v: r.en, te: r.te }))} value={f.rasi}
                 onChange={(v) => set("rasi", v)} />
-              <ChipGroup label="Moola nakshatram?" options={[{ v: "No" }, { v: "Yes" }]} value={f.moola_nakshatram}
+              <ChipGroup label={T("మూలా నక్షత్రమా?", "Moola nakshatram?")} options={[{ v: "No" }, { v: "Yes" }]} value={f.moola_nakshatram}
                 onChange={(v) => set("moola_nakshatram", v)} />
-              <ChipGroup label="Dosham unda?" options={[{ v: "No" }, { v: "Yes" }, { v: "Not Sure" }]} value={f.dosham}
+              <ChipGroup label={T("దోషం ఉందా?", "Any dosham?")} options={[{ v: "No" }, { v: "Yes" }, { v: "Not Sure" }]} value={f.dosham}
                 onChange={(v) => set("dosham", v)} />
             </>
           )}
@@ -1201,7 +1205,7 @@ const set = (k: string, v: any) => {
                 {photoInfo && <div className="hint mt-2">{photoInfo}</div>}
               </div>
 
-              <Toggle label="🔒 Photo-private mode" sub="Public lo blur ga kanipisthundi — interest accept ayyaka matrame clear"
+              <Toggle label="🔒 Photo-private mode" sub={T("Public లో blur గా కనిపిస్తుంది — interest accept అయ్యాకే clear", "Shows blurred in public — clear only after interest accept")}
                 value={!!f.photo_private} onChange={(v) => set("photo_private", v)} />
 
               <div>
@@ -1319,7 +1323,7 @@ export default function RegisterPage() {
     <Suspense
       fallback={
         <div className="min-h-[60vh] flex items-center justify-center text-gray-500 text-sm">
-          Register form load avutundi…
+          Register form load అవుతుంది…
         </div>
       }
     >

@@ -5,6 +5,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Duo } from "@/lib/duo";
+import { useLang } from "@/lib/lang";
 import { useRouter } from "next/navigation";
 import { demoLogin, rememberSession, sendOtp, verifyOtp } from "@/lib/auth";
 import { apiPost, readLocal } from "@/lib/api";
@@ -13,6 +14,8 @@ type Profile = { tsap_id?: string; full_name?: string };
 
 export default function LoginPage() {
   const router = useRouter();
+  const { lang } = useLang();
+  const te = lang === "te";
   const [tab, setTab] = useState<"password" | "otp">("password");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
@@ -37,27 +40,27 @@ export default function LoginPage() {
   };
 
   async function onPasswordLogin() {
-    if (digits().length !== 10) { setMsg("⚠️ 10 digit mobile number ivvandi"); return; }
-    if (!password) { setMsg("⚠️ Password ivvandi (leda OTP tab vadandi)"); return; }
+    if (digits().length !== 10) { setMsg(te ? "⚠️ 10 digit mobile number ఇవ్వండి" : "⚠️ Enter a 10-digit mobile number"); return; }
+    if (!password) { setMsg(te ? "⚠️ Password ఇవ్వండి (లేదా OTP tab వాడండి)" : "⚠️ Enter password (or use the OTP tab)"); return; }
     setBusy(true); setMsg("");
     const { ok, data, errorTelugu } = await apiPost<{ auth_token?: string; tsap_id?: string; message_telugu?: string }>(
       "/api/auth/login-password", { phone: digits(), password });
     setBusy(false);
     if (!ok) { setMsg(errorTelugu); return; }
-    setMsg(data?.message_telugu || "✅ Login ayyindi");
+    setMsg(data?.message_telugu || (te ? "✅ Login అయ్యింది" : "✅ Logged in"));
     go(String(data?.tsap_id || ""), String(data?.auth_token || ""), true);
   }
 
   async function onSend() {
     setBusy(true); setMsg("");
-    if (digits().length !== 10) { setMsg("⚠️ 10 digit mobile number ivvandi (6/7/8/9 tho start)"); setBusy(false); return; }
+    if (digits().length !== 10) { setMsg(te ? "⚠️ 10 digit mobile number ఇవ్వండి (6/7/8/9 తో start)" : "⚠️ Enter a 10-digit mobile number (starting 6/7/8/9)"); setBusy(false); return; }
     const { ok, data, errorTelugu } = await sendOtp(digits());
     setBusy(false);
     if (!ok) { setMsg(errorTelugu); return; }
     const d = (data || {}) as { dev_code?: string; message_telugu?: string };
     setStage("otp");
     setDevCode(d.dev_code || "");
-    setMsg(d.message_telugu || "📱 OTP pampinchaam — 10 nimushalalo enter cheyyandi");
+    setMsg(d.message_telugu || (te ? "📱 OTP పంపించాం — 10 నిమిషాల్లో enter చెయ్యండి" : "📱 OTP sent — enter within 10 minutes"));
   }
 
   async function onVerify() {
@@ -66,43 +69,43 @@ export default function LoginPage() {
     setBusy(false);
     if (!ok) { setMsg(errorTelugu); return; }
     const d = (data || {}) as { auth_token?: string; tsap_id?: string; has_account?: boolean; message_telugu?: string };
-    setMsg(d.message_telugu || "✅ Login ayyindi");
+    setMsg(d.message_telugu || (te ? "✅ Login అయ్యింది" : "✅ Logged in"));
     go(String(d.tsap_id || ""), String(d.auth_token || ""), !!d.has_account);
   }
 
   async function onForgotSend() {
     setBusy(true); setMsg("");
-    if (digits().length !== 10) { setMsg("⚠️ 10 digit mobile number ivvandi"); setBusy(false); return; }
+    if (digits().length !== 10) { setMsg(te ? "⚠️ 10 digit mobile number ఇవ్వండి" : "⚠️ Enter a 10-digit mobile number"); setBusy(false); return; }
     const { ok, data, errorTelugu } = await apiPost<{ dev_code?: string; message_telugu?: string }>(
       "/api/auth/forgot", { phone: digits() });
     setBusy(false);
     if (!ok) { setMsg(errorTelugu); return; }
     setFStage("reset");
     setDevCode((data as { dev_code?: string })?.dev_code || "");
-    setMsg(data?.message_telugu || "📱 Reset OTP pampinchaam");
+    setMsg(data?.message_telugu || (te ? "📱 Reset OTP పంపించాం" : "📱 Reset OTP sent"));
   }
 
   async function onReset() {
-    if (newPw.trim().length < 6) { setMsg("⚠️ Kotha password minimum 6 characters"); return; }
+    if (newPw.trim().length < 6) { setMsg(te ? "⚠️ కొత్త password minimum 6 characters" : "⚠️ New password: minimum 6 characters"); return; }
     setBusy(true); setMsg("");
     const { ok, data, errorTelugu } = await apiPost<{ auth_token?: string; tsap_id?: string; message_telugu?: string }>(
       "/api/auth/reset", { phone: digits(), code: code.trim(), new_password: newPw.trim() });
     setBusy(false);
     if (!ok) { setMsg(errorTelugu); return; }
-    setMsg(data?.message_telugu || "✅ Password marchindi");
+    setMsg(data?.message_telugu || (te ? "✅ Password మార్చింది" : "✅ Password changed"));
     go(String(data?.tsap_id || ""), String(data?.auth_token || ""), true);
   }
 
   async function onDemo() {
     const id = (demoId || "").trim().toUpperCase();
-    if (!id) { setMsg("⚠️ Demo TSAP ID ivvandi (example: TSAP-F-2025-1042)"); return; }
+    if (!id) { setMsg(te ? "⚠️ Demo TSAP ID ఇవ్వండి (example: TSAP-F-2025-1042)" : "⚠️ Enter a demo TSAP ID (example: TSAP-F-2025-1042)"); return; }
     setBusy(true); setMsg("");
     const { ok, data, errorTelugu } = await demoLogin(id);
     setBusy(false);
     if (!ok) { setMsg(errorTelugu); return; }
     const d = (data || {}) as { auth_token?: string; message_telugu?: string };
     rememberSession(id, String(d.auth_token || ""), keep);
-    setMsg(d.message_telugu || "🎬 Demo login ayyindi");
+    setMsg(d.message_telugu || (te ? "🎬 Demo login అయ్యింది" : "🎬 Demo login done"));
     setTimeout(() => router.push("/matches"), 700);
   }
 
@@ -110,7 +113,7 @@ export default function LoginPage() {
     <main className="mx-auto max-w-md px-4 py-10">
       <h1 className="text-2xl font-extrabold text-[#7A0C2E]">🔑 <Duo en="Member Login" te="సభ్యుల లాగిన్" /></h1>
       <p className="mt-1 text-sm text-slate-600">
-        🔒 Mee inbox, credits, shortlist — ee data meeru matrame chudagalaru (token tho protect chesam).
+        {te ? "🔒 మీ inbox, credits, shortlist — ఈ data మీరు మాత్రమే చూడగలరు (token తో protect చేశాం)." : "🔒 Your inbox, credits, shortlist — only you can see this data (protected with token)."}
       </p>
 
       <section className="mt-6 rounded-2xl border-2 border-rose-200 bg-rose-50/60 p-4">
@@ -123,7 +126,7 @@ export default function LoginPage() {
           ))}
         </div>
 
-        <label htmlFor="phone" className="mt-4 block text-sm font-semibold text-slate-700">📞 Mobile number (10 digits)</label>
+        <label htmlFor="phone" className="mt-4 block text-sm font-semibold text-slate-700">{te ? "📞 మొబైల్ నంబర్ (10 digits)" : "📞 Mobile number (10 digits)"}</label>
         <input id="phone" inputMode="numeric" autoComplete="tel" value={phone} maxLength={13}
           onChange={(e) => setPhone(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter") void (tab === "password" && !forgot ? onPasswordLogin() : tab === "otp" && stage === "phone" ? onSend() : onVerify()); }}
@@ -137,7 +140,7 @@ export default function LoginPage() {
               <input id="pw" type={showPw ? "text" : "password"} value={password} autoComplete="current-password"
                 onChange={(e) => setPassword(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter") void onPasswordLogin(); }}
-                placeholder="Mee password"
+                placeholder={te ? "మీ password" : "Your password"}
                 className="mt-1 w-full rounded-xl border border-rose-300 px-3 py-2 text-lg pr-16 focus:border-[#7A0C2E] focus:outline-none" />
               <button onClick={() => setShowPw(!showPw)} className="absolute right-2 top-1/2 -translate-y-1/2 text-[12px] font-bold text-maroon px-2">
                 {showPw ? "🙈" : "👁️"}
@@ -159,10 +162,10 @@ export default function LoginPage() {
                   onChange={(e) => setCode(e.target.value)}
                   placeholder="1234"
                   className="mt-1 w-full rounded-xl border border-rose-300 px-3 py-2 text-center text-2xl tracking-[0.4em] focus:border-[#7A0C2E] focus:outline-none" />
-                <label htmlFor="npw" className="mt-3 block text-sm font-semibold text-slate-700">🔑 Kotha password (min 6)</label>
+                <label htmlFor="npw" className="mt-3 block text-sm font-semibold text-slate-700">{te ? "🔑 కొత్త password (min 6)" : "🔑 New password (min 6)"}</label>
                 <input id="npw" type={showPw ? "text" : "password"} value={newPw} autoComplete="new-password"
                   onChange={(e) => setNewPw(e.target.value)}
-                  placeholder="Kotha password"
+                  placeholder={te ? "కొత్త password" : "New password"}
                   className="mt-1 w-full rounded-xl border border-rose-300 px-3 py-2 text-lg focus:border-[#7A0C2E] focus:outline-none" />
               </>
             ) : null}
@@ -176,7 +179,7 @@ export default function LoginPage() {
               onKeyDown={(e) => { if (e.key === "Enter") void onVerify(); }}
               placeholder="1234"
               className="mt-1 w-full rounded-xl border border-rose-300 px-3 py-2 text-center text-2xl tracking-[0.4em] focus:border-[#7A0C2E] focus:outline-none" />
-            {devCode && <p className="mt-1 text-xs text-emerald-700">DEV MODE OTP: <b>{devCode}</b> (SMS provider configure cheyyaka)</p>}
+            {devCode && <p className="mt-1 text-xs text-emerald-700">DEV MODE OTP: <b>{devCode}</b> {te ? "(SMS provider configure చెయ్యక)" : "(SMS provider not configured)"}</p>}
           </>
         ) : null}
 
@@ -192,12 +195,12 @@ export default function LoginPage() {
               {fStage === "phone" ? (
                 <button onClick={onForgotSend} disabled={busy}
                   className="flex-1 rounded-xl bg-[#7A0C2E] px-4 py-3 font-semibold text-white hover:bg-[#5c0821] disabled:opacity-50">
-                  {busy ? "…" : "📩 Reset OTP pampu"}
+                  {busy ? "…" : te ? "📩 Reset OTP పంపు" : "📩 Send reset OTP"}
                 </button>
               ) : (
                 <button onClick={onReset} disabled={busy}
                   className="flex-1 rounded-xl bg-[#7A0C2E] px-4 py-3 font-semibold text-white hover:bg-[#5c0821] disabled:opacity-50">
-                  {busy ? "…" : "✅ Password marchu + Login"}
+                  {busy ? "…" : te ? "✅ Password మార్చు + Login" : "✅ Change password + Login"}
                 </button>
               )}
               <button onClick={() => { setForgot(false); setCode(""); setNewPw(""); }} className="rounded-xl border border-slate-300 px-3 py-3 text-sm">
@@ -212,7 +215,7 @@ export default function LoginPage() {
           ) : stage === "phone" ? (
             <button onClick={onSend} disabled={busy}
               className="flex-1 rounded-xl bg-[#7A0C2E] px-4 py-3 font-semibold text-white hover:bg-[#5c0821] disabled:opacity-50">
-              {busy ? "…" : "📩 OTP pampu"}
+              {busy ? "…" : te ? "📩 OTP పంపు" : "📩 Send OTP"}
             </button>
           ) : (
             <>
@@ -221,7 +224,7 @@ export default function LoginPage() {
                 {busy ? "…" : "✅ Verify + Login"}
               </button>
               <button onClick={() => { setStage("phone"); setCode(""); setDevCode(""); }} className="rounded-xl border border-slate-300 px-3 py-3 text-sm">
-                ↺ Number marchu
+                {te ? "↺ Number మార్చు" : "↺ Change number"}
               </button>
             </>
           )}
@@ -230,7 +233,7 @@ export default function LoginPage() {
 
       <section className="mt-5 rounded-2xl border border-slate-200 bg-white p-4">
         <h2 className="text-sm font-bold text-slate-800">🎬 <Duo en="Demo login (preview / testing)" te="డెమో లాగిన్" /></h2>
-        <p className="text-xs text-slate-500">Demo profile ID tho login — real users ki number + password / OTP.</p>
+        <p className="text-xs text-slate-500">{te ? "Demo profile ID తో login — real users కి number + password / OTP." : "Login with a demo profile ID — real users use number + password / OTP."}</p>
         <div className="mt-2 flex gap-2">
           <input value={demoId} onChange={(e) => setDemoId(e.target.value.toUpperCase())}
             placeholder="TSAP-F-2025-1042" aria-label="Demo TSAP ID"
@@ -252,7 +255,7 @@ export default function LoginPage() {
       </section>
 
       <p className="mt-5 text-center text-sm text-slate-600">
-        Account leda? <Link href="/register" className="font-semibold text-[#7A0C2E] underline">Register FREE</Link> — 3 profiles chudochu, numbers 🔒 (consent tho matrame)
+        {te ? <>Account లేదా? <Link href="/register" className="font-semibold text-[#7A0C2E] underline">Register FREE</Link> — 3 profiles చూడొచ్చు, numbers 🔒 (consent తోనే)</> : <>No account? <Link href="/register" className="font-semibold text-[#7A0C2E] underline">Register FREE</Link> — see 3 profiles, numbers 🔒 (only with consent)</>}
       </p>
     </main>
   );

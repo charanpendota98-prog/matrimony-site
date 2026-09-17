@@ -1,8 +1,12 @@
+"use client";
 import Link from "next/link";
+import { useLang } from "@/lib/lang";
 import { CHANNEL_STATS } from "@/lib/channels";
 import { SITE_CONFIG } from "@/lib/site-config";
 
 export default function SiteFooter() {
+  const { lang } = useLang();
+  const te = lang === "te";
   const year = new Date().getFullYear();
   const cols: { title: string; links: { href: string; label: string }[] }[] = [
     {
@@ -53,8 +57,8 @@ export default function SiteFooter() {
             </div>
           </div>
           <div className="text-xs opacity-75 mt-3 telugu leading-relaxed">
-            TS + AP No.1 Telugu Matrimony. ₹99 ke Sambandham — modati 3 numbers FREE.
-            Region • Religion • {CHANNEL_STATS.by_tier.L3_CASTE} Castes • Special channels.
+            {te ? <>TS + AP No.1 తెలుగు మ్యాట్రిమోనీ. ₹99 కే సంబంధం — మొదటి 3 నంబర్లు FREE. Region • Religion • {CHANNEL_STATS.by_tier.L3_CASTE} Castes • Special channels.</>
+                : <>TS + AP No.1 Telugu Matrimony. ₹99 ke Sambandham — first 3 numbers FREE. Region • Religion • {CHANNEL_STATS.by_tier.L3_CASTE} Castes • Special channels.</>}
           </div>
           <div className="mt-4 flex flex-wrap gap-2 text-[11px]">
             <span className="px-2.5 py-1 rounded-full bg-white/10">{CHANNEL_STATS.total} Channels</span>
@@ -85,7 +89,7 @@ export default function SiteFooter() {
             <div>✓ OTP verified numbers</div>
             <div>✓ DOB verified badge</div>
             <div>✓ Photo watermark + private mode</div>
-            <div>✓ Number pay tarvata matrame</div>
+            <div>{te ? "✓ Accept తర్వాతే నంబర్" : "✓ Number only after accept"}</div>
             <div>✓ 3 reports → auto hide</div>
           </div>
           <div className="mt-4 text-xs opacity-75">
@@ -100,7 +104,7 @@ export default function SiteFooter() {
         <div className="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row items-center justify-between gap-2 text-[11px] opacity-70">
           <div>© {year} {SITE_CONFIG.brandName} ({SITE_CONFIG.legalName}) • Made for TS/AP with ❤️</div>
           <div className="text-center md:text-right">
-            ⚠️ Advance money adigithe ventane report cheyyandi — mosam jagratha!
+            {te ? "⚠️ Advance money అడిగితే వెంటనే report చెయ్యండి — మోసం జాగ్రత్త!" : "⚠️ Report advance-money demands immediately — beware of fraud!"}
           </div>
         </div>
       </div>

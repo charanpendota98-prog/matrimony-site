@@ -3,6 +3,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { SITE_CONFIG } from "@/lib/site-config";
+import { useLang } from "@/lib/lang";
 
 /**
  * Mobile sticky bottom bar — Register + Bot.
@@ -11,6 +12,7 @@ import { SITE_CONFIG } from "@/lib/site-config";
 export default function StickyCTA() {
   const pathname = usePathname();
   const [show, setShow] = useState(false);
+  const { lang } = useLang();
 
   useEffect(() => {
     const onScroll = () => setShow(window.scrollY > 420);
@@ -33,7 +35,7 @@ export default function StickyCTA() {
           href="/register"
           className="flex-1 text-center py-3 rounded-xl maroon-gradient text-white text-sm font-bold"
         >
-          Register FREE
+          {lang === "te" ? "ఉచిత నమోదు" : "Register FREE"}
         </Link>
         <a
           href={SITE_CONFIG.botUrl}

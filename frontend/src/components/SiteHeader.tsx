@@ -7,6 +7,7 @@ import { SITE_CONFIG } from "@/lib/site-config";
 import { useSession, logout } from "@/lib/auth";
 import { apiGet } from "@/lib/api";
 import { Duo, duo } from "@/lib/duo";
+import { LangToggle, useLang } from "@/lib/lang";
 
 const NAV: { href: string; en: string; te: string; icon: string; xl?: boolean }[] = [
   { href: "/", en: "Home", te: "హోమ్", icon: "🏠" },
@@ -27,6 +28,7 @@ const NAV: { href: string; en: string; te: string; icon: string; xl?: boolean }[
 
 export default function SiteHeader() {
   const pathname = usePathname();
+  const { lang } = useLang();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   // 🔐 WAVE 13 — persistent session chip (login ayithe eppudu kanipisthundi)
@@ -85,13 +87,14 @@ export default function SiteHeader() {
                   : "text-ink/75 hover:text-maroon hover:bg-maroon-soft"
               }`}
             >
-              {n.icon} {n.en}
+              {n.icon} {lang === "te" ? n.te : n.en}
             </Link>
           ))}
         </nav>
 
         {/* Right actions */}
         <div className="flex items-center gap-2">
+          <LangToggle compact />
           <Link
             href="/search/TSAP-M-2025-1042"
             className="hidden md:inline-flex px-3.5 py-2 text-[13px] font-semibold border border-maroon/30 text-maroon rounded-full hover:bg-maroon-soft transition"
@@ -183,6 +186,9 @@ export default function SiteHeader() {
             >
               Telegram Bot
             </a>
+          </div>
+          <div className="flex justify-center pt-2">
+            <LangToggle />
           </div>
           <div className="text-[11px] text-center text-gray-500 pt-1">
             {CHANNEL_STATS.total} channels • {CHANNEL_STATS.by_tier.L3_CASTE} castes • {SITE_CONFIG.botUsername}

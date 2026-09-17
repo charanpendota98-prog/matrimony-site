@@ -6,6 +6,7 @@ import StickyCTA from "@/components/StickyCTA";
 import { CHANNEL_STATS } from "@/lib/channels";
 import PWA from "@/components/PWA";
 import SupportWidget from "@/components/SupportWidget";
+import { LangProvider } from "@/lib/lang";
 
 const SITE = process.env.SITE_URL || "https://manavivaha.in";
 
@@ -67,12 +68,14 @@ export default function RootLayout({
   return (
     <html lang="te-IN">
       <body className="antialiased min-h-screen flex flex-col">
-        <SiteHeader />
-        <main className="flex-1">{children}</main>
-        <SiteFooter />
-        <StickyCTA />
-        <PWA />
-        <SupportWidget />
+        <LangProvider>
+          <SiteHeader />
+          <main className="flex-1">{children}</main>
+          <SiteFooter />
+          <StickyCTA />
+          <PWA />
+          <SupportWidget />
+        </LangProvider>
       </body>
     </html>
   );
