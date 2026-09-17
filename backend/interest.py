@@ -135,6 +135,11 @@ def renewal_offer() -> Dict:
     return RENEWALS["RENEW_99"]
 
 
+def bureau_list() -> List[Dict]:
+    """B2B bureau plans (pricing page single-source)."""  # WAVE 29: bureau key miss fix
+    return [PLANS[k] for k in ("BUREAU_999", "BUREAU_2999") if k in PLANS]
+
+
 def get_plan(code: str) -> Dict:
     key = (code or "").upper()
     return PLANS.get(key) or ADDONS.get(key) or RENEWALS.get(key) or PLANS["FREE"]

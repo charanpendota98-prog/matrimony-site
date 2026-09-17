@@ -113,7 +113,7 @@ def _prof_label(u: Dict) -> str:  # 🌊 WAVE 14 adapter: job_group → Telugu l
 import paypro as PP        # 🌊 WAVE 14: safe-pay + festival offers
 import cms as CMS            # 📝 WAVE 15: pages + stories + banners
 import chanmap as CHAN         # 📡 WAVE 15: channel links + import + coverage
-from interest import ADDONS, RENEWALS, is_addon, get_addon, get_renewal, plan_list_with_free, addon_list, renewal_offer
+from interest import ADDONS, RENEWALS, is_addon, get_addon, get_renewal, plan_list_with_free, addon_list, renewal_offer, bureau_list
 from photo_validate import validate_photo  # 🌊 WAVE 17 — photo validation pipeline
 from otp_channels import send_otp as otp_channel_send, CHANNEL_TELUGU  # 🌊 WAVE 18 — free OTP
 from channels_config import post_targets, caste_channel_links, channel_links, WA_OFFICIAL_LINK
@@ -1796,6 +1796,7 @@ def plans_endpoint():
         "plans": plan_list_with_free(),
         "addons": addon_list(),
         "renewal": renewal_offer(),
+        "bureau": bureau_list(),  # WAVE 29: pricing B2B single-source (page fallback tho match)
         "value_ladder": [f"₹{p['price']} → {p['profiles']} profiles (₹{p['per_profile']}/profile)" for p in plan_list()],
         "note_telugu": "Request pampinappudu 1 credit. Accept aithe numbers automatic ga WhatsApp lo. Decline aithe credit refund. "
                        "₹/profile prati tier lo thaggutundi — ₹299 best value, ₹499 VIP.",
@@ -2920,7 +2921,8 @@ def advanced_search(
     else:
         items = [u for u in items if not u.get("is_banned")]
     if gender:
-        items = [u for u in items if str(u.get("gender", "")).lower() == gender.lower()]
+        _g = {"male": "groom", "female": "bride"}.get(gender.lower(), gender.lower())  # WAVE 29: male/female alias
+        items = [u for u in items if str(u.get("gender", "")).lower() == _g]
     if caste:
         cl = caste.lower()
         items = [u for u in items if cl in str(u.get("caste", "")).lower() or cl in str(u.get("sub_caste", "")).lower()]
@@ -3462,7 +3464,7 @@ def api_block(payload: dict, request: Request = None):
 def api_unblock(payload: dict, request: Request = None):
     d = payload or {}
     me = clean(d.get("tsap_id") or d.get("owner"), 30, "tsap_id")
-    you = clean(d.get("block_id") or d.get("blocked"), 30, "block_id")
+    you = clean(d.get("block_id") or d.get("blocked") or d.get("target_id"), 30, "block_id")  # WAVE 29: target_id alias (block tho consistency, silent no-op ban)
     require_owner(request, me)                     # 🛡️ WAVE 9: IDOR fix
     ok, msg = safety.unblock_user(me, you, DB_BLOCKS)
     return {"success": ok, "kind": msg, "total_blocks": len(safety.block_list(me, DB_BLOCKS)),

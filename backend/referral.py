@@ -301,14 +301,14 @@ def validate_referral(code: str, all_users: List[Dict]) -> Dict:
     """Landing page / register form lo validate — 'ee code pani chestunda?'"""
     code = (code or "").strip()
     if not code:
-        return {"ok": False, "reason": "code_ledu", "message_telugu": "Referral code ivvaledu"}
+        return {"ok": False, "valid_code": False, "reason": "code_ledu", "message_telugu": "Referral code ivvaledu"}
     ref = find_referrer(code, all_users)
     if not ref:
-        return {"ok": False, "reason": "not_found", "code": code,
+        return {"ok": False, "valid_code": False, "reason": "not_found", "code": code,
                 "message_telugu": "⚠️ Ee code dorakaledu — code sari ga chusukondi (leda code lekunda register avvachu)"}
     st = stats_of(ref)
     name = ref.get("full_name") or ref.get("name") or "Mana Vivaha member"
-    return {"ok": True, "code": _code_of(ref), "alias": ref.get("referral_alias", ""),
+    return {"ok": True, "valid_code": True, "code": _code_of(ref), "alias": ref.get("referral_alias", ""),
             "referrer_name": name, "referrer_id": ref.get("tsap_id"),
             "tier": tier_of(st["paid_count"])["key"], "paid_count": st["paid_count"],
             "bonus_credits": REFEREE_BONUS_CREDITS, "commission_offer": FIRST_PAY_COMMISSION,
