@@ -7,12 +7,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import AuthGate from "@/components/AuthGate";
 import RasiChart from "@/components/RasiChart";
+import PushBell from "@/components/PushBell";
 import { apiGet, apiPost, authHeaders } from "@/lib/api";
 import { Duo } from "@/lib/duo";
 import { useLang } from "@/lib/lang";
 
 type Row = Record<string, any>;
-type Tab = "streak" | "unlocks" | "boost" | "voice" | "jathakam" | "share";
+type Tab = "streak" | "unlocks" | "boost" | "voice" | "jathakam" | "share" | "alerts";
 
 const TABS: [Tab, string, string][] = [
   ["streak", "🔥 Streak", "🔥 స్ట్రీక్"],
@@ -21,6 +22,7 @@ const TABS: [Tab, string, string][] = [
   ["voice", "🎙️ Voice", "🎙️ వాయిస్"],
   ["jathakam", "🪐 Jathakam", "🪐 జాతకం"],
   ["share", "📤 Share", "📤 షేర్"],
+  ["alerts", "🔔 Alerts", "🔔 అలర్ట్స్"],
 ];
 
 export default function MePage() {
@@ -62,6 +64,7 @@ export default function MePage() {
             {tab === "voice" && <VoicePanel myId={myId} />}
             {tab === "jathakam" && <JathakamPanel myId={myId} />}
             {tab === "share" && <SharePanel myId={myId} />}
+            {tab === "alerts" && <AlertsPanel myId={myId} />}
           </div>
         </>
       ) : null}
@@ -320,6 +323,18 @@ function JathakamPanel({ myId }: { myId: string }) {
         <Msg m={msg} />
       </section>
     </div>
+  );
+}
+
+/* ---------------- 🔔 ALERTS (push) ---------------- */
+function AlertsPanel({ myId }: { myId: string }) {
+  const { lang } = useLang();
+  const te = lang === "te";
+  return (
+    <section className="rounded-3xl border border-rose-200 bg-white p-5">
+      <p className="text-sm font-bold text-[#7A0C2E]">{te ? "🔔 Match alerts — browser close చేసినా notification" : "🔔 Match alerts — notification even with browser closed"}</p>
+      <div className="mt-3"><PushBell myId={myId} /></div>
+    </section>
   );
 }
 

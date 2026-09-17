@@ -5054,6 +5054,92 @@ def api_admin_stories(request: Request, status: str = "pending", limit: int = 50
             "message_telugu": "\U0001F491 %d stories (%s)" % (len(items), status or "all")}
 
 
+# ============================================================================
+# WAVE 38 — OWNER DASHBOARD (business numbers: revenue + funnel + system)
+# ============================================================================
+@app.get("/api/owner/summary")
+def api_owner_summary(request: Request):
+    """👑 Owner business summary — ADMIN KEY ONLY (revenue/funnel/system).
+    Prathi section defensive (okati fail ayina migathavi vastayi — never 500)."""
+    require_admin(request)
+    out: dict = {"success": True, "at": datetime.utcnow().isoformat()}
+    try:
+        ps = PP.pay_stats()
+        paid = [o for o in PP.PAY_ORDERS if o.get("status") == "paid"]
+        by_mode: dict = {}
+        for o in paid:
+            m = str(o.get("mode", "manual_upi") or "manual_upi")
+            by_mode[m] = by_mode.get(m, 0) + int(o.get("final_amount", 0) or 0)
+        days: dict = {}
+        for o in paid:
+            d = str(o.get("paid_at", "") or "")[:10] or "unknown"
+            days[d] = days.get(d, 0) + int(o.get("final_amount", 0) or 0)
+        series = [{"date": k, "collected": v} for k, v in sorted(days.items())[-7:]]
+        out["revenue"] = {"orders": ps.get("orders", 0), "paid": ps.get("paid", 0),
+                          "pending": ps.get("pending", 0), "refunded": ps.get("refunded", 0),
+                          "collected": ps.get("collected", 0), "by_mode": by_mode,
+                          "series_7d": series, "offers_live": ps.get("offers_live", 0),
+                          "pay_mode": PP.pay_config().get("mode", "")}
+    except Exception:
+        out["revenue"] = {"orders": 0, "paid": 0, "error": True}
+    try:
+        users = list(DB_USERS)
+        out["users"] = {"total": len(users),
+                        "approved": len([u for u in users if u.get("is_approved") and not u.get("is_banned")]),
+                        "pending": len([u for u in users if not u.get("is_approved") and not u.get("is_banned")]),
+                        "banned": len([u for u in users if u.get("is_banned")]),
+                        "brides": len([u for u in users if u.get("gender") == "Bride"]),
+                        "grooms": len([u for u in users if u.get("gender") == "Groom"]),
+                        "verified": len([u for u in users if u.get("is_verified")]),
+                        "nri": len([u for u in users if _is_nri(u)]),
+                        "with_photo": len([u for u in users if u.get("photo_urls")]),
+                        "with_voice": len([u for u in users if u.get("voice_url")]),
+                        "boosted": len([u for u in users if A11.is_boosted(u)]),
+                        "credits_out": sum(int(u.get("credits", 0) or 0) for u in users),
+                        "wallet_out": sum(int(u.get("wallet", 0) or 0) for u in users)}
+    except Exception:
+        out["users"] = {"total": 0, "error": True}
+    try:
+        ins = list(DB_INTERESTS)
+        by_st: dict = {}
+        for r in ins:
+            s = str(r.get("status", "?"))
+            by_st[s] = by_st.get(s, 0) + 1
+        unlocks = sum(len(v) for v in (S12.UNLOCKS or {}).values()) if isinstance(S12.UNLOCKS, dict) else 0
+        out["funnel"] = {"interests": len(ins), "by_status": by_st,
+                         "accept_rate": round(100 * by_st.get("accepted", 0) / max(1, len(ins))),
+                         "unlocks": unlocks}
+    except Exception:
+        out["funnel"] = {"interests": 0, "error": True}
+    try:
+        subs = list(A11.PUSH_SUBS or [])
+        streakers = [u for u in DB_USERS if int(u.get("streak_count", 0) or 0) > 0]
+        out["engagement"] = {"push_subs": len(subs), "push_queued": len(A11.PUSH_QUEUE or []),
+                             "streak_users": len(streakers),
+                             "jathakam_pending": len([j for j in (AST.JATHAKAMS or []) if j.get("status") == "pending"])}
+    except Exception:
+        out["engagement"] = {"push_subs": 0, "error": True}
+    try:
+        cov = CHAN.coverage()
+        out["channels"] = {"by_tier": cov.get("by_tier", {}), "gaps": cov.get("critical_gaps", [])[:8]}
+    except Exception:
+        out["channels"] = {"by_tier": {}, "error": True}
+    try:
+        out["referral"] = {"paid_referrals": sum(int((u.get("referral_stats") or {}).get("paid_count", 0) or 0) for u in DB_USERS),
+                           "referrers": len([u for u in DB_USERS if int((u.get("referral_stats") or {}).get("paid_count", 0) or 0) > 0])}
+    except Exception:
+        out["referral"] = {"paid_referrals": 0, "error": True}
+    try:
+        out["system"] = {"wa_queue": len(WA_QUEUE or []), "dead_letters": len(WA_DEAD or []),
+                         "worker": bool(worker_running()),
+                         "pay_mode": PP.pay_config().get("mode", ""),
+                         "vapid_ready": bool(A11.vapid_public_key()),
+                         "telegram_live": publish_status().get("telegram", {}).get("live_channels", 0)}
+    except Exception:
+        out["system"] = {"error": True}
+    return out
+
+
 @app.get("/api/offers/active")
 def api_offers_active():
     """Public: live festival offers (homepage banner కి)."""

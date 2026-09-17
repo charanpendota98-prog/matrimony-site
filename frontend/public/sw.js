@@ -3,7 +3,7 @@
    • /api/* — NEVER cache (matrimony data fresh ga undali, privacy)
    • Offline aithe /offline page chupistham
 */
-const VERSION = "mv-v5-2026-09";
+const VERSION = "mv-v6-2026-09-push";
 const SHELL = ["/", "/matches", "/register", "/porutham", "/safety", "/offline", "/manifest.webmanifest", "/icons/icon-192.png"];
 
 self.addEventListener("install", (e) => {
@@ -49,3 +49,29 @@ self.addEventListener("fetch", (event) => {
 });
 
 self.addEventListener("message", (e) => { if (e.data === "skipWaiting") self.skipWaiting(); });
+
+/* 🔔 WAVE 38 — WEB PUSH (match alerts: title/body/url/icon/tag from backend queue) */
+self.addEventListener("push", (event) => {
+  let d = {};
+  try { d = event.data ? event.data.json() : {}; } catch { d = {}; }
+  const title = d.title || "💍 Mana Vivaha";
+  const body = d.body || "కొత్త matches వచ్చాయి — చూడండి!";
+  const url = d.url || "/matches";
+  event.waitUntil(
+    self.registration.showNotification(title, {
+      body, icon: d.icon || "/icons/icon-192.png", badge: "/icons/icon-192.png",
+      tag: d.tag || "mv-alert", data: { url }, requireInteraction: false,
+    })
+  );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const url = (event.notification.data && event.notification.data.url) || "/matches";
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((list) => {
+      for (const c of list) { if ("focus" in c) { c.navigate(url); return c.focus(); } }
+      if (self.clients.openWindow) return self.clients.openWindow(url);
+    })
+  );
+});

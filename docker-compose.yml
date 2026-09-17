@@ -39,6 +39,8 @@ services:
       - RAZORPAY_WEBHOOK_SECRET=${RAZORPAY_WEBHOOK_SECRET}
       - RAZORPAY_VERIFY_CAPTURE=${RAZORPAY_VERIFY_CAPTURE:-1}
       - PAY_UPI_ID=${PAY_UPI_ID:-manavivaha@upi}
+      - VAPID_PUBLIC_KEY=${VAPID_PUBLIC_KEY}
+      - VAPID_PRIVATE_KEY=${VAPID_PRIVATE_KEY}
       - ADMIN_CHAT_ID=${ADMIN_CHAT_ID}
       - SITE_URL=${SITE_URL:-https://manavivaha.in}
       # Auto-publish (Telegram + WhatsApp)
