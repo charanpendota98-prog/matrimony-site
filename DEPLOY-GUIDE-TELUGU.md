@@ -237,12 +237,36 @@ Run aina slow + risky. **Fix (dabbulu levu):**
 > Ampere "Out of capacity" vasthe: vere AD (AD-2/AD-3) try cheyandi, leda
 > 1 OCPU + 6GB shape tho try cheyandi (adi kuda mana app ki chalu).
 
-**Emergency (Ampere dorakakapothe, Micro lone try):** 4GB swap file:
+### Micro (1GB) runbook — TODAY live (swap + light services)
+
+E2 Micro + 4GB swap + backend&frontend only (postgres/redis vaddu — mana app
+JSON files vadutundi). Build slow (~10–15 min) — panic vaddu, avvuddi!
+
 ```bash
+# 1. setup + swap
+curl -sSL https://raw.githubusercontent.com/charanpendota98-prog/matrimony-site/arena/01a0aaf1-matrimony-site/scripts/oracle-setup.sh | bash
 sudo fallocate -l 4G /swapfile && sudo chmod 600 /swapfile && sudo mkswap /swapfile && sudo swapon /swapfile
+echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab   # reboot aina swap undali
+exit   # logout → ssh malli login
+
+# 2. code + env
+git clone -b arena/01a0aaf1-matrimony-site https://github.com/charanpendota98-prog/matrimony-site.git
+cd matrimony-site && cp .env.example .env && nano .env   # MUST values (guide step 2)!
+
+# 3. build + start (backend + frontend ONLY — pg/redis skip)
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build backend frontend
+docker compose -f docker-compose.yml -f docker-compose.prod.yml ps        # anni Up?
+docker compose -f docker-compose.yml -f docker-compose.prod.yml logs backend --tail 20
+
+# 4. bot (BOT_TOKEN .env lo pettaka — light, 1GB lo parvaledu)
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d bot
+
+# 5. domain SSL
+sudo cp Caddyfile.example /etc/caddy/Caddyfile && sudo systemctl reload caddy
 ```
-+ `docker compose -f ...prod.yml up -d --build backend frontend` (postgres/redis vaddu —
-mana app JSON files vadutundi). Slow ga aina avvachu — kani Ampere ey BEST.
+
+Tarvata MilesWeb DNS (A @ + www → micro IP) → 30 min → site LIVE. Ampere
+vachaka migrate: `/owner` backup zip → kottha VM → restore (10 min, zero data loss).
 
 **Oracle gotchas (telusukondi):**
 
