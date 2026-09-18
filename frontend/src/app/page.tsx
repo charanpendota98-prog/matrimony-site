@@ -59,7 +59,7 @@ const TEXT = {
     heroSubB: (castes: number, total: number) => `Region • Religion • ${castes} Castes • Special — ${total} channels, ఒక్క రిజిస్టర్‌తో మీ ప్రొఫైల్ సరిపోయే అన్ని చోట్లకీ ఆటోమేటిక్‌గా వెళ్తుంది.`,
     heroSubC: (free: number) => `₹99 కే సంబంధం — మొదటి ${free} ప్రొఫైళ్లు FREE.`,
     registerCta: "3 నిమిషాల్లో ఉచిత నమోదు",
-    botCta: "Telegram Bot",
+    botCta: "Telegram లో చేరండి",
     installApp: "App లాగా install చేసుకోండి",
     vibeTitle: "మీ ఇంటి శుభకార్యానికి — సరైన సంబంధం ఇక్కడే",
     trust: ["OTP + DOB వెరిఫైడ్", "ఫోటో-ప్రైవేట్ మోడ్", "యాక్సెప్ట్ తర్వాతే నంబర్", "వాటర్‌మార్క్ + ఫ్రాడ్ అలర్ట్స్"],
@@ -93,7 +93,7 @@ const TEXT = {
     statPriceS: (free: number) => `మొదటి ${free} requests FREE`,
     howEyebrow: "ఎలా పనిచేస్తుంది",
     howTitle: "4 దశల్లో ఆటోమేటిక్ సంబంధం",
-    howSub: "Register నుంచి channel post వరకు bot చూసుకుంటుంది. మీరు manual గా ఏదీ post చెయ్యక్కర్లేదు.",
+    howSub: "Register అయ్యాక మీ profile అవసరమైన channels లో దానంతట అదే post అవుతుంది. మీరు manual గా ఏదీ చెయ్యక్కర్లేదు.",
     howSteps: (total: number) => [
       { n: "01", t: "Register — 3 నిమిషాలు", d: "Personal, family, caste/astro, education, location + photo. 5 steps, mobile లోనే easy.", icon: "📝" },
       { n: "02", t: "Card + ID ready", d: "Profile card ఆటోమేటిక్‌గా generate అవుతుంది — అన్ని details, QR, watermark తో.", icon: "🎴" },
@@ -161,9 +161,9 @@ const TEXT = {
     addonCta2: "👀 ఎవరు చూశారో చూడండి",
     refTitle: "🏆 సంపాదించండి — Referral Program",
     refSub: (per: number) => `మీకు పెళ్లి సంబంధం అవసరం లేకపోయినా — ఎవరైనా ఈ program లో join అవ్వొచ్చు! మీ link ద్వారా ఎవరైనా join అయ్యి pay చేస్తే మీకు ₹${per} వస్తుంది. Bureaus/brokers కి కూడా ప్రత్యేక dashboard ఉంది.`,
-    refCards: (per: number, ms: string) => [{ k: "Per pay", v: `₹${per}` }, { k: "25 pays", v: ms }, { k: "Payout", v: "UPI weekly" }],
+    refCards: (per: number, ms: string) => [{ k: "ప్రతి pay కి", v: `₹${per}` }, { k: "25 referrals", v: ms }, { k: "Payout", v: "వారానికోసారి UPI" }],
     refCta1: "నా referral code →",
-    refCta2: "Referrer గా join",
+    refCta2: "🎁 ఇప్పుడే join అవ్వండి",
     burTitle: "🏢 Bureau / Broker B2B",
     burSub: "Already marriage bureau నడుపుతున్నారా? మన profiles share చెయ్యండి + commission తీసుకోండి.",
     burName: (b: { label: string; price: number }) => `${b.label} — ₹${b.price}/mo`,
@@ -175,7 +175,7 @@ const TEXT = {
     ctaSub: (total: number, free: number, p99: PlanStat, p199: PlanStat, p299: PlanStat, p499: PlanStat) =>
       `Register FREE → profile card ready → ${total} channels network లో auto-post → మొదటి ${free} interest requests FREE. తర్వాత ₹${p99.price} → ${p99.profiles} profiles, ₹${p199.price} → ${p199.profiles}, ₹${p299.price} → ${p299.profiles}, ₹${p499.price} → ${p499.profiles} (VIP).`,
     ctaReg: "ఉచిత నమోదు",
-    ctaBot: "బాట్‌లో నమోదు",
+    ctaBot: "Telegram లో చేరండి",
     trustTitle: "🛡️ నమ్మకం & భద్రత",
     trustSub: "మీ ఫోన్ నంబర్ ఎప్పుడూ public గా కనిపించదు — accept చేసిన తర్వాతే ఇద్దరికీ exchange అవుతుంది.",
     trustAvg: (n: number) => `సగటు Trust Score (${n} ప్రొఫైల్స్)`,
@@ -211,7 +211,7 @@ const TEXT = {
     heroSubB: (castes: number, total: number) => `Region • Religion • ${castes} Castes • Special — ${total} channels. One registration auto-posts your profile everywhere it fits.`,
     heroSubC: (free: number) => `₹99 Sambandham — first ${free} profiles FREE.`,
     registerCta: "Register FREE — 3 minutes",
-    botCta: "Telegram Bot",
+    botCta: "Join on Telegram",
     installApp: "Install as app",
     vibeTitle: "For your family wedding — the right match is here",
     trust: ["OTP + DOB verified", "Photo-private mode", "Number only after accept", "Watermark + fraud alerts"],
@@ -245,7 +245,7 @@ const TEXT = {
     statPriceS: (free: number) => `First ${free} requests FREE`,
     howEyebrow: "How it works",
     howTitle: "Sambandham in 4 automatic steps",
-    howSub: "The bot handles everything from register to channel post. You never post anything manually.",
+    howSub: "Once you register, your profile automatically posts to the right channels. You never have to post anything manually.",
     howSteps: (total: number) => [
       { n: "01", t: "Register — 3 min", d: "Personal, family, caste/astro, education, location + photo. 5 steps, easy on mobile.", icon: "📝" },
       { n: "02", t: "Card + ID ready", d: "Profile card is auto-generated — all details, QR and watermark.", icon: "🎴" },
@@ -313,9 +313,9 @@ const TEXT = {
     addonCta2: "👀 See who viewed you",
     refTitle: "🏆 Earn — Referral Program",
     refSub: (per: number) => `You don't need to be looking for a match to join this program — anyone can! Share your link, and you earn ₹${per} every time someone joins and pays through it. Special dashboard for bureaus/brokers too.`,
-    refCards: (per: number, ms: string) => [{ k: "Per pay", v: `₹${per}` }, { k: "25 pays", v: ms }, { k: "Payout", v: "UPI weekly" }],
+    refCards: (per: number, ms: string) => [{ k: "Per pay", v: `₹${per}` }, { k: "25 referrals", v: ms }, { k: "Payout", v: "Weekly UPI" }],
     refCta1: "My referral code →",
-    refCta2: "Join as referrer",
+    refCta2: "🎁 Join now",
     burTitle: "🏢 Bureau / Broker B2B",
     burSub: "Already running a marriage bureau? Share our profiles + earn commission.",
     burName: (b: { label: string; price: number }) => `${b.label} — ₹${b.price}/mo`,
@@ -327,7 +327,7 @@ const TEXT = {
     ctaSub: (total: number, free: number, p99: PlanStat, p199: PlanStat, p299: PlanStat, p499: PlanStat) =>
       `Register FREE → profile card ready → auto-post across ${total} channels → first ${free} interest requests FREE. Then ₹${p99.price} → ${p99.profiles} profiles, ₹${p199.price} → ${p199.profiles}, ₹${p299.price} → ${p299.profiles}, ₹${p499.price} → ${p499.profiles} (VIP).`,
     ctaReg: "Register FREE",
-    ctaBot: "Register in Bot",
+    ctaBot: "Join on Telegram",
     trustTitle: "🛡️ Trust & Safety",
     trustSub: "Your phone number is never shown publicly — exchanged only after both sides accept.",
     trustAvg: (n: number) => `Average trust score (${n} profiles)`,
@@ -437,7 +437,7 @@ export default function Home() {
                 rel="noreferrer"
                 className="px-6 py-3.5 rounded-full gold-gradient text-maroon text-sm font-bold shadow-soft"
               >
-                🤖 {L.botCta} — {SITE_CONFIG.botUsername}
+                ✈️ {L.botCta} — {SITE_CONFIG.botUsername}
               </a>
               <button
                 onClick={() => window.dispatchEvent(new Event("tsap:install-show"))}
@@ -477,15 +477,17 @@ export default function Home() {
             <div className="relative max-w-md mx-auto w-full">
               <div className="absolute inset-0 maroon-gradient rounded-[2rem] rotate-3 opacity-15" />
               <div className="relative bg-white rounded-[2rem] p-5 card-shadow-lg border border-gold/30">
-<div className="flex items-center justify-between">
+<div className="flex items-center flex-wrap gap-1.5">
                   <div className="text-[10px] font-bold text-gold-deep uppercase tracking-widest">
-                    Mana Vivaha • Profile Card
+                    Mana Vivaha
                   </div>
-                  <div className="text-[10px] px-2 py-1 rounded-full bg-slate-100 text-slate-500 font-bold">
-                    {te ? "నమూనా (sample)" : "Sample"}
-                  </div>
-                  <div className="text-[10px] px-2 py-1 rounded-full bg-green-50 text-green-700 font-bold">
-                    ✓ DOB Verified
+                  <div className="ml-auto flex items-center gap-1.5">
+                    <div className="text-[10px] px-2 py-1 rounded-full bg-slate-100 text-slate-500 font-bold whitespace-nowrap">
+                      {te ? "నమూనా" : "Sample"}
+                    </div>
+                    <div className="text-[10px] px-2 py-1 rounded-full bg-green-50 text-green-700 font-bold whitespace-nowrap">
+                      ✓ {te ? "వెరిఫైడ్" : "Verified"}
+                    </div>
                   </div>
                 </div>
 
@@ -528,7 +530,7 @@ export default function Home() {
                 </div>
 
                 <div className="mt-2 text-[10px] text-center text-gray-400">
-                  #Reddy #TSBride #Software #Nalgonda #Age25 • WM TSAP-F-2025-5775
+                  #Reddy #TSBride #Software #Nalgonda
                 </div>
               </div>
             </div>
@@ -1055,14 +1057,14 @@ export default function Home() {
                     rel="noreferrer"
                     className="px-6 py-3.5 rounded-full bg-white/15 border border-white/30 text-white text-sm font-bold"
                   >
-                    🤖 {L.ctaBot}
+                    ✈️ {L.ctaBot}
                   </a>
                 </div>
               </div>
               <div className="mt-6 md:mt-0 text-center shrink-0">
                 <div className="text-[11px] opacity-80">ID search</div>
                 <div className="font-mono text-gold text-lg">{SITE_CONFIG.domain}/search</div>
-                <div className="text-[11px] opacity-80 mt-2">Bot</div>
+                <div className="text-[11px] opacity-80 mt-2">Telegram</div>
                 <div className="font-mono text-gold text-lg">{SITE_CONFIG.botUsername}</div>
               </div>
             </div>

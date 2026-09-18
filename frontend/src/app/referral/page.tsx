@@ -48,7 +48,7 @@ export default function ReferralPage() {
     fetch(`/api/referral/${id}`, { headers: authHeaders() })
       .then((r) => { if (r.status === 401) { setNeedsLogin(true); return { detail: te ? "🔒 మీ account లో login చెయ్యండి (OTP) — అప్పుడే మీ referral dashboard కనిపిస్తుంది" : "🔒 Login to your account (OTP) — only then your referral dashboard shows" }; } return r.json(); })
       .then((d) => { if (d.ok) setDash(d); else setErr(d.detail || (te ? "Dashboard load అవ్వలేదు" : "Dashboard failed to load")); })
-      .catch(() => setErr(te ? "Server నుంచి data రాలేదు — API check చెయ్యండి" : "No data from server — check API"));
+      .catch(() => setErr(te ? "డేటా రాలేదు — కొంచెం సేపు తర్వాత మళ్లీ try చెయ్యండి" : "Could not load data — please try again shortly"));
     fetch(`/api/referral/${id}/payouts`, { headers: authHeaders() }).then((r) => r.json()).then((d) => d.success && setDash((prev: Dash) => prev ? { ...prev, payouts_live: d.payouts, payout_meta: d } : prev)).catch(() => { });
   }, []);
 

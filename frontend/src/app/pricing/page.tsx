@@ -126,9 +126,9 @@ export default function PricingPage() {
           </div>
         </div>
         <div className="mt-3 text-[11px] text-gray-500 telugu">
-          {te ? "🔐 మీ number DB లో encrypt గా ఉంటుంది · consent తోనే share · decline అయితే credit refund (loss లేదు)" : "🔐 Your number stays encrypted in DB · shared only with consent · credit refund on decline (no loss)"}
+          {te ? "🔐 మీ number ఎప్పుడూ సురక్షితంగా ఉంటుంది · consent తోనే share · decline అయితే credit refund (loss లేదు)" : "🔐 Your number always stays secure · shared only with consent · credit refund on decline (no loss)"}
         </div>
-        {live && <div className="mt-2 text-[11px] text-green-700">{te ? "✅ Live pricing (server నుంచి)" : "✅ Live pricing (from server)"}</div>}
+        {live && <div className="mt-2 text-[11px] text-green-700">{te ? "✅ ధరలు తాజాగా అప్‌డేట్ అయ్యాయి" : "✅ Prices freshly updated"}</div>}
       </div>
       <div className="mt-4"><OffersBanner /></div>
       <div className="mt-3"><BannerSlot page="pricing" /></div>

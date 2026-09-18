@@ -72,6 +72,29 @@ export default function PartnerRegisterPage() {
              "కింద వివరాలు ఇవ్వండి — మీ ID + లింక్ వస్తుంది. ఈ లింక్ ద్వారా ఎవరు జాయిన్ అయ్యి పే చేసినా మీకు ₹50/పేమెంట్ వస్తుంది.")}
       </p>
 
+      <section className="mt-4 rounded-2xl border border-gold/40 bg-gradient-to-br from-cream to-white p-4 card-shadow">
+        <div className="text-[13px] font-bold text-maroon">
+          {duo("👥 Who can join?", "👥 ఎవరు చేరవచ్చు?")}
+        </div>
+        <div className="mt-2 grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-[11px]">
+          {[
+            { i: "🎓", en: "Students", te: "విద్యార్థులు" },
+            { i: "🏠", en: "Homemakers", te: "గృహిణులు" },
+            { i: "💼", en: "Working pros", te: "ఉద్యోగస్తులు" },
+            { i: "🧑‍🌾", en: "Anyone with a phone", te: "ఫోన్ ఉన్న ఎవరైనా" },
+          ].map((c) => (
+            <div key={c.en} className="rounded-xl bg-white border border-gold/25 p-2.5">
+              <div className="text-lg">{c.i}</div>
+              <div className="mt-1 font-semibold text-ink telugu">{duo(c.en, c.te)}</div>
+            </div>
+          ))}
+        </div>
+        <div className="mt-3 text-[12px] text-emerald-800 font-bold telugu text-center">
+          {duo("No investment, no target, no risk — just share your link and earn.",
+               "పెట్టుబడి అక్కర్లేదు, టార్గెట్ అక్కర్లేదు, రిస్క్ లేదు — మీ లింక్ షేర్ చేసి సంపాదించండి.")}
+        </div>
+      </section>
+
       {!done ? (
         <section className="mt-4 rounded-2xl border border-gold/30 bg-white p-4 card-shadow space-y-3">
           <div>

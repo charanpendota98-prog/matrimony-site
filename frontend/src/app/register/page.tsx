@@ -748,7 +748,7 @@ const set = (k: string, v: any) => {
                 <div className="mt-1 text-[11px] text-emerald-800">
                   {result.welcome_pack.queue?.queued
                     ? (te ? `✅ WhatsApp లో వెళ్లింది (${result.welcome_pack.queue?.kind || "welcome_pack"}) — మీ number ${result.phone_masked || ""} కి` : `✅ Sent on WhatsApp (${result.welcome_pack.queue?.kind || "welcome_pack"}) — to your number ${result.phone_masked || ""}`)
-                    : T("🕒 WhatsApp bridge connect అయ్యే వరకు queue లో ఉంది — కానీ ఈ 3 profiles ఇక్కడే చూడండి:", "🕒 Queued till WhatsApp bridge connects — but see these 3 profiles here:")}
+                    : T("🕒 WhatsApp కి కొద్ది సేపట్లో వెళ్తుంది — కానీ ఈ 3 profiles ఇక్కడే చూడండి:", "🕒 On its way to your WhatsApp shortly — but see these 3 profiles here:")}
                 </div>
                 <div className="mt-2 grid gap-2 sm:grid-cols-3">
                   {(result.welcome_pack.profiles || []).map((pf: any, i: number) => (
@@ -879,7 +879,7 @@ const set = (k: string, v: any) => {
               <div className="font-bold text-maroon text-[14px]">🙏 Namaste message mee WhatsApp ki pampam</div>
               <div className="text-[12px] text-gray-700 mt-1 telugu">
                 {T("మన side నుంచి మీ profile card + full details + next steps మీ number కి వెళ్తాయి (chatting లేదు — spam ఉండదు).", "Your profile card + full details + next steps come to your number from us (no chatting — no spam).")}
-                {result.welcome_status?.manual_text ? T(" Bridge connect అయ్యాక automatic గా పోతుంది; ఇప్పుడు support team manual గా పంపిస్తుంది.", " Goes automatically after bridge connects; our support team sends it manually now.") : ""}
+                {result.welcome_status?.manual_text ? T(" ఇది కొద్ది సేపట్లో మీకు వెళ్తుంది; అవసరమైతే మా support team కూడా పంపిస్తుంది.", " This reaches you shortly; our support team can also send it if needed.") : ""}
               </div>
               {result.welcome_status?.manual_text ? (
                 <button onClick={() => copy(String(result.welcome_status.manual_text), "namaste")}

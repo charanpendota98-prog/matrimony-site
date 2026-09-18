@@ -160,7 +160,7 @@ export default function RefundPage() {
         <div className="mt-2 space-y-1">
           <div>WhatsApp / Phone: <b>{SITE_CONFIG.supportPhoneDisplay}</b></div>
           <div>Email: <b>{SITE_CONFIG.supportEmail}</b></div>
-          <div>Website: <b>https://{SITE_CONFIG.domain}</b> • Bot: {SITE_CONFIG.botUsername}</div>
+          <div>Website: <b>https://{SITE_CONFIG.domain}</b> • Telegram: {SITE_CONFIG.botUsername}</div>
           <div>Business: {SITE_CONFIG.legalName}, Hyderabad, Telangana, India</div>
           <div>{te ? "Working hours: Mon–Sat, 9 AM – 8 PM IST (response 24h లోపు)" : "Working hours: Mon–Sat, 9 AM – 8 PM IST (response within 24h)"}</div>
         </div>

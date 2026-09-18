@@ -187,7 +187,7 @@ export default function MatchSend() {
     <div>
       <p className="telugu mt-2 text-xs text-gray-500">
         Buyer ID → perfect matches → filters → ☑️ select → ₹500 order (UTR) → 📩 Telegram / 💬 WhatsApp send.
-{te ? <>పంపిన profiles <b>మాత్రమే</b> buyer కి unlock — bot లో <b>/mylist</b> లో ఇవి మాత్రమే కనిపిస్తాయి.</> : <>Only sent profiles unlock for the buyer — only these show in the bot <b>/mylist</b>.</>}
+{te ? <>పంపిన profiles <b>మాత్రమే</b> buyer కి unlock — Telegram లో <b>/mylist</b> లో ఇవి మాత్రమే కనిపిస్తాయి.</> : <>Only sent profiles unlock for the buyer — only these show in <b>/mylist</b> on Telegram.</>}
       </p>
 
       {/* buyer load */}

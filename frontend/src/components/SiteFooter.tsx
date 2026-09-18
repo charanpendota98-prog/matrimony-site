@@ -95,7 +95,7 @@ export default function SiteFooter() {
             <div>{te ? "✓ 3 reports → auto hide" : "✓ 3 reports → auto hide"}</div>
           </div>
           <div className="mt-4 text-xs opacity-75">
-            <div>Bot: {SITE_CONFIG.botUsername}</div>
+            <div>Telegram: {SITE_CONFIG.botUsername}</div>
             <div>Site: {SITE_CONFIG.domain}</div>
             <div>Care: {SITE_CONFIG.supportEmail}</div>
           </div>

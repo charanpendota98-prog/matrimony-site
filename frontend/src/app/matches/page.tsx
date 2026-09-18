@@ -441,7 +441,7 @@ export default function MatchesAdvanced() {
     } else {
       setRows([]);
       setTotal(0);
-      setMsg(`⚠️ ${eTel || (te ? "Server నుంచి results రాలేదు — filters మార్చి మళ్లీ try చెయ్యండి" : "No results from server — change filters and retry")}`);
+      setMsg(`⚠️ ${eTel || (te ? "Results రాలేదు — filters మార్చి మళ్లీ try చెయ్యండి" : "No results found — change filters and retry")}`);
     }
     setLoading(false);
   }, [filters, sort, myTsapId, te]);

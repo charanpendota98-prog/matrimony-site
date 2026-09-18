@@ -97,7 +97,7 @@ export default function LoginPage() {
     <main className="mx-auto max-w-md px-4 py-10">
       <h1 className="text-2xl font-extrabold text-[#7A0C2E]">🔑 <Duo en="Member Login" te="సభ్యుల లాగిన్" /></h1>
       <p className="mt-1 text-sm text-slate-600">
-        {te ? "🔒 మీ inbox, credits, shortlist — ఈ data మీరు మాత్రమే చూడగలరు (token తో protect చేశాం)." : "🔒 Your inbox, credits, shortlist — only you can see this data (protected with token)."}
+        {te ? "🔒 మీ inbox, credits, shortlist — ఈ data మీరు మాత్రమే చూడగలరు, safe గా ఉంటుంది." : "🔒 Your inbox, credits, shortlist — only you can see this data, kept safe."}
       </p>
 
       <section className="mt-6 rounded-2xl border-2 border-rose-200 bg-rose-50/60 p-4">
