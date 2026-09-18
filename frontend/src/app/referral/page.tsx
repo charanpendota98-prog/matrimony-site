@@ -328,8 +328,8 @@ export default function ReferralPage() {
           </div>
 
           <div className="bg-white rounded-3xl p-5 border border-gray-200 shadow-sm">
-            <h2 className="font-bold text-[#7A0C2E] telugu">🧾 Wallet ledger (audit)</h2>
-            {(dash?.ledger || []).length === 0 && <div className="mt-2 text-xs text-gray-500">{te ? "Ledger ఖాళీ — మొదటి referral తో start అవుతుంది" : "Ledger empty — starts with first referral"}</div>}
+            <h2 className="font-bold text-[#7A0C2E] telugu">🧾 {te ? "వాలెట్ చరిత్ర" : "Wallet history"}</h2>
+            {(dash?.ledger || []).length === 0 && <div className="mt-2 text-xs text-gray-500">{te ? "ఇంకా ఏమీ లేదు — మొదటి referral తో start అవుతుంది" : "Nothing yet — starts with your first referral"}</div>}
             <div className="mt-2 space-y-1 text-[11px] max-h-72 overflow-y-auto">
               {(dash?.ledger || []).map((l: any) => (
                 <div key={l.id} className="flex items-center justify-between border-b border-gray-100 py-1.5">

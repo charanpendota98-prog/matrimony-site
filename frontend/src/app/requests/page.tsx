@@ -458,7 +458,7 @@ export default function RequestsPage() {
                     ⭐ {lastSend.score}% match • ⏳ {lastSend.expires_in_days} {te ? "days valid • credits మిగిలాయి" : "days valid • credits left"} <b>{lastSend.credits_left}</b>
                   </div>
                   <div className="text-[12px] text-emerald-900 mt-2">
-                    📲 WhatsApp: {lastSend.whatsapp?.owner_queued ? (te ? "owner కి queue అయ్యింది" : "queued to owner") : (te ? "queue అవ్వలేదు" : "not queued")} • {lastSend.whatsapp?.anti_ban}
+                    📲 WhatsApp: {lastSend.whatsapp?.owner_queued ? (te ? "వాళ్లకి పంపాం" : "sent to them") : (te ? "పంపలేదు" : "not sent")}
                   </div>
                   <button onClick={() => setShowOwnerMsg(!showOwnerMsg)} className="mt-3 text-[12px] font-bold text-emerald-800 underline">
                     {showOwnerMsg ? (te ? "Message దాచి పెట్టు" : "Hide message") : (te ? "వాళ్లకి వెళ్లే message చూడు (preview)" : "Preview their message")}
@@ -504,20 +504,20 @@ export default function RequestsPage() {
 
               {consent && (
                 <div className="bg-white border border-emerald-200 rounded-2xl p-4">
-                  <div className="font-bold text-emerald-900 text-[13px]">🔐 Consent ledger (number exchange audit)</div>
+                  <div className="font-bold text-emerald-900 text-[13px]">🔐 {te ? "మీ నంబర్ ఎవరికి వెళ్లింది" : "Who your number was shared with"}</div>
                   <div className="mt-1 text-[11px] text-emerald-800">
-                    {te ? <>మీ number ఎప్పుడు ఎవరికి ఇచ్చారో ఇక్కడ record ఉంటుంది — {consent.total ?? 0} events.</> : <>Record of when your number was shared — {consent.total ?? 0} events.</>}
+                    {te ? <>మీ number ఎప్పుడు ఎవరికి ఇచ్చారో ఇక్కడ కనిపిస్తుంది — {consent.total ?? 0} సార్లు.</> : <>See when your number was shared — {consent.total ?? 0} times.</>}
                   </div>
                   {Array.isArray(consent.events) && consent.events.length > 0 ? (
                     <ul className="mt-2 space-y-1">
                       {consent.events.slice(0, 5).map((e: any, i: number) => (
                         <li key={i} className="text-[11px] text-gray-700 border-l-2 border-emerald-300 pl-2">
-                          {e.action || e.kind || "consent"} • {String(e.with || e.other_id || "").slice(0, 18)} • {String(e.at || "").slice(0, 16)}
+                          {String(e.with || e.other_id || "").slice(0, 18)} • {String(e.at || "").slice(0, 16)}
                         </li>
                       ))}
                     </ul>
                   ) : (
-                    <div className="mt-2 text-[11px] text-gray-600">{te ? "ఇంకా number exchange లేదు — interest accept అయితే ఇక్కడ కనిపిస్తుంది (audit trail)." : "No number exchange yet — appears here after interest accept (audit trail)."}</div>
+                    <div className="mt-2 text-[11px] text-gray-600">{te ? "ఇంకా number exchange లేదు — interest accept అయితే ఇక్కడ కనిపిస్తుంది." : "No number exchanged yet — appears here after an interest is accepted."}</div>
                   )}
                 </div>
               )}

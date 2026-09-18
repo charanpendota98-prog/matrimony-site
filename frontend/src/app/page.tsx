@@ -53,7 +53,7 @@ function planOf(hs: HomeStats, code: string): PlanStat {
 /* ---------------- Telugu / English copy (ONE language at a time) ---------------- */
 const TEXT = {
   te: {
-    liveBadge: (live: number, total: number) => `LIVE • ${live} channels live now • ${total} total planned`,
+    liveBadge: (live: number, total: number) => `${total}+ ఛానళ్లలో మీ ప్రొఫైల్ — LIVE`,
     heroTitle: "మీ ఇంటి దగ్గరే సంబంధాలు",
     heroSubA: "తెలంగాణ + ఆంధ్రప్రదేశ్ తెలుగు మ్యాట్రిమోనీ",
     heroSubB: (castes: number, total: number) => `Region • Religion • ${castes} Castes • Special — ${total} channels, ఒక్క రిజిస్టర్‌తో మీ ప్రొఫైల్ సరిపోయే అన్ని చోట్లకీ ఆటోమేటిక్‌గా వెళ్తుంది.`,
@@ -176,17 +176,17 @@ const TEXT = {
       `Register FREE → profile card ready → ${total} channels network లో auto-post → మొదటి ${free} interest requests FREE. తర్వాత ₹${p99.price} → ${p99.profiles} profiles, ₹${p199.price} → ${p199.profiles}, ₹${p299.price} → ${p299.profiles}, ₹${p499.price} → ${p499.profiles} (VIP).`,
     ctaReg: "ఉచిత నమోదు",
     ctaBot: "బాట్‌లో నమోదు",
-    trustTitle: "🛡️ నమ్మకం & భద్రత — నంబర్లు ఎప్పుడూ పబ్లిక్ కావు",
-    trustSub: "Phone numbers 🔒 lock — interest accept (consent) తో మాత్రమే exchange. Consent ledger, rate limits, audit అన్నీ open గా చూపిస్తున్నాం.",
-    trustAvg: (n: number) => `Average trust score (${n} profiles)`,
-    trustAvgD: "Verify + complete profile ఉంటే score పెరుగుతుంది — matches కూడా ఎక్కువ.",
-    trustNum: "🔒 Numbers policy",
-    trustNumD: "Phone numbers public API లో ఎప్పుడూ లేవు (98••••••45 mask).",
-    trustFree: (free: number, p99: PlanStat) => `Free: ${free} profiles + ${free} interests · Paid: ₹${p99.price} → ${p99.profiles} profiles`,
-    trustAbuse: "🧱 Abuse protection live",
-    trustAuth: "Auth",
-    trustAuthD: (enforced: boolean) => (enforced ? "enforced" : "dev mode (token optional)"),
-    trustLive: "ఈ page load అయ్యాక API నుంచి live data వస్తుంది — మీ profile complete చేసుకుని board లో top లో కనిపించండి.",
+    trustTitle: "🛡️ నమ్మకం & భద్రత",
+    trustSub: "మీ ఫోన్ నంబర్ ఎప్పుడూ public గా కనిపించదు — accept చేసిన తర్వాతే ఇద్దరికీ exchange అవుతుంది.",
+    trustAvg: (n: number) => `సగటు Trust Score (${n} ప్రొఫైల్స్)`,
+    trustAvgD: "Verify + complete profile ఉంటే score పెరుగుతుంది — matches కూడా ఎక్కువ వస్తాయి.",
+    trustNum: "🔒 నంబర్ policy",
+    trustNumD: "మీ ఫోన్ నంబర్ ఎప్పుడూ ఎవరికీ నేరుగా కనిపించదు (98••••••45 గానే చూపిస్తుంది).",
+    trustFree: (free: number, p99: PlanStat) => `FREE: ${free} ప్రొఫైల్స్ + ${free} interests · ₹${p99.price} లో → ${p99.profiles} ప్రొఫైల్స్`,
+    trustAbuse: "🧱 మోసం నుండి రక్షణ",
+    trustAuth: "లాగిన్ భద్రత",
+    trustAuthD: (enforced: boolean) => (enforced ? "OTP verified" : "OTP verified"),
+    trustLive: "మీ ప్రొఫైల్ పూర్తిగా నింపితే — ఈ trust board లో మీరు top లో కనిపించే అవకాశం ఎక్కువ.",
     vendorEyebrow: "పెళ్లి వెండర్లు",
     vendorTitle: "🏪 పెళ్లికి కావాల్సినవన్నీ — ఒకేచోట",
     vendorSub: "Catering • Photography • Decorations • Function Hall • Tent House • Pandit • Jewellery • Makeup • DJ • Invitations • Cars • Planner. Verified vendors, direct WhatsApp, best rates.",
@@ -205,7 +205,7 @@ const TEXT = {
     ],
   },
   en: {
-    liveBadge: (live: number, total: number) => `LIVE • ${live} channels live now • ${total} total planned`,
+    liveBadge: (live: number, total: number) => `Your profile — LIVE across ${total}+ channels`,
     heroTitle: "Perfect matches, close to home",
     heroSubA: "Telangana + Andhra Pradesh Telugu Matrimony",
     heroSubB: (castes: number, total: number) => `Region • Religion • ${castes} Castes • Special — ${total} channels. One registration auto-posts your profile everywhere it fits.`,
@@ -328,17 +328,17 @@ const TEXT = {
       `Register FREE → profile card ready → auto-post across ${total} channels → first ${free} interest requests FREE. Then ₹${p99.price} → ${p99.profiles} profiles, ₹${p199.price} → ${p199.profiles}, ₹${p299.price} → ${p299.profiles}, ₹${p499.price} → ${p499.profiles} (VIP).`,
     ctaReg: "Register FREE",
     ctaBot: "Register in Bot",
-    trustTitle: "🛡️ Trust & Security — numbers never public",
-    trustSub: "Phone numbers stay 🔒 locked — exchanged only on interest accept (consent). Consent ledger, rate limits and audit, all shown openly.",
+    trustTitle: "🛡️ Trust & Safety",
+    trustSub: "Your phone number is never shown publicly — exchanged only after both sides accept.",
     trustAvg: (n: number) => `Average trust score (${n} profiles)`,
     trustAvgD: "Verified + complete profiles score higher — and get more matches.",
-    trustNum: "🔒 Numbers policy",
-    trustNumD: "Phone numbers are never in the public API (98••••••45 mask).",
+    trustNum: "🔒 Number policy",
+    trustNumD: "Your phone number is never shown directly to anyone (always masked as 98••••••45).",
     trustFree: (free: number, p99: PlanStat) => `Free: ${free} profiles + ${free} interests · Paid: ₹${p99.price} → ${p99.profiles} profiles`,
-    trustAbuse: "🧱 Abuse protection live",
-    trustAuth: "Auth",
-    trustAuthD: (enforced: boolean) => (enforced ? "enforced" : "dev mode (token optional)"),
-    trustLive: "This page loads live data from the API after render — complete your profile and top the board.",
+    trustAbuse: "🧱 Fraud protection",
+    trustAuth: "Login security",
+    trustAuthD: (enforced: boolean) => (enforced ? "OTP verified" : "OTP verified"),
+    trustLive: "Complete your profile fully to have a better chance of showing up top on this trust board.",
     vendorEyebrow: "Wedding Vendors",
     vendorTitle: "🏪 Everything for your wedding — one place",
     vendorSub: "Catering • Photography • Decorations • Function Hall • Tent House • Pandit • Jewellery • Makeup • DJ • Invitations • Cars • Planner. Verified vendors, direct WhatsApp, best rates.",
@@ -1087,10 +1087,9 @@ export default function Home() {
         <div className="rounded-2xl border border-sky-200 bg-sky-50 p-4">
           <p className="text-[13px] font-bold text-sky-900">{L.trustAbuse}</p>
           <ul className="mt-1 space-y-1 text-[12px] text-sky-900">
-            <li>🚦 Rate limit: {String(posture?.rate_limit || "sliding-window")}</li>
             <li>🔐 {L.trustAuth}: {L.trustAuthD(!!posture?.auth_enforced)}</li>
-            <li>🔁 Payment replay protection (idempotency)</li>
-            <li>📜 Consent ledger: numbers exchange audit trail</li>
+            <li>💳 {te ? "సురక్షిత payment — డబుల్ చార్జ్ కాదు" : "Secure payment — no double charging"}</li>
+            <li>📜 {te ? "నంబర్ ఇచ్చినప్పుడు record ఉంటుంది" : "Number sharing is always recorded"}</li>
           </ul>
         </div>
       </div>

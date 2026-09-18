@@ -248,11 +248,11 @@ export default function SafetyPage() {
           </div>
         </div>
 
-        {/* ---- moderation queue (admin view) ---- */}
-        {queue && (
+        {/* ---- moderation queue (admin view only) ---- */}
+        {queue && Array.isArray(queue.items) && (
           <div className="bg-white rounded-[1.5rem] border border-gold/25 p-5">
             <div className="flex items-center justify-between">
-              <div className="font-bold text-maroon text-[15px]">{te ? <>👮 Moderation queue (admin) — {queue.open} open</> : <>👮 Moderation queue (admin) — {queue.open} open</>}</div>
+              <div className="font-bold text-maroon text-[15px]">{te ? <>👮 రిపోర్ట్‌ల నిర్వహణ — {queue.open} pending</> : <>👮 Report management — {queue.open} pending</>}</div>
               <div className="text-[11px] text-gray-500">{te ? <>high severity ముందు: {queue.items?.filter((i: any) => i.severity === "high").length || 0}</> : <>high severity first: {queue.items?.filter((i: any) => i.severity === "high").length || 0}</>}</div>
             </div>
             <div className="text-[11px] text-gray-600 mt-1 telugu">{queue.message_telugu}</div>

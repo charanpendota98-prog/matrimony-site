@@ -50,7 +50,7 @@ export default function CastesClient() {
                 <div className="flex items-center justify-between gap-2">
                   <div className="font-bold text-maroon text-[15px]">{c.name}</div>
                   <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${c.live ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"}`}>
-                    {c.live ? "🟢 Live" : "Wave-1"}
+                    {c.live ? "🟢 Live" : (te ? "త్వరలో" : "Soon")}
                   </span>
                 </div>
                 <div className="text-[11px] text-gray-500 mt-1">
