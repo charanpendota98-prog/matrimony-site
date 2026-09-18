@@ -202,10 +202,14 @@ sudo netfilter-persistent save 2>/dev/null || sudo apt install -y iptables-persi
 
 **Step 4 — Server ready (copy-paste):**
 
+> ⚠️ **Mundu GitHub lo:** repo ippudu **Private** — server clone avvadu!
+> GitHub → matrimony-site → **Settings → General → Danger Zone → Change visibility → Public**.
+> Safe ey: code lo **zero secrets** (keys anni `.env` lone, adi git lo ledu — auto-tested).
+
 ```bash
-sudo apt update && sudo apt install -y git caddy
-curl -fsSL https://get.docker.com | sh
-sudo usermod -aG docker $USER && newgrp docker
+# One-shot setup (docker + caddy + git + firewall) — 5 min
+curl -sSL https://raw.githubusercontent.com/charanpendota98-prog/matrimony-site/arena/01a0aaf1-matrimony-site/scripts/oracle-setup.sh | bash
+exit   # logout → ssh malli login (docker group kosam)
 git clone -b arena/01a0aaf1-matrimony-site https://github.com/charanpendota98-prog/matrimony-site.git
 cd matrimony-site && cp .env.example .env && nano .env   # step 2 values!
 docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
