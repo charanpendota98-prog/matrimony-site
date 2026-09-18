@@ -111,7 +111,7 @@ export default function ReferralPage() {
           <div className="mt-4 flex flex-wrap items-center gap-2 text-xs">
             <span className="px-3 py-1 rounded-full bg-white/10">ID: <b>{tsapId || "…"}</b></span>
             <input value={tsapId} onChange={(e) => setTsapId(e.target.value.toUpperCase())}
-              className="px-3 py-1.5 rounded-full bg-white/10 border border-white/25 text-white placeholder-white/60 text-xs w-56"
+              className="px-3 py-1.5 rounded-full bg-white/10 border border-white/25 text-white placeholder-white/60 text-xs w-full max-w-[224px] sm:w-56"
               placeholder={te ? "మీ TSAP ID (TSAP-F-2025-1042)" : "Your TSAP ID (TSAP-F-2025-1042)"} aria-label={te ? "మీ TSAP ID" : "Your TSAP ID"} />
             <span className="px-3 py-1 rounded-full bg-[#D4AF37] text-[#7A0C2E] font-bold">{tier.icon} {tier.key}</span>
             {s.paid_count > 0 && <span className="px-3 py-1 rounded-full bg-white/10">{s.paid_count} paying referrals</span>}

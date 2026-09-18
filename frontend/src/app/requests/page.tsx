@@ -250,7 +250,7 @@ export default function RequestsPage() {
                 onChange={(e) => setMyId(e.target.value.toUpperCase())}
                 onBlur={(e) => saveId(e.target.value)}
                 placeholder="TSAP-M-2025-1042"
-                className="mt-1 w-56 px-3 py-2 rounded-xl text-ink font-mono text-sm outline-none focus-brand" aria-label="TSAP-M-2025-1042" />
+                className="mt-1 w-full max-w-[224px] sm:w-56 px-3 py-2 rounded-xl text-ink font-mono text-sm outline-none focus-brand" aria-label="TSAP-M-2025-1042" />
             </div>
             <button onClick={() => saveId(myId)} className="gold-gradient text-maroon font-bold text-sm px-4 py-2.5 rounded-xl hover-lift">
               {te ? "నా dashboard చూడు" : "Load my dashboard"}
