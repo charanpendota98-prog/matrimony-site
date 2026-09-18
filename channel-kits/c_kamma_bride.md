@@ -4,7 +4,7 @@
 - **Username:** `@manavivaha_kamma_bride` (already taken? → @tsap_kamma_bride, @mv_kamma_brd)
 - **Link:** https://t.me/manavivaha_kamma_bride
 - **Hashtags:** #Kamma #Bride #TS #AP
-- **DP image:** `/home/user/matrimony-site/backend/channel_assets/c_kamma_bride.png`
+- **DP image:** `/home/user/shubhalagnam/backend/channel_assets/c_kamma_bride.png`
 
 ## 1) Channel create (phone → New Channel)
 

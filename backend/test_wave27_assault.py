@@ -92,9 +92,11 @@ try:
         return {"gender": "male", "age": 27, "height": "5'8", "marital_status": "Pelli Kaledu",
                 "caste": "Reddy", "education": "BTech", "job": "Software", "salary": "10L",
                 "state": "TS", "district": "Hyd", "phone": ph, "full_name": "Race Reg"}
+    import random as _random27
+    _r27 = _random27.randint(10, 99)  # R10: per-run unique phone space (persisted phones = correct 409 dup-phone)
     regs = []
     ts = [threading.Thread(target=lambda i=i: regs.append(
-        c.post("/api/register", data=_form(f"92711{i:05d}")))) for i in range(6)]
+        c.post("/api/register", data=_form(f"9271{_r27}{i:04d}")))) for i in range(6)]  # 10 digits total
     [t.start() for t in ts]
     [t.join() for t in ts]
     rids = [r.json().get("tsap_id") for r in regs if r.status_code == 200]

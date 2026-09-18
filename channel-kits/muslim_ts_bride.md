@@ -4,7 +4,7 @@
 - **Username:** `@manavivaha_muslim_ts_bride` (already taken? → @tsmuslimbride, @mv_muslim_ts_brd, @manavivaha_muslim_ts_brd)
 - **Link:** https://t.me/manavivaha_muslim_ts_bride
 - **Hashtags:** #Muslim #Bride #Telangana #Nikah
-- **DP image:** `/home/user/matrimony-site/backend/channel_assets/muslim_ts_bride.png`
+- **DP image:** `/home/user/shubhalagnam/backend/channel_assets/muslim_ts_bride.png`
 
 ## 1) Channel create (phone → New Channel)
 

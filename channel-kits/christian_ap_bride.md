@@ -4,7 +4,7 @@
 - **Username:** `@manavivaha_christian_ap_bride` (already taken? → @apchristianbride, @mv_christ_ap_brd, @manavivaha_christ_ap_brd)
 - **Link:** https://t.me/manavivaha_christian_ap_bride
 - **Hashtags:** #Christian #Bride #AndhraPradesh #Wedding
-- **DP image:** `/home/user/matrimony-site/backend/channel_assets/christian_ap_bride.png`
+- **DP image:** `/home/user/shubhalagnam/backend/channel_assets/christian_ap_bride.png`
 
 ## 1) Channel create (phone → New Channel)
 

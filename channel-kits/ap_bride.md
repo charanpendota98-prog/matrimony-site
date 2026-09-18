@@ -4,7 +4,7 @@
 - **Username:** `@APBRIDE` (already taken? → @manavivaha_ap_bride, @apbride1, @manavivaha_apbride)
 - **Link:** https://t.me/APBRIDE
 - **Hashtags:** #APBride #AndhraPradesh
-- **DP image:** `/home/user/matrimony-site/backend/channel_assets/ap_bride.png`
+- **DP image:** `/home/user/shubhalagnam/backend/channel_assets/ap_bride.png`
 
 ## 1) Channel create (phone → New Channel)
 

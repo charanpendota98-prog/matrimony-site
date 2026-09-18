@@ -4,7 +4,7 @@
 - **Username:** `@manavivaha_hindu` (already taken? → @manavivaha_hindus, @tsap_hindu)
 - **Link:** https://t.me/manavivaha_hindu
 - **Hashtags:** #Hindu #TeluguMatrimony
-- **DP image:** `/home/user/matrimony-site/backend/channel_assets/hindu.png`
+- **DP image:** `/home/user/shubhalagnam/backend/channel_assets/hindu.png`
 
 ## 1) Channel create (phone → New Channel)
 

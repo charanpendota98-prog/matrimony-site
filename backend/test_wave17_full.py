@@ -58,14 +58,22 @@ def mkimg(blur=0, dark=False, tiny=False, flat=False, white=False, glare=False, 
     else:
         img = Image.new("RGB", (600, 800))
         px = img.load()
+        # 🛡️ R10: mid-range ramp (GLARE false-positive vaddhu) + BLOCKY noise —
+        # per-pixel noise JPEG lo smooth ayipotundi (blur false-positive); 4px blocks survive
+        import random as _r17
+        _noise = [[_r17.randint(-45, 45) for _ in range(0, 600, 4)] for _ in range(0, 800, 4)]
         for y in range(800):
+            _ny = _noise[y // 4]
             for x in range(600):
-                px[x, y] = ((x * 3 + y) % 256, (x + y * 2) % 256, (x * 2 - y) % 256)
+                n = _ny[x // 4]
+                px[x, y] = (max(0, min(235, 20 + ((x * 3 + y) % 190) + n)),
+                            max(0, min(235, 20 + ((x + y * 2) % 190) + n)),
+                            max(0, min(235, 20 + ((x * 2 - y) % 190) + n)))
         d = ImageDraw.Draw(img)
         for _ in range(30):
             x0, x1 = sorted([random.randint(0, 600), random.randint(0, 600)])
             y0, y1 = sorted([random.randint(0, 800), random.randint(0, 800)])
-            d.ellipse([x0, y0, x1, y1], fill=(random.randint(0, 255),) * 3)
+            d.ellipse([x0, y0, x1, y1], fill=(random.randint(30, 200),) * 3)  # R10: 250+ ellipses = GLARE false-positive
         if glare:
             ImageDraw.Draw(img).ellipse([100, 150, 500, 650], fill=(255, 255, 255))
         if frame:

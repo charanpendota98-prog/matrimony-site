@@ -147,8 +147,10 @@ def build_welcome_pack(user: Dict[str, Any], tsap_id: str, matches: List[Dict[st
     except Exception:
         why = {}
 
+    _n = len(profs)
+    _n_te = {0: "మీ matches ready", 1: "మీ 1 FREE match ready", 2: "మీ 2 FREE matches ready"}.get(_n, "మీ 3 FREE matches ready")
     head = (
-        f"🎉 *{user.get('full_name', 'గారు')} గారు — మీ 3 FREE matches ready!* 🎉\n"
+        f"🎉 *{user.get('full_name', 'గారు')} గారు — {_n_te}!* 🎉\n"
         f"🆔 *{tsap_id}* | 💍 {user.get('caste', '—')}"
         f"{(' / ' + str(user['sub_caste'])) if user.get('sub_caste') else ''}"
         f" | 📍 {user.get('district', '—')}, {user.get('state', 'TS')}\n"
@@ -156,7 +158,7 @@ def build_welcome_pack(user: Dict[str, Any], tsap_id: str, matches: List[Dict[st
     )
     body_parts = [head]
     if profs:
-        body_parts.append("🔎 *మీ 3 profiles* (numbers 🔒 — interest accept = consent తో మాత్రమే exchange):\n" +
+        body_parts.append(f"🔎 *మీ {_n} profile{'s' if _n != 1 else ''}* (numbers 🔒 — interest accept = consent తో మాత్రమే exchange):\n" +
                           "\n".join(profile_line(i, p, p.get("score", 0), p.get("reason", ""))
                                     for i, p in enumerate(profs)))
     else:

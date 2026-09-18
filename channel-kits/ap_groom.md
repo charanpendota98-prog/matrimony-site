@@ -4,7 +4,7 @@
 - **Username:** `@APGROOM1` (already taken? → @manavivaha_ap_groom, @apgroom, @manavivaha_apgroom)
 - **Link:** https://t.me/APGROOM1
 - **Hashtags:** #APGroom #AndhraPradesh
-- **DP image:** `/home/user/matrimony-site/backend/channel_assets/ap_groom.png`
+- **DP image:** `/home/user/shubhalagnam/backend/channel_assets/ap_groom.png`
 
 ## 1) Channel create (phone → New Channel)
 

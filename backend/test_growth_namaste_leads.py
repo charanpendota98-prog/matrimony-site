@@ -15,6 +15,7 @@ Enti check chesthundi (user requirements 1:1):
 import os
 import sys
 import json
+import random as _rnd  # 🛡️ R10: unique phone per run
 
 os.environ.setdefault("PUBLISH_DRY_RUN", "true")
 os.environ.setdefault("WA_TEST_FAST", "true")
@@ -30,6 +31,8 @@ def check(name, cond, extra=""):
     print(("  PASS " if cond else "  FAIL ") + name + (("  [" + str(extra)[:130] + "]") if extra and not cond else ""))
 
 
+
+PH = "9848055%03d" % _rnd.randint(0, 999)  # 🛡️ R10: re-run safe (dup-phone reject)
 # --------------------------------------------------------------------------- #
 def test_namaste_welcome():
     print("\n[1] NAMASTE WELCOME AUTOMATION")
@@ -176,7 +179,7 @@ def test_api_endpoints_and_register_namaste():
             "gender": "Groom", "full_name": "Namaste Groom Test", "age": 30, "height": "5'10\"",
             "marital_status": "Pelli Kaledu", "caste": "Reddy", "gothram": "Vasishta", "star": "Mrigasira",
             "rasi": "Dhanu", "education": "MBA", "job": "Business", "salary": "12L", "district": "Nalgonda",
-            "state": "TS", "phone": "9848055555", "dob_correct": True, "phone_verified": True,
+            "state": "TS", "phone": PH, "dob_correct": True, "phone_verified": True,
         })
         reg = resp.json()
         check("POST /api/register 200", resp.status_code == 200, str(reg)[:110])
@@ -189,7 +192,7 @@ def test_api_endpoints_and_register_namaste():
               bool((reg.get("welcome_status") or {}).get("manual_text")) or bool((reg.get("welcome_status") or {}).get("queued")),
               reg.get("welcome_status"))
         # lead converted
-        conv = [l for l in main.growth.DB_LEADS if l.get("phone") == "9848055555"]
+        conv = [l for l in main.growth.DB_LEADS if l.get("phone") == PH]
         check("register → lead converted + tsap link", conv and conv[0]["status"] == "converted" and conv[0].get("tsap_id") == reg.get("tsap_id"),
               conv[0] if conv else "none")
 
@@ -212,7 +215,8 @@ def test_api_endpoints_and_register_namaste():
         fu = c.post("/api/leads/followup/" + lead_id).json()
         check("POST /api/leads/followup/{id} → status contacted",
               fu.get("success") and fu["lead"]["status"] == "contacted", str(fu)[:100])
-        bulk = c.post("/api/admin/bulk-profiles", json={"generate": 30, "seed": 7}).json()
+        # 🛡️ R10: unique seed per run — same seed = same tsap_ids = endpoint correctly skips dups
+        bulk = c.post("/api/admin/bulk-profiles", json={"generate": 30, "seed": _rnd.randint(1000, 9999)}).json()
         check("POST /api/admin/bulk-profiles → launch inventory load",
               bulk.get("success") and bulk.get("added") == 30, str(bulk)[:110])
         check("inventory grows after bulk load", bulk["inventory"]["total_profiles"] >= 30, bulk["inventory"]["total_profiles"])

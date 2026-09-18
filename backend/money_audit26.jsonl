@@ -3,3 +3,18 @@
 {"at": "2026-09-17T06:16:23.313832", "event": "refunded", "actor": "admin", "details": {"tsap_id": "TSAP-F-2025-8657", "amount": 0, "reversed": 50, "reason": "api_test"}}
 {"at": "2026-09-17T06:17:22.136171", "event": "pay_confirmed", "actor": "admin", "details": {"order_id": "pay_ord_00001", "utr": "411111111111", "amount": 99, "tsap_id": "TSAP-M-2025-5012"}}
 {"at": "2026-09-17T06:17:22.169239", "event": "pay_verified", "actor": "TSAP-M-2025-5012", "details": {"order_id": "pay_ord_00003", "payment_id": "pay_w14_ok1", "amount": 29}}
+{"at": "2026-09-18T19:58:46.070053", "event": "pay_confirmed", "actor": "admin", "details": {"order_id": "pay_ord_00001", "utr": "411111111111", "amount": 99, "tsap_id": "RED001"}}
+{"at": "2026-09-18T19:58:46.095947", "event": "pay_verified", "actor": "RED001", "details": {"order_id": "pay_ord_00003", "payment_id": "pay_w14_ok1", "amount": 29}}
+{"at": "2026-09-18T19:59:20.273115", "event": "pay_confirmed", "actor": "admin", "details": {"order_id": "pay_ord_00006", "utr": "428281111111", "amount": 99, "tsap_id": "RED001"}}
+{"at": "2026-09-18T19:59:21.872184", "event": "profile_approve", "actor": "admin", "details": {"tsap_id": "RED002", "channels": ["@TSBRIDE", "@manavivaha_reddy_bride", "@manavivaha_software"]}}
+{"at": "2026-09-18T19:59:21.875600", "event": "profile_approve", "actor": "admin", "details": {"tsap_id": "RED001", "channels": ["@TSGROOM1", "@manavivaha_reddy_groom", "@manavivaha_software"]}}
+{"at": "2026-09-18T20:04:26.426856", "event": "pay_confirmed", "actor": "admin", "details": {"order_id": "pay_ord_00006", "utr": "428281111111", "amount": 99, "tsap_id": "RED001"}}
+{"at": "2026-09-18T20:04:28.037860", "event": "profile_approve", "actor": "admin", "details": {"tsap_id": "RED002", "channels": ["@TSBRIDE", "@manavivaha_reddy_bride", "@manavivaha_software"]}}
+{"at": "2026-09-18T20:04:28.040779", "event": "profile_approve", "actor": "admin", "details": {"tsap_id": "RED001", "channels": ["@TSGROOM1", "@manavivaha_reddy_groom", "@manavivaha_software"]}}
+{"at": "2026-09-18T20:05:21.878213", "event": "pay_confirmed", "actor": "admin", "details": {"order_id": "pay_ord_00006", "utr": "428281111111", "amount": 99, "tsap_id": "RED001"}}
+{"at": "2026-09-18T20:05:48.738544", "event": "pay_confirmed", "actor": "admin", "details": {"order_id": "pay_ord_00006", "utr": "428281111111", "amount": 99, "tsap_id": "RED001"}}
+{"at": "2026-09-18T20:08:44.039499", "event": "pay_confirmed", "actor": "admin", "details": {"order_id": "pay_ord_00001", "utr": "411111111111", "amount": 99, "tsap_id": "RED001"}}
+{"at": "2026-09-18T20:08:44.065541", "event": "pay_verified", "actor": "RED001", "details": {"order_id": "pay_ord_00003", "payment_id": "pay_w14_ok1", "amount": 29}}
+{"at": "2026-09-18T20:09:32.179390", "event": "pay_confirmed", "actor": "admin", "details": {"order_id": "pay_ord_00006", "utr": "428281111111", "amount": 99, "tsap_id": "RED001"}}
+{"at": "2026-09-18T20:09:33.714840", "event": "profile_approve", "actor": "admin", "details": {"tsap_id": "RED002", "channels": ["@TSBRIDE", "@manavivaha_reddy_bride", "@manavivaha_software"]}}
+{"at": "2026-09-18T20:09:33.717997", "event": "profile_approve", "actor": "admin", "details": {"tsap_id": "RED001", "channels": ["@TSGROOM1", "@manavivaha_reddy_groom", "@manavivaha_software"]}}

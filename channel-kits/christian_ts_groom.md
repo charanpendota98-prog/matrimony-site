@@ -4,7 +4,7 @@
 - **Username:** `@manavivaha_christian_ts_groom` (already taken? → @tschristiangroom, @mv_christ_ts_grm, @manavivaha_christ_ts_grm)
 - **Link:** https://t.me/manavivaha_christian_ts_groom
 - **Hashtags:** #Christian #Groom #Telangana #Wedding
-- **DP image:** `/home/user/matrimony-site/backend/channel_assets/christian_ts_groom.png`
+- **DP image:** `/home/user/shubhalagnam/backend/channel_assets/christian_ts_groom.png`
 
 ## 1) Channel create (phone → New Channel)
 

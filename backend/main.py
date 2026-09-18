@@ -173,7 +173,30 @@ async def _startup_publisher():
     try:
         _snap = DBSTORE.load()
         if _snap.get("users"):
-            DB_USERS.extend(_snap["users"])
+            _u = _snap["users"]
+            # 🛡️ R10 — restore-time hygiene: duplicate tsap_ids (repeat-import junk) +
+            #    duplicate REAL phones (same number 2 accounts = OTP login ambiguity) +
+            #    seed inventory cap 600 (unbounded bloat block — mundu 59MB ayindi!)
+            _by_id, _seen_ph, _clean = {}, set(), []
+            for _x in _u:
+                _tid = str(_x.get("tsap_id") or "")
+                if not _tid or _tid in _by_id:
+                    continue
+                _ph = str(_x.get("phone") or "").strip()
+                if _ph and not _x.get("seed_source"):
+                    if _ph in _seen_ph:
+                        continue
+                    _seen_ph.add(_ph)
+                _by_id[_tid] = _x
+                _clean.append(_x)
+            _seeds = [x for x in _clean if x.get("seed_source")]
+            if len(_seeds) > 600:
+                _keep = {id(x) for x in _seeds[-600:]}
+                _clean = [x for x in _clean if not x.get("seed_source") or id(x) in _keep]
+            _dropped = len(_u) - len(_clean)
+            if _dropped:
+                print("[DB] hygiene: %d duplicate/junk rows dropped (restore dedup + seed cap)" % _dropped)
+            DB_USERS.extend(_clean)
             DB_INTERESTS.extend(_snap.get("interests", []))
             DB_PAYMENTS.extend(_snap.get("payments", []))
             DB_OTPS.update(_snap.get("otps", {}))

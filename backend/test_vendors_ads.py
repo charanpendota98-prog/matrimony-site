@@ -205,6 +205,8 @@ check("State save (vendor_state.json)", sv["ok"] and sv["vendors"] >= 1)
 check("State file path name", sv["path"].endswith("vendor_state.json"))
 
 from fastapi.testclient import TestClient  # noqa: E402
+import os as _os
+_os.environ.setdefault("TSAP_AUTH_MODE", "test")  # 🛡️ R10: vendor dashboard token skip in tests
 import main  # noqa: E402
 
 with TestClient(main.app) as c:

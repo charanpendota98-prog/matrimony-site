@@ -4,7 +4,7 @@
 - **Username:** `@TSBRIDE` (already taken? → @manavivaha_ts_bride, @tsbrides)
 - **Link:** https://t.me/TSBRIDE
 - **Hashtags:** #TSBride #Telangana #Ammaayi
-- **DP image:** `/home/user/matrimony-site/backend/channel_assets/ts_bride.png`
+- **DP image:** `/home/user/shubhalagnam/backend/channel_assets/ts_bride.png`
 
 ## 1) Channel create (phone → New Channel)
 

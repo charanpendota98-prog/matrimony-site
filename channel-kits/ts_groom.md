@@ -4,7 +4,7 @@
 - **Username:** `@TSGROOM1` (already taken? → @manavivaha_ts_groom, @tsgroom)
 - **Link:** https://t.me/TSGROOM1
 - **Hashtags:** #TSGroom #Telangana #Abbaayi
-- **DP image:** `/home/user/matrimony-site/backend/channel_assets/ts_groom.png`
+- **DP image:** `/home/user/shubhalagnam/backend/channel_assets/ts_groom.png`
 
 ## 1) Channel create (phone → New Channel)
 

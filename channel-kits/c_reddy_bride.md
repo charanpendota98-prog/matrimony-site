@@ -4,7 +4,7 @@
 - **Username:** `@manavivaha_reddy_bride` (already taken? → @tsap_reddy_bride, @mv_reddy_brd)
 - **Link:** https://t.me/manavivaha_reddy_bride
 - **Hashtags:** #Reddy #Bride #TS #AP
-- **DP image:** `/home/user/matrimony-site/backend/channel_assets/c_reddy_bride.png`
+- **DP image:** `/home/user/shubhalagnam/backend/channel_assets/c_reddy_bride.png`
 
 ## 1) Channel create (phone → New Channel)
 

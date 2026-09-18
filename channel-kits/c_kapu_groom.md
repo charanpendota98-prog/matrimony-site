@@ -4,7 +4,7 @@
 - **Username:** `@manavivaha_kapu_groom` (already taken? → @tsap_kapu_groom, @mv_kapu_grm)
 - **Link:** https://t.me/manavivaha_kapu_groom
 - **Hashtags:** #Kapu #Groom #TS #AP
-- **DP image:** `/home/user/matrimony-site/backend/channel_assets/c_kapu_groom.png`
+- **DP image:** `/home/user/shubhalagnam/backend/channel_assets/c_kapu_groom.png`
 
 ## 1) Channel create (phone → New Channel)
 

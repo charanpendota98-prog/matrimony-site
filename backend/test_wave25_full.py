@@ -230,7 +230,7 @@ check("H3 PayBox 12-digit UTR check", "d{12}" in pb)
 with open(os.path.join(ROOT, "frontend/src/app/referral/page.tsx"), encoding="utf-8") as f:
     rp = f.read()
 check("H4 no 10% copy", "10%" not in rp)
-check("H5 flat-50 copy", "ఒక్కసారి మాత్రమే" in rp)
+check("H5 flat-50 copy", "₹50 flat" in rp)  # R10: copy updated (anyone-can-earn rewrite)
 check("H6 PAID badge render", "payout_paid" in rp and "✅ PAID" in rp)
 with open(os.path.join(ROOT, "frontend/src/components/PayConsole.tsx"), encoding="utf-8") as f:
     pc = f.read()

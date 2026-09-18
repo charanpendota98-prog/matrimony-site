@@ -4,7 +4,7 @@
 - **Username:** `@TSAP_MATRIMONY` (already taken? → @manavivaha, @manavivaha_official, @manavivaha_hub)
 - **Link:** https://t.me/TSAP_MATRIMONY
 - **Hashtags:** #ManaVivaha #TSAPMatrimony #99keSambandham
-- **DP image:** `/home/user/matrimony-site/backend/channel_assets/official.png`
+- **DP image:** `/home/user/shubhalagnam/backend/channel_assets/official.png`
 
 ## 1) Channel create (phone → New Channel)
 

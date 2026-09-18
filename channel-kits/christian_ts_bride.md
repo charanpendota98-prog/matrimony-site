@@ -4,7 +4,7 @@
 - **Username:** `@manavivaha_christian_ts_bride` (already taken? → @tschristianbride, @mv_christ_ts_brd, @manavivaha_christ_ts_brd)
 - **Link:** https://t.me/manavivaha_christian_ts_bride
 - **Hashtags:** #Christian #Bride #Telangana #Wedding
-- **DP image:** `/home/user/matrimony-site/backend/channel_assets/christian_ts_bride.png`
+- **DP image:** `/home/user/shubhalagnam/backend/channel_assets/christian_ts_bride.png`
 
 ## 1) Channel create (phone → New Channel)
 

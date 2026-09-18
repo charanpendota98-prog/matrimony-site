@@ -4,7 +4,7 @@
 - **Username:** `@manavivaha_christian_ap_groom` (already taken? → @apchristiangroom, @mv_christ_ap_grm, @manavivaha_christ_ap_grm)
 - **Link:** https://t.me/manavivaha_christian_ap_groom
 - **Hashtags:** #Christian #Groom #AndhraPradesh #Wedding
-- **DP image:** `/home/user/matrimony-site/backend/channel_assets/christian_ap_groom.png`
+- **DP image:** `/home/user/shubhalagnam/backend/channel_assets/christian_ap_groom.png`
 
 ## 1) Channel create (phone → New Channel)
 
