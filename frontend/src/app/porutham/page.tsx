@@ -58,7 +58,7 @@ function PoruthamInner() {
     setBusy(true); setErr(""); setChartB(null); setChartG(null);
     try {
       const d = await fetch(`/api/porutham?bride=${encodeURIComponent(b)}&groom=${encodeURIComponent(g)}`).then((r) => r.json());
-      if (d.detail) { setErr(d.detail); setRes(null); } else {
+      if (d.detail) { setErr(typeof d.detail === "string" ? d.detail : (d.detail.te || d.detail.message_telugu || d.detail.en || "Porutham calculate అవ్వలేదు")); setRes(null); } else {
         setRes({ ...d, _bride: b, _groom: g }); setImgOk(true);
         try {
           const [cb, cg] = await Promise.all([

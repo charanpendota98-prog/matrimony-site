@@ -399,8 +399,47 @@ export default function Home() {
 
   const FAQS = L.faq(hs.channels_total, p99, p199, p299, p499);
 
+  /* 🔎 JSON-LD — Google rich results (Organization + WebSite search + FAQ) */
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": `${SITE_CONFIG.siteUrl}/#org`,
+        name: SITE_CONFIG.brandName,
+        alternateName: SITE_CONFIG.legalName,
+        url: SITE_CONFIG.siteUrl,
+        logo: `${SITE_CONFIG.siteUrl}/icons/icon-512.png`,
+        email: SITE_CONFIG.supportEmail,
+        areaServed: ["Telangana", "Andhra Pradesh"],
+        knowsLanguage: ["te", "en"],
+      },
+      {
+        "@type": "WebSite",
+        "@id": `${SITE_CONFIG.siteUrl}/#site`,
+        url: SITE_CONFIG.siteUrl,
+        name: `${SITE_CONFIG.brandName} — Telugu Matrimony`,
+        inLanguage: ["te", "en"],
+        publisher: { "@id": `${SITE_CONFIG.siteUrl}/#org` },
+        potentialAction: {
+          "@type": "SearchAction",
+          target: { "@type": "EntryPoint", urlTemplate: `${SITE_CONFIG.siteUrl}/search/{search_term_string}` },
+          "query-input": "required name=search_term_string",
+        },
+      },
+      {
+        "@type": "FAQPage",
+        mainEntity: FAQS.slice(0, 8).map((f: { q: string; a: string }) => ({
+          "@type": "Question", name: f.q,
+          acceptedAnswer: { "@type": "Answer", text: f.a },
+        })),
+      },
+    ],
+  };
+
   return (
     <div className="bg-cream">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       {/* ================= HERO ================= */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 dotted-bg opacity-60 pointer-events-none" />

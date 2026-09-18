@@ -620,6 +620,25 @@ const set = (k: string, v: any) => {
   };
 
   /* ---------- submit ---------- */
+  /** backend error → human-readable Telugu/English (FastAPI 422 arrays, {detail:{te}}, string — anni) */
+  const readableError = (d: any, te: boolean): string => {
+    const fallback = te ? "Register అవ్వలేదు — fields అన్నీ fill చేసి మళ్లీ try చెయ్యండి" : "Registration failed — please fill all fields and retry";
+    const det = d?.detail;
+    if (!det) return d?.message_telugu || d?.te || fallback;
+    if (typeof det === "string") return det;
+    if (Array.isArray(det)) {
+      const fields = det.map((x: any) => x?.loc?.[x.loc.length - 1]).filter(Boolean);
+      if (fields.length) {
+        return te
+          ? `ఈ fields సరిగ్గా ఇవ్వండి: ${fields.join(", ")}`
+          : `Please check these fields: ${fields.join(", ")}`;
+      }
+      return det.map((x: any) => x?.msg).filter(Boolean).join(", ") || fallback;
+    }
+    if (typeof det === "object") return det.te || det.message_telugu || det.en || det.reason || fallback;
+    return fallback;
+  };
+
   const submit = async () => {
     const all = [1, 2, 3, 4, 5].flatMap(validate);
     if (all.length) {
@@ -652,7 +671,7 @@ const set = (k: string, v: any) => {
 
       const r = await fetch("/api/register", { method: "POST", body: fd });
       const d = await r.json();
-      if (!r.ok) throw new Error(d.detail || T("Register అవ్వలేదు", "Registration failed"));
+      if (!r.ok) throw new Error(readableError(d, te));
       setResult(d);
       localStorage.removeItem(DRAFT_KEY);
       // 🔐 WAVE 9 — auth token save (private API: inbox/credits/views/saved ki) + demo login ready
@@ -686,8 +705,8 @@ const set = (k: string, v: any) => {
 
   /* ================= SUCCESS SCREEN ================= */
   if (result) {
-    const tsap = result.tsap_id || result.user_id || "TSAP-XXXX";
-    const cardUrl = result.card_url || `/cards/${tsap}.png`;
+    const tsap = result.tsap_id || result.user_id || "";
+    const cardUrl = tsap ? (result.card_url || `/cards/${tsap}.png`) : "";
     const share = result.share_text || `${SITE_CONFIG.brandName} profile ${tsap}`;
     return (
       <main className="min-h-screen">

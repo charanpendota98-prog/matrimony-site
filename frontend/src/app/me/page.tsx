@@ -234,7 +234,7 @@ function VoicePanel({ myId }: { myId: string }) {
       fd.append("file", f);
       fd.append("tsap_id", myId);
       const d = await fetch("/api/voice/upload", { method: "POST", headers: authHeaders(), body: fd }).then((r) => r.json());
-      setMsg(d.success ? { ok: true, text: String(d.message_telugu || "Uploaded") } : { ok: false, text: String(d.detail || "Upload fail") });
+      setMsg(d.success ? { ok: true, text: String(d.message_telugu || "Uploaded") } : { ok: false, text: String((d.detail && (d.detail.te || d.detail.message_telugu || d.detail.en || d.detail.reason)) || d.error_telugu || "Upload fail") });
       if (d.success) void load();
     } catch { setMsg({ ok: false, text: te ? "Network problem" : "Network problem" }); }
     setBusy(false);
@@ -289,7 +289,7 @@ function JathakamPanel({ myId }: { myId: string }) {
       fd.append("file", f);
       fd.append("tsap_id", myId);
       const d = await fetch("/api/astro/jathakam/upload", { method: "POST", headers: authHeaders(), body: fd }).then((r) => r.json());
-      setMsg(d.success ? { ok: true, text: String(d.message_telugu || "Uploaded") } : { ok: false, text: String(d.detail || "Upload fail") });
+      setMsg(d.success ? { ok: true, text: String(d.message_telugu || "Uploaded") } : { ok: false, text: String((d.detail && (d.detail.te || d.detail.message_telugu || d.detail.en || d.detail.reason)) || d.error_telugu || "Upload fail") });
     } catch { setMsg({ ok: false, text: te ? "Network problem" : "Network problem" }); }
     setBusy(false);
   };

@@ -3,7 +3,7 @@
    • /api/* — NEVER cache (matrimony data fresh ga undali, privacy)
    • Offline aithe /offline page chupistham
 */
-const VERSION = "mv-v6-2026-09-push";
+const VERSION = "mv-v7-2026-09-round9";
 const SHELL = ["/", "/matches", "/register", "/porutham", "/safety", "/offline", "/manifest.webmanifest", "/icons/icon-192.png"];
 
 self.addEventListener("install", (e) => {

@@ -622,16 +622,34 @@ async def register(
     email = req_text(email, "email", 0, 80, required=False)
     country = req_text(country, "country", 0, 60, required=False) or "India"
     if age < 18: raise HTTPException(400, "⚠️ Vayasu 18+ (bride) / 21+ (groom) ఉండాలి 🙂")
+    # 🛡️ R9 — DOB checks: future date ledu + age-dob mismatch ledu (junk/fraud rows block)
+    dob = (dob or "").strip()
+    if dob:
+        try:
+            _dob_d = datetime.strptime(dob[:10], "%Y-%m-%d")
+            _now = datetime.utcnow()
+            if _dob_d > _now:
+                raise HTTPException(400, "🎂 పుట్టిన తేదీ (DOB) future లో ఉండకూడదు — సరిచేసి మళ్లీ try చెయ్యండి.")
+            _age_from_dob = _now.year - _dob_d.year - ((_now.month, _now.day) < (_dob_d.month, _dob_d.day))
+            if _age_from_dob < 18:
+                raise HTTPException(400, "⚠️ DOB ప్రకారం వయసు 18+ ఉండాలి — మీరు ఇచ్చిన DOB లో వయసు %d వస్తోంది." % _age_from_dob)
+            if abs(_age_from_dob - age) > 2:
+                raise HTTPException(400, "🎂 DOB మరియు age సరిపోవటం లేదు (DOB ప్రకారం %d) — సరిచేసి మళ్లీ try చెయ్యండి." % _age_from_dob)
+        except ValueError:
+            pass  # unparseable dob — legacy clients lo empty/junk; frontend always sends YYYY-MM-DD
 
     # 2. ID Gen
     # WAVE 27 — ID-gen + append atomic (double-submit → rendu veru IDs, duplicate ID never)
     with _REGISTER_LOCK:
+        # 🛡️ R9 — duplicate phone REJECT (mundu log matrame — rendu accounts same number tho login ambiguity)
+        #    seed/inventory profiles (seed_source) fake phones — real user ni block cheyyakudadu
+        _dup_phone = any(u.get("phone") == phone and not u.get("seed_source") for u in DB_USERS)
+        if _dup_phone:
+            abuse_log("duplicate_phone_register", phone[:3] + "****")
+            abuse_count("duplicate_phone_registers")
+            raise HTTPException(409, "📱 ఈ phone number తో already account ఉంది — same number tho రెండు accounts ఉండవు. Login (OTP) చెయ్యండి లేదా వేరే number ఇవ్వండి.")
         tsap_id = unique_tsap_id(caste)
         # referral code — TSAP ID nunchi derive (unique, deterministic) [FIX: mundu undefined `seq` tho crash avutundi]
-        _dup_phone = any(u.get("phone") == phone for u in DB_USERS)
-        if _dup_phone:
-            abuse_log("duplicate_phone_register", tsap_id)
-            abuse_count("duplicate_phone_registers")
         my_ref_code = ""   # ensure_referrer_profile() — name nunchi short code (CHA0001 style)
 
         # 3. Save DB - Advanced Full
@@ -5197,6 +5215,18 @@ async def api_admin_backup_import(request: Request):
     res["note"] = ("core reload ayindi; wa/push satellites kosam restart best"
                    if core else "files restore ayayi — backend restart cheyandi")
     return {"success": True, **res}
+
+
+@app.on_event("shutdown")
+async def _shutdown_flush_db():
+    """🛡️ R9 — docker restart / SIGTERM mundu DB force-flush (5s debounce window lo unna
+    registrations/payments silent ga povatam block — matrimony data ante life data)."""
+    try:
+        ok = DBSTORE.save(DBSTORE.snapshot(DB_USERS, DB_INTERESTS, DB_PAYMENTS, DB_OTPS,
+                                           VERIFIED_PHONES, DB_VIEWS, DB_SAVES, DB_DIGEST), force=True)
+        print("[DB] shutdown flush:", "saved" if ok else "skip")
+    except Exception as e:
+        print("[DB] shutdown flush fail:", str(e)[:120])
 
 
 @app.on_event("startup")

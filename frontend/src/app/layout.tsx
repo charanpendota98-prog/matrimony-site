@@ -36,11 +36,13 @@ export const metadata: Metadata = {
     title: "Mana Vivaha — TS-AP Telugu Matrimony | ₹99 Sambandham",
     description:
 `${CHANNEL_STATS.total} channels, 43 castes (top castes with bride/groom separate), ₹99 → 5 profiles, first 3 FREE. Photo-private + DOB verified.`,
+    images: [{ url: "/promo/hero-wedding.jpg", width: 1536, height: 1024, alt: "Mana Vivaha — Telugu Matrimony" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "Mana Vivaha — TS-AP Telugu Matrimony",
     description: `₹99 Sambandham • First 3 FREE • ${CHANNEL_STATS.total} channels • caste-wise`,
+    images: ["/promo/hero-wedding.jpg"],
   },
   robots: { index: true, follow: true },
   manifest: "/manifest.webmanifest",
