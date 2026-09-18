@@ -25,9 +25,9 @@ import { Duo, duo } from "@/lib/duo";
 import { useLang } from "@/lib/lang";
 import PhotoFlow from "@/components/PhotoFlow";
 import {
-  BLOOD_GROUPS, BODY_TYPES, CASTES, CHILDREN_OPTIONS, COMPLEXIONS, DISTRICTS_BY_STATE, EDUCATIONS, FAMILY_STATUSES,
+  BLOOD_GROUPS, BODY_TYPES, CASTES, CASTE_SUBCASTES, CHILDREN_OPTIONS, COMPLEXIONS, DISTRICTS_BY_STATE, EDUCATIONS, FAMILY_STATUSES,
   FAMILY_TYPES, FAMILY_VALUES, HEIGHTS, JOBS, MARITAL_STATUSES, MOTHER_TONGUES, NAKSHATRAS, NAK_TO_RASI,
-  OCCUPATIONS, PHYSICAL_STATUS, RASIS, RELIGIONS, SALARIES, WEIGHTS, WORK_TYPES,
+  OCCUPATIONS, PHYSICAL_STATUS, RASIS, RELIGIONS, SALARIES, WORK_TYPES,
   ageFromDob, compressImage, heightLabel, maxDobFor18,
 } from "@/lib/telugu-data";
 
@@ -41,10 +41,10 @@ const STEPS = [
 ];
 
 const DEFAULT_FORM: Record<string, any> = {
-  gender: "", full_name: "", dob: "", birth_time: "", age: "", height: "", weight: "",
+  gender: "", full_name: "", dob: "", birth_time: "", age: "", height: "",
   marital_status: "Pelli Kaledu", children: "", religion: "Hindu", mother_tongue: "Telugu",
   caste: "", sub_caste: "", gothram: "", star: "", rasi: "", moola_nakshatram: "No", dosham: "No",
-  education: "", education_detail: "", college: "", job: "", company: "", salary: "",
+  education: "", education_detail: "", job: "", company: "", salary: "",
   experience: "", work_type: "", work_location: "",
   father_name: "", father_occupation: "", mother_name: "", mother_occupation: "",
   brothers: "0", brothers_married: "0", sisters: "0", sisters_married: "0",
@@ -102,6 +102,76 @@ function ChipGroup({
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+/* 🔎 SearchSelect — pro searchable dropdown (replaces chip-soup for long lists: caste/education/job/district) */
+function SearchSelect({
+  label, options, value, onChange, required, hint, placeholder, teMap,
+}: {
+  label: string; options: string[]; value: string; onChange: (v: string) => void;
+  required?: boolean; hint?: string; placeholder?: string; teMap?: Record<string, string>;
+}) {
+  const [open, setOpen] = useState(false);
+  const [q, setQ] = useState("");
+  const boxRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const onDoc = (e: MouseEvent) => {
+      if (boxRef.current && !boxRef.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, []);
+
+  const list = useMemo(() => {
+    const needle = q.trim().toLowerCase();
+    if (!needle) return options;
+    return options.filter((o) => o.toLowerCase().includes(needle) || (teMap?.[o] || "").includes(q.trim()));
+  }, [q, options, teMap]);
+
+  return (
+    <div ref={boxRef} className="relative">
+      <label className="text-[13px] font-bold text-ink">
+        {label} {required ? <span className="req-star">*</span> : <span className="text-[10px] text-gray-400">(optional)</span>}
+      </label>
+      {hint && <div className="hint">{hint}</div>}
+      <button type="button" onClick={() => setOpen((v) => !v)}
+        className={`input-mobile mt-1 flex items-center justify-between text-left ${value ? "text-ink font-semibold" : "text-gray-400"}`}>
+        <span className="truncate">
+          {value ? (teMap?.[value] ? <span>{value} <span className="telugu text-gray-500">({teMap[value]})</span></span> : value) : (placeholder || "Select…")}
+        </span>
+        <span className="text-maroon text-lg shrink-0 ml-2">{open ? "▲" : "⌄"}</span>
+      </button>
+      {open && (
+        <div className="absolute z-20 mt-1 w-full bg-white border border-gold/40 rounded-2xl shadow-lg overflow-hidden">
+          <input
+            autoFocus value={q} onChange={(e) => setQ(e.target.value)}
+            placeholder="🔍 Type చేసి వెతకండి…"
+            className="w-full px-4 py-3 border-b border-gold/20 outline-none text-[14px]"
+          />
+          <div className="max-h-64 overflow-y-auto">
+            {value && (
+              <button type="button" onClick={() => { onChange(""); setOpen(false); setQ(""); }}
+                className="w-full text-left px-4 py-2.5 text-[13px] text-rose-600 hover:bg-rose-50 border-b border-gray-100">
+                ✕ Clear selection
+              </button>
+            )}
+            {list.slice(0, 200).map((o) => (
+              <button key={o} type="button" onClick={() => { onChange(o); setOpen(false); setQ(""); }}
+                className={`w-full text-left px-4 py-2.5 text-[14px] hover:bg-cream ${value === o ? "bg-maroon-soft font-bold text-maroon" : "text-ink"}`}>
+                {o} {teMap?.[o] ? <span className="telugu text-gray-500 text-[12px]">({teMap[o]})</span> : null}
+              </button>
+            ))}
+            {list.length === 0 && (
+              <div className="px-4 py-3 text-[12px] text-gray-500">
+                Dorakaledu — <button type="button" onClick={() => { onChange(q.trim()); setOpen(false); }} className="text-maroon font-bold underline">“{q}” ni alane pettu</button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -428,8 +498,8 @@ const set = (k: string, v: any) => {
 
   /* ---------- profile strength ---------- */
   const strength = useMemo(() => {
-    const keys = ["full_name", "gender", "dob", "height", "weight", "marital_status", "caste", "sub_caste",
-      "gothram", "star", "rasi", "education", "education_detail", "college", "job", "company", "salary",
+    const keys = ["full_name", "gender", "dob", "height", "marital_status", "caste", "sub_caste",
+      "gothram", "star", "rasi", "education", "education_detail", "job", "company", "salary",
       "experience", "work_type", "work_location", "father_name", "father_occupation", "mother_name",
       "native_place", "state", "district", "mandal", "current_city", "pincode", "phone", "about_myself",
       "body_type", "complexion", "blood_group"];
@@ -914,35 +984,36 @@ const set = (k: string, v: any) => {
       </div>
 
       <div className="max-w-3xl mx-auto px-4 py-5">
-        {/* 🆓 FREE vs PAID — SCREEN 1 lo ne clear ga (numbers rule kooda) */}
-        <div className="mb-4 bg-white rounded-2xl border border-gold/40 card-shadow p-4">
-          <div className="font-bold text-maroon text-[14px]">{T("🆓 Register 100% FREE — ఏంటి వస్తుంది, ఏంటి రాదు (clear గా)", "🆓 Register 100% FREE — what you get, what you don\u2019t (clearly)")}</div>
-          <div className="mt-2 grid sm:grid-cols-2 gap-3 text-[12px]">
-            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3">
-              <div className="font-bold text-emerald-900">{T("FREE లో ఇచ్చేది", "What FREE gives")}</div>
-              <ul className="mt-1 space-y-0.5 text-emerald-900">
-                <li>✅ <b>{(clarity?.free?.profiles ?? 3)} profiles</b> {T("చూడొచ్చు (full details: caste, education, job, family, porutham)", "you can see (full details: caste, education, job, family, porutham)")}</li>
-                <li>✅ <b>{(clarity?.free?.requests ?? 3)} interests</b> {T("పంపొచ్చు — వాళ్లకి మన WhatsApp నుంచి మీ profile వెళ్తుంది", "you can send — they get your profile from our WhatsApp")}</li>
-                <li>✅ {T("మీ profile card FREE (Telugu, neat) + channels లో auto-post", "Your profile card FREE + auto-post to channels")}</li>
-                <li>✅ {T(<>వాళ్లు <b>accept చేస్తే → numbers exchange</b> (WhatsApp లో, consent తో)</>, <>If they <b>accept → numbers exchange</b> (on WhatsApp, with consent)</>)}</li>
-              </ul>
+        {/* 🆓 FREE vs PAID — step 1 lo matrame, collapsible (clutter తగ్గించడానికి) */}
+        {step === 1 && (
+          <details className="mb-4 bg-white rounded-2xl border border-gold/40 card-shadow p-4 group">
+            <summary className="font-bold text-maroon text-[14px] cursor-pointer list-none flex items-center justify-between">
+              <span>{T("🆓 Register 100% FREE — ఏంటి వస్తుంది, ఏంటి రాదు", "🆓 Register 100% FREE — what you get / don\u2019t")}</span>
+              <span className="text-[11px] font-normal text-gray-400 group-open:hidden">{T("చూడండి →", "View →")}</span>
+            </summary>
+            <div className="mt-2 grid sm:grid-cols-2 gap-3 text-[12px]">
+              <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3">
+                <div className="font-bold text-emerald-900">{T("FREE లో ఇచ్చేది", "What FREE gives")}</div>
+                <ul className="mt-1 space-y-0.5 text-emerald-900">
+                  <li>✅ <b>{(clarity?.free?.profiles ?? 3)} profiles</b> {T("చూడొచ్చు (full details)", "you can see (full details)")}</li>
+                  <li>✅ <b>{(clarity?.free?.requests ?? 3)} interests</b> {T("పంపొచ్చు", "you can send")}</li>
+                  <li>✅ {T("Profile card FREE + auto-post", "Profile card FREE + auto-post")}</li>
+                </ul>
+              </div>
+              <div className="bg-rose-50 border border-rose-200 rounded-xl p-3">
+                <div className="font-bold text-rose-900">{T("FREE లో ఇవ్వనిది (🔒)", "What FREE doesn\u2019t give (🔒)")}</div>
+                <ul className="mt-1 space-y-0.5 text-rose-900">
+                  <li>🔒 {T("Phone number — accept అయ్యాకే", "Phone number — only after accept")}</li>
+                  <li>🚫 {T("Chatting లేదు", "No chatting")}</li>
+                </ul>
+                <div className="mt-1 text-[11px]">{T(<>3 FREE తర్వాత: <b>₹99 → 5 profiles</b> · ₹499 → 50</>, <>After 3 FREE: <b>₹99 → 5 profiles</b> · ₹499 → 50</>)}</div>
+              </div>
             </div>
-            <div className="bg-rose-50 border border-rose-200 rounded-xl p-3">
-              <div className="font-bold text-rose-900">{T("FREE లో ఇవ్వనిది (🔒)", "What FREE doesn\u2019t give (🔒)")}</div>
-              <ul className="mt-1 space-y-0.5 text-rose-900">
-                <li>🔒 <b>{T("Phone numbers — ఇవ్వము", "Phone numbers — we don\u2019t give")}</b> {T("(98••••••45 అని మాత్రమే కనిపిస్తుంది)", "(only shown as 98••••••45)")}</li>
-                <li>{T("🔒 Photo (privacy mode ఉన్న profiles కి blur)", "🔒 Photo (blurred for privacy-mode profiles)")}</li>
-                <li>{T("🚫 Chatting లేదు (మనం chat platform కాదు — spam తగ్గడానికి)", "🚫 No chatting (we are not a chat platform — keeps spam low)")}</li>
-              </ul>
-              <div className="mt-1 text-[11px]">{T(<>3 FREE తర్వాత: <b>₹99 → 5 profiles + boost</b> · ₹199 → 12 · ₹299 → 25 · ₹499 → 50</>, <>After 3 FREE: <b>₹99 → 5 profiles + boost</b> · ₹199 → 12 · ₹299 → 25 · ₹499 → 50</>)}</div>
+            <div className="mt-2 text-[11px] text-gray-600">
+              <a href="/pricing" className="underline font-bold text-maroon">Pricing</a> · <a href="/safety" className="underline font-bold text-maroon">Safety</a>
             </div>
-          </div>
-          <div className="mt-2 text-[11px] text-gray-600">
-            {T("🔐 మీ number DB లో encrypt గా ఉంటుంది. Consent (accept) తోనే ఎవరికీ కనిపిస్తుంది.", "🔐 Your number stays encrypted in DB. Visible to others only with consent (accept).")}
-            {" "}<a href="/pricing" className="underline font-bold text-maroon">Pricing</a> ·
-            {" "}<a href="/safety" className="underline font-bold text-maroon">Safety</a>
-          </div>
-        </div>
+          </details>
+        )}
 
         {/* draft banner */}
         {draftFound && (
@@ -1017,8 +1088,6 @@ const set = (k: string, v: any) => {
                 onChange={(v) => set("height", v)} placeholder={duo("Select your height", "మీ ఎత్తు ఎంచుకోండి")}>
                 {HEIGHTS.map((h) => (<option key={h} value={h}>{heightLabel(h)}</option>))}
               </SelectField>
-              <ChipGroup label="Weight" options={WEIGHTS.map((w) => ({ v: w }))} value={f.weight}
-                onChange={(v) => set("weight", v)} />
               <PillGroup label={<Duo en="Your marital status" te="మీ వైవాహిక స్థితి" />} required
                 value={f.marital_status}
                 onChange={(v) => { set("marital_status", v); if (v === "Pelli Kaledu") set("children", ""); }}
@@ -1050,21 +1119,34 @@ const set = (k: string, v: any) => {
           {/* ---------------- STEP 2 ---------------- */}
           {step === 2 && (
             <>
-              <ChipGroup label={`Caste — ${f.religion || "Hindu"} (${casteOpts.length})`} required searchable
-                options={casteOpts.map((c) => ({ v: c }))} value={f.caste} onChange={(v) => set("caste", v)}
+              <SearchSelect label={`Caste — ${f.religion || "Hindu"}`} required
+                options={casteOpts} value={f.caste}
+                onChange={(v) => { set("caste", v); set("sub_caste", ""); }}
+                placeholder={T("Caste ఎంచుకోండి — search చెయ్యండి", "Select caste — type to search")}
                 hint={T(`${f.religion || "Hindu"} కులాలు A–Z — మీ caste channel లో profile post అవుతుంది`, `${f.religion || "Hindu"} castes A–Z — profile posts to your caste channel`)} />
-              <TextField label="Sub caste" optional value={f.sub_caste} onChange={(v) => set("sub_caste", v)}
-                placeholder="Pakanati / Deshathi / Telaga…" />
+              {f.caste && (CASTE_SUBCASTES[f.caste]?.length ? (
+                <SearchSelect label="Sub caste"
+                  options={CASTE_SUBCASTES[f.caste]} value={f.sub_caste}
+                  onChange={(v) => set("sub_caste", v)}
+                  placeholder={T("Sub caste ఎంచుకోండి (ఉంటే)", "Select sub caste (if any)")}
+                  hint={T("ఉంటే select చెయ్యండి — లేకపోతే వదిలేయండి", "Select if applicable — otherwise skip")} />
+              ) : (
+                <TextField label="Sub caste" optional value={f.sub_caste} onChange={(v) => set("sub_caste", v)}
+                  placeholder="Pakanati / Deshathi / Telaga…" />
+              ))}
               <TextField label="Gothram" optional value={f.gothram} onChange={(v) => set("gothram", v)}
                 placeholder="Bharadwaj" hint={T("Porutham report కి కావాలి", "Needed for porutham report")} />
-              <ChipGroup label="Star / Nakshatram" searchable te
-                options={NAKSHATRAS.map((n) => ({ v: n.en, te: n.te }))} value={f.star}
-                onChange={(v) => set("star", v)} hint={T("Star select చేస్తే rasi automatic వస్తుంది (porutham 10/10)", "Select star — rasi auto-suggests (porutham 10/10)")} />
-              <ChipGroup label="Rasi" te options={RASIS.map((r) => ({ v: r.en, te: r.te }))} value={f.rasi}
-                onChange={(v) => set("rasi", v)} />
-              <ChipGroup label={T("మూలా నక్షత్రమా?", "Moola nakshatram?")} options={[{ v: "No" }, { v: "Yes" }]} value={f.moola_nakshatram}
+              <SearchSelect label="Star / Nakshatram" options={NAKSHATRAS.map((n) => n.en)} value={f.star}
+                teMap={Object.fromEntries(NAKSHATRAS.map((n) => [n.en, n.te]))}
+                onChange={(v) => set("star", v)}
+                placeholder={T("Star ఎంచుకోండి", "Select star")}
+                hint={T("Star select చేస్తే rasi automatic వస్తుంది (porutham 10/10)", "Select star — rasi auto-suggests (porutham 10/10)")} />
+              <SearchSelect label="Rasi" options={RASIS.map((r) => r.en)} value={f.rasi}
+                teMap={Object.fromEntries(RASIS.map((r) => [r.en, r.te]))}
+                onChange={(v) => set("rasi", v)} placeholder={T("Rasi ఎంచుకోండి", "Select rasi")} />
+              <PillGroup label={T("మూలా నక్షత్రమా?", "Moola nakshatram?")} options={[{ v: "No", en: "No", te: "లేదు" }, { v: "Yes", en: "Yes", te: "ఉంది" }]} value={f.moola_nakshatram}
                 onChange={(v) => set("moola_nakshatram", v)} />
-              <ChipGroup label={T("దోషం ఉందా?", "Any dosham?")} options={[{ v: "No" }, { v: "Yes" }, { v: "Not Sure" }]} value={f.dosham}
+              <PillGroup label={T("దోషం ఉందా?", "Any dosham?")} options={[{ v: "No", en: "No", te: "లేదు" }, { v: "Yes", en: "Yes", te: "ఉంది" }, { v: "Not Sure", en: "Not sure", te: "తెలియదు" }]} value={f.dosham}
                 onChange={(v) => set("dosham", v)} />
             </>
           )}
@@ -1072,14 +1154,14 @@ const set = (k: string, v: any) => {
           {/* ---------------- STEP 3 ---------------- */}
           {step === 3 && (
             <>
-              <ChipGroup label="Education" required searchable options={EDUCATIONS.map((x) => ({ v: x }))}
-                value={f.education} onChange={(v) => set("education", v)} />
+              <SearchSelect label="Education" required options={EDUCATIONS}
+                value={f.education} onChange={(v) => set("education", v)}
+                placeholder={T("Education ఎంచుకోండి", "Select education")} />
               <TextField label="Education detail" optional value={f.education_detail} onChange={(v) => set("education_detail", v)}
                 placeholder="CSE / Finance / Nursing…" />
-              <TextField label="College / University" optional value={f.college} onChange={(v) => set("college", v)}
-                placeholder="JNTU Hyderabad" />
-              <ChipGroup label="Job / Udyogam" required searchable options={JOBS.map((j) => ({ v: j }))}
-                value={f.job} onChange={(v) => set("job", v)} />
+              <SearchSelect label="Job / Udyogam" required options={JOBS}
+                value={f.job} onChange={(v) => set("job", v)}
+                placeholder={T("Job ఎంచుకోండి", "Select job / occupation")} />
               <TextField label="Company" optional value={f.company} onChange={(v) => set("company", v)} placeholder="TCS / Govt / Own business" />
               <TextField label="Experience" optional value={f.experience} onChange={(v) => set("experience", v)}
                 inputMode="numeric" placeholder="3 years" />
@@ -1101,8 +1183,9 @@ const set = (k: string, v: any) => {
                 <ChipGroup label="State" required options={[{ v: "TS" }, { v: "AP" }, { v: "Other" }]} value={f.state}
                   onChange={(v) => { set("state", v); set("district", ""); }} />
               </div>
-              <ChipGroup label="District" required searchable options={distList.map((d) => ({ v: d }))}
+              <SearchSelect label="District" required options={distList}
                 value={f.district} onChange={(v) => set("district", v)}
+                placeholder={T("District ఎంచుకోండి", "Select district")}
                 hint={T("District channel + local matches కి కావాలి", "Needed for district channel + local matches")} />
               <div className="grid grid-cols-1 gap-3">
                 <TextField label="Mandal / Area" optional value={f.mandal} onChange={(v) => set("mandal", v)} placeholder="Miryalaguda" />
