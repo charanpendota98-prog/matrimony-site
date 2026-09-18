@@ -1,39 +1,43 @@
+"use client";
 import Link from "next/link";
+import { useLang } from "@/lib/lang";
 import { CHANNEL_STATS } from "@/lib/channels";
 import { SITE_CONFIG } from "@/lib/site-config";
 
 export default function SiteFooter() {
+  const { lang } = useLang();
+  const te = lang === "te";
   const year = new Date().getFullYear();
-  const cols: { title: string; links: { href: string; label: string }[] }[] = [
+  const cols: { titleTe: string; titleEn: string; links: { href: string; teL: string; enL: string }[] }[] = [
     {
-      title: "Explore",
+      titleTe: "చూడండి", titleEn: "Explore",
       links: [
-        { href: "/register", label: "Register (FREE)" },
-        { href: "/channels", label: `All ${CHANNEL_STATS.total} Channels` },
-        { href: "/matches", label: "Matches & Filters" },
-        { href: "/search/TSAP-M-2025-1042", label: "ID Search" },
-        { href: "/porutham", label: "Porutham Report (10)" },
-        { href: "/safety", label: "Trust & Safety Center" },
+        { href: "/register", teL: "Register (FREE)", enL: "Register (FREE)" },
+        { href: "/channels", teL: `అన్ని ${CHANNEL_STATS.total} Channels`, enL: `All ${CHANNEL_STATS.total} Channels` },
+        { href: "/matches", teL: "సంబంధాలు & Filters", enL: "Matches & Filters" },
+        { href: "/castes", teL: "కులాల వారీగా", enL: "Caste-wise" },
+        { href: "/stories", teL: "విజయ గాథలు", enL: "Success stories" },
+        { href: "/porutham", teL: "పొరుతం Report (10)", enL: "Porutham Report (10)" },
+        { href: "/safety", teL: "Trust & Safety Center", enL: "Trust & Safety Center" },
       ],
     },
     {
-      title: "Pricing & Policies",
+      titleTe: "ధరలు & విధానాలు", titleEn: "Pricing & Policies",
       links: [
-        { href: "/pricing", label: "Pricing (₹29 → ₹499)" },
-        { href: "/refund", label: "Refund & Cancellation" },
-        { href: "/terms", label: "Terms of Use" },
-        { href: "/privacy", label: "Privacy Policy" },
+        { href: "/pricing", teL: "ధరలు (₹29 → ₹499)", enL: "Pricing (₹29 → ₹499)" },
+        { href: "/refund", teL: "Refund & Cancellation", enL: "Refund & Cancellation" },
+        { href: "/terms", teL: "సేవా నియమాలు", enL: "Terms of Use" },
+        { href: "/privacy", teL: "గోప్యతా విధానం", enL: "Privacy Policy" },
       ],
     },
     {
-      title: "Earn",
+      titleTe: "సంపాదించండి", titleEn: "Earn",
       links: [
-        { href: "/referral", label: "Referral — ₹50/profile" },
-        { href: "/referral/register", label: "Become a Referrer" },
-        { href: "/bureau", label: "Bureau / Broker B2B" },
-        { href: "/vendors", label: "Wedding Vendors (18 categories)" },
-        { href: "/vendors/register", label: "Advertise your business — ₹149+" },
-        { href: "/admin", label: "Admin Panel" },
+        { href: "/referral", teL: "రెఫరల్ — ₹50/profile", enL: "Referral — ₹50/profile" },
+        { href: "/referral/register", teL: "రెఫరర్‌గా చేరండి", enL: "Become a Referrer" },
+        { href: "/bureau", teL: "Bureau / Broker B2B", enL: "Bureau / Broker B2B" },
+        { href: "/vendors", teL: "వెడ్డింగ్ Vendors (18 categories)", enL: "Wedding Vendors (18 categories)" },
+        { href: "/vendors/register", teL: "మీ business advertise — ₹149+", enL: "Advertise your business — ₹149+" },
       ],
     },
   ];
@@ -53,24 +57,24 @@ export default function SiteFooter() {
             </div>
           </div>
           <div className="text-xs opacity-75 mt-3 telugu leading-relaxed">
-            TS + AP No.1 Telugu Matrimony. ₹99 ke Sambandham — modati 3 numbers FREE.
-            Region • Religion • {CHANNEL_STATS.by_tier.L3_CASTE} Castes • Special channels.
+            {te ? <>TS + AP తెలుగు మ్యాట్రిమోనీ. ₹99 కే సంబంధం — మొదటి 3 ప్రొఫైళ్లు FREE. Region • Religion • {CHANNEL_STATS.by_tier.L3_CASTE} Castes • Special channels.</>
+                : <>TS + AP Telugu Matrimony. ₹99 Sambandham — first 3 profiles FREE. Region • Religion • {CHANNEL_STATS.by_tier.L3_CASTE} Castes • Special channels.</>}
           </div>
           <div className="mt-4 flex flex-wrap gap-2 text-[11px]">
             <span className="px-2.5 py-1 rounded-full bg-white/10">{CHANNEL_STATS.total} Channels</span>
             <span className="px-2.5 py-1 rounded-full bg-white/10">Telegram + WhatsApp</span>
-            <span className="px-2.5 py-1 rounded-full bg-white/10">Photo Private</span>
+            <span className="px-2.5 py-1 rounded-full bg-white/10">{te ? "Photo Private" : "Photo Private"}</span>
           </div>
         </div>
 
         {cols.map((c) => (
-          <div key={c.title}>
-            <div className="font-bold text-gold text-[13px] uppercase tracking-wide">{c.title}</div>
+          <div key={c.titleEn}>
+            <div className="font-bold text-gold text-[13px] uppercase tracking-wide">{te ? c.titleTe : c.titleEn}</div>
             <div className="mt-3 space-y-2 text-xs">
               {c.links.map((l) => (
                 <div key={l.href}>
                   <Link href={l.href} className="opacity-75 hover:opacity-100 hover:text-gold transition">
-                    {l.label}
+                    {te ? l.teL : l.enL}
                   </Link>
                 </div>
               ))}
@@ -80,13 +84,15 @@ export default function SiteFooter() {
 
         {/* Trust + contact */}
         <div>
-          <div className="font-bold text-gold text-[13px] uppercase tracking-wide">Trust & Safety</div>
+          <div className="font-bold text-gold text-[13px] uppercase tracking-wide">
+            {te ? "నమ్మకం & భద్రత" : "Trust & Safety"}
+          </div>
           <div className="mt-3 space-y-2 text-xs opacity-85">
-            <div>✓ OTP verified numbers</div>
-            <div>✓ DOB verified badge</div>
-            <div>✓ Photo watermark + private mode</div>
-            <div>✓ Number pay tarvata matrame</div>
-            <div>✓ 3 reports → auto hide</div>
+            <div>{te ? "✓ OTP verified numbers" : "✓ OTP verified numbers"}</div>
+            <div>{te ? "✓ DOB verified badge" : "✓ DOB verified badge"}</div>
+            <div>{te ? "✓ Photo watermark + private mode" : "✓ Photo watermark + private mode"}</div>
+            <div>{te ? "✓ Accept తర్వాతే నంబర్" : "✓ Number only after accept"}</div>
+            <div>{te ? "✓ 3 reports → auto hide" : "✓ 3 reports → auto hide"}</div>
           </div>
           <div className="mt-4 text-xs opacity-75">
             <div>Bot: {SITE_CONFIG.botUsername}</div>
@@ -100,7 +106,7 @@ export default function SiteFooter() {
         <div className="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row items-center justify-between gap-2 text-[11px] opacity-70">
           <div>© {year} {SITE_CONFIG.brandName} ({SITE_CONFIG.legalName}) • Made for TS/AP with ❤️</div>
           <div className="text-center md:text-right">
-            ⚠️ Advance money adigithe ventane report cheyyandi — mosam jagratha!
+            {te ? "⚠️ Advance money అడిగితే వెంటనే report చెయ్యండి — మోసం జాగ్రత్త!" : "⚠️ Report advance-money demands immediately — beware of fraud!"}
           </div>
         </div>
       </div>

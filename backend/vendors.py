@@ -64,36 +64,36 @@ def category_label(key: str) -> Dict:
 PACKAGES: List[Dict] = [
     {
         "code": "V_SINGLE_POST", "name": "Single Channel Post", "price": 149, "days": 1,
-        "telugu": "ఒక్క channel post (₹149) — test cheyyadaniki",
-        "perks": ["1 Telegram post (mirror channel)", "Mee city + category mention", "Report: views + enquiries"],
+        "telugu": "ఒక్క channel post (₹149) — test చెయ్యడానికి",
+        "perks": ["1 Telegram post (mirror channel)", "మీ city + category mention", "Report: views + enquiries"],
         "best_for": "Chinna offer / trial",
     },
     {
         "code": "V_BASIC", "name": "Basic Listing", "price": 499, "days": 30,
         "telugu": "డైరెక్టరీ లిస్టింగ్ — మీ category లో కనిపిస్తారు",
-        "perks": ["1 category directory listing (30 days)", "Website lo verified-free badge",
-                  "1 Telegram promo post (mee caste/region channel)", "Call/WhatsApp CTA on listing"],
-        "best_for": "Kotha business — modati publicity",
+        "perks": ["1 category directory listing (30 days)", "Website లో verified-free badge",
+                  "1 Telegram promo post (మీ caste/region channel)", "Call/WhatsApp CTA on listing"],
+        "best_for": "కొత్త business — మొదటి publicity",
     },
     {
         "code": "V_STATUS_BLAST", "name": "WhatsApp Status Blast", "price": 499, "days": 1,
         "telugu": "మా WhatsApp status/గ్రూప్‌లలో మీ promo (₹499)",
-        "perks": ["Mana 3 status lanes lo promo (anti-ban safe order lo)", "1 Telegram post bonus",
-                  "Enquiries direct mee WhatsApp ki"],
+        "perks": ["మన 3 status lanes లో promo (anti-ban safe order లో)", "1 Telegram post bonus",
+                  "Enquiries direct మీ WhatsApp కి"],
         "best_for": "Short notice / festival offer",
     },
     {
         "code": "V_SPOTLIGHT", "name": "Spotlight (7 days)", "price": 999, "days": 7,
         "telugu": "పెళ్లి సీజన్ spotlight — 7 రోజులు top banner + status",
         "perks": ["Top banner rotation (7 days, all pages)", "1 WhatsApp status blast (all our status lanes)",
-                  "1 Telegram post (4 main channels)", "Urgent season offer ki best"],
+                  "1 Telegram post (4 main channels)", "Urgent season offer కి best"],
         "best_for": "Fast season push (Padwa / Aashadam / Margashira)",
     },
     {
         "code": "V_STANDARD", "name": "Standard Promo", "price": 1499, "days": 90,
         "telugu": "3 categories + 3 posts + lead box (90 రోజులు)",
         "perks": ["3 category listings (90 days)", "3 Telegram + 2 WhatsApp channel posts",
-                  "Lead box (site nunchi direct enquiries → mee WhatsApp)", "Priority placement in search",
+                  "Lead box (site నుంచి direct enquiries → మీ WhatsApp)", "Priority placement in search",
                   "Monthly performance report (views/clicks/leads)"],
         "best_for": "Manchi name unna local vendor",
         "popular": True,
@@ -113,7 +113,7 @@ PACKAGE_MAP = {p["code"]: p for p in PACKAGES}
 
 ADDONS_VENDOR = [
     {"code": "V_ADD_PHOTO", "name": "Photo/Video gallery (10 items)", "price": 299},
-    {"code": "V_ADD_REEL", "name": "Reel / short video (mana channels ki)", "price": 999},
+    {"code": "V_ADD_REEL", "name": "Reel / short video (మన channels కి)", "price": 999},
     {"code": "V_ADD_INTERVIEW", "name": "Vendor interview video (trust build)", "price": 1499},
     {"code": "V_ADD_BRIDE_MAIL", "name": "Monthly mail to new brides/grooms (our DB)", "price": 799},
 ]
@@ -181,15 +181,15 @@ def validate_vendor_form(form: Dict) -> Dict:
     problems = []
     name = str(form.get("business_name", "")).strip()
     if len(name) < 3:
-        problems.append("business_name: business peru 3 aksharalu kanna ekkuva undali")
+        problems.append("business_name: business పేరు 3 aksharalu kanna ఎక్కువ ఉండాలి")
     if str(form.get("category", "")).strip() not in CATEGORY_MAP:
-        problems.append("category: list lo unna category select cheyyandi")
+        problems.append("category: list లో ఉన్న category select చెయ్యండి")
     phone = _digits(form.get("phone"))
     if len(phone) != 10:
-        problems.append("phone: 10 digit mobile number ivvandi")
+        problems.append("phone: 10 digit mobile number ఇవ్వండి")
     city = str(form.get("city", "")).strip()
     if len(city) < 2:
-        problems.append("city: city/town peru ivvandi")
+        problems.append("city: city/town పేరు ఇవ్వండి")
     pkg = str(form.get("package", "V_BASIC")).strip().upper()
     if pkg not in PACKAGE_MAP:
         problems.append("package: %s" % ", ".join(PACKAGE_MAP))
@@ -202,7 +202,7 @@ def register_vendor(form: Dict, all_vendors: Optional[List[Dict]] = None) -> Dic
     v = validate_vendor_form(form)
     if not v["ok"]:
         return {"ok": False, "reason": "invalid", "problems": v["problems"],
-                "message_telugu": "⚠️ Ee details saricheyyali: " + " | ".join(v["problems"])}
+                "message_telugu": "⚠️ ఈ details saricheyyali: " + " | ".join(v["problems"])}
     phone = _digits(form.get("phone"))
     cat = str(form.get("category")).strip()
     pkg = str(form.get("package", "V_BASIC")).strip().upper()
@@ -210,7 +210,7 @@ def register_vendor(form: Dict, all_vendors: Optional[List[Dict]] = None) -> Dic
                 and x.get("category") == cat and x.get("status") in ("pending", "active")), None)
     if dup:
         return {"ok": False, "reason": "duplicate", "vendor_id": dup.get("id"),
-                "message_telugu": "ℹ️ Ee number tho ee category lo already listing undi (%s) — update cheyyali ante support ki cheppandi"
+                "message_telugu": "ℹ️ ఈ number తో ee category లో already listing ఉంది (%s) — update చెయ్యాలి అంటే support కి చెప్పండి"
                                   % dup.get("id")}
     vendor = {
         "id": _next_vendor_id(),
@@ -254,12 +254,12 @@ def register_vendor(form: Dict, all_vendors: Optional[List[Dict]] = None) -> Dic
                             % (os.getenv("VENDOR_UPI_ID", os.getenv("PAYMENT_UPI_ID", "manavivaha@upi")),
                                PACKAGE_MAP[pkg]["price"], vendor["id"]),
             "steps_telugu": [
-                "1️⃣ ₹%d pay cheyyandi (UPI leda PhonePe link)" % PACKAGE_MAP[pkg]["price"],
-                "2️⃣ Payment screenshot mana WhatsApp ki pampandi (reference: %s)" % vendor["id"],
-                "3️⃣ 2 గంటల్లో admin verify chesi listing ACTIVE chestadu",
-                "4️⃣ Mee promo post + poster ready — mana channels lo veltundi",
+                "1️⃣ ₹%d pay చెయ్యండి (UPI leda PhonePe link)" % PACKAGE_MAP[pkg]["price"],
+                "2️⃣ Payment screenshot మన WhatsApp కి పంపండి (reference: %s)" % vendor["id"],
+                "3️⃣ 2 గంటల్లో admin verify చేసి listing ACTIVE chestadu",
+                "4️⃣ మీ promo post + poster ready — మన channels లో వెళ్తుంది",
             ],
-            "message_telugu": "🎉 %s — mee vendor request vachindi! Package: %s (₹%d / %d days). Payment tho ventane listing live avutundi."
+            "message_telugu": "🎉 %s — మీ vendor request వచ్చింది! Package: %s (₹%d / %d days). Payment తో వెంటనే listing live అవుతుంది."
                               % (vendor["business_name"], PACKAGE_MAP[pkg]["name"],
                                  PACKAGE_MAP[pkg]["price"], PACKAGE_MAP[pkg]["days"])}
 
@@ -297,11 +297,11 @@ def reject_vendor(vendor_id: str, reason: str = "") -> Dict:
     v["status"] = "rejected"
     v["reject_reason"] = reason[:160]
     save_state()
-    return {"ok": True, "vendor": v, "message_telugu": "❌ %s reject ayyindi — %s" % (v["business_name"], reason or "details verify avvaledu")}
+    return {"ok": True, "vendor": v, "message_telugu": "❌ %s reject అయ్యింది — %s" % (v["business_name"], reason or "details verify avvaledu")}
 
 
 def expire_due_vendors() -> Dict:
-    """Kalam ayyina vendors ni auto-expire (worker/startup lo call)."""
+    """Kalam అయిన vendors ని auto-expire (worker/startup లో call)."""
     now = datetime.now()
     n = 0
     for v in VENDORS:
@@ -352,7 +352,7 @@ def vendors_directory(category: str = "", district: str = "", city: str = "", q:
 
 
 def public_vendor(v: Dict, full_contact: bool = True) -> Dict:
-    """Directory/listing ki vendor view (contact WhatsApp CTA tho)."""
+    """Directory/listing కి vendor view (contact WhatsApp CTA తో)."""
     out = {
         "id": v.get("id"), "business_name": v.get("business_name"),
         "category": v.get("category"), "category_te": v.get("category_te"),
@@ -367,7 +367,7 @@ def public_vendor(v: Dict, full_contact: bool = True) -> Dict:
     wa = _digits(v.get("whatsapp")) or _digits(v.get("phone"))
     if full_contact and wa:
         out["whatsapp_link"] = "https://wa.me/91%s?text=%s" % (
-            wa, "Namaste! Mana Vivaha (manavivaha.in) lo mee %s listing chusanu — details cheppandi"
+            wa, "నమస్తే! Mana Vivaha (manavivaha.in) లో మీ %s listing చూశాను — details చెప్పండి"
                 % (v.get("business_name", "")))
         out["call_link"] = "tel:+91%s" % wa
     return out
@@ -402,7 +402,7 @@ def ad_rotation(slot: str = "home_top_banner", limit: int = 2, track: bool = Tru
         if picked:
             save_state()
     return {"slot": slot, "count": len(picked), "ads": [ad_card(v) for v in picked],
-            "note_telugu": "Mee business kooda ikkada kanipinchali ante — /advertise chudandi (₹149 nunchi)"}
+            "note_telugu": "మీ business కూడా ఇక్కడ kanipinchali అంటే — /advertise చూడండి (₹149 నుంచి)"}
 
 
 def ad_card(v: Dict) -> Dict:
@@ -410,7 +410,7 @@ def ad_card(v: Dict) -> Dict:
             "category": v.get("category"), "category_te": v.get("category_te"),
             "icon": v.get("icon"), "city": v.get("city"), "price_range": v.get("price_range"),
             "verified": bool(v.get("verified")), "rating": v.get("rating", 0),
-            "cta_telugu": "WhatsApp cheyyandi", "whatsapp_link": public_vendor(v).get("whatsapp_link", ""),
+            "cta_telugu": "WhatsApp చెయ్యండి", "whatsapp_link": public_vendor(v).get("whatsapp_link", ""),
             "detail_url": "/vendors/%s" % v.get("id")}
 
 
@@ -440,7 +440,7 @@ def vendor_lead(vendor_id: str, form: Dict) -> Dict:
         problems.append("phone (10 digits)")
     if problems:
         return {"ok": False, "reason": "invalid", "problems": problems,
-                "message_telugu": "⚠️ Ee details saricheyyali: " + ", ".join(problems)}
+                "message_telugu": "⚠️ ఈ details saricheyyali: " + ", ".join(problems)}
     lead = {
         "id": "VL-%s-%04d" % (datetime.now().strftime("%y%m%d"), len(LEADS) + 1),
         "vendor_id": vendor_id, "vendor_name": v.get("business_name"),
@@ -455,11 +455,11 @@ def vendor_lead(vendor_id: str, form: Dict) -> Dict:
     return {"ok": True, "lead": lead, "vendor": public_vendor(v),
             "vendor_whatsapp_text": lead_to_vendor_text(v, lead),
             "customer_text_telugu": (
-                "🙏 %s garu, mee enquiry %s ki vellindi. %s team mee number ki call/WhatsApp chestaru. "
-                "Rate compare cheyyali ante mana side nunchi 3 more %s vendors pampistham (FREE)."
+                "🙏 %s గారు, మీ enquiry %s కి వెళ్లింది. %s team మీ number కి call/WhatsApp చేస్తారు. "
+                "Rate compare చెయ్యాలి అంటే మన side నుంచి 3 more %s vendors pampistham (FREE)."
                 % (lead["name"], v.get("business_name"), v.get("business_name"),
                    category_label(v.get("category", ""))["en"])),
-            "message_telugu": "✅ Enquiry pampam — %s mee number ki contact chestaru (30 nimushalalo)" % v.get("business_name")}
+            "message_telugu": "✅ Enquiry pampam — %s మీ number కి contact చేస్తారు (30 నిమిషాల్లో)" % v.get("business_name")}
 
 
 def lead_to_vendor_text(vendor: Dict, lead: Dict) -> str:
@@ -468,7 +468,7 @@ def lead_to_vendor_text(vendor: Dict, lead: Dict) -> str:
             "Customer: %s\n📞 %s\n"
             "📍 %s | 📅 Event: %s | 💰 Budget: %s\n"
             "📝 %s\n\n"
-            "Ventane call/WhatsApp cheyyandi — fast reply = ekkuva bookings ✅\n"
+            "Ventane call/WhatsApp చెయ్యండి — fast reply = ఎక్కువ bookings ✅\n"
             "— Mana Vivaha (manavivaha.in)"
             % (vendor.get("business_name"), vendor.get("category_te") or vendor.get("category"),
                lead.get("name"), lead.get("phone"), lead.get("district") or "-",
@@ -495,30 +495,30 @@ def promo_post(vendor: Dict, variant: int = 0, channel: str = "") -> Dict:
     verified = "✅ Verified" if vendor.get("verified") else ""
     tg = [
         ("%s *%s* — %s\n\n%s\n\n📍 %s%s%s%s\n%s\n💰 %s\n📞 %s\n\n"
-         "Mana Vivaha lo %s — pelli sambandham chusukune vaallaki recommend chestunnam 🙏"
+         "Mana Vivaha లో %s — పెళ్లి సంబంధం చూసుకునే వాళ్లకి recommend చేస్తున్నాం 🙏"
          % (icon, name.upper(), cat,
             (about[:220] + ("..." if len(about) > 220 else "")) if about else "Mana Vivaha partner vendor.",
             city, (" | " + areas) if areas and areas != city else "",
             (" | " + exp + " yrs experience") if exp else "",
             (" | " + verified) if verified else "",
-            "🔗 Listing: manavivaha.in/vendors", price or "Best rates — direct ga adagandi", phone,
+            "🔗 Listing: manavivaha.in/vendors", price or "Best rates — direct గా అడగండి", phone,
             cat)),
-        ("🎊 %s %s — %s\n\nMee pelli ki kavalsina %s ikkade!\n%s\n📍 %s\n📞 %s (WhatsApp)\n\n"
-         "Mana Vivaha members ki *special rate* — ee post chupinchandi 😊\n#ManaVivaha #%s #%s"
+        ("🎊 %s %s — %s\n\nMee పెళ్లి కి కావాల్సిన %s ikkade!\n%s\n📍 %s\n📞 %s (WhatsApp)\n\n"
+         "Mana Vivaha members కి *special rate* — ee post chupinchandi 😊\n#ManaVivaha #%s #%s"
          % (icon, cat, name, cat,
             ("⭐ " + about[:160]) if about else "Trusted local vendor",
             areas or city, phone,
             name.replace(" ", ""), city.replace(" ", "") or "Telugu")),
-        ("💍 *Pelli season special* 💍\n\n%s *%s*\n%s\n\n%s\n📍 %s\n💰 %s\n📞 %s\n\n"
-         "Booking fast ga avutunnayi — mundhe confirm chesukondi ✅\nMana Vivaha partner (verified) 🏪"
-         % (icon, name, cat, about[:200] or "Quality service, manchi rates.",
-            areas or city, price or "Rates call lo cheptam", phone)),
+        ("💍 *పెళ్లి season special* 💍\n\n%s *%s*\n%s\n\n%s\n📍 %s\n💰 %s\n📞 %s\n\n"
+         "Booking fast గా avutunnayi — mundhe confirm చేసుకోండి ✅\nMana Vivaha partner (verified) 🏪"
+         % (icon, name, cat, about[:200] or "Quality service, మంచి rates.",
+            areas or city, price or "Rates call లో cheptam", phone)),
     ]
     wa = [
-        ("🙏 Namaste! *%s* — %s (Mana Vivaha partner)\n\n%s\n📍 %s\n💰 %s\n📞 %s\n\n"
-         "Pelli sambandham chusukuntunnara? Ee vendor ni manam verify chesam ✅ — direct ga contact cheyyandi."
-         % (name, cat, about[:200] or "Manchi service + reasonable rates",
-            areas or city, price or "Call chesi adagandi", phone)),
+        ("🙏 నమస్తే! *%s* — %s (Mana Vivaha partner)\n\n%s\n📍 %s\n💰 %s\n📞 %s\n\n"
+         "పెళ్లి సంబంధం చూసుకుంటున్నారా? ఈ vendor ని మనం verify చేశాం ✅ — direct గా contact చెయ్యండి."
+         % (name, cat, about[:200] or "మంచి service + reasonable rates",
+            areas or city, price or "Call చేసి అడగండి", phone)),
         ("%s %s — %s\n%s\n📍 %s | 📞 %s\nMana Vivaha verified partner 🏪 (manavivaha.in/vendors)"
          % (icon, cat, city, ("⭐ " + about[:150]) if about else "Trusted vendor", areas or city, phone)),
     ]
@@ -527,8 +527,8 @@ def promo_post(vendor: Dict, variant: int = 0, channel: str = "") -> Dict:
         "telegram_post": tg[variant % len(tg)],
         "whatsapp_messages": wa,
         "poster_text": "%s %s\n%s | %s\n📞 %s\nmanavivaha.in/vendors" % (icon, name, cat, city, phone),
-        "channel_hint": channel or "Mee city/caste channel + 4 main channels",
-        "share_me": "https://wa.me/91%s?text=%s" % (phone, "Namaste! Mana Vivaha listing chusanu — rates cheppandi"),
+        "channel_hint": channel or "మీ city/caste channel + 4 main channels",
+        "share_me": "https://wa.me/91%s?text=%s" % (phone, "నమస్తే! Mana Vivaha listing చూశాను — rates చెప్పండి"),
     }
 
 
@@ -558,14 +558,14 @@ def vendor_dashboard(vendor_id: str) -> Dict:
                   if v.get("clicks") else 0.0},
         "recent_leads": my_leads,
         "competition": {"same_category_active": len(cat_peers),
-                        "message_telugu": "Mee category lo %d active vendors unnaru — top slot ki Premium thisukondi" % len(cat_peers)},
-        "upsell_telugu": ("⏳ %d days migilayi — renew cheyyandi (₹%d / %d days)"
+                        "message_telugu": "మీ category లో %d active vendors ఉన్నారు — top slot కి Premium తీసుకోండి" % len(cat_peers)},
+        "upsell_telugu": ("⏳ %d days migilayi — renew చెయ్యండి (₹%d / %d days)"
                           % (days_left, PACKAGE_MAP.get(v.get("package"), PACKAGE_MAP["V_BASIC"])["price"],
                              PACKAGE_MAP.get(v.get("package"), PACKAGE_MAP["V_BASIC"])["days"]))
-        if v.get("status") == "active" else "Listing active ledu — admin approve cheyyali",
+        if v.get("status") == "active" else "Listing active లేదు — admin approve చెయ్యాలి",
         "message_telugu": "📊 Impressions %s · Clicks %s · Enquiries %s — %s"
                           % (v.get("impressions", 0), v.get("clicks", 0), v.get("leads", 0),
-                             "manchi ga nadusthundi 👍" if int(v.get("leads", 0)) > 0 else "promo post pettandi, leads perugutayi"),
+                             "మంచి గా nadusthundi 👍" if int(v.get("leads", 0)) > 0 else "promo post పెట్టండి, leads perugutayi"),
     }
 
 
@@ -606,7 +606,7 @@ def vendor_revenue() -> Dict:
                         for v in sorted(VENDORS, key=lambda x: -int(x.get("leads", 0)))[:5]],
         "renewals_due": [{"id": v["id"], "name": v.get("business_name"), "expires_at": v.get("expires_at")}
                          for v in active if _days_left(v) <= 7],
-        "message_telugu": "🏪 %d active vendors · ₹%d collected · %d leads · %d enquiries ee roju"
+        "message_telugu": "🏪 %d active vendors · ₹%d collected · %d leads · %d enquiries ee రోజు"
                           % (len(active), sum(int(v.get("package_price", 0) or 0) for v in VENDORS
                                               if v.get("status") in ("active", "expired")),
                              len(LEADS), len([l for l in LEADS if str(l.get("at", "")).startswith(_today())])),
@@ -623,21 +623,21 @@ def _days_left(v: Dict) -> int:
 def packages_public() -> Dict:
     return {
         "currency": "INR",
-        "headline": "Mee business ni Mana Vivaha lo promote cheyyandi — ₹149 nunchi",
+        "headline": "మీ business ని Mana Vivaha లో promote చెయ్యండి — ₹149 నుంచి",
         "packages": PACKAGES, "addons": ADDONS_VENDOR, "slots": SLOTS, "categories": CATEGORIES,
         "how_it_works_telugu": [
-            "1️⃣ Package select chesi register cheyyandi (2 nimushalu)",
-            "2️⃣ Payment (UPI/PhonePe) + screenshot mana WhatsApp ki",
+            "1️⃣ Package select చేసి register చెయ్యండి (2 నిమిషాలు)",
+            "2️⃣ Payment (UPI/PhonePe) + screenshot మన WhatsApp కి",
             "3️⃣ 2 గంటల్లో admin verify → listing ACTIVE + verified badge",
-            "4️⃣ Promo post + poster mana Telegram/WhatsApp channels lo (52 channels)",
-            "5️⃣ Enquiries direct mee WhatsApp ki — dashboard lo performance report",
+            "4️⃣ Promo post + poster మన Telegram/WhatsApp channels లో (52 channels)",
+            "5️⃣ Enquiries direct మీ WhatsApp కి — dashboard లో performance report",
         ],
         "why_telugu": [
-            "🎯 Telugu pelli market — bride/groom families + relatives (manchi intent)",
-            "📢 52 channels + WhatsApp lanes (anti-ban safe order lo posts)",
-            "📊 Impressions/clicks/enquiries — edi pani chesindo kanipistundi",
-            "🏅 Verified badge + rating — trust build avutundi",
-            "🔁 Renewal ki discount + season offers (Aashadam, Margashira, Padwa)",
+            "🎯 Telugu పెళ్లి market — bride/groom families + relatives (మంచి intent)",
+            "📢 52 channels + WhatsApp lanes (anti-ban safe order లో posts)",
+            "📊 Impressions/clicks/enquiries — edi pani chesindo కనిపిస్తుంది",
+            "🏅 Verified badge + rating — trust build అవుతుంది",
+            "🔁 Renewal కి discount + season offers (Aashadam, Margashira, Padwa)",
         ],
         "renewal_discount_pct": 15,
         "contact_whatsapp": os.getenv("VENDOR_SALES_WHATSAPP", os.getenv("SUPPORT_PHONE", "")),
@@ -661,7 +661,7 @@ def vendor_stats() -> Dict:
 DEMO_VENDORS = [
     {"business_name": "Sri Lakshmi Catering", "category": "catering", "city": "Warangal", "district": "Warangal",
      "phone": "9848011101", "package": "V_STANDARD", "price_range": "₹250-450 per plate", "experience_years": "25",
-     "about": "Traditional Telugu vindu — 200 nunchi 2000 members varaku. Veg + non-veg counters, live dosa counter.",
+     "about": "Traditional Telugu vindu — 200 నుంచి 2000 members varaku. Veg + non-veg counters, live dosa counter.",
      "service_areas": "Warangal, Hanamkonda, Kazipet, Jangaon"},
     {"business_name": "Sri Balaji Photography", "category": "photography", "city": "Hyderabad", "district": "Rangareddy",
      "phone": "9848011102", "package": "V_PREMIUM", "price_range": "₹40,000 - 1,20,000", "experience_years": "12",
@@ -669,7 +669,7 @@ DEMO_VENDORS = [
      "service_areas": "Hyderabad, Secunderabad, TS + AP"},
     {"business_name": "Vasavi Decorations", "category": "decorations", "city": "Vijayawada", "district": "Krishna",
      "phone": "9848011103", "package": "V_STANDARD", "price_range": "₹35,000 - 2,00,000", "experience_years": "15",
-     "about": "Mandap, stage backdrop, flower decoration, lighting. Pelli, half-saree, seemantham anni functions.",
+     "about": "Mandap, stage backdrop, flower decoration, lighting. పెళ్లి, half-saree, seemantham అన్నీ functions.",
      "service_areas": "Vijayawada, Guntur, Tenali, Eluru"},
     {"business_name": "Sai Kalyana Mandapam", "category": "banquet_hall", "city": "Karimnagar", "district": "Karimnagar",
      "phone": "9848011104", "package": "V_BASIC", "price_range": "₹45,000 - 1,50,000/day", "experience_years": "20",
@@ -677,40 +677,40 @@ DEMO_VENDORS = [
      "service_areas": "Karimnagar, Peddapalli, Jagtial"},
     {"business_name": "Srinivasa Tent House", "category": "tent_house", "city": "Nalgonda", "district": "Nalgonda",
      "phone": "9848011105", "package": "V_BASIC", "price_range": "₹25,000 - 90,000", "experience_years": "18",
-     "about": "Tents, chairs, sound system, shamiana, dining tables — ee area lo 18 years nunchi.",
+     "about": "Tents, chairs, sound system, shamiana, dining tables — ee area లో 18 years నుంచి.",
      "service_areas": "Nalgonda, Miryalaguda, Suryapet, Bhongir"},
     {"business_name": "Pandit Sri Sharma", "category": "pandit", "city": "Hyderabad", "district": "Hyderabad",
      "phone": "9848011106", "package": "V_BASIC", "price_range": "₹8,000 - 35,000", "experience_years": "22",
-     "about": "Muhurtham, pelli, seemantham, satyanarayana vratam — Telugu + Sanskritlo pooja chepistham.",
+     "about": "ముహూర్తం, పెళ్లి, seemantham, satyanarayana vratam — Telugu + Sanskritlo pooja chepistham.",
      "service_areas": "Hyderabad, Ranga Reddy, Medchal"},
     {"business_name": "Sri Padmavathi Jewellers", "category": "jewellery", "city": "Guntur", "district": "Guntur",
-     "phone": "9848011107", "package": "V_BASIC", "price_range": "Pelli haram ₹2L nunchi", "experience_years": "35",
-     "about": "916 gold, vaddanam, haram, bangles — custom pelli jewellery designs, hall-mark certified.",
+     "phone": "9848011107", "package": "V_BASIC", "price_range": "పెళ్లి haram ₹2L నుంచి", "experience_years": "35",
+     "about": "916 gold, vaddanam, haram, bangles — custom పెళ్లి jewellery designs, hall-mark certified.",
      "service_areas": "Guntur, Tenali, Chilakaluripet"},
     {"business_name": "Lakshmi Bridal Makeup Studio", "category": "makeup", "city": "Nizamabad", "district": "Nizamabad",
      "phone": "9848011108", "package": "V_STANDARD", "price_range": "₹12,000 - 60,000", "experience_years": "10",
-     "about": "Bridal makeup, hairstyle, saree draping, HD + airbrush. Reception + pelli packages.",
+     "about": "Bridal makeup, hairstyle, saree draping, HD + airbrush. Reception + పెళ్లి packages.",
      "service_areas": "Nizamabad, Armoor, Kamareddy, Adilabad"},
     {"business_name": "Vijaya Wedding Planners", "category": "wedding_planner", "city": "Visakhapatnam", "district": "Visakhapatnam",
-     "phone": "9848011109", "package": "V_PREMIUM", "price_range": "₹1,50,000 nunchi (complete package)", "experience_years": "8",
-     "about": "Complete pelli planning — hall, catering, decoration, photography, makeup, invitation, travel. End-to-end.",
+     "phone": "9848011109", "package": "V_PREMIUM", "price_range": "₹1,50,000 నుంచి (complete package)", "experience_years": "8",
+     "about": "Complete పెళ్లి planning — hall, catering, decoration, photography, makeup, invitation, travel. End-to-end.",
      "service_areas": "Visakhapatnam, Vizianagaram, Srikakulam, Kakinada"},
     {"business_name": "Ravi DJ & Melam Band", "category": "music_dj", "city": "Khammam", "district": "Khammam",
      "phone": "9848011110", "package": "V_BASIC", "price_range": "₹15,000 - 75,000", "experience_years": "14",
-     "about": "DJ + nadaswaram + melam band. Baraat, reception, sangeet ki full sound + lighting.",
+     "about": "DJ + nadaswaram + melam band. Baraat, reception, sangeet కి full sound + lighting.",
      "service_areas": "Khammam, Kothagudem, Bhadrachalam"},
 ]
 
 DEMO_LEADS = [
     {"vendor": "Sri Lakshmi Catering", "name": "Ravi Kumar", "phone": "9848090001", "district": "Warangal",
-     "event_date": "2026-11-22", "budget": "₹1,20,000", "message": "300 members ki lunch + dinner, veg only"},
+     "event_date": "2026-11-22", "budget": "₹1,20,000", "message": "300 members కి lunch + dinner, veg only"},
     {"vendor": "Sri Balaji Photography", "name": "Sneha Reddy", "phone": "9848090002", "district": "Hyderabad",
      "event_date": "2026-12-05", "budget": "₹75,000", "message": "Candid + traditional, 2 days function"},
 ]
 
 
 def demo_seed() -> Dict:
-    """Demo vendors + leads (site khali ga kanipinchadu). Idempotent — duplicates add avvavu."""
+    """Demo vendors + leads (site khali గా కనిపించదు). Idempotent — duplicates add avvavu."""
     created = []
     for w in DEMO_VENDORS:
         if any(x.get("business_name") == w["business_name"] for x in VENDORS):

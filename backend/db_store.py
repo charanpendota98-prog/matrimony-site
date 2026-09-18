@@ -1,0 +1,63 @@
+"""
+💾 WAVE 22 — CORE DB PERSISTENCE (atomic JSON)
+================================================
+Mundu DB_USERS/DB_INTERESTS/DB_PAYMENTS anni pure in-memory — server restart
+aithe REGISTER ayina users + payments + interests ANNI Poyevvi (data loss!).
+Ippudu: prathi mutation tarvata (debounced) atomic save + startup lo auto-load.
+(Postgres vachhe varaku idi production-safe — tmp+rename, corrupt-proof.)
+"""
+import json
+import os
+import time
+
+DB_FILE = os.getenv("TSAP_DB_FILE") or os.path.join(os.path.dirname(os.path.abspath(__file__)), "data_db.json")
+_last_save = 0.0
+SAVE_DEBOUNCE_S = 5.0
+
+
+def load() -> dict:
+    """Startup load — file lekapoina/corrupt aina khali DB (crash అవ్వదు)."""
+    try:
+        if not os.path.exists(DB_FILE):
+            return {}
+        with open(DB_FILE, encoding="utf-8") as f:
+            d = json.load(f) or {}
+        return d if isinstance(d, dict) else {}
+    except Exception as e:
+        print(f"[DB] load skip ({str(e)[:80]}) — fresh start")
+        return {}
+
+
+def save(payload: dict, force: bool = False) -> bool:
+    """Atomic save (tmp + rename) — half-write/corrupt అవ్వదు."""
+    global _last_save
+    now = time.time()
+    if not force and (now - _last_save) < SAVE_DEBOUNCE_S:
+        return False
+    _last_save = now
+    try:
+        tmp = DB_FILE + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
+            # 🌊 WAVE 26 — default=str: plan_expiry (datetime) laanti objects vachina
+            # save FAIL avvadu (mundu purchase tarvata WHOLE save fail = data loss!)
+            json.dump(payload, f, ensure_ascii=False, default=str)
+        os.replace(tmp, DB_FILE)
+        return True
+    except Exception as e:
+        print(f"[DB] save fail: {str(e)[:100]}")
+        return False
+
+
+def snapshot(users, interests, payments, otps, verified_phones, views, saves, digest) -> dict:
+    # WAVE 24 — CAPS: file unbounded ga peragakudadu (views/saves/digest recent matrame)
+    return {
+        "saved_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
+        "users": users or [],
+        "interests": interests or [],
+        "payments": payments or [],
+        "otps": otps or {},
+        "verified_phones": sorted(verified_phones or []),
+        "views": (views or [])[-5000:],
+        "saves": (saves or [])[-5000:],
+        "digest": (digest or [])[-2000:],
+    }

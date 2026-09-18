@@ -208,7 +208,7 @@ About: Nenu software engineer, simple family...
 - **Frontend:** Next.js 14 - 9 pages - Home, Register Advanced 5 steps, Search ID, Matches Filters + Share, Channels, Referral, Referral/Register, Bureau, Admin, r/[code] - all automated - validation - card preview - share
 - **Backend:** FastAPI - 8 endpoints - Register advanced 20 fields, Search ID always open, Matches 70%+ reason, Credits deduct, Payment webhook, Referral leaderboard, Admin approve + make premium + credit control, Channels live status
 - **DB:** Postgres (Oracle VM Docker) - encrypted phone - all fields JSON - 10k profiles <5GB - backup daily Drive rclone 2AM
-- **Bot:** Python Telegram Bot - token 8844112261:AAH3Gihsg-FM05J4poBlfNpcrCYg9yPkS20 - auto-post to @TSBRIDE @TSGROOM1 - polling + webhook - deep links - admin approve trigger
+- **Bot:** Python Telegram Bot - token REDACTED-put-real-token-in-env-only - auto-post to @TSBRIDE @TSGROOM1 - polling + webhook - deep links - admin approve trigger
 - **Card Generator:** Pillow - advanced template with photo - watermark ID - hashtags - footer - 500x700 PNG - stored /tmp/cards/
 - **Matching Engine:** Score 0-100 - caste 30%, location 20%, age 15%, education 10%, job 10%, gothram 10%, star optional 5% boost, family 5% - only 70%+ - personalized reasons Telugu
 - **Credits:** FREE 3, TRIAL ₹99 10 credits daily 2, PREMIUM ₹299 50 credits daily 5, VIP ₹999 150 credits daily 10 - limit ayina kuda ID search open - number lock - malli pay
@@ -261,7 +261,7 @@ About: Nenu software engineer, simple family...
 
 ### Deployment Steps - 1 Hour - Production:
 1. Docker Install 5 min: `ssh ubuntu@vm-ip` → `sudo apt install docker.io docker-compose -y`
-2. Code Clone + .env 5 min: `git clone ...` → `backend/.env` BOT_TOKEN=8844112261:AAH3Gihsg-FM05J4poBlfNpcrCYg9yPkS20 + RAZORPAY + CHANNELS=TSBRIDE,TSGROOM1
+2. Code Clone + .env 5 min: `git clone ...` → `backend/.env` BOT_TOKEN=REDACTED-put-real-token-in-env-only + RAZORPAY + CHANNELS=TSBRIDE,TSGROOM1
 3. Docker Up 10 min: `docker-compose up -d --build` → postgres, redis, backend 8000, frontend 3000, bot, nginx LIVE
 4. Domain + SSL + Cloudflare 15 min: tsapmatrimony.com ₹1000/yr → Cloudflare Free → A record VM IP → Oracle Security List open 80,443,3000,8000 → `certbot --nginx -d tsapmatrimony.com` SSL
 5. Bot Real Post Test 5 min: `python backend/test_channels.py` → real post to @TSBRIDE @TSGROOM1

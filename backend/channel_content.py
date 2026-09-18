@@ -102,7 +102,7 @@ RELIGION_STATE_EN = {"TS": "Telangana", "AP": "AP"}
 
 
 def religion_title(key: str, ch: Dict) -> str:
-    """☪️ Muslim / ✝️ Christian — state × gender channels ki title."""
+    """☪️ Muslim / ✝️ Christian — state × gender channels కి title."""
     sub = ch.get("sub", "")
     st, g = ch.get("state", "TS"), ch.get("gender", "Bride")
     icon = {"muslim": "☪️", "christian": "✝️"}.get(sub, "💍")
@@ -113,7 +113,7 @@ def religion_title(key: str, ch: Dict) -> str:
 
 
 def cluster_title(key: str, ch: Dict) -> str:
-    """Caste cluster — pedda community (bride/groom separate) + grouped sub-castes."""
+    """Caste cluster — పెద్ద community (bride/groom separate) + grouped sub-castes."""
     en = ch.get("cluster_en", "")
     te = ch.get("cluster_te", "")
     if key.endswith("_bride"):
@@ -124,7 +124,7 @@ def cluster_title(key: str, ch: Dict) -> str:
 
 
 def perfect_title(key: str, ch: Dict | None = None) -> str:
-    """Telegram title — keyword-first (Telegram search lo top vastundi) + Telugu (trust)."""
+    """Telegram title — keyword-first (Telegram search లో top వస్తుంది) + Telugu (trust)."""
     if key == "official":
         return "%s | %s" % (OFFICIAL_TITLE[0], OFFICIAL_TITLE[1])
     if key in REGION_TITLE:
@@ -164,7 +164,7 @@ DP_OVERRIDE: Dict[str, Dict[str, str]] = {
 
 
 def _fit_words(text: str, limit: int) -> tuple:
-    """Whole words tho fit — 'KAPU BALIJA TELA' la mid-word cut raakunda."""
+    """Whole words తో fit — 'KAPU BALIJA TELA' la mid-word cut raakunda."""
     words, line, rest = text.split(), [], []
     for w in words:
         if sum(len(x) + 1 for x in line) + len(w) <= limit:
@@ -175,7 +175,7 @@ def _fit_words(text: str, limit: int) -> tuple:
 
 
 def dp_text(key: str, ch: Dict | None = None) -> Dict[str, str]:
-    """DP image lo render ayye text (English — server lo Telugu font ledu)."""
+    """DP image లో render ayye text (English — server లో Telugu font లేదు)."""
     ch = ch or {}
     if key == "official":
         return {"big": "TSAP", "mid": "MATRIMONY", "small": "TS • AP TELUGU"}
@@ -213,7 +213,7 @@ def perfect_description(key: str, ch: Dict | None = None) -> str:
     tags = " ".join((ch.get("hashtags") or [])[:3])
     tail = "Register FREE: manavivaha.in | Bot: %s" % BOT
     if key == "official":
-        body = ("మన వివాహ — TS/AP నం.1 తెలుగు మ్యాట్రిమోని. రోజూ టాప్-3 సంబంధాలు, విజయ గాథలు, "
+        body = ("మన వివాహ — TS/AP తెలుగు మ్యాట్రిమోని. రోజూ టాప్-3 సంబంధాలు, విజయ గాథలు, "
                 "మోసం హెచ్చరికలు. 3 requests FREE, ₹99లో 5.")
     elif ch.get("sub") in ("muslim", "christian"):
         sub_te = "ముస్లిం" if ch["sub"] == "muslim" else "క్రైస్తవ"
@@ -235,7 +235,7 @@ def perfect_description(key: str, ch: Dict | None = None) -> str:
         body = ("%s — %s. వధువులు + వరులు, అన్ని జిల్లాలు. 3 FREE requests, ₹99లో 5."
                 % (RELIGION_TITLE[key][0], RELIGION_TITLE[key][1]))
     elif key in SPECIAL_TITLE:
-        body = ("%s — %s. ఈ కేటగిరీ ప్రత్యేక profiles matrame — వేరే ఎక్కడా దొరకవు."
+        body = ("%s — %s. ఈ కేటగిరీ ప్రత్యేక profiles మాత్రమే — వేరే ఎక్కడా దొరకవు."
                 % (SPECIAL_TITLE[key][0], SPECIAL_TITLE[key][1]))
     else:
         caste = _caste_key_from_channel(key)
@@ -245,7 +245,7 @@ def perfect_description(key: str, ch: Dict | None = None) -> str:
 
 
 def pinned_welcome(key: str, ch: Dict | None = None) -> str:
-    """📌 Pin cheyyalsina welcome post — channel open chesina prathi okkadu idi chustadu."""
+    """📌 Pin cheyyalsina welcome post — channel open చేసిన prathi okkadu idi chustadu."""
     ch = ch or {}
     title = perfect_title(key, ch)
     tags = " ".join(ch.get("hashtags") or [])
@@ -259,20 +259,20 @@ def pinned_welcome(key: str, ch: Dict | None = None) -> str:
         members_line = ("👥 %s %s — %s\n\n"
                         % (RELIGION_STATE_EN.get(ch.get("state", "TS"), ""), ch["sub"].title(),
                            ("Catholic • CSI • Baptist • Pentecost • Born Again" if ch["sub"] == "christian"
-                            else "Sheikh • Syed • Pathan • Momin • Qureshi • Labbai — antha okate channel")))
+                            else "Sheikh • Syed • Pathan • Momin • Qureshi • Labbai — antha ఒకటే channel")))
     return (
         "🙏 *%s*\n"
         "━━━━━━━━━━━━━━━━━━\n"
         "%s\n"
         "%s"
         "ఇక్కడ ఏం దొరుకుతుంది:\n"
-        "✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site lo)\n"
+        "✅ రోజూ కొత్త *నిజమైన profiles* (ఫోటో గోప్యం — చూడాలంటే site లో)\n"
         "✅ విద్య • ఉద్యోగం • జీతం • జిల్లా • జాతకం వివరాలతో full details\n"
         "✅ *10-పొరుత్తం* (కుండలి match) score + రజ్జు/వేధ దోషం హెచ్చరిక\n"
         "✅ ఫోన్ నంబర్ — రెండు వైపులా ఒప్పుకున్న తర్వాతే share అవుతుంది\n\n"
         "ఎలా use చేయాలి (3 steps):\n"
-        "1️⃣ Meeకి నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)\n"
-        "2️⃣ %s ki *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది\n"
+        "1️⃣ మీకు నచ్చిన profile చూడండి (ID ఉంటుంది: TSAP-F-2025-1042)\n"
+        "2️⃣ %s కి *ID పంపండి* → మా WhatsApp నుంచి మీ profile వాళ్లకి వెళ్తుంది\n"
         "3️⃣ వాళ్లు OK అంటే నంబర్లు exchange — తర్వాత మీరే మాట్లాడుకోవచ్చు\n\n"
         "🆓 *మొదటి 3 requests FREE* • తర్వాత ₹99లో 5, ₹199లో 12\n\n"
         "⚠️ *చట్టాలు (తప్పక చదవండి):*\n"
@@ -293,31 +293,31 @@ def rules_post(key: str) -> str:
     return (
         "📜 *CHANNEL RULES — %s*\n"
         "━━━━━━━━━━━━━━━━━━\n"
-        "1️⃣ Only Mana Vivaha admin posts — members message cheyyakunda chudagalaru\n"
-        "2️⃣ Profile details upload cheyyali ante *%s* ki phone/photo pampandi\n"
+        "1️⃣ Only Mana Vivaha admin posts — members message చెయ్యకుండా చూడగలరు\n"
+        "2️⃣ Profile details upload చెయ్యాలి అంటే *%s* కి phone/photo పంపండి\n"
         "3️⃣ ఎవరికీ *advance money* పంపొద్దు — డబ్బు అడిగితే వెంటనే screenshot → report\n"
         "4️⃣ Caste/religion గురించి discriminative comments, personal abuses → instant ban\n"
         "5️⃣ బయట links, promos, business ads → delete + ban\n"
         "6️⃣ నంబర్లు channel లో పెట్టొద్దు (privacy) — accept అయ్యాక WhatsApp లో వస్తుంది\n"
-        "7️⃣ Chatting లేదు — comment lo 'interest' అని అనొద్దు, %s ki ID పంపండి\n\n"
+        "7️⃣ Chatting లేదు — comment లో 'interest' అని అనొద్దు, %s కి ID పంపండి\n\n"
         "🙏 మనం ఒక కుటుంబం లాంటి వాళ్ళం — గౌరవంగా ఉందాం. Report: %s/safety"
         % (perfect_title(key), BOT, BOT, SITE)
     )
 
 
 def posting_schedule() -> List[Dict[str, str]]:
-    """Daily posting plan — Telegram lo andariki reach avvadaniki best times (IST)."""
+    """Daily posting plan — Telegram లో అందరికీ reach avvadaniki best times (IST)."""
     return [
-        {"time": "7:30 AM", "what": "☀️ Morning profile (bride)", "why": "Office/pelli chusetappudu scroll peak"},
-        {"time": "12:30 PM", "what": "🍛 Lunch profile (groom)", "why": "Lunch break lo views ekkuva"},
-        {"time": "6:00 PM", "what": "🌆 Evening profile + porutham score", "why": "Intlo andaru kalisi chustaru"},
+        {"time": "7:30 AM", "what": "☀️ Morning profile (bride)", "why": "Office/పెళ్లి chusetappudu scroll peak"},
+        {"time": "12:30 PM", "what": "🍛 Lunch profile (groom)", "why": "Lunch break లో views ఎక్కువ"},
+        {"time": "6:00 PM", "what": "🌆 Evening profile + పొరుతం score", "why": "Intlo అందరూ కలిసి chustaru"},
         {"time": "9:00 PM", "what": "🌙 Night profile + success story (Vara/Somvara)", "why": "Ratri 8–10 views highest"},
         {"time": "Sunday 10 AM", "what": "📊 Weekly digest (top-10 profiles + new channels)", "why": "Sunday planning time"},
     ]
 
 
 def share_text(key: str, ch: Dict | None = None) -> str:
-    """WhatsApp status/group lo ee channel promote cheyyadaniki ready text."""
+    """WhatsApp status/group లో ee channel promote చెయ్యడానికి ready text."""
     ch = ch or {}
     title = perfect_title(key, ch)
     link = "https://t.me/%s" % ch.get("username", "")
@@ -336,12 +336,12 @@ def share_text(key: str, ch: Dict | None = None) -> str:
 
 
 def channel_health(key: str, ch: Dict) -> List[str]:
-    """Channel config lo em miss ayyindo (setup mundu check)."""
+    """Channel config లో ఏం miss ayyindo (setup ముందు check)."""
     problems = []
     if not ch.get("name"):
         problems.append("name ledu")
     if not ch.get("desc"):
-        problems.append("desc ledu")
+        problems.append("desc లేదు")
     if len(ch.get("desc", "")) > DESC_LIMIT:
         problems.append("desc > %d chars" % DESC_LIMIT)
     if len(perfect_title(key, ch)) > TITLE_LIMIT:
@@ -351,9 +351,9 @@ def channel_health(key: str, ch: Dict) -> List[str]:
     if not re.fullmatch(r"[A-Za-z0-9_]{5,32}", u):
         problems.append("username invalid: %s" % u)
     if not ch.get("hashtags"):
-        problems.append("hashtags ledu")
+        problems.append("hashtags లేవు")
     if not ch.get("wave"):
-        problems.append("wave ledu")
+        problems.append("wave లేదు")
     return problems
 
 

@@ -6,10 +6,13 @@
  */
 import { useEffect, useRef, useState } from "react";
 import { apiGet } from "@/lib/api";
+import { useLang } from "@/lib/lang";
 
 type Faq = { id: string; q: string; a: string };
 
 export default function SupportWidget() {
+  const { lang } = useLang();
+  const te = lang === "te";
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
   const [faqs, setFaqs] = useState<Faq[]>([]);
@@ -42,19 +45,19 @@ export default function SupportWidget() {
       {open && (
         <div className="w-[20rem] max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-rose-200 bg-white shadow-2xl">
           <div className="bg-gradient-to-r from-rose-700 to-rose-600 px-4 py-3 text-white">
-            <p className="font-bold">💬 Sahayam (Help)</p>
-            <p className="text-xs opacity-90">Telugu lo adagandi — ventane samadhanam</p>
+            <p className="font-bold">{te ? "💬 సహాయం (Help)" : "💬 Help (సహాయం)"}</p>
+            <p className="text-xs opacity-90">{te ? "తెలుగులో అడగండి — వెంటనే సమాధానం" : "Ask in Telugu or English — instant answers"}</p>
           </div>
           <div className="p-3">
             <input
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="Ex: ₹99 enduku? numbers eppudu?"
-              aria-label="Sahayam search"
+              placeholder={te ? "Ex: ₹99 ఎందుకు? numbers ఎప్పుడు?" : "Ex: why ₹99? when numbers?"}
+              aria-label={te ? "సహాయం search" : "Help search"}
               className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm outline-none focus:border-rose-500"
             />
             <div className="mt-2 max-h-72 space-y-2 overflow-y-auto pr-1">
-              {loading && <p className="text-sm text-gray-500">⏳ Vetukuthunna…</p>}
+              {loading && <p className="text-sm text-gray-500">{te ? "⏳ వెతుకుతున్నాం…" : "⏳ Searching…"}</p>}
               {!loading && faqs.map((f) => (
                 <details key={f.id} className="rounded-xl bg-rose-50/60 p-2.5 text-sm">
                   <summary className="cursor-pointer font-semibold text-rose-900">{f.q}</summary>
@@ -62,7 +65,7 @@ export default function SupportWidget() {
                 </details>
               ))}
               {!loading && faqs.length === 0 && (
-                <p className="text-sm text-gray-500">Samadhanam dorakaledu — /help try cheyyandi 🙏</p>
+                <p className="text-sm text-gray-500">{te ? "సమాధానం దొరకలేదు — /help try చెయ్యండి 🙏" : "No answer found — try /help 🙏"}</p>
               )}
             </div>
             {human && <p className="mt-2 border-t pt-2 text-xs text-gray-500">{human}</p>}
@@ -71,7 +74,7 @@ export default function SupportWidget() {
       )}
       <button
         onClick={() => setOpen(!open)}
-        aria-label={open ? "Sahayam close" : "Sahayam open"}
+        aria-label={open ? (te ? "సహాయం close" : "Close help") : te ? "సహాయం open" : "Open help"}
         className="flex h-12 w-12 items-center justify-center rounded-full bg-rose-700 text-2xl text-white shadow-xl transition hover:bg-rose-800"
       >
         {open ? "✕" : "💬"}

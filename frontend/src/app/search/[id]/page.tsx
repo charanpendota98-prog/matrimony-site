@@ -48,7 +48,7 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
   const bits = [p?.age ? `${p.age} yrs` : "", p?.caste, p?.education, p?.job, p?.district].filter(Boolean).join(" • ");
   const title = `${name} (${id}) — ${bits || "Profile"} | Mana Vivaha`;
   const description = p
-    ? `${bits}. Porutham, family, horoscope details + interest pampandi. Mana Vivaha — Telugu matrimony (TS + AP), ${CHANNEL_STATS.total} channels, 3 FREE requests.`
+    ? `${bits}. Porutham, family, horoscope details + interest పంపండి. Mana Vivaha — Telugu matrimony (TS + AP), ${CHANNEL_STATS.total} channels, 3 FREE requests.`
     : `Mana Vivaha — Telugu matrimony. TS + AP, 43 castes, ${CHANNEL_STATS.total} channels, 3 FREE requests. Register FREE.`;
   const base = siteBase();
   const ogImage = `${base}/api/og/profile/${encodeURIComponent(id)}.png`;
@@ -72,6 +72,8 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
 
 export default function Page({ params }: { params: { id: string } }) {
   const base = siteBase();
+  // 🌊 WAVE 23 — SECURITY: JSON-LD script-breakout fix (</script> in URL id)
+  const safeId = String(params?.id || "").replace(/[<>"']/g, "").slice(0, 40);
   return (
     <>
       <script
@@ -80,8 +82,8 @@ export default function Page({ params }: { params: { id: string } }) {
           __html: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "Person",
-            identifier: String(params?.id || ""),
-            url: `${base}/search/${encodeURIComponent(String(params?.id || ""))}`,
+            identifier: safeId,
+            url: `${base}/search/${encodeURIComponent(safeId)}`,
             name: "Mana Vivaha verified profile",
             description: "Telugu matrimony profile — Mana Vivaha (TS + AP)",
             isPartOf: { "@type": "WebSite", name: "Mana Vivaha", url: base },

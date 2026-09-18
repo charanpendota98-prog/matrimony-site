@@ -6,7 +6,7 @@ import os, sys
 from dotenv import load_dotenv
 load_dotenv()
 
-BOT_TOKEN = os.getenv("BOT_TOKEN", "8844112261:AAH3Gihsg-FM05J4poBlfNpcrCYg9yPkS20")
+BOT_TOKEN = os.getenv("BOT_TOKEN", "0000000000:TEST-FAKE-TOKEN-DO-NOT-USE")
 
 # Try to import requests, fallback to curl
 try:

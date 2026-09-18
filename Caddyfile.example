@@ -1,0 +1,6 @@
+# MANA VIVAHA — Caddy reverse proxy (SSL automatic + free)
+# Server lo: sudo apt install -y caddy → ee file ni /etc/caddy/Caddyfile ga copy → sudo systemctl reload caddy
+manavivaha.in, www.manavivaha.in {
+    reverse_proxy localhost:3000
+    encode gzip
+}

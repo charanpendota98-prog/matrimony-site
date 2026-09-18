@@ -216,7 +216,7 @@ check("D13 channels/links lo phone numbers ledu (public)", not PHONE_RE.findall(
 r = client.get("/api/channels/links?caste=Kamma&gender=Groom&limit=999")
 check("D14 limit clamp (999 → <=10)", r.status_code == 200 and len(r.json()["channels"]) <= 10, len(r.json().get("channels", [])))
 r = client.get("/api/channels/links")
-check("D15 caste ivvakapote telugu hint (caste adagali)", r.status_code == 200 and "Caste pampandi" in r.json().get("note_telugu", ""), r.json().get("note_telugu"))
+check("D15 caste ivvakapote telugu hint (caste adagali)", r.status_code == 200 and "Caste పంపండి" in r.json().get("note_telugu", ""), r.json().get("note_telugu"))
 
 # ═══════════════════════════════════════════════════════════════════════════
 section("E. PRIVACY + REGRESSION")

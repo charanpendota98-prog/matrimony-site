@@ -132,13 +132,13 @@ def main():
     A("")
     A("## 🖥️ Website + API")
     A("")
-    A("- `/channels` — 65 channels, tier tabs + search + wave filter + LIVE filter + copy info")
+    A("- `/channels` — 52 channels, tier tabs + search + wave filter + LIVE filter + copy info")
     A("- Home page — region/religion grid + 43 caste grid + special categories (anni registry nunchi)")
     A("- API — `GET /api/channels`, `?tier=L3_CASTE`, `GET /api/channels/live`, `POST /api/channels/route`")
     A("")
     A("---")
     A("")
-    A("**Mana Vivaha — 65 channels, okka platform, okka bot, okka approve = viral everywhere.** 🔥")
+    A("**Mana Vivaha — 52 channels, okka platform, okka bot, okka approve = viral everywhere.** 🔥")
     A("")
 
     with open(OUT, "w", encoding="utf-8") as f:

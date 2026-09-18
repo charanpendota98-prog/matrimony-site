@@ -123,7 +123,7 @@ def run():
     check("Caption has score", "92%" in cap)
     check("Caption has bot CTA", C.BOT_USERNAME in cap)
     check("Caption has site register link", "/register" in cap)
-    check("Caption has safety line", "mosam jagratha" in cap.lower())
+    check("Caption has safety line", "మోసం జాగ్రత్త" in cap)
 
     print("\n=== 5. WAVES ===")
     for wave in (1, 2, 3):

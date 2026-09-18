@@ -1,5 +1,11 @@
-/** ⏳ Global loading skeleton — white screen kaadu */
+"use client";
+
+/** ⏳ Global loading skeleton — neat Telugu / clean English via toggle. */
+import { useLang } from "@/lib/lang";
+
 export default function Loading() {
+  const { lang } = useLang();
+  const te = lang === "te";
   return (
     <main className="mx-auto max-w-5xl px-4 py-10">
       <div className="animate-pulse space-y-4">
@@ -11,7 +17,9 @@ export default function Loading() {
           ))}
         </div>
       </div>
-      <p className="mt-6 text-center text-sm text-slate-500">⏳ Load avutundi… mana profiles rich data tho vastunnayi</p>
+      <p className="mt-6 text-center text-sm text-slate-500">
+        {te ? "⏳ Load అవుతుంది… మన profiles rich data తో వస్తున్నాయి" : "⏳ Loading… profiles are coming with rich data"}
+      </p>
     </main>
   );
 }

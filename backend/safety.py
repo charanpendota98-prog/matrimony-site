@@ -24,23 +24,23 @@ DB_BLOCKS: List[Dict] = []          # {"owner": tsap, "blocked": tsap, "at": iso
 
 REPORT_CATEGORIES = {
     "fake_profile": {"te": "నకిలీ ప్రొఫైల్", "severity": "high",
-                     "desc": "Photo/peru/details nijam kaavu (photos vere vaalla vi)"},
+                     "desc": "Photo/పేరు/details నిజం kaavu (photos vere వాళ్ల vi)"},
     "advance_money": {"te": "ముందు డబ్బు అడిగారు", "severity": "high",
-                      "desc": "Advance/registration/visa ani money adigaru (100% scam)"},
+                      "desc": "Advance/registration/visa అని money adigaru (100% scam)"},
     "harassment": {"te": "వేధింపు / అసభ్య మాటలు", "severity": "high",
-                   "desc": "Asabhyam ga matladaru, threat chesaru, blackmail"},
+                   "desc": "Asabhyam గా matladaru, threat చేశారు, blackmail"},
     "wrong_photo": {"te": "ఫోటో మార్చేశారు", "severity": "medium",
-                    "desc": "Photo veru, asalu vyakti veru (video call lo telisindi)"},
+                    "desc": "Photo వేరు, asalu vyakti వేరు (video call లో telisindi)"},
     "already_married": {"te": "ఇప్పటికే పెళ్లి అయ్యింది", "severity": "high",
-                        "desc": "Pelli ayindi kani profile lo ledu ani cheppaledu"},
+                        "desc": "పెళ్లి అయింది కానీ profile లో లేదు అని cheppaledu"},
     "spam": {"te": "స్పామ్ / ప్రకటనలు", "severity": "low",
-             "desc": "Interest kaadu — business/promo messages pampisthunnaru"},
-    "other": {"te": "ఇతర", "severity": "medium", "desc": "Vere problem — detail lo rayandi"},
+             "desc": "Interest కాదు — business/promo messages pampisthunnaru"},
+    "other": {"te": "ఇతర", "severity": "medium", "desc": "Vere problem — detail లో రాయండి"},
 }
-ACTION_RULES = {"verify": "✅ Manually verify chesi badge icharu",
-                "warn": "⚠️ Warning pampincharu (audit log lo undi)",
-                "hide": "🙈 Profile hide ayyindi (admin review)",
-                "ban": "⛔ Profile ban (permanent) — channels nunchi teesestham",
+ACTION_RULES = {"verify": "✅ Manually verify చేసి badge icharu",
+                "warn": "⚠️ Warning pampincharu (audit log లో ఉంది)",
+                "hide": "🙈 Profile hide అయ్యింది (admin review)",
+                "ban": "⛔ Profile ban (permanent) — channels నుంచి teesestham",
                 "dismiss": "❌ Report dismiss (evidence saripoledu)"}
 
 
@@ -51,9 +51,9 @@ def submit_report(reporter_id: str, target_id: str, category: str, detail: str =
     users = users if users is not None else []
     cat = str(category or "").strip().lower()
     if cat not in REPORT_CATEGORIES:
-        return False, "Category tappu — ivi matrame: " + ", ".join(REPORT_CATEGORIES), {}
+        return False, "Category tappu — ఇవి మాత్రమే: " + ", ".join(REPORT_CATEGORIES), {}
     if not reporter_id or not target_id:
-        return False, "reporter + target TSAP ID kavali", {}
+        return False, "reporter + target TSAP ID కావాలి", {}
     if str(reporter_id) == str(target_id):
         return False, "Meeru meeku report cheyyaleemu", {}
     dup = next((r for r in reports if r["reporter_id"] == reporter_id and r["target_id"] == target_id
@@ -98,7 +98,7 @@ def report_stats(reports: Optional[List[Dict]] = None) -> Dict:
             "auto_flagged": len([r for r in reports if r.get("auto_flagged")]),
             "resolved": len([r for r in reports if r["status"] == "resolved"]),
             "by_category": by_cat,
-            "message_telugu": "%d open reports (high priority: %d) — mundu scam/harassment chudandi"
+            "message_telugu": "%d open reports (high priority: %d) — ముందు scam/harassment చూడండి"
                               % (len(openr), len([r for r in openr if r["severity"] == "high"]))}
 
 
@@ -124,7 +124,7 @@ def unblock_user(owner_id: str, blocked_id: str, blocks: Optional[List[Dict]] = 
 
 
 def is_blocked(a: str, b: str, blocks: Optional[List[Dict]] = None) -> bool:
-    """Either side block chesina true (rendu directions)."""
+    """Either side block చేసిన true (రెండు directions)."""
     blocks = DB_BLOCKS if blocks is None else blocks
     return any((x["owner"] == a and x["blocked"] == b) or (x["owner"] == b and x["blocked"] == a) for x in blocks)
 
@@ -137,7 +137,7 @@ def block_list(owner_id: str, blocks: Optional[List[Dict]] = None) -> List[Dict]
 # --------------------------------------------------------------- verification
 VERIFY_LEVELS = ["none", "phone", "photo", "id"]
 VERIFY_TELUGU = {
-    "none": "verify kaledu",
+    "none": "verify కాలేదు",
     "phone": "📱 Phone verified (OTP)",
     "photo": "📱✅ Phone + 📸 Photo verified",
     "id": "🏅 Aadhaar/ID verified (full trust badge)",
@@ -145,10 +145,10 @@ VERIFY_TELUGU = {
 
 
 def set_verification(user: Dict, kind: str) -> Tuple[bool, str, Dict]:
-    """phone / photo / id verification level set (level eppudu penchadam matrame)."""
+    """phone / photo / id verification level set (level ఎప్పుడు penchadam మాత్రమే)."""
     kind = str(kind or "").strip().lower()
     if kind not in ("phone", "photo", "id"):
-        return False, "kind: phone | photo | id matrame", {}
+        return False, "kind: phone | photo | id మాత్రమే", {}
     cur = str((user or {}).get("verification_level", "none") or "none")
     if VERIFY_LEVELS.index(kind) > VERIFY_LEVELS.index(cur):
         user["verification_level"] = kind
@@ -162,15 +162,15 @@ def set_verification(user: Dict, kind: str) -> Tuple[bool, str, Dict]:
 
 
 def verification_badge(user: Dict) -> Dict:
-    """Search/profile lo chupinchadaniki badge (text + level + next step)."""
+    """Search/profile లో చూపించడానికి badge (text + level + next step)."""
     u = user or {}
     lvl = str(u.get("verification_level", "none") or "none")
     if lvl == "none" and (u.get("phone_verified") or u.get("is_verified")):
         lvl = "phone"
-    next_step = {"none": "OTP tho phone verify cheyyandi (30 sec)",
-                 "phone": "photo verify cheyyandi (selfie + photo)",
-                 "photo": "ID verify cheyyandi (Aadhaar last 4 digits) — full trust badge",
-                 "id": "Anni verify ayyayi — mee profile top lo kanipisthundi"}[lvl]
+    next_step = {"none": "OTP తో phone verify చెయ్యండి (30 sec)",
+                 "phone": "photo verify చెయ్యండి (selfie + photo)",
+                 "photo": "ID verify చెయ్యండి (Aadhaar last 4 digits) — full trust badge",
+                 "id": "అన్నీ verify అయ్యాయి — మీ profile top లో కనిపిస్తుంది"}[lvl]
     return {"level": lvl, "telugu": VERIFY_TELUGU[lvl], "stars": VERIFY_LEVELS.index(lvl),
             "trust_score": {"none": 40, "phone": 65, "photo": 85, "id": 100}[lvl],
             "next_step_telugu": next_step}
@@ -201,7 +201,7 @@ def moderation_queue(reports: Optional[List[Dict]] = None, users: Optional[List[
                                  "hide" if r["severity"] == "high" else "warn"),
         })
     return {"open": len(openr), "items": items, "actions": list(ACTION_RULES.keys()),
-            "message_telugu": "High severity reports mundu chudandi — scam/harassment ki ventane action teesukondi"}
+            "message_telugu": "High severity reports ముందు చూడండి — scam/harassment కి వెంటనే action teesukondi"}
 
 
 def resolve_report(report_id: str, action: str, note: str = "",
@@ -209,10 +209,10 @@ def resolve_report(report_id: str, action: str, note: str = "",
     reports = DB_REPORTS if reports is None else reports
     rec = next((r for r in reports if r["id"] == report_id), None)
     if not rec:
-        return False, "Report dorakaledu: %s" % report_id, {}
+        return False, "Report దొరకలేదు: %s" % report_id, {}
     action = str(action or "").strip().lower()
     if action not in ACTION_RULES:
-        return False, "action ivi matrame: " + ", ".join(ACTION_RULES), {}
+        return False, "action ఇవి మాత్రమే: " + ", ".join(ACTION_RULES), {}
     rec["status"] = "resolved"
     rec["action"] = action
     rec["action_telugu"] = ACTION_RULES[action]
@@ -243,26 +243,26 @@ def resolve_report(report_id: str, action: str, note: str = "",
 
 # --------------------------------------------------------------- safety tips
 def safety_tips() -> List[Dict]:
-    """Telugu safety tips — /safety page + welcome message lo reuse."""
+    """Telugu safety tips — /safety page + welcome message లో reuse."""
     return [
-        {"icon": "💰", "title": "Advance money eppudu vaddu",
-         "telugu": "Registration fee / visa / hospital / train ticket ani evaru adigina — 100% scam. Ventane report cheyyandi: "
-                   "mana team 24h lo action teesukuntundi."},
-        {"icon": "📸", "title": "Photo eppudu verify cheyyandi",
-         "telugu": "Matrimony profile lo photos vere vaalla vi kooda undochu. WhatsApp video call (2 nimushalu) chesi confirm cheyyandi."},
-        {"icon": "🏠", "title": "Modati kalthi public place lo",
-         "telugu": "Pellichoopulu/temple/hotel lobby — intlo kaadu, okkari tho kaadu. Inti peddavallani teesukondi."},
-        {"icon": "📱", "title": "Number/OTP evariki ivvakandi",
-         "telugu": "Mana site lo number interest accept ayyaka matrame share avutundi. OTP ani evaru adigina — ivvakandi."},
-        {"icon": "📄", "title": "Certificates chusi confirm cheyyandi",
-         "telugu": "Age/ID/education certificates original chusi, parents tho kalisi matrame final cheyyandi."},
-        {"icon": "🚫", "title": "Chatting ledu — spam undadu",
-         "telugu": "Mana site lo chatting ledu. Interest accept aithe — direct ga meeru matladukovachu (manam middle lo undamu)."},
+        {"icon": "💰", "title": "Advance money ఎప్పుడు వద్దు",
+         "telugu": "Registration fee / visa / hospital / train ticket అని ఎవరు adigina — 100% scam. Ventane report చెయ్యండి: "
+                   "మన team 24h లో action teesukuntundi."},
+        {"icon": "📸", "title": "Photo ఎప్పుడు verify చెయ్యండి",
+         "telugu": "Matrimony profile లో photos vere వాళ్ల vi కూడా undochu. WhatsApp video call (2 నిమిషాలు) చేసి confirm చెయ్యండి."},
+        {"icon": "🏠", "title": "మొదటి kalthi public place లో",
+         "telugu": "Pellichoopulu/temple/hotel lobby — ఇంట్లో కాదు, okkari తో కాదు. Inti peddavallani teesukondi."},
+        {"icon": "📱", "title": "Number/OTP ఎవరికీ ivvakandi",
+         "telugu": "మన site లో number interest accept అయ్యాక మాత్రమే share అవుతుంది. OTP అని ఎవరు adigina — ivvakandi."},
+        {"icon": "📄", "title": "Certificates chusi confirm చెయ్యండి",
+         "telugu": "Age/ID/education certificates original chusi, parents తో కలిసి మాత్రమే final చెయ్యండి."},
+        {"icon": "🚫", "title": "Chatting లేదు — spam ఉండదు",
+         "telugu": "మన site లో chatting లేదు. Interest accept అయితే — direct గా మీరు matladukovachu (మనం middle లో undamu)."},
     ]
 
 
 def report_ack_text(target_name: str = "profile") -> str:
     return ("🙏 Report andinai ki dhanyavadalu!\n"
-            "Mana safety team 24 hours lo chusi action teesukuntundi.\n"
-            "🔒 Mee peru report lo kanipinchadu — privacy 100%% protected.\n"
-            "⚠️ Ee madhya aa profile nunchi money adigite ventane screenshots pampandi.")
+            "మన safety team 24 hours లో chusi action teesukuntundi.\n"
+            "🔒 మీ పేరు report లో కనిపించదు — privacy 100%% protected.\n"
+            "⚠️ ఈ madhya aa profile నుంచి money అడిగితే వెంటనే screenshots పంపండి.")

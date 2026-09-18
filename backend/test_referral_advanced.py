@@ -6,7 +6,7 @@ Run:  /tmp/venv/bin/python test_referral_advanced.py   (backend/ cwd nunchi)
 Cover:
   1. Code engine (short code LAK42, alias, link, uniqueness, tier)
   2. Attach (validate / self-referral block / same-phone ALLOWED+flag / already-referred / referee bonus)
-  3. Commission math (₹29/99/199/299/499 → ₹50 first; repeat 10% cap ₹100; tier extra; <₹29 → 0)
+  3. Commission math WAVE 25 (→ ₹50 first ONLY; repeat ₹0; tier extra ledu; <₹29 → 0)
   4. Payment processing (wallet, ledger, tier upgrade, milestone AUTO bonus, daily/lifetime caps)
   5. Refund clawback
   6. Payouts (min ₹100, wallet check, UPI/bank validation, duplicate pending, approve needs UTR, reject refund)
@@ -77,7 +77,7 @@ _fam = R.attach_referral(_same_phone_user, me["referral_code"], users)
 check("Same phone ALLOWED (block ledu) + review flag", _fam["ok"] is True
       and any(f.startswith("same_phone_join") for f in _fam.get("flags", [])), _fam)
 check("Same phone family ki kooda +1 credit", _same_phone_user["credits"] == 4)
-check("Same phone note Telugu", "parvaledu" in _fam.get("note_telugu", "") or _fam.get("note_telugu") == "")
+check("Same phone note Telugu", "పర్వాలేదు" in _fam.get("note_telugu", "") or _fam.get("note_telugu") == "")
 _f2 = {"tsap_id": "TSAP-F-2025-8888", "phone": me["phone"], "credits": 3, "full_name": "Family Two"}
 _f3 = {"tsap_id": "TSAP-F-2025-9999", "phone": me["phone"], "credits": 3, "full_name": "Family Three"}
 users.extend([_f2, _f3])
@@ -85,17 +85,16 @@ R.attach_referral(_f2, me["referral_code"], users)
 _r3 = R.attach_referral(_f3, me["referral_code"], users)
 check("3+ same-phone joins → multi_account_review flag (block ledu)", _r3["ok"] is True
       and any("multi_account_review" in f for f in R.stats_of(me)["flags"]), R.stats_of(me)["flags"][-3:])
-check("Terms lo 'conditions levu' line", "conditions levu" in R.referral_terms_telugu()["no_conditions_telugu"].lower()
-      or "Evvaru enni aina" in R.referral_terms_telugu()["no_conditions_telugu"])
+check("Terms lo 'conditions levu' line", "ఎవ్వరు ఎన్ని అయినా" in R.referral_terms_telugu()["no_conditions_telugu"])
 check("Terms: okate phone lo kooda allowed ani cheppindi",
-      any("okate phone" in r.lower() or "Okate phone" in r for r in R.referral_terms_telugu()["rules_telugu"]))
+any("ఒకటే phone" in r for r in R.referral_terms_telugu()["rules_telugu"]))
 check("Daily/lifetime caps SOFT (block undi kaadu)",
       R.DAILY_PAYING_SOFT_CAP >= 50 and R.LIFETIME_SOFT_CAP >= 500)
 check("Validate endpoint message lo peru + credit", "Ravi Kumar" in R.validate_referral(me["referral_code"], users)["message_telugu"])
 
 print("=== 2b. NOTIFICATION LOOP (WhatsApp texts) ===")
 jt = R.referrer_join_text(me, friend)
-check("Join message: referrer peru + friend peru", "Ravi garu" in jt and "Sita" in jt)
+check("Join message: referrer peru + friend peru", "Ravi గారు" in jt and "Sita" in jt)
 check("Join message: ₹50 + code + link", "₹50" in jt and me["referral_code"] in jt and "manavivaha.in/r/" in jt)
 ct = R.referrer_commission_text(me, friend, {"commission": 50, "tier": "BRONZE", "plan_amount": 99})
 check("Commission message: ₹ amount + friend paying + tier",
@@ -110,13 +109,12 @@ check("First ₹29 → ₹50 (andiiki)", R.calculate_commission("USER", 29, True
 check("First ₹99 → ₹50", R.calculate_commission("USER", 99, True) == 50)
 check("First ₹199 → ₹50", R.calculate_commission("USER", 199, True) == 50)
 check("First ₹499 → ₹50", R.calculate_commission("USER", 499, True) == 50)
-check("Repeat ₹99 → 10% = ₹10", R.calculate_commission("USER", 99, False) == 10)
-check("Repeat ₹499 → 10% = ₹50", R.calculate_commission("USER", 499, False) == 50)
-check("Repeat cap ₹100 (₹2999 → 100)", R.calculate_commission("BUREAU", 2999, False) == 100, R.calculate_commission("BUREAU", 2999, False))
+check("Repeat ₹99 → ₹0 (flat-50-only)", R.calculate_commission("USER", 99, False) == 0)
+check("Repeat ₹499 → ₹0 (plan tho sambandham ledu)", R.calculate_commission("USER", 499, False) == 0)
+check("Repeat BUREAU ₹2999 → ₹0", R.calculate_commission("BUREAU", 2999, False) == 0)
 check("₹10 payment → ₹0 (min ₹29)", R.calculate_commission("USER", 10, True) == 0)
-check("GOLD tier +10% extra (₹50 → ₹55)", R.calculate_commission("USER", 99, True, "GOLD") == 55,
-      R.calculate_commission("USER", 99, True, "GOLD"))
-check("ELITE tier +20% extra (₹10 → ₹12)", R.calculate_commission("USER", 99, False, "ELITE") == 12)
+check("GOLD tier kuda flat ₹50 (extra ledu)", R.calculate_commission("USER", 99, True, "GOLD") == 50)
+check("ELITE tier repeat → ₹0", R.calculate_commission("USER", 99, False, "ELITE") == 0)
 
 print("=== 4. PAYMENT → WALLET + LEDGER + MILESTONES ===")
 users = fresh_users()
@@ -127,31 +125,35 @@ r1 = R.process_referral_payment(friend, me["referral_code"], 99, users, payment_
 check("₹99 first payment → ₹50 wallet", r1["success"] and r1["commission"] == 50 and r1["wallet"] == 50, r1.get("wallet"))
 check("First-payment flag + ledger entry", r1["first_payment"] and any(l["type"] == "commission" for l in me["referral_stats"]["ledger"]))
 check("paid_count +1 + tier BRONZE", me["referral_stats"]["paid_count"] == 1 and r1["tier"] == "BRONZE")
-check("Repeat payment → 10% (₹199 → ₹20)", R.process_referral_payment(friend, me["referral_code"], 199, users)["commission"] == 20)
-check("Wallet accumulate (50 + 20)", round(R.stats_of(me)["wallet"], 2) == 70, R.stats_of(me)["wallet"])
-check("Bonus message lo tier + next milestone", "BRONZE" in r1["message_telugu"] and "Inka" in r1["message_telugu"], r1["message_telugu"][-90:])
+check("Repeat payment → no commission", R.process_referral_payment(friend, me["referral_code"], 199, users).get("reason") == "no_repeat_commission")
+check("Wallet 50 ye (repeat add kadu)", round(R.stats_of(me)["wallet"], 2) == 50, R.stats_of(me)["wallet"])
+check("Bonus message lo tier + next milestone", "BRONZE" in r1["message_telugu"] and "ఇంకా" in r1["message_telugu"], r1["message_telugu"][-90:])
 
-# milestone: 3rd paying referral → SILVER + 1 credit (auto)
+# milestone: 3rd paying referral → SILVER badge (repeat pays count kadu — WAVE 25)
 f3 = {"tsap_id": "TSAP-F-2025-3333", "full_name": "Third", "phone": "9848033333", "credits": 3}
 users.append(f3)
 R.attach_referral(f3, me["referral_code"], users)
 r3 = R.process_referral_payment(f3, me["referral_code"], 99, users)
-check("3rd paying referral → SILVER tier", r3["tier"] == "SILVER", r3["tier"])
-check("Milestone 3 → 1 credit AUTO add (purathana bug fix)", r3["bonus_credits"] == 1
-      and 3 in me["referral_stats"]["milestones_hit"] and me["credits"] == 4, me["credits"])
-check("SILVER extra 5% agla commission ki (₹10 → ₹11)", R.calculate_commission("USER", 99, False, "SILVER") == 11,
-      R.calculate_commission("USER", 99, False, "SILVER"))
+check("2nd paying referral → inka BRONZE", r3["tier"] == "BRONZE", r3["tier"])
+f4 = {"tsap_id": "TSAP-F-2025-4444", "full_name": "Fourth", "phone": "9848044444", "credits": 3}
+users.append(f4)
+R.attach_referral(f4, me["referral_code"], users)
+r4 = R.process_referral_payment(f4, me["referral_code"], 99, users)
+check("3rd paying referral → SILVER tier", r4["tier"] == "SILVER", r4["tier"])
+check("Milestone 3 → badge recognition (money/credits ledu)", r4["bonus_credits"] == 0
+      and 3 in me["referral_stats"]["milestones_hit"] and me["credits"] == 3, me["credits"])
+check("SILVER tier repeat → ₹0 (extra ledu)", R.calculate_commission("USER", 99, False, "SILVER") == 0)
 
-# 10 pays → GOLD cash bonus
-users.append({"tsap_id": "TSAP-X", "full_name": "X", "phone": "9848099999", "credits": 0})
-x = users[-1]
-R.attach_referral(x, me["referral_code"], users)
-for _ in range(7):
-    R.process_referral_payment(x, me["referral_code"], 99, users)
+# 10 distinct paying referrals → GOLD badge (repeat pays count kadu — WAVE 25)
+for i in range(7):
+    u = {"tsap_id": "TSAP-X-%d" % i, "full_name": "X%d" % i, "phone": "98480999%02d" % i, "credits": 0}
+    users.append(u)
+    R.attach_referral(u, me["referral_code"], users)
+    R.process_referral_payment(u, me["referral_code"], 99, users)
 st = R.stats_of(me)
 check("10 pays → GOLD tier", st["tier"] == "GOLD", (st["paid_count"], st["tier"]))
-check("GOLD milestone cash ₹250 auto wallet lo", 10 in st["milestones_hit"]
-      and any(l["type"] == "milestone" and l["amount"] == 250 for l in st["ledger"]), st["milestones_hit"])
+check("GOLD milestone = badge (cash ledu)", 10 in st["milestones_hit"]
+      and not any(l["type"] == "milestone" for l in st["ledger"]), st["milestones_hit"])
 check("Next milestone PLATINUM (25)", R.next_milestone(st["paid_count"])["paid"] == 25)
 check("Referrer not found → pending message", R.process_referral_payment(friend, "NOSUCH", 99, users)["reason"] == "referrer_not_found")
 check("₹10 payment reject (too small)", R.process_referral_payment(friend, me["referral_code"], 10, users)["reason"] == "amount_too_small")
@@ -164,7 +166,7 @@ check("Wallet thaggindi + reversal ledger entry",
       round(R.stats_of(me)["wallet"], 2) == round(before - rev["reversed"], 2)
       and any(l["type"] == "reversal" for l in R.stats_of(me)["ledger"]))
 rev2 = R.reverse_referral_payment(friend, 199, users, reason="second_refund")
-check("Repeat payment kooda reverse avutundi", rev2.get("success") and rev2.get("reversed") == 20, rev2)
+check("Repeat commission ledu kabatti reverse ledu", not rev2.get("success"), rev2)
 check("Anni reverses ayyaka malli reverse ledu", not R.reverse_referral_payment(friend, 99, users).get("success"))
 
 print("=== 6. PAYOUTS ===")
@@ -186,7 +188,7 @@ check("Duplicate pending reject", R.payout_request(me, 100, "upi", "ravi@okhdfcb
 pid = p_ok["request"]["id"]
 q = R.payout_queue("requested")
 check("Admin queue lo request kanipisthundi", q["count"] >= 1 and q["total_amount"] >= 150, q["total_amount"])
-check("UTR lekunda approve reject", R.payout_action(pid, "approve", users)["reason"] == "utr_required")
+check("UTR lekunda approve reject", R.payout_action(pid, "approve", users)["reason"] == "utr_invalid")
 paid = R.payout_action(pid, "approve", users, utr="UTRTEST123")
 check("UTR tho approve → status paid", paid["ok"] and paid["request"]["status"] == "paid" and paid["request"]["utr"] == "UTRTEST123")
 check("paid_out + pending clear", R.stats_of(me)["paid_out"] == 150.0 and R.stats_of(me)["pending_payout"] == 0.0)
@@ -202,9 +204,9 @@ print("=== 7. DASHBOARD + SHARE KIT + POSTER ===")
 d = R.referral_dashboard(me, users)
 check("Dashboard stats shape (clicks/registrations/paid/wallet)",
       all(k in d["stats"] for k in ("clicks", "registrations", "paid_count", "wallet", "conversion_pct", "lifetime_earned")))
-check("Commission rules Telugu (first ₹50 / repeat 10% / tier extra)",
-      "50" in d["commission_rules"]["first_payment"] and "10%" in d["commission_rules"]["repeat_payment"]
-      and "extra" in d["commission_rules"]["tier_extra"])
+check("Commission rules Telugu (first ₹50 / repeat ₹0 / badges)",
+      "50" in d["commission_rules"]["first_payment"] and "0" in d["commission_rules"]["repeat_payment"]
+      and "badges" in d["commission_rules"]["tier_extra"])
 check("Tiermilestones + next milestone dashboard lo", len(d["milestones"]) == 4 and d["next_milestone"] is not None)
 check("Ledger + payouts dashboard lo", len(d["ledger"]) >= 1 and len(d["payouts"]) >= 1)
 check("Recent registrations (paid flag)", any(r["paid"] for r in d["recent_registrations"]))
@@ -240,7 +242,7 @@ finally:
 
 print("=== 8. LEADERBOARD ===")
 lb = R.get_leaderboard(users, limit=5)
-check("Leaderboard full_name use (pata 'Unknown' bug fix)", lb and lb[0]["name"] == "Ravi Kumar", lb[0] if lb else None)
+check("Leaderboard first-name only (privacy — surname hidden)", lb and lb[0]["name"] == "Ravi", lb[0] if lb else None)
 check("Rank + tier + icon unnai", lb[0]["rank"] == 1 and lb[0]["tier"] in ("GOLD", "SILVER", "BRONZE") and lb[0]["icon"])
 check("Earned > 0", lb[0]["earned"] > 0, lb[0]["earned"])
 check("Week period filter pani chestundi", isinstance(R.get_leaderboard(users, period="week"), list))
@@ -310,7 +312,7 @@ with TestClient(main.app) as c:
           and (rj["referral"]["joined_with"]["notify"].get("manual_text")
                or rj["referral"]["joined_with"]["notify"].get("referrer_notified")))
     check("Kotha user welcome lo referral line (friend peru + sontha code)",
-          "Mee friend" in str(rj.get("welcome_status", {}).get("manual_text", ""))
+          "మీ friend" in str(rj.get("welcome_status", {}).get("manual_text", ""))
           and rj["referral"]["my_code"] in str(rj.get("welcome_status", {}).get("manual_text", "")))
     check("Register response: poster urls (square + status)",
           rj["referral"]["poster_url"].endswith("/poster.png")
@@ -391,13 +393,13 @@ reg_pg = read("frontend/src/app/register/page.tsx")
 sitemap = read("frontend/src/app/sitemap.ts")
 
 check("/referral page live API use chestundi (/api/referral/{id})", "/api/referral/${id}" in dash_pg or "/api/referral/" in dash_pg)
-check("/referral lo ₹50 + 10% + tier copy", "₹50" in dash_pg and "10%" in dash_pg and "BRONZE" in dash_pg or "tiers" in dash_pg)
+check("/referral lo flat-₹50 copy (10% ledu)", "₹50" in dash_pg and "10%" not in dash_pg and ("BRONZE" in dash_pg or "tiers" in dash_pg))
 check("/referral lo purathana ₹20/₹30 ledu (stale copy fix)", "₹20" not in dash_pg and "₹30" not in dash_pg)
 check("/referral lo poster + 5 messages + payout form", "poster.png" in dash_pg and "whatsapp_messages" in dash_pg and "payout" in dash_pg)
 check("/referral lo leaderboard + terms API", "leaderboard" in dash_pg and "/api/referral/terms" in dash_pg)
 check("/r/[code] click ni API ki pampistundi (funnel)", "/api/referral/click/" in land_pg)
-check("/r/[code] invalid code handle + register redirect", "ref=${code}" in land_pg and "dorakaledu" in land_pg)
-check("/referral/register API nunchi code teesukuntundi", "/api/referral/${id}" in code_pg and "poster.png" in code_pg)
+check("/r/[code] invalid code handle + register redirect", "ref=${code}" in land_pg and "దొరకలేదు" in land_pg)
+check("/referral/register partner register API use chestundi", "/api/referral/partner/register" in code_pg and "/api/referral/partner/${" in code_pg)
 check("Admin payouts tab LIVE API (queue + approve/reject)",
       "/api/admin/payouts" in admin_pg and "utr" in admin_pg.lower() and "reject" in admin_pg.lower())
 check("Admin lo PhonePe deep link + copy UPI", "phonepe://pay" in admin_pg and "upi_id" in admin_pg)

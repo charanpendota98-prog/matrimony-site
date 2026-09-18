@@ -10,7 +10,7 @@ Differences vs v1 (`matching_engine.calculate_match_score`):
   3. **Mutual score** — vaallu kooda ninnu ishtapaduthunnara? (iddari prefs match = 8% bonus)
   4. **Trust bonus** — verified (phone/photo/ID) profile ki extra points
   5. **Horoscope** — 10-porutham engine tho kalipi (stars unte)
-  6. **Breakdown + Telugu verdict** — UI lo "enduku ee score?" ani chupinchadaniki
+  6. **Breakdown + Telugu verdict** — UI lo "ఎందుకు ee score?" ani chupinchadaniki
 
 Usage:
     from topmatch import score_match_v2, find_top_matches_v2
@@ -87,12 +87,12 @@ def _age_pref(user: Dict, match: Dict) -> (float, str):
     lo, hi = _num(exp.get("ageMin"), 0), _num(exp.get("ageMax"), 0)
     a = int(match.get("age", 0) or 0)
     if lo and hi and lo <= a <= hi:
-        return 1.0, "mee expectation (%d-%d) lo unnaru" % (int(lo), int(hi))
+        return 1.0, "మీ expectation (%d-%d) లో ఉన్నారు" % (int(lo), int(hi))
     if lo and hi:
         gap = min(abs(a - lo), abs(a - hi))
         if gap <= 2:
-            return 0.75, "expectation ki %d yr dooram lo" % gap
-        return 0.35, "expectation (%d-%d) bayata unnaru" % (int(lo), int(hi))
+            return 0.75, "expectation కి %d yr దూరం లో" % gap
+        return 0.35, "expectation (%d-%d) బయట ఉన్నారు" % (int(lo), int(hi))
     ua = int((user or {}).get("age", 0) or 0)
     diff = abs(a - ua)
     if diff == 0:
@@ -101,7 +101,7 @@ def _age_pref(user: Dict, match: Dict) -> (float, str):
         return 1.0, "%d yr gap — ideal" % diff
     if diff <= 8:
         return 0.7, "%d yr gap — ok" % diff
-    return 0.3, "%d yr gap — pedda difference" % diff
+    return 0.3, "%d yr gap — పెద్ద difference" % diff
 
 
 def _caste_pref(user: Dict, match: Dict) -> (float, str):
@@ -109,12 +109,12 @@ def _caste_pref(user: Dict, match: Dict) -> (float, str):
     same = str(user.get("caste", "")).strip().lower() == str(match.get("caste", "")).strip().lower()
     wants = ("same" in exp) or (not exp) or ("no bar" not in exp and "any" not in exp)
     if same and wants:
-        return 1.0, "same caste — channels/relatives ki easy"
+        return 1.0, "same caste — channels/relatives కి easy"
     if same:
-        return 0.8, "same caste (meeru caste-no-bar annaru)"
+        return 0.8, "same caste (మీరు caste-no-bar అన్నారు)"
     if not wants:
         return 0.7, "veera caste — meeru caste no bar"
-    return 0.35, "veera caste — mee expectation same caste"
+    return 0.35, "veera caste — మీ expectation same caste"
 
 
 def _location_pref(user: Dict, match: Dict) -> (float, str):
@@ -130,7 +130,7 @@ def _location_pref(user: Dict, match: Dict) -> (float, str):
     w1, w2 = str(user.get("work_location", "")).lower(), str(match.get("work_location", "")).lower()
     if w1 and w1 == w2:
         return 0.8, "work location same (%s)" % match.get("work_location")
-    return 0.35, "different state — travel kavali"
+    return 0.35, "different state — travel కావాలి"
 
 
 def _edu_pref(user: Dict, match: Dict) -> (float, str):
@@ -156,7 +156,7 @@ def _job_pref(user: Dict, match: Dict) -> (float, str):
     exp_job = str(((user or {}).get("exp_filters") or {}).get("job", "")).lower()
     a, b = str(user.get("job", "")).lower(), str(match.get("job", "")).lower()
     if exp_job and exp_job and (exp_job in b or b in exp_job):
-        return 1.0, "mee job preference (%s) match" % match.get("job")
+        return 1.0, "మీ job preference (%s) match" % match.get("job")
     if a and a == b:
         return 1.0, "same profession"
     if any(k in b for k in _PREMIUM_JOBS):
@@ -171,10 +171,10 @@ def _salary_pref(user: Dict, match: Dict) -> (float, str):
     if not theirs:
         return 0.5, "salary pettaledu"
     if not mine:
-        return 0.8, "income info ledu (meedi)"
+        return 0.8, "income info లేదు (మీది)"
     ratio = theirs / max(1, mine)
     if ratio >= 1.0:
-        return 1.0, "income mee kanna ekkuva/same"
+        return 1.0, "income మీ కన్నా ఎక్కువ/same"
     if ratio >= 0.8:
         return 0.8, "income close"
     return 0.5, "income mee kanna thakkuva"
@@ -192,11 +192,11 @@ def _height_pref(user: Dict, match: Dict) -> (float, str):
         return 0
     hu, hm = inches(user.get("height")), inches(match.get("height"))
     if not hu or not hm:
-        return 0.6, "height info ledu"
+        return 0.6, "height info లేదు"
     g = str(user.get("gender", ""))
     diff = hm - hu if g == "Bride" else hu - hm   # groom taller = positive
     if 1 <= diff <= 8:
-        return 1.0, "height match bagundi (%d inch)" % diff
+        return 1.0, "height match బాగుంది (%d inch)" % diff
     if diff == 0:
         return 0.8, "same height"
     if -3 <= diff < 0:
@@ -206,16 +206,16 @@ def _height_pref(user: Dict, match: Dict) -> (float, str):
 
 def _horoscope_pref(user: Dict, match: Dict) -> (float, str):
     if not compute_porutham:
-        return 0.5, "porutham engine ledu"
+        return 0.5, "పొరుతం engine లేదు"
     b, g = (user, match) if user.get("gender") == "Bride" else (match, user)
     try:
         r = compute_porutham(b, g)
     except Exception:
         r = {"available": False}
     if not r.get("available"):
-        return 0.5, "star details lekapote porutham neutral (star add cheyyandi)"
+        return 0.5, "star details lekapote పొరుతం neutral (star add చెయ్యండి)"
     sc = float(r.get("score", 0) or 0)
-    return (sc / 10.0), "10-porutham %s/10 — %s" % (sc, str(r.get("verdict", ""))[:40])
+    return (sc / 10.0), "10-పొరుతం %s/10 — %s" % (sc, str(r.get("verdict", ""))[:40])
 
 
 def _family_pref(user: Dict, match: Dict) -> (float, str):
@@ -240,7 +240,7 @@ def _lifestyle_pref(user: Dict, match: Dict) -> (float, str):
     um, mm = str(user.get("marital_status", "")), str(match.get("marital_status", ""))
     if um and um == mm:
         pts += 0.4
-    elif "kaledu" in um.lower() and "kaledu" in mm.lower():
+    elif "కాలేదు" in um.lower() and "కాలేదు" in mm.lower():
         pts += 0.4
     else:
         pts += 0.1; notes.append("marital status different")
@@ -266,7 +266,7 @@ def _trust_score(match: Dict) -> (float, str):
     if level in ("photo", "id"):
         pts += 0.2; notes.append("photo/ID verified")
     if match.get("photo_urls"):
-        pts += 0.1; notes.append("photo undi")
+        pts += 0.1; notes.append("photo ఉంది")
     if boost:
         notes.append("boosted (active user)")
     return min(1.0, pts), ", ".join(notes) or "verification pending"
@@ -285,7 +285,7 @@ GRADE_TELUGU = {"perfect": "అద్భుతం (perfect)", "best": "చాల
 
 
 def _grade(score: int) -> (str, str):
-    """Grade + **Telugu-first** verdict (mass users Telugu lone chaduvutaru)."""
+    """Grade + **Telugu-first** verdict (mass users Telugu లోనే chaduvutaru)."""
     if score >= 85:
         return "perfect", "⭐ అద్భుత పొంతన — ఇప్పుడే interest పంపండి! (perfect match)"
     if score >= 75:
@@ -322,9 +322,9 @@ def score_match_v2(user: Dict, match: Dict, include_mutual: bool = True) -> Dict
             rev = score_match_v2(match, user, include_mutual=False)
             rscore = int(rev["score"])
             mutual = {"their_score": rscore, "both_like": rscore >= 65 and score >= 65,
-                      "note": ("💞 Mutual match — iddariki score 65+ (chala rare, ventane pampandi)"
+                      "note": ("💞 Mutual match — iddariki score 65+ (చాలా rare, వెంటనే పంపండి)"
                                if (rscore >= 65 and score >= 65) else
-                               "vaalla side nunchi score %d" % rscore)}
+                               "వాళ్ల side నుంచి score %d" % rscore)}
             if mutual["both_like"]:
                 bonus = round(total * 0.08, 1)
                 total += bonus
@@ -332,7 +332,7 @@ def score_match_v2(user: Dict, match: Dict, include_mutual: bool = True) -> Dict
                 grade, verdict = _grade(score)
                 breakdown.append({"key": "mutual", "label": "Mutual interest bonus", "telugu": "పరస్పరం",
                                   "points": bonus, "max": round(bonus), "ratio": 1.0,
-                                  "note": "iddari expectations kooda match — 8% bonus"})
+                                  "note": "iddari expectations కూడా match — 8% bonus"})
         except Exception:
             mutual = {}
 
@@ -344,10 +344,10 @@ def score_match_v2(user: Dict, match: Dict, include_mutual: bool = True) -> Dict
         "breakdown": breakdown, "mutual": mutual,
         "strengths": ["%s — %s" % (b["label"], b["note"]) for b in top],
         "weak_points": ["%s — %s" % (b["label"], b["note"]) for b in weak if b["ratio"] < 0.6],
-        "explain_telugu": "Ee %d score ela vachindi: %s" % (
+        "explain_telugu": "ఈ %d score ఎలా వచ్చింది: %s" % (
             score, ", ".join("%s %s/%s" % (b["label"], b["points"], b["max"]) for b in top)),
-        "how_to_improve": ("Profile lo star + rasi, photo, verification add cheste score penchochu"
-                           if score < 80 else "Mee profile already strong — interest pampandi!"),
+        "how_to_improve": ("Profile లో star + రాశి, photo, verification add cheste score penchochu"
+                           if score < 80 else "మీ profile already strong — interest పంపండి!"),
     }
 
 

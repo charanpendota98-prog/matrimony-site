@@ -119,14 +119,14 @@ def test_interest():
         check("Owner message lo 'MANA VIVAHA' + 'INTEREST'", "MANA VIVAHA" in msg and "INTEREST" in msg)
         check("Owner message lo requester profile details", "Gothram" in msg or "🎓" in msg)
         check("Owner message lo Accept/Decline explain", "Accept" in msg and "Decline" in msg)
-        check("Owner message lo 'Chatting ledu' line", "Chatting ledu" in msg)
+        check("Owner message lo 'Chatting ledu' line", "Chatting లేదు" in msg)
         check("WhatsApp queue lo owner item (priority 0)", r["whatsapp"]["owner_queued"] is True)
         check("Anti-ban gap line chupisthundi", "random gap" in r["whatsapp"]["anti_ban"])
 
         dup = c.post("/api/interest/send", json={"from_id": groom, "to_id": bride})
         check("Duplicate request block", dup.status_code == 400, str(dup.status_code))
         own = c.post("/api/interest/send", json={"from_id": groom, "to_id": groom}).json()
-        check("Own profile block", "mee profile" in own.get("message_telugu", "").lower())
+        check("Own profile block", "మీ profile" in own.get("message_telugu", ""))
         bad = c.post("/api/interest/send", json={"from_id": groom, "to_id": "TSAP-X-0000-0000"})
         check("Fake ID → 404", bad.status_code == 404)
 
@@ -188,9 +188,9 @@ def test_porutham_views_addons():
         good = compute_porutham({"star": "Rohini"}, {"star": "Mrigasira"})
         check("Porutham: good pair >= 7/10", good["score"] >= 7, str(good["score"]))
         rajju = compute_porutham({"star": "Ashwini"}, {"star": "Ashwini"})
-        check("Rajju dosham detect (same rajju)", "Rajju Porutham" in rajju["doshas"], str(rajju["doshas"]))
+        check("Rajju dosham detect (same rajju)", "Rajju పొరుతం" in rajju["doshas"], str(rajju["doshas"]))
         vedha = compute_porutham({"star": "Ashwini"}, {"star": "Jyeshtha"})
-        check("Vedha dosham detect", "Vedha Porutham" in vedha["doshas"], str(vedha["doshas"]))
+        check("Vedha dosham detect", "Vedha పొరుతం" in vedha["doshas"], str(vedha["doshas"]))
         nodata = compute_porutham({}, {})
         check("Star ledu aithe graceful message", nodata["available"] is False and "Star" in nodata["reason"])
 

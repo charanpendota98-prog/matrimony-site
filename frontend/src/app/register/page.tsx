@@ -14,40 +14,43 @@
  *   • 📸 Photo phone lo ne compress (1200px) → upload → fast on 2G/3G too
  *   • 🎤 Voice input (about_myself) — supported browsers lo
  */
-import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { CHANNEL_STATS } from "@/lib/channels";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import Reveal from "@/components/Reveal";
 import { SITE_CONFIG } from "@/lib/site-config";
 import { authHeaders } from "@/lib/api";
+import { Duo, duo } from "@/lib/duo";
+import { useLang } from "@/lib/lang";
+import PhotoFlow from "@/components/PhotoFlow";
 import {
-  BLOOD_GROUPS, BODY_TYPES, CASTES, COMPLEXIONS, DISTRICTS_BY_STATE, EDUCATIONS, FAMILY_STATUSES,
+  BLOOD_GROUPS, BODY_TYPES, CASTES, CHILDREN_OPTIONS, COMPLEXIONS, DISTRICTS_BY_STATE, EDUCATIONS, FAMILY_STATUSES,
   FAMILY_TYPES, FAMILY_VALUES, HEIGHTS, JOBS, MARITAL_STATUSES, MOTHER_TONGUES, NAKSHATRAS, NAK_TO_RASI,
   OCCUPATIONS, PHYSICAL_STATUS, RASIS, RELIGIONS, SALARIES, WEIGHTS, WORK_TYPES,
-  ageFromDob, compressImage, maxDobFor18,
+  ageFromDob, compressImage, heightLabel, maxDobFor18,
 } from "@/lib/telugu-data";
 
 const DRAFT_KEY = "tsap_reg_draft_v3";
 const STEPS = [
-  { n: 1, label: "Basic", icon: "🙋", hint: "Mee basic details — 30 seconds" },
-  { n: 2, label: "Community", icon: "💍", hint: "Caste + star details — card ki kavali" },
-  { n: 3, label: "Education", icon: "🎓", hint: "Chaduvu + udyogam" },
-  { n: 4, label: "Family", icon: "👨‍👩‍👧", hint: "Family + contact" },
-  { n: 5, label: "Photo", icon: "📸", hint: "Photo + finish (chi-vi details)" },
+  { n: 1, label: "Basic", labelTe: "ప్రాథమిక", icon: "🙋", hint: "మీ basic details — 30 seconds", hintEn: "Your basic details — 30 seconds" },
+  { n: 2, label: "Community", labelTe: "సామాజిక", icon: "💍", hint: "Caste + star details — card కి కావాలి", hintEn: "Caste + star details — needed for card" },
+  { n: 3, label: "Education", labelTe: "విద్య", icon: "🎓", hint: "చదువు + ఉద్యోగం", hintEn: "Education + job" },
+  { n: 4, label: "Family", labelTe: "కుటుంబం", icon: "👨‍👩‍👧", hint: "Family + contact", hintEn: "Family + contact" },
+  { n: 5, label: "Photo", labelTe: "ఫోటో", icon: "📸", hint: "Photo + finish (చివరి details)", hintEn: "Photo + finish (settlement details)" },
 ];
 
 const DEFAULT_FORM: Record<string, any> = {
   gender: "", full_name: "", dob: "", birth_time: "", age: "", height: "", weight: "",
-  marital_status: "Pelli Kaledu", religion: "Hindu", mother_tongue: "Telugu",
+  marital_status: "Pelli Kaledu", children: "", religion: "Hindu", mother_tongue: "Telugu",
   caste: "", sub_caste: "", gothram: "", star: "", rasi: "", moola_nakshatram: "No", dosham: "No",
   education: "", education_detail: "", college: "", job: "", company: "", salary: "",
   experience: "", work_type: "", work_location: "",
   father_name: "", father_occupation: "", mother_name: "", mother_occupation: "",
   brothers: "0", brothers_married: "0", sisters: "0", sisters_married: "0",
   family_type: "Nuclear", family_status: "Middle Class", family_values: "Traditional",
-  native_place: "", state: "TS", district: "", mandal: "", current_city: "", pincode: "",
-  phone: "", email: "", photo_private: true, about_myself: "",
+  native_place: "", state: "TS", district: "", mandal: "", current_city: "", country: "India", pincode: "",
+  phone: "", email: "", password: "", photo_private: true, about_myself: "",
   expectations: "", exp_age_min: "", exp_age_max: "", exp_job: "", exp_location: "", exp_caste: "",
   physical_status: "Normal", body_type: "Average", complexion: "Fair", blood_group: "",
   referral_code: "", consent: false,
@@ -127,6 +130,61 @@ function TextField({
   );
 }
 
+/* 🌊 WAVE 16 — pro pills + dropdown (screenshot-standard, Duo bilingual) */
+function PillGroup({
+  label, options, value, onChange, required, hint,
+}: {
+  label: React.ReactNode; options: { v: string; en: string; te: string }[];
+  value: string; onChange: (v: string) => void; required?: boolean; hint?: string;
+}) {
+  return (
+    <div>
+      <div className="text-[15px] font-extrabold text-ink">
+        {label} {required ? <span className="req-star">*</span> : null}
+      </div>
+      {hint && <div className="hint">{hint}</div>}
+      <div className="mt-2 grid grid-cols-2 gap-2.5" role="radiogroup" aria-label={typeof label === "string" ? label : "options"}>
+        {options.map((o) => {
+          const on = value === o.v;
+          return (
+            <button key={o.v} type="button" role="radio" aria-checked={on} onClick={() => onChange(o.v)}
+              className={`rounded-full border-[1.5px] px-4 py-3 text-[14px] transition-all active:scale-[0.98] ${
+                on ? "maroon-gradient text-white border-transparent shadow-brand font-bold"
+                   : "border-gray-300 bg-white text-ink font-medium hover:border-maroon/50"}`}>
+              <div>{o.en}</div>
+              <div className={`text-[11px] font-semibold ${on ? "text-white/85" : "text-gray-500"} telugu`}>{o.te}</div>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function SelectField({
+  label, value, onChange, required, hint, placeholder, children,
+}: {
+  label: React.ReactNode; value: string; onChange: (v: string) => void;
+  required?: boolean; hint?: string; placeholder?: string; children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <div className="text-[15px] font-extrabold text-ink">
+        {label} {required ? <span className="req-star">*</span> : null}
+      </div>
+      {hint && <div className="hint">{hint}</div>}
+      <div className="relative mt-2">
+        <select value={value} onChange={(e) => onChange(e.target.value)}
+          className={`input-mobile appearance-none pr-10 font-medium ${value ? "text-ink" : "text-gray-400"}`}>
+          <option value="">{placeholder || "Select…"}</option>
+          {children}
+        </select>
+        <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-maroon text-lg">⌄</span>
+      </div>
+    </div>
+  );
+}
+
 function Stepper({ label, value, onChange, max = 10 }: { label: string; value: string; onChange: (v: string) => void; max?: number }) {
   const n = parseInt(value || "0", 10) || 0;
   return (
@@ -160,6 +218,9 @@ function Toggle({ label, sub, value, onChange }: { label: string; sub?: string; 
 
 /* ---------------------------------------------------------------- main */
 function Wizard() {
+  const { lang } = useLang();
+  const te = lang === "te";
+  const T = <V,>(a: V, b: V): V => (te ? a : b);
   const params = useSearchParams();
   const [step, setStep] = useState(1);
   const [f, setF] = useState<Record<string, any>>(DEFAULT_FORM);
@@ -174,9 +235,11 @@ function Wizard() {
   const [photoInfo, setPhotoInfo] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [otpCode, setOtpCode] = useState("");
+  const [showPw, setShowPw] = useState(false);
   const [otpMsg, setOtpMsg] = useState("");
   const [phoneOk, setPhoneOk] = useState(false);
   const [refLocked, setRefLocked] = useState("");
+  const [refInfo, setRefInfo] = useState<any>(null);
   const [result, setResult] = useState<any>(null);
   // 🎁 WAVE 10 — "register avvagane WhatsApp ki 3 profiles + caste channel links"
   const [packResend, setPackResend] = useState<{ busy: boolean; msg: string }>({ busy: false, msg: "" });
@@ -185,7 +248,22 @@ function Wizard() {
   const topRef = useRef<HTMLDivElement>(null);
   const voiceRef = useRef<any>(null);
 
-  const set = (k: string, v: any) => {
+    // 🌊 WAVE 14 — religion → castes (A–Z) backend nunchi (fallback: static CASTES)
+  const [casteOpts, setCasteOpts] = useState<string[]>(CASTES);
+  useEffect(() => {
+    let live = true;
+    fetch(`/api/meta/castes?religion=${encodeURIComponent(f.religion || "Hindu")}`)
+      .then((r) => r.json()).then((d) => {
+        if (live && d?.success && Array.isArray(d.castes) && d.castes.length) {
+          setCasteOpts(d.castes);
+          if (f.caste && !d.castes.includes(f.caste)) set("caste", "");
+        }
+      }).catch(() => setCasteOpts(CASTES));
+    return () => { live = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [f.religion]);
+
+const set = (k: string, v: any) => {
     setF((prev) => ({ ...prev, [k]: v }));
     setErrs([]);
   };
@@ -195,14 +273,46 @@ function Wizard() {
     fetch("/api/free-plan").then((r) => r.json()).then(setClarity).catch(() => { });
   }, []);
 
-  /* ---------- referral auto-lock (?ref=LAK42) ---------- */
+  /* ---------- 🤝🌊 WAVE 20 — smart referral: ?ref → backup restore → click → validate ---------- */
   useEffect(() => {
-    const ref = (params?.get("ref") || "").trim().toUpperCase();
-    if (ref) {
-      setRefLocked(ref);
-      setF((prev) => ({ ...prev, referral_code: ref }));
-    }
+    let ref = (params?.get("ref") || "").trim().toUpperCase();
+    try {
+      // backup: /r/ nunchi vachi malli vachina — code povatledu (30 days memory)
+      if (!ref) ref = (localStorage.getItem("tsap_ref_from_link") || "").trim().toUpperCase();
+      else localStorage.setItem("tsap_ref_from_link", ref);
+    } catch { /* ignore */ }
+    if (!ref) return;
+    setRefLocked(ref);
+    setF((prev) => ({ ...prev, referral_code: ref }));
+    // click funnel: /r/ already track chesunte malli kaadu (session dedupe)
+    try {
+      if (sessionStorage.getItem("tsap_click_fired") === ref) {
+        fetch(`/api/referral/validate/${encodeURIComponent(ref)}`).then((r) => r.json())
+          .then((d) => { if (d?.ok) setRefInfo(d); }).catch(() => { });
+        return;
+      }
+      sessionStorage.setItem("tsap_click_fired", ref);
+    } catch { /* ignore */ }
+    fetch(`/api/referral/click/${encodeURIComponent(ref)}?source=register_direct`, { method: "POST" })
+      .then((r) => r.json())
+      .then((d) => {
+        if (d?.valid_code && d?.referrer_name) setRefInfo({ ok: true, referrer_name: d.referrer_name, bonus_credits: d.bonus_credits });
+      }).catch(() => { });
   }, [params]);
+
+  // manual code type → live validate (debounced)
+  useEffect(() => {
+    const code = (f.referral_code || "").trim().toUpperCase();
+    if (!code || code === refLocked) return;
+    const t = setTimeout(() => {
+      fetch(`/api/referral/validate/${encodeURIComponent(code)}`).then((r) => r.json())
+        .then((d) => {
+          if (d?.ok) { setRefLocked(code); setRefInfo(d); try { localStorage.setItem("tsap_ref_from_link", code); } catch { /* ignore */ } }
+          else setRefInfo({ ok: false, message_telugu: d?.message_telugu });
+        }).catch(() => { });
+    }, 600);
+    return () => clearTimeout(t);
+  }, [f.referral_code]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* ---------- draft resume ---------- */
   useEffect(() => {
@@ -264,28 +374,34 @@ function Wizard() {
   const validate = (s: number): string[] => {
     const e: string[] = [];
     if (s === 1) {
-      if (!f.gender) e.push("Bride / Groom select cheyyandi");
-      if (!String(f.full_name).trim()) e.push("Full name type cheyyandi");
-      if (!f.dob) e.push("Date of birth select cheyyandi");
-      else if (!ageFromDob(f.dob)) e.push("DOB correct ga ledu");
-      if (!f.height) e.push("Height select cheyyandi");
-      if (!f.marital_status) e.push("Marital status select cheyyandi");
+      if (!f.gender) e.push(T("Bride / Groom select చెయ్యండి", "Select Bride / Groom"));
+      if (!String(f.full_name).trim()) e.push(T("Full name type చెయ్యండి", "Type your full name"));
+      if (!f.dob) e.push(T("Date of birth select చెయ్యండి", "Select date of birth"));
+      else if (!ageFromDob(f.dob)) e.push(T("DOB correct గా లేదు", "DOB is not valid"));
+      if (!f.height) e.push(T("Height select చెయ్యండి", "Select height"));
+      if (!f.marital_status) e.push(T("Marital status select చెయ్యండి", "Select marital status"));
+      if (f.marital_status && f.marital_status !== "Pelli Kaledu" && !f.children)
+        e.push(T("Number of children select చెయ్యండి (None అయినా సరే)", "Select number of children (even if None)"));
     }
     if (s === 2) {
-      if (!f.caste) e.push("Caste select cheyyandi (channels ki kavali)");
+      if (!f.caste) e.push(T("Caste select చెయ్యండి (channels కి కావాలి)", "Select caste (needed for channels)"));
     }
     if (s === 3) {
-      if (!f.education) e.push("Education select cheyyandi");
-      if (!f.job) e.push("Job / udyogam select cheyyandi");
-      if (!f.salary) e.push("Salary range select cheyyandi");
+      if (!f.education) e.push(T("Education select చెయ్యండి", "Select education"));
+      if (!f.job) e.push(T("Job / ఉద్యోగం select చెయ్యండి", "Select job / occupation"));
+      if (!f.salary) e.push(T("Salary range select చెయ్యండి", "Select salary range"));
     }
     if (s === 4) {
-      if (!f.state) e.push("State select cheyyandi");
-      if (!f.district) e.push("District select cheyyandi");
-      if (!/^\d{10}$/.test(String(f.phone))) e.push("10 digit mobile number ivvandi");
+      if (!f.state) e.push(T("State select చెయ్యండి", "Select state"));
+      if (!f.district) e.push(T("District select చెయ్యండి", "Select district"));
+      if (!/^\d{10}$/.test(String(f.phone))) e.push(T("10 digit mobile number ఇవ్వండి", "Enter a 10-digit mobile number"));
+      if (String(f.password || "").length < 6) e.push(T("🔑 Password minimum 6 characters పెట్టండి", "🔑 Set a password of minimum 6 characters"));
     }
     if (s === 5) {
-      if (!f.consent) e.push("Terms + privacy accept cheyyandi (kindha checkbox)");
+      const _ab = String(f.about_myself || "").trim();
+      if (_ab.length < 50) e.push(T("About yourself — minimum 50 characters (మీ గురించి రాయండి)", "About yourself — minimum 50 characters"));
+      else if (/[6-9]\d{9}|@\S+\.\S+/.test(_ab)) e.push(T("🔒 About లో phone number / email పెట్టకండి — privacy కోసం", "🔒 Don\u2019t put phone number / email in About — for privacy"));
+      if (!f.consent) e.push(T("Terms + privacy accept చెయ్యండి (కింద checkbox)", "Accept Terms + Privacy (checkbox below)"));
     }
     return e;
   };
@@ -324,8 +440,8 @@ function Wizard() {
   /* ---------- photo pick + compress ---------- */
   const pickPhoto = async (file?: File | null) => {
     if (!file) return;
-    if (!file.type.startsWith("image/")) return setErrs(["Photo file matrame (JPG/PNG/WebP)"]);
-    if (file.size > 8 * 1024 * 1024) return setErrs(["Photo chala peddadi (8MB+) — chinna photo pettandi"]);
+    if (!file.type.startsWith("image/")) return setErrs([T("Photo file మాత్రమే (JPG/PNG/WebP)", "Photo file only (JPG/PNG/WebP)")]);
+    if (file.size > 8 * 1024 * 1024) return setErrs([T("Photo చాలా పెద్దది (8MB+) — చిన్న photo పెట్టండి", "Photo too large (8MB+) — upload a smaller photo")]);
     setBusy(true);
     const small = await compressImage(file, 1200, 0.85);
     setPhotoFile(small);
@@ -341,17 +457,17 @@ function Wizard() {
         setPhotoInfo(`${d.kb} KB ✅ uploaded — card lo mee photo vasthundi`);
       } else {
         setPhotoInfo("");
-        setErrs([d.detail || "Photo upload avvaledu"]);
+        setErrs([d.detail || T("Photo upload అవ్వలేదు", "Photo upload failed")]);
       }
     } catch {
-      setErrs(["Network problem — photo malli try cheyyandi"]);
+      setErrs([T("Network problem — photo మళ్లీ try చెయ్యండి", "Network problem — retry photo upload")]);
     }
     setBusy(false);
   };
 
   /* ---------- OTP ---------- */
   const sendOtp = async () => {
-    if (!/^\d{10}$/.test(f.phone)) return setErrs(["Mundu 10 digit number ivvandi"]);
+    if (!/^\d{10}$/.test(f.phone)) return setErrs([T("ముందు 10 digit number ఇవ్వండి", "Enter your 10-digit number first")]);
     setBusy(true);
     try {
       const d = await fetch("/api/otp/send", {
@@ -359,10 +475,10 @@ function Wizard() {
         body: JSON.stringify({ phone: f.phone }),
       }).then((r) => r.json());
       setOtpSent(true);
-      setOtpMsg(d.message_telugu || "OTP pampinchaam");
+      setOtpMsg(d.message_telugu || T("OTP పంపించాం", "OTP sent"));
       if (d.dev_code) setOtpCode(d.dev_code);
     } catch {
-      setErrs(["OTP pampaledu — malli try cheyyandi"]);
+      setErrs([T("OTP పంపలేదు — మళ్లీ try చెయ్యండి", "OTP not sent — retry")]);
     }
     setBusy(false);
   };
@@ -382,7 +498,7 @@ function Wizard() {
         setOtpMsg(d.message_telugu || "OTP tappu");
       }
     } catch {
-      setOtpMsg("Verify avvaledu — malli try cheyyandi");
+      setOtpMsg(T("Verify అవ్వలేదు — మళ్లీ try చెయ్యండి", "Not verified — retry"));
     }
     setBusy(false);
   };
@@ -390,7 +506,7 @@ function Wizard() {
   /* ---------- voice input (about_myself) ---------- */
   const startVoice = () => {
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SR) return setErrs(["Ee browser lo voice input ledu — type cheyyandi"]);
+    if (!SR) return setErrs([T("ఈ browser లో voice input లేదు — type చెయ్యండి", "No voice input in this browser — please type")]);
     try {
       const rec = new SR();
       rec.lang = "te-IN";
@@ -403,7 +519,7 @@ function Wizard() {
       rec.start();
       voiceRef.current = rec;
     } catch {
-      setErrs(["Voice input start avvaledu"]);
+      setErrs([T("Voice input start అవ్వలేదు", "Voice input did not start")]);
     }
   };
 
@@ -421,12 +537,12 @@ function Wizard() {
     try {
       const fd = new FormData();
       const strings = [
-        "gender", "full_name", "dob", "birth_time", "height", "weight", "marital_status", "religion",
+        "gender", "full_name", "dob", "birth_time", "height", "weight", "marital_status", "children", "religion",
         "mother_tongue", "caste", "sub_caste", "gothram", "star", "rasi", "moola_nakshatram", "dosham",
         "education", "education_detail", "college", "job", "company", "salary", "experience", "work_type",
         "work_location", "father_name", "father_occupation", "mother_name", "mother_occupation", "brothers",
         "brothers_married", "sisters", "sisters_married", "family_type", "family_status", "family_values",
-        "native_place", "state", "district", "mandal", "current_city", "pincode", "phone", "email",
+        "native_place", "state", "district", "mandal", "current_city", "country", "pincode", "phone", "email", "password",
         "about_myself", "expectations", "exp_age_min", "exp_age_max", "exp_job", "exp_location", "exp_caste",
         "physical_status", "body_type", "complexion", "blood_group", "referral_code",
       ];
@@ -440,7 +556,7 @@ function Wizard() {
 
       const r = await fetch("/api/register", { method: "POST", body: fd });
       const d = await r.json();
-      if (!r.ok) throw new Error(d.detail || "Register avvaledu");
+      if (!r.ok) throw new Error(d.detail || T("Register అవ్వలేదు", "Registration failed"));
       setResult(d);
       localStorage.removeItem(DRAFT_KEY);
       // 🔐 WAVE 9 — auth token save (private API: inbox/credits/views/saved ki) + demo login ready
@@ -457,10 +573,10 @@ function Wizard() {
             [{ id: newId, name: f.full_name, gender: f.gender, at: Date.now() },
               ...list.filter((p: any) => (p?.id || p?.tsap_id) !== newId)].slice(0, 5)));
         }
-      } catch { /* private mode lo localStorage block ayithe parvaledu */ }
+      } catch { /* private mode: localStorage may be blocked — fine */ }
       scrollTop();
     } catch (e: any) {
-      setErrs([e?.message || "Register lo problem — malli try cheyyandi"]);
+      setErrs([e?.message || T("Register లో problem — మళ్లీ try చెయ్యండి", "Problem in registration — please retry")]);
     }
     setBusy(false);
   };
@@ -482,8 +598,8 @@ function Wizard() {
         <section className="maroon-gradient text-white">
           <div className="max-w-3xl mx-auto px-4 py-9 text-center">
             <div className="text-5xl">🎉</div>
-            <h1 className="mt-2 text-2xl font-bold">Profile ready ayyindi!</h1>
-            <p className="text-[13px] opacity-90 mt-1 telugu">Mee ID + card kindha undi — WhatsApp status lo share cheyyandi, reach double avutundi.</p>
+            <h1 className="mt-2 text-2xl font-bold">{T("Profile ready అయ్యింది!", "Profile ready!")}</h1>
+            <p className="text-[13px] opacity-90 mt-1 telugu">{T("మీ ID + card కింద ఉంది — WhatsApp status లో share చెయ్యండి, reach double అవుతుంది.", "Your ID + card are below — share on WhatsApp status, reach doubles.")}</p>
             <div className="mt-4 inline-flex items-center gap-2 bg-white/10 border border-white/25 rounded-2xl px-4 py-3">
               <span className="font-mono text-lg font-bold">{tsap}</span>
               <button onClick={() => copy(tsap, "id")} className="text-[11px] font-bold gold-gradient text-maroon px-3 py-1.5 rounded-full">
@@ -496,24 +612,36 @@ function Wizard() {
         <div className="max-w-3xl mx-auto px-4 py-6 space-y-4">
           {result.publish_targets?.length ? (
             <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4">
-              <div className="font-bold text-emerald-900">📢 Auto-post queue ayyindi</div>
+              <div className="font-bold text-emerald-900">{T("📢 Auto-post queue అయ్యింది", "📢 Auto-post queued")}</div>
               <div className="text-[12px] text-emerald-800 mt-1">
-                {result.publish_targets.join(" • ")} + WhatsApp (anti-ban random gap tho)
+                {result.publish_targets.join(" • ")} {T("+ WhatsApp (anti-ban random gap తో)", "+ WhatsApp (with anti-ban random gap)")}
               </div>
             </div>
           ) : null}
 
+          <PhotoFlow tsapId={tsap} />
+
+          <div className="rounded-2xl maroon-gradient text-white p-4 flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <div className="font-bold text-[15px]">{T("🔓 3 profiles FULL unlock — ₹99 సంబంధం", "🔓 3 profiles FULL unlock — ₹99 Sambandham")}</div>
+              <div className="text-[12px] opacity-90 telugu">{T("Register అయ్యాక 3 matches FREE చూశారు — full details + numbers కోసం ₹99 (5 profiles + boost, 30 days).", "After register you saw 3 matches FREE — ₹99 for full details + numbers (5 profiles + boost, 30 days).")}</div>
+            </div>
+            <a href="/pricing" className="gold-gradient text-maroon font-bold text-[13px] px-5 py-2.5 rounded-xl whitespace-nowrap">
+              ₹99 Unlock →
+            </a>
+          </div>
+
           <div className="bg-white rounded-2xl p-4 border border-gold/30 card-shadow">
-            <div className="font-bold text-maroon text-[15px]">🎁 Mee account ki enti vachindi</div>
+            <div className="font-bold text-maroon text-[15px]">{T("🎁 మీ account కి ఏంటి వచ్చింది", "🎁 What your account got")}</div>
             <div className="mt-2 grid sm:grid-cols-3 gap-2 text-[12px]">
               <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-emerald-900">
                 <b>{result.credits ?? 3} requests</b> ready<br /><span className="text-[11px]">(FREE 3 + referral bonus {result.referral?.joined_with?.ok ? "+1" : ""})</span>
               </div>
               <div className="bg-cream border border-gold/40 rounded-xl p-3 text-maroon">
-                <b>3 profiles</b> chudochu<br /><span className="text-[11px]">numbers 🔒 locked</span>
+                <b>3 profiles</b> {T("చూడొచ్చు", "to see")}<br /><span className="text-[11px]">numbers 🔒 locked</span>
               </div>
               <div className="bg-navy text-white rounded-xl p-3">
-                <b>Numbers eppudu?</b><br /><span className="text-[11px] opacity-90">interest pampi vaallu accept cheste (leda ₹99 plan tho ekkuva profiles)</span>
+                <b>{T("Numbers ఎప్పుడు?", "Numbers when?")}</b><br /><span className="text-[11px] opacity-90">{T("interest పంపి వాళ్లు accept చేస్తే (లేదా ₹99 plan తో ఎక్కువ profiles)", "when you send interest and they accept (or more profiles with ₹99 plan)")}</span>
               </div>
             </div>
             {result.quality ? (
@@ -525,19 +653,19 @@ function Wizard() {
                     ? ` · ${result.quality.important_telugu.slice(0, 2).join(" · ")}` : ""}
                 </div>
                 <div className="mt-1 text-[11px] text-emerald-700">
-                  ✅ Login token save ayyindi — mee inbox/credits/shortlist ippudu mee browser lo secure ({result.phone_masked ? `number: ${result.phone_masked}` : "number masked"})
+                  {T("✅ Login token save అయ్యింది — మీ inbox/credits/shortlist ఇప్పుడు మీ browser లో secure", "✅ Login token saved — your inbox/credits/shortlist now secure in your browser")} ({result.phone_masked ? `number: ${result.phone_masked}` : "number masked"})
                 </div>
               </div>
             ) : null}
             {result.welcome_pack ? (
               <div className="mt-2 rounded-xl border-2 border-emerald-300 bg-emerald-50 p-3">
                 <div className="font-bold text-emerald-900 text-[13px]">
-                  📲 Mee WhatsApp ki pampinam — 3 profiles + mee caste channel links
+                  {T("📲 మీ WhatsApp కి పంపినాం — 3 profiles + మీ caste channel links", "📲 Sent to your WhatsApp — 3 profiles + your caste channel links")}
                 </div>
                 <div className="mt-1 text-[11px] text-emerald-800">
                   {result.welcome_pack.queue?.queued
-                    ? `✅ WhatsApp lo vellindi (${result.welcome_pack.queue?.kind || "welcome_pack"}) — mee number ${result.phone_masked || ""} ki`
-                    : "🕒 WhatsApp bridge connect ayye varaku queue lo undi — kaani ee 3 profiles ikkade chudandi:"}
+                    ? (te ? `✅ WhatsApp లో వెళ్లింది (${result.welcome_pack.queue?.kind || "welcome_pack"}) — మీ number ${result.phone_masked || ""} కి` : `✅ Sent on WhatsApp (${result.welcome_pack.queue?.kind || "welcome_pack"}) — to your number ${result.phone_masked || ""}`)
+                    : T("🕒 WhatsApp bridge connect అయ్యే వరకు queue లో ఉంది — కానీ ఈ 3 profiles ఇక్కడే చూడండి:", "🕒 Queued till WhatsApp bridge connects — but see these 3 profiles here:")}
                 </div>
                 <div className="mt-2 grid gap-2 sm:grid-cols-3">
                   {(result.welcome_pack.profiles || []).map((pf: any, i: number) => (
@@ -571,27 +699,27 @@ function Wizard() {
                       try {
                         const r = await fetch(`/api/welcome-pack/${tsap}/resend`, { method: "POST", headers: authHeaders() });
                         const d = await r.json();
-                        setPackResend({ busy: false, msg: d.message_telugu || (r.ok ? "✅ Malli pampinam" : "⚠️ Pampaledu") });
-                      } catch { setPackResend({ busy: false, msg: "⚠️ Server tho connect avvaledu" }); }
+                        setPackResend({ busy: false, msg: d.message_telugu || (r.ok ? T("✅ మళ్లీ పంపినాం", "✅ Sent again") : T("⚠️ పంపలేదు", "⚠️ Not sent")) });
+                      } catch { setPackResend({ busy: false, msg: T("⚠️ Server తో connect అవ్వలేదు", "⚠️ Could not reach server") }); }
                     }}
                     disabled={packResend.busy}
                     className="rounded-xl border border-emerald-600 text-emerald-800 font-bold text-[11px] px-3 py-2 disabled:opacity-60">
-                    {packResend.busy ? "Pampisthunnam…" : "📲 Malli WhatsApp ki pampu (3 profiles + channels)"}
+                    {packResend.busy ? T("పంపిస్తున్నాం…", "Sending…") : T("📲 మళ్లీ WhatsApp కి పంపు (3 profiles + channels)", "📲 Resend to WhatsApp (3 profiles + channels)")}
                   </button>
                   <a href={SITE_CONFIG.supportLink} target="_blank" rel="noopener noreferrer"
                     className="rounded-xl border border-maroon/25 text-maroon font-bold text-[11px] px-3 py-2">
-                    💬 WhatsApp channel link kavali? Support ki ping
+                    {T("💬 WhatsApp channel link కావాలా? Support కి ping", "💬 Need WhatsApp channel link? Ping support")}
                   </a>
                   {packResend.msg && <span className="text-[11px] text-emerald-800">{packResend.msg}</span>}
                 </div>
                 <div className="mt-1 text-[10px] text-emerald-800">
-                  🔒 Numbers eppudu message lo pettamu — profile link + channel links matrame (consent tho matrame number exchange).
+                  {T("🔒 Numbers ఎప్పుడూ message లో పెట్టము — profile link + channel links మాత్రమే (consent తోనే number exchange).", "🔒 Numbers never go in messages — profile link + channel links only (number exchange only with consent).")}
                 </div>
               </div>
             ) : null}
             <div className="mt-2 flex flex-wrap gap-2">
               <Link href={`/matches?id=${tsap}`} className="maroon-gradient text-white font-bold text-[12px] px-4 py-2.5 rounded-xl">
-                🔎 Mee 3 profiles chudandi (FREE)
+                {T("🔎 మీ 3 profiles చూడండి (FREE)", "🔎 See your 3 profiles (FREE)")}
               </Link>
               <Link href={`/requests?id=${tsap}`} className="border border-maroon/25 text-maroon font-bold text-[12px] px-4 py-2.5 rounded-xl">
                 💌 Interests pampandi
@@ -612,13 +740,15 @@ function Wizard() {
               </div>
               {result.referral.joined_with?.ok ? (
                 <div className="mt-2 bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-[12px]">
-                  🤝 <b>{result.referral.joined_with.referrer_name} garu</b> dwara vacharu — meeku{" "}
-                  <b>+{result.referral.joined_with.bonus_credits} FREE credit</b> vachindi (code {result.referral.joined_with.referrer_code}).
-                  Vaallaki kooda mee first payment tho ₹50 veltundi 🙌
+                  {T(<>🤝 <b>{result.referral.joined_with.referrer_name} గారు</b> ద్వారా వచ్చారు — మీకు{" "}
+                  <b>+{result.referral.joined_with.bonus_credits} FREE credit</b> వచ్చింది (code {result.referral.joined_with.referrer_code}).
+                  వాళ్లకి కూడా మీ first payment తో ₹50 వెళ్తుంది 🙌</>, <>🤝 You came via <b>{result.referral.joined_with.referrer_name} garu</b> — you got{" "}
+                  <b>+{result.referral.joined_with.bonus_credits} FREE credit</b> (code {result.referral.joined_with.referrer_code}).
+                  They also get ₹50 on your first payment 🙌</>)}
                 </div>
               ) : result.referral.joined_with?.reason && result.referral.joined_with.reason !== "no_code" ? (
                 <div className="mt-2 bg-amber-400/20 border border-amber-200/40 rounded-xl px-3 py-2 text-[11px]">
-                  ℹ️ {result.referral.joined_with.message_telugu || "Referral code lock avvaledu"} — parvaledu, mee sontha code tho ippudu start cheyyandi.
+                  ℹ️ {result.referral.joined_with.message_telugu || "Referral code lock అవ్వలేదు"} {T("— పర్వాలేదు, మీ సొంత code తో ఇప్పుడు start చెయ్యండి.", "— no problem, start now with your own code.")}
                 </div>
               ) : null}
               <div className="mt-3 bg-white/10 border border-white/20 rounded-xl px-3 py-2 flex items-center gap-2">
@@ -638,7 +768,7 @@ function Wizard() {
                 <a href={`https://wa.me/?text=${encodeURIComponent(String(result.referral.share_message || ""))}`}
                   target="_blank" rel="noreferrer"
                   className="bg-green-600 text-white font-bold text-[12px] px-4 py-2.5 rounded-xl">
-                  📲 WhatsApp group ki pampu
+                  {T("📲 WhatsApp group కి పంపు", "📲 Send to WhatsApp group")}
                 </a>
                 <a href={result.referral.poster_url} download={`${result.referral.my_code}-manavivaha-referral.png`}
                   className="gold-gradient text-maroon font-bold text-[12px] px-4 py-2.5 rounded-xl">
@@ -663,8 +793,8 @@ function Wizard() {
             <div className="bg-cream border border-gold/40 rounded-2xl p-4">
               <div className="font-bold text-maroon text-[14px]">🙏 Namaste message mee WhatsApp ki pampam</div>
               <div className="text-[12px] text-gray-700 mt-1 telugu">
-                Mana side nunchi mee profile card + full details + next steps mee number ki veltayi (chatting ledu — spam undadu).
-                {result.welcome_status?.manual_text ? " Bridge connect ayyaka automatic ga pothundi; ippudu support team manual ga pampisthundi." : ""}
+                {T("మన side నుంచి మీ profile card + full details + next steps మీ number కి వెళ్తాయి (chatting లేదు — spam ఉండదు).", "Your profile card + full details + next steps come to your number from us (no chatting — no spam).")}
+                {result.welcome_status?.manual_text ? T(" Bridge connect అయ్యాక automatic గా పోతుంది; ఇప్పుడు support team manual గా పంపిస్తుంది.", " Goes automatically after bridge connects; our support team sends it manually now.") : ""}
               </div>
               {result.welcome_status?.manual_text ? (
                 <button onClick={() => copy(String(result.welcome_status.manual_text), "namaste")}
@@ -677,9 +807,9 @@ function Wizard() {
 
           {result.share_kit ? (
             <div className="bg-white rounded-2xl p-4 border border-gold/25 card-shadow">
-              <div className="font-bold text-maroon text-[14px]">🎴 Share kit — reach penchandi</div>
+              <div className="font-bold text-maroon text-[14px]">{T("🎴 Share kit — reach పెంచండి", "🎴 Share kit — boost reach")}</div>
               <div className="text-[12px] text-gray-600 mt-1 telugu">
-                Card image + caption ready. Status lo pettandi — {result.share_kit.best_time_to_post}.
+                {T(<>Card image + caption ready. Status లో పెట్టండి — {result.share_kit.best_time_to_post}.</>, <>Card image + caption ready. Put on status — {result.share_kit.best_time_to_post}.</>)}
               </div>
               <pre className="mt-2 bg-cream rounded-xl p-3 text-[11px] whitespace-pre-wrap telugu">{result.share_kit.caption_short}</pre>
               <div className="mt-2 flex flex-wrap gap-2">
@@ -718,24 +848,24 @@ function Wizard() {
                 {copied === "share" ? "copied ✓" : "📋 Share text copy"}
               </button>
               <a href={`https://wa.me/?text=${encodeURIComponent(share)}`} target="_blank" rel="noreferrer"
-                className="bg-green-600 text-white font-bold text-[13px] px-4 py-2.5 rounded-xl">WhatsApp lo pampu</a>
+                className="bg-green-600 text-white font-bold text-[13px] px-4 py-2.5 rounded-xl">{T("WhatsApp లో పంపు", "Send on WhatsApp")}</a>
             </div>
           </div>
 
           <div className="bg-navy text-white rounded-2xl p-4">
-            <div className="font-bold text-[14px]">Ippudu em cheyyali? (2 steps)</div>
+            <div className="font-bold text-[14px]">{T("ఇప్పుడు ఏం చెయ్యాలి? (2 steps)", "What to do now? (2 steps)")}</div>
             <ol className="mt-2 text-[12px] space-y-1 opacity-90 list-decimal list-inside">
-              <li>Mee profile {CHANNEL_STATS.total} channels lo post avutundi (4 main + caste-wise) — 30 nimushalalo live</li>
-              <li>Matches chusi <b>💌 Interest pampu</b> — modati 3 FREE, vaallaki WhatsApp lo mee profile veltundi</li>
+              <li>{T(`మీ profile ${CHANNEL_STATS.total} channels లో post అవుతుంది (4 main + caste-wise) — 30 నిమిషాల్లో live`, `Your profile will post to ${CHANNEL_STATS.total} channels (4 main + caste-wise) — live in 30 minutes`)}</li>
+              <li>{T(<>Matches చూసి <b>💌 Interest పంపు</b> — మొదటి 3 FREE, వాళ్లకి WhatsApp లో మీ profile వెళ్తుంది</>, <>See matches, <b>💌 send Interest</b> — first 3 FREE, they get your profile on WhatsApp</>)}</li>
             </ol>
             <div className="mt-3 flex flex-wrap gap-2">
               <Link href={`/requests?id=${tsap}`} className="gold-gradient text-maroon font-bold text-[13px] px-4 py-2.5 rounded-xl">💌 Requests dashboard</Link>
-              <Link href={`/search/${tsap}`} className="bg-white/10 border border-white/25 text-white font-bold text-[13px] px-4 py-2.5 rounded-xl">Mee profile chudu</Link>
+              <Link href={`/search/${tsap}`} className="bg-white/10 border border-white/25 text-white font-bold text-[13px] px-4 py-2.5 rounded-xl">{T("మీ profile చూడు", "See your profile")}</Link>
             </div>
           </div>
 
           <div className="text-[11px] text-gray-500 text-center">
-            ⚠️ Photos/numbers watermark + log tho untayi • Advance money adigithe report cheyyandi: {SITE_CONFIG.supportPhoneDisplay}
+            {T("⚠️ Photos/numbers watermark + log తో ఉంటాయి • Advance money అడిగితే report చెయ్యండి:", "⚠️ Photos/numbers stay with watermark + log • Report advance-money demands:")} {SITE_CONFIG.supportPhoneDisplay}
           </div>
         </div>
       </main>
@@ -759,9 +889,9 @@ function Wizard() {
                 <span className="text-lg">{stepMeta.icon}</span>
                 <div className="min-w-0">
                   <div className="text-[13px] font-bold text-ink truncate">
-                    Step {step} of 5 — {stepMeta.label}
+                    Step {step} of 5 — <Duo en={stepMeta.label} te={stepMeta.labelTe || ""} />
                   </div>
-                  <div className="text-[10px] text-gray-500 telugu truncate">{stepMeta.hint}</div>
+                  <div className="text-[10px] text-gray-500 telugu truncate">{te ? stepMeta.hint : (stepMeta.hintEn || stepMeta.hint)}</div>
                 </div>
               </div>
             </div>
@@ -777,8 +907,8 @@ function Wizard() {
             ))}
           </div>
           <div className="mt-1.5 flex items-center justify-between text-[10px] text-gray-500">
-            <span>≈ {Math.max(1, 5 - step)} nimishalu migilindi</span>
-            <span>{savedAt ? `💾 draft save ${savedAt}` : "💾 auto-save ON"}</span>
+            <span>{T(`≈ ${Math.max(1, 5 - step)} నిమిషాలు మిగిలింది`, `≈ ${Math.max(1, 5 - step)} min left`)}</span>
+            <span>{savedAt ? T(`💾 draft save ${savedAt}`, `💾 draft saved ${savedAt}`) : "💾 auto-save ON"}</span>
           </div>
         </div>
       </div>
@@ -786,29 +916,29 @@ function Wizard() {
       <div className="max-w-3xl mx-auto px-4 py-5">
         {/* 🆓 FREE vs PAID — SCREEN 1 lo ne clear ga (numbers rule kooda) */}
         <div className="mb-4 bg-white rounded-2xl border border-gold/40 card-shadow p-4">
-          <div className="font-bold text-maroon text-[14px]">🆓 Register 100% FREE — enti vasthundi, enti raadu (clear ga)</div>
+          <div className="font-bold text-maroon text-[14px]">{T("🆓 Register 100% FREE — ఏంటి వస్తుంది, ఏంటి రాదు (clear గా)", "🆓 Register 100% FREE — what you get, what you don\u2019t (clearly)")}</div>
           <div className="mt-2 grid sm:grid-cols-2 gap-3 text-[12px]">
             <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3">
-              <div className="font-bold text-emerald-900">FREE లో ఇచ్చేది</div>
+              <div className="font-bold text-emerald-900">{T("FREE లో ఇచ్చేది", "What FREE gives")}</div>
               <ul className="mt-1 space-y-0.5 text-emerald-900">
-                <li>✅ <b>{(clarity?.free?.profiles ?? 3)} profiles</b> chudochu (full details: caste, education, job, family, porutham)</li>
-                <li>✅ <b>{(clarity?.free?.requests ?? 3)} interests</b> pampochu — vaallaki mana WhatsApp nunchi mee profile veltundi</li>
-                <li>✅ Mee profile card FREE (Telugu, neat) + channels lo auto-post</li>
-                <li>✅ Vaallu <b>accept cheste → numbers exchange</b> (WhatsApp lo, consent tho)</li>
+                <li>✅ <b>{(clarity?.free?.profiles ?? 3)} profiles</b> {T("చూడొచ్చు (full details: caste, education, job, family, porutham)", "you can see (full details: caste, education, job, family, porutham)")}</li>
+                <li>✅ <b>{(clarity?.free?.requests ?? 3)} interests</b> {T("పంపొచ్చు — వాళ్లకి మన WhatsApp నుంచి మీ profile వెళ్తుంది", "you can send — they get your profile from our WhatsApp")}</li>
+                <li>✅ {T("మీ profile card FREE (Telugu, neat) + channels లో auto-post", "Your profile card FREE + auto-post to channels")}</li>
+                <li>✅ {T(<>వాళ్లు <b>accept చేస్తే → numbers exchange</b> (WhatsApp లో, consent తో)</>, <>If they <b>accept → numbers exchange</b> (on WhatsApp, with consent)</>)}</li>
               </ul>
             </div>
             <div className="bg-rose-50 border border-rose-200 rounded-xl p-3">
-              <div className="font-bold text-rose-900">FREE లో ఇవ్వనిది (🔒)</div>
+              <div className="font-bold text-rose-900">{T("FREE లో ఇవ్వనిది (🔒)", "What FREE doesn\u2019t give (🔒)")}</div>
               <ul className="mt-1 space-y-0.5 text-rose-900">
-                <li>🔒 <b>Phone numbers — ఇవ్వము</b> (98••••••45 ani matrame kanipisthundi)</li>
-                <li>🔒 Photo (privacy mode unna profiles ki blur)</li>
-                <li>🚫 Chatting ledu (manam chat platform kaadu — spam/report తగ్గడానికి)</li>
+                <li>🔒 <b>{T("Phone numbers — ఇవ్వము", "Phone numbers — we don\u2019t give")}</b> {T("(98••••••45 అని మాత్రమే కనిపిస్తుంది)", "(only shown as 98••••••45)")}</li>
+                <li>{T("🔒 Photo (privacy mode ఉన్న profiles కి blur)", "🔒 Photo (blurred for privacy-mode profiles)")}</li>
+                <li>{T("🚫 Chatting లేదు (మనం chat platform కాదు — spam తగ్గడానికి)", "🚫 No chatting (we are not a chat platform — keeps spam low)")}</li>
               </ul>
-              <div className="mt-1 text-[11px]">3 FREE taruvata: <b>₹99 → 5 profiles + boost</b> · ₹199 → 12 · ₹299 → 25 · ₹499 → 50</div>
+              <div className="mt-1 text-[11px]">{T(<>3 FREE తర్వాత: <b>₹99 → 5 profiles + boost</b> · ₹199 → 12 · ₹299 → 25 · ₹499 → 50</>, <>After 3 FREE: <b>₹99 → 5 profiles + boost</b> · ₹199 → 12 · ₹299 → 25 · ₹499 → 50</>)}</div>
             </div>
           </div>
           <div className="mt-2 text-[11px] text-gray-600">
-            🔐 Mee number DB lo encrypt ga untundi. Consent (accept) tho matrame evariki kanipisthundi.
+            {T("🔐 మీ number DB లో encrypt గా ఉంటుంది. Consent (accept) తోనే ఎవరికీ కనిపిస్తుంది.", "🔐 Your number stays encrypted in DB. Visible to others only with consent (accept).")}
             {" "}<a href="/pricing" className="underline font-bold text-maroon">Pricing</a> ·
             {" "}<a href="/safety" className="underline font-bold text-maroon">Safety</a>
           </div>
@@ -817,25 +947,33 @@ function Wizard() {
         {/* draft banner */}
         {draftFound && (
           <div className="mb-4 bg-cream border border-gold/40 rounded-2xl p-4">
-            <div className="font-bold text-maroon text-[14px]">💾 Mee pura form dorkindi{draftSavedLabel(savedAt)}</div>
-            <div className="text-[12px] text-gray-600 mt-1">Ekkada aagipoyindo akkada nunchi continue cheyyochu — malli type cheyyakkarledu.</div>
+            <div className="font-bold text-maroon text-[14px]">{T("💾 మీ పాత form దొరికింది", "💾 Found your saved form")}{draftSavedLabel(savedAt, te)}</div>
+            <div className="text-[12px] text-gray-600 mt-1">{T("ఎక్కడ ఆగిపోయిందో అక్కడ నుంచి continue చెయ్యొచ్చు — మళ్లీ type చెయ్యక్కర్లేదు.", "Continue where you left off — no need to type again.")}</div>
             <div className="mt-3 flex gap-2">
-              <button onClick={resumeDraft} className="maroon-gradient text-white font-bold text-[13px] px-4 py-2.5 rounded-xl">▶️ Continue chey</button>
-              <button onClick={clearDraft} className="border border-maroon/25 text-maroon font-bold text-[13px] px-4 py-2.5 rounded-xl">Kotha ga start</button>
+              <button onClick={resumeDraft} className="maroon-gradient text-white font-bold text-[13px] px-4 py-2.5 rounded-xl">{T("▶️ కొనసాగించండి", "▶️ Continue")}</button>
+              <button onClick={clearDraft} className="border border-maroon/25 text-maroon font-bold text-[13px] px-4 py-2.5 rounded-xl">{T("కొత్తగా start", "Start fresh")}</button>
             </div>
           </div>
         )}
 
         {refLocked && (
           <div className="mb-4 bg-emerald-50 border border-emerald-200 rounded-2xl px-4 py-3 text-[12px] text-emerald-900">
-            🤝 <b>{refLocked}</b> referral code lock ayyindi — mee friend ki ₹50 + meeku <b>+1 credit FREE</b>.
-            {" "}Register FREE (3 profiles free) — tarvata mee ₹99 plan thisukunte aa ₹50 mee friend wallet ki veltundi.
+            {T(<>🤝 <b>{refInfo?.referrer_name ? `${refInfo.referrer_name} గారు` : "మీ friend"}</b> ద్వారా వచ్చారు
+            (<b>{refLocked}</b> lock ✅) — వాళ్లకి ₹50 + మీకు <b>+{refInfo?.bonus_credits || 1} credit FREE</b>.
+            {" "}Register FREE (3 profiles free) — తర్వాత మీ ₹99 plan తీసుకుంటే ఆ ₹50 వాళ్ల wallet కి వెళ్తుంది.</>, <>🤝 You came via <b>{refInfo?.referrer_name ? `${refInfo.referrer_name} garu` : "your friend"}</b>
+            (<b>{refLocked}</b> locked ✅) — ₹50 for them + <b>+{refInfo?.bonus_credits || 1} credit FREE</b> for you.
+            {" "}Register FREE (3 profiles free) — when you take your ₹99 plan, that ₹50 goes to their wallet.</>)}
+          </div>
+        )}
+        {refInfo && refInfo.ok === false && (
+          <div className="mb-4 bg-amber-50 border border-amber-300 rounded-2xl px-4 py-3 text-[12px] text-amber-900">
+            ⚠️ {refInfo.message_telugu || T("ఈ code దొరకలేదు", "Code not found")} — {T("code లేకుండా register అవ్వొచ్చు, లేదా కింద సరి code వెయ్యండి.", "you can register without a code, or enter the correct code below.")}
           </div>
         )}
 
         {errs.length > 0 && (
           <div className={`mb-4 bg-rose-50 border border-rose-200 rounded-2xl px-4 py-3 ${shake ? "shake" : ""}`}>
-            <div className="font-bold text-rose-800 text-[13px]">Ivi saricheyyali:</div>
+            <div className="font-bold text-rose-800 text-[13px]">{T("ఇవి సరిచెయ్యాలి:", "Please fix these:")}</div>
             <ul className="mt-1 text-[12px] text-rose-700 list-disc list-inside">
               {errs.slice(0, 5).map((e) => <li key={e}>{e}</li>)}
             </ul>
@@ -847,7 +985,7 @@ function Wizard() {
           {step === 1 && (
             <>
               <div>
-                <label className="text-[13px] font-bold text-ink">Evaru register chesthunnaru? <span className="req-star">*</span></label>
+                <label className="text-[13px] font-bold text-ink">{T("ఎవరు register చేస్తున్నారు?", "Who is registering?")} <span className="req-star">*</span></label>
                 <div className="mt-2 grid grid-cols-2 gap-3">
                   {[{ v: "Bride", l: "👰 పెళ్లి కూతురు", s: "Bride" }, { v: "Groom", l: "🤵 పెళ్లి కొడుకు", s: "Groom" }].map((g) => (
                     <button key={g.v} type="button" onClick={() => set("gender", g.v)}
@@ -861,28 +999,49 @@ function Wizard() {
               </div>
 
               <TextField label="Full name" value={f.full_name} onChange={(v) => set("full_name", v)} required
-                placeholder="Lakshmi Reddy" hint="Card + channels lo ide peru kanipisthundi" />
+                placeholder="Lakshmi Reddy" hint={T("Card + channels లో ఇదే పేరు కనిపిస్తుంది", "This name shows on card + channels")} />
 
               <div className="grid grid-cols-2 gap-3">
                 <TextField label="Date of birth" value={f.dob} onChange={(v) => set("dob", v)} required
-                  type="date" max={maxDobFor18()} hint="Age automatic vastundi" />
+                  type="date" max={maxDobFor18()} hint={T("Age automatic వస్తుంది", "Age comes automatically")} />
                 <div>
                   <label className="text-[13px] font-bold text-ink">Age (auto)</label>
                   <div className="input-mobile mt-1 flex items-center justify-between bg-cream">
                     <span className="font-bold text-maroon">{f.age || "—"}</span>
-                    <span className="text-[10px] text-gray-500">DOB nunchi</span>
+                    <span className="text-[10px] text-gray-500">{T("DOB నుంచి", "from DOB")}</span>
                   </div>
                 </div>
               </div>
 
-              <ChipGroup label="Height" required options={HEIGHTS.map((h) => ({ v: h }))} value={f.height}
-                onChange={(v) => set("height", v)} />
+              <SelectField label={<Duo en="Height" te="ఎత్తు" />} required value={f.height}
+                onChange={(v) => set("height", v)} placeholder={duo("Select your height", "మీ ఎత్తు ఎంచుకోండి")}>
+                {HEIGHTS.map((h) => (<option key={h} value={h}>{heightLabel(h)}</option>))}
+              </SelectField>
               <ChipGroup label="Weight" options={WEIGHTS.map((w) => ({ v: w }))} value={f.weight}
                 onChange={(v) => set("weight", v)} />
-              <ChipGroup label="Marital status" required options={MARITAL_STATUSES.map((m) => ({ v: m }))}
-                value={f.marital_status} onChange={(v) => set("marital_status", v)} />
-              <ChipGroup label="Religion" options={RELIGIONS.map((r) => ({ v: r }))} value={f.religion}
-                onChange={(v) => set("religion", v)} />
+              <PillGroup label={<Duo en="Your marital status" te="మీ వైవాహిక స్థితి" />} required
+                value={f.marital_status}
+                onChange={(v) => { set("marital_status", v); if (v === "Pelli Kaledu") set("children", ""); }}
+                options={[
+                  { v: "Pelli Kaledu", en: "Never married", te: "పెళ్లి కాలేదు" },
+                  { v: f.gender === "Groom" ? "Widower" : "Widow",
+                    en: f.gender === "Groom" ? "Widower" : "Widow",
+                    te: f.gender === "Groom" ? "భార్య చనిపోయారు" : "భర్త చనిపోయారు" },
+                  { v: "Awaiting Divorce", en: "Awaiting divorce", te: "విడాకులు రావాల్సి ఉంది" },
+                  { v: "Divorced", en: "Divorced", te: "విడాకులు అయ్యాయి" },
+                ]} />
+              {f.marital_status && f.marital_status !== "Pelli Kaledu" ? (
+                <PillGroup label={<Duo en="Number of children" te="పిల్లల సంఖ్య" />} required
+                  value={f.children} onChange={(v) => set("children", v)}
+                  options={CHILDREN_OPTIONS.map((c) => ({
+                    v: c, en: c === "None" ? "None" : c,
+                    te: c === "None" ? "లేరు" : (c === "4+" ? "4+ మంది" : `${c} మంది`),
+                  }))} />
+              ) : null}
+              <SelectField label={<Duo en="Religion" te="మతం" />} value={f.religion}
+                onChange={(v) => set("religion", v)} placeholder={duo("Select religion", "మతం ఎంచుకోండి")}>
+                {RELIGIONS.map((r) => (<option key={r} value={r}>{r}</option>))}
+              </SelectField>
               <ChipGroup label="Mother tongue" options={MOTHER_TONGUES.map((m) => ({ v: m }))} value={f.mother_tongue}
                 onChange={(v) => set("mother_tongue", v)} />
             </>
@@ -891,21 +1050,21 @@ function Wizard() {
           {/* ---------------- STEP 2 ---------------- */}
           {step === 2 && (
             <>
-              <ChipGroup label="Caste" required searchable
-                options={CASTES.map((c) => ({ v: c }))} value={f.caste} onChange={(v) => set("caste", v)}
-                hint="43 caste channels unnayi — mee caste channel lo profile post avutundi" />
+              <ChipGroup label={`Caste — ${f.religion || "Hindu"} (${casteOpts.length})`} required searchable
+                options={casteOpts.map((c) => ({ v: c }))} value={f.caste} onChange={(v) => set("caste", v)}
+                hint={T(`${f.religion || "Hindu"} కులాలు A–Z — మీ caste channel లో profile post అవుతుంది`, `${f.religion || "Hindu"} castes A–Z — profile posts to your caste channel`)} />
               <TextField label="Sub caste" optional value={f.sub_caste} onChange={(v) => set("sub_caste", v)}
                 placeholder="Pakanati / Deshathi / Telaga…" />
               <TextField label="Gothram" optional value={f.gothram} onChange={(v) => set("gothram", v)}
-                placeholder="Bharadwaj" hint="Porutham report ki kavali" />
+                placeholder="Bharadwaj" hint={T("Porutham report కి కావాలి", "Needed for porutham report")} />
               <ChipGroup label="Star / Nakshatram" searchable te
                 options={NAKSHATRAS.map((n) => ({ v: n.en, te: n.te }))} value={f.star}
-                onChange={(v) => set("star", v)} hint="Star select chesthe rasi automatic vastundi (porutham 10/10)" />
+                onChange={(v) => set("star", v)} hint={T("Star select చేస్తే rasi automatic వస్తుంది (porutham 10/10)", "Select star — rasi auto-suggests (porutham 10/10)")} />
               <ChipGroup label="Rasi" te options={RASIS.map((r) => ({ v: r.en, te: r.te }))} value={f.rasi}
                 onChange={(v) => set("rasi", v)} />
-              <ChipGroup label="Moola nakshatram?" options={[{ v: "No" }, { v: "Yes" }]} value={f.moola_nakshatram}
+              <ChipGroup label={T("మూలా నక్షత్రమా?", "Moola nakshatram?")} options={[{ v: "No" }, { v: "Yes" }]} value={f.moola_nakshatram}
                 onChange={(v) => set("moola_nakshatram", v)} />
-              <ChipGroup label="Dosham unda?" options={[{ v: "No" }, { v: "Yes" }, { v: "Not Sure" }]} value={f.dosham}
+              <ChipGroup label={T("దోషం ఉందా?", "Any dosham?")} options={[{ v: "No" }, { v: "Yes" }, { v: "Not Sure" }]} value={f.dosham}
                 onChange={(v) => set("dosham", v)} />
             </>
           )}
@@ -929,7 +1088,7 @@ function Wizard() {
                   onChange={(v) => set("work_type", v)} />
               </div>
               <ChipGroup label="Salary" required options={SALARIES.map((s) => ({ v: s }))} value={f.salary}
-                onChange={(v) => set("salary", v)} hint="Approximate range chalu — exact number vadalasina avasaram ledu" />
+                onChange={(v) => set("salary", v)} hint={T("Approximate range చాలు — exact number వదలాల్సిన అవసరం లేదు", "Approximate range is enough — no need for exact number")} />
               <TextField label="Work location" optional value={f.work_location} onChange={(v) => set("work_location", v)}
                 placeholder="Hyderabad / Gachibowli / USA" />
             </>
@@ -944,10 +1103,11 @@ function Wizard() {
               </div>
               <ChipGroup label="District" required searchable options={distList.map((d) => ({ v: d }))}
                 value={f.district} onChange={(v) => set("district", v)}
-                hint="District channel + local matches ki kavali" />
+                hint={T("District channel + local matches కి కావాలి", "Needed for district channel + local matches")} />
               <div className="grid grid-cols-1 gap-3">
                 <TextField label="Mandal / Area" optional value={f.mandal} onChange={(v) => set("mandal", v)} placeholder="Miryalaguda" />
                 <TextField label="Current city" optional value={f.current_city} onChange={(v) => set("current_city", v)} placeholder="Hyderabad" />
+                <TextField label="Country" optional value={f.country} onChange={(v) => set("country", v)} placeholder="India / USA / UK / UAE…" hint={T("🌍 India కాకపోతే NRI ✈️ — NRI section లో కూడా కనిపిస్తారు", "🌍 Non-India = NRI ✈️ — also shows in NRI section")} />
                 <TextField label="Pincode" optional value={f.pincode} onChange={(v) => set("pincode", v)} inputMode="numeric" placeholder="500032" />
                 <TextField label="Native place" optional value={f.native_place} onChange={(v) => set("native_place", v)} placeholder="Nalgonda" />
               </div>
@@ -956,12 +1116,12 @@ function Wizard() {
                 <div className="font-bold text-maroon text-[14px]">📱 Mobile number (verification)</div>
                 <TextField label="WhatsApp / Mobile" required value={f.phone} onChange={(v) => set("phone", v.replace(/\D/g, "").slice(0, 10))}
                   type="tel" inputMode="tel" placeholder="98480 12345"
-                  hint="Mee number evariki kanipinchadu — interest accept ayyaka matrame exchange avutundi" />
+                  hint={T("మీ number ఎవరికీ కనిపించదు — interest accept అయ్యాకే exchange అవుతుంది", "Your number shows to nobody — exchanged only after interest accept")} />
                 {!phoneOk ? (
                   <div className="flex flex-wrap items-center gap-2">
                     <button type="button" onClick={sendOtp} disabled={busy || f.phone.length !== 10}
                       className="maroon-gradient text-white font-bold text-[13px] px-4 py-2.5 rounded-xl disabled:opacity-50">
-                      {otpSent ? "OTP malli pampu" : "OTP pampu"}
+                      {otpSent ? T("OTP మళ్లీ పంపు", "Resend OTP") : T("OTP పంపు", "Send OTP")}
                     </button>
                     {otpSent && (
                       <>
@@ -975,11 +1135,25 @@ function Wizard() {
                   </div>
                 ) : (
                   <div className="text-[12px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2">
-                    ✅ Number verify ayyindi — verified badge profile ki vastundi
+                    {T("✅ Number verify అయ్యింది — verified badge profile కి వస్తుంది", "✅ Number verified — verified badge on your profile")}
                   </div>
                 )}
                 {otpMsg && <div className="text-[11px] text-gray-600">{otpMsg}</div>}
                 <TextField label="Email" optional value={f.email} onChange={(v) => set("email", v)} inputMode="email" placeholder="name@gmail.com" />
+                <div>
+                  <label className="text-[13px] font-bold text-ink">🔑 Password <span className="text-maroon">*</span></label>
+                  <div className="relative mt-1">
+                    <input type={showPw ? "text" : "password"} value={f.password}
+                      onChange={(e) => set("password", e.target.value.slice(0, 72))}
+                      placeholder="Minimum 6 characters" autoComplete="new-password"
+                      className="input-mobile pr-16" />
+                    <button type="button" onClick={() => setShowPw(!showPw)}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-[12px] font-bold text-maroon px-2 py-1">
+                      {showPw ? "🙈 Hide" : "👁️ Show"}
+                    </button>
+                  </div>
+                  <div className="hint mt-1">Login ki number + password (OTP tho kooda login avvachu) · Marichipothe OTP tho reset ✅</div>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 gap-3">
@@ -997,8 +1171,13 @@ function Wizard() {
               <Stepper label="Sisters (married)" value={f.sisters_married} onChange={(v) => set("sisters_married", v)} />
               <ChipGroup label="Family type" options={FAMILY_TYPES.map((x) => ({ v: x }))} value={f.family_type}
                 onChange={(v) => set("family_type", v)} />
-              <ChipGroup label="Family status" options={FAMILY_STATUSES.map((x) => ({ v: x }))} value={f.family_status}
-                onChange={(v) => set("family_status", v)} />
+              <PillGroup label={duo("Select family status", "కుటుంబ స్థాయి ఎంచుకోండి")}
+                options={[
+                  { v: "Middle Class", en: "Middle class", te: "మధ్య తరగతి" },
+                  { v: "Upper Middle Class", en: "Upper middle class", te: "ఎగువ మధ్య తరగతి" },
+                  { v: "Rich / Affluent (Elite)", en: "Rich / Affluent (Elite)", te: "ధనిక (ఎలైట్)" },
+                ]}
+                value={f.family_status} onChange={(v) => set("family_status", v)} />
               <ChipGroup label="Family values" options={FAMILY_VALUES.map((x) => ({ v: x }))} value={f.family_values}
                 onChange={(v) => set("family_values", v)} />
             </>
@@ -1008,8 +1187,8 @@ function Wizard() {
           {step === 5 && (
             <>
               <div className="bg-white rounded-2xl border border-gold/30 p-4">
-                <div className="font-bold text-maroon text-[15px]">📸 Photo (3x ekkuva matches vastayi)</div>
-                <div className="hint">Phone gallery / camera nunchi teesukondi. Photo automatic ga compress avutundi (fast upload). Watermark + private mode tho safe.</div>
+                <div className="font-bold text-maroon text-[15px]">{T("📸 Photo (3x ఎక్కువ matches వస్తాయి)", "📸 Photo (3x more matches)")}</div>
+                <div className="hint">{T("Phone gallery / camera నుంచి తీసుకోండి. Photo automatic గా compress అవుతుంది (fast upload). Watermark + private mode తో safe.", "Pick from phone gallery / camera. Photo auto-compresses (fast upload). Safe with watermark + private mode.")}</div>
                 <div className="mt-3 flex items-center gap-3">
                   <label className="cursor-pointer">
                     <input type="file" accept="image/*" className="hidden"
@@ -1030,18 +1209,20 @@ function Wizard() {
                 {photoInfo && <div className="hint mt-2">{photoInfo}</div>}
               </div>
 
-              <Toggle label="🔒 Photo-private mode" sub="Public lo blur ga kanipisthundi — interest accept ayyaka matrame clear"
+              <Toggle label="🔒 Photo-private mode" sub={T("Public లో blur గా కనిపిస్తుంది — interest accept అయ్యాకే clear", "Shows blurred in public — clear only after interest accept")}
                 value={!!f.photo_private} onChange={(v) => set("photo_private", v)} />
 
               <div>
-                <label className="text-[13px] font-bold text-ink">About me / Naa gurinchi <span className="text-[10px] text-gray-400">(optional)</span></label>
+                <label className="text-[13px] font-bold text-ink">{duo("A few words about myself", "నా గురించి కొన్ని మాటలు")} <span className="text-maroon">*</span></label>
                 <textarea value={f.about_myself} onChange={(e) => set("about_myself", e.target.value.slice(0, 600))}
                   rows={4} placeholder="Nenu simple family, software engineer… (Telugu lo kooda rayochu)"
                   className="input-mobile mt-1 telugu" />
                 <div className="mt-2 flex items-center gap-2">
                   <button type="button" onClick={startVoice}
                     className="border border-maroon/30 text-maroon font-bold text-[12px] px-3 py-2 rounded-xl">🎤 Voice tho cheppu</button>
-                  <span className="text-[10px] text-gray-500">{f.about_myself.length}/600</span>
+                  <span className={`text-[10px] font-bold ${f.about_myself.trim().length >= 50 ? "text-emerald-600" : "text-gray-500"}`}>
+                    {f.about_myself.trim().length >= 50 ? "✓ " : ""}{f.about_myself.length}/600 · {duo("Minimum 50 characters", "కనీసం 50 అక్షరాలు")}
+                  </span>
                 </div>
               </div>
 
@@ -1051,8 +1232,12 @@ function Wizard() {
                 onChange={(v) => set("complexion", v)} />
               <ChipGroup label="Blood group" options={BLOOD_GROUPS.map((x) => ({ v: x }))} value={f.blood_group}
                 onChange={(v) => set("blood_group", v)} />
-              <ChipGroup label="Physical status" options={PHYSICAL_STATUS.map((x) => ({ v: x }))} value={f.physical_status}
-                onChange={(v) => set("physical_status", v)} />
+              <PillGroup label={<Duo en="Your physical status" te="మీ ఆరోగ్య స్థితి" />}
+                value={f.physical_status} onChange={(v) => set("physical_status", v)}
+                options={[
+                  { v: "Normal", en: "Normal", te: "సాధారణ" },
+                  { v: "Physically Challenged", en: "Physically challenged", te: "దివ్యాంగులు" },
+                ]} />
 
               <div className="bg-cream rounded-2xl border border-gold/30 p-4 space-y-3">
                 <div className="font-bold text-maroon text-[14px]">💞 Mee expectations (matches filter ki)</div>
@@ -1072,12 +1257,27 @@ function Wizard() {
                   placeholder="Govt job / business / respects elders…" />
               </div>
 
+              <div className="bg-emerald-50/60 rounded-2xl border border-emerald-200 p-4">
+                <label className="text-[13px] font-bold text-emerald-900">🤝 Referral code (friend/partner ichara?)</label>
+                <input value={f.referral_code}
+                  onChange={(e) => set("referral_code", e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, "").slice(0, 20))}
+                  placeholder="Ex: charan519 / LAK42 (optional)"
+                  aria-label="Referral code"
+                  className="input-mobile mt-2 font-mono tracking-wide" />
+                <div className="hint mt-1">
+                  {refLocked
+                    ? <>{T(<>✅ <b>{refLocked}</b> lock అయ్యింది — మీకు +{refInfo?.bonus_credits || 1} credit FREE 🎁</>, <>✅ <b>{refLocked}</b> locked — +{refInfo?.bonus_credits || 1} credit FREE for you 🎁</>)}</>
+                    : T("Code ఉంటే మీకు +1 credit FREE + వాళ్లకి ₹50. Link తో వచ్చుంటే automatic fill అవుతుంది.", "With a code: +1 credit FREE for you + ₹50 for them. Auto-fills if you came via link.")}
+                </div>
+              </div>
+
               <label className="flex items-start gap-3 bg-white rounded-2xl border border-gold/30 p-4">
                 <input type="checkbox" checked={!!f.consent} onChange={(e) => set("consent", e.target.checked)}
                   className="mt-1 w-5 h-5 accent-[#7A0C2E]" />
                 <span className="text-[12px] text-gray-700">
-                  Naa details <b>nijam</b> ani confirm chesthunnanu. <b>Mana Vivaha</b> terms + privacy policy accept chesthunnanu —
-                  details channels lo post avutayi, number accept ayyaka matrame share avutundi.
+{T(<>నా details <b>నిజం</b> అని confirm చేస్తున్నాను. <b>Mana Vivaha</b> terms + privacy policy accept చేస్తున్నాను —
+                  details channels లో post అవుతాయి, number accept అయ్యాకే share అవుతుంది.</>, <>I confirm my details are <b>true</b>. I accept <b>Mana Vivaha</b> terms + privacy policy —
+                  details post in channels, number shared only after accept.</>)}
                 </span>
               </label>
             </>
@@ -1086,7 +1286,7 @@ function Wizard() {
 
         {/* ---------------- trust strip ---------------- */}
         <div className="mt-6 grid grid-cols-2 gap-2 text-[11px] text-gray-600">
-          {["🔒 Number evariki ivvamu", "🛡️ Watermark + log", "↩️ Decline aithe refund", "🚫 Chatting ledu"].map((t) => (
+          {T(["🔒 Number ఎవరికీ ఇవ్వము", "🛡️ Watermark + log", "↩️ Decline అయితే refund", "🚫 Chatting లేదు"], ["🔒 Number never shared", "🛡️ Watermark + log", "↩️ Refund on decline", "🚫 No chatting"]).map((t) => (
             <div key={t} className="bg-white border border-gold/25 rounded-xl px-3 py-2">{t}</div>
           ))}
         </div>
@@ -1097,20 +1297,20 @@ function Wizard() {
         <div className="max-w-3xl mx-auto px-4 py-3 flex items-center gap-3">
           {step > 1 && (
             <button onClick={back} className="px-5 py-3.5 rounded-2xl border border-maroon/25 text-maroon font-bold text-[14px]">
-              ← Back
+              ← {duo("Back", "వెనక్కి")}
             </button>
           )}
           <div className="flex-1 text-[10px] text-gray-500">
-            {step < 5 ? `Next: ${STEPS[step].label}` : "Chivari step — submit cheyyandi"}
+            {step < 5 ? `Next: ${duo(STEPS[step].label, STEPS[step].labelTe || "")}` : duo("Last step — submit", "చివరి దశ — సబ్మిట్ చేయండి")}
           </div>
           {step < 5 ? (
             <button onClick={next} className="px-7 py-3.5 rounded-2xl maroon-gradient text-white font-bold text-[15px]">
-              Next →
+              {duo("Next", "తర్వాత")} →
             </button>
           ) : (
             <button onClick={submit} disabled={busy}
               className="px-6 py-3.5 rounded-2xl gold-gradient text-maroon font-bold text-[15px] disabled:opacity-60">
-              {busy ? "Register avutund…" : "✅ Register cheyyi"}
+              {busy ? duo("Registering…", "నమోదు అవుతోంది…") : `✅ ${duo("Register now", "నమోదు చేయండి")}`}
             </button>
           )}
         </div>
@@ -1119,8 +1319,8 @@ function Wizard() {
   );
 }
 
-function draftSavedLabel(savedAt: string) {
-  return savedAt ? ` (${savedAt} ki save ayyindi)` : "";
+function draftSavedLabel(savedAt: string, te = true) {
+  return savedAt ? (te ? ` (${savedAt} కి save అయ్యింది)` : ` (saved ${savedAt})`) : "";
 }
 
 export default function RegisterPage() {
@@ -1128,7 +1328,7 @@ export default function RegisterPage() {
     <Suspense
       fallback={
         <div className="min-h-[60vh] flex items-center justify-center text-gray-500 text-sm">
-          Register form load avutundi…
+          Register form load అవుతుంది…
         </div>
       }
     >

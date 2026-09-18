@@ -73,7 +73,7 @@ b_diff = {"gothram": "Koundinya"}
 b_none: dict = {}
 check("A1 same gothram (case/space proof) → blocked", A11.gothram_check(a, b_same)["blocked"] is True)
 check("A2 verdict telugu (🚫 + pelli kudadhu)",
-      "🚫" in A11.gothram_check(a, b_same)["verdict_telugu"] and "kudadhu" in A11.gothram_check(a, b_same)["verdict_telugu"])
+      "🚫" in A11.gothram_check(a, b_same)["verdict_telugu"] and "కూడదు" in A11.gothram_check(a, b_same)["verdict_telugu"])
 check("A3 reason same_gothram", A11.gothram_check(a, b_same)["reason"] == "same_gothram")
 check("A4 veru gothram → OK, blocked False",
       A11.gothram_check(a, b_diff)["blocked"] is False and "✅" in A11.gothram_check(a, b_diff)["verdict_telugu"])
@@ -168,8 +168,8 @@ r = client.get("/api/stories")
 check("C4 approve mundu public list lo ledu", SID not in [s["story_id"] for s in r.json().get("stories", [])])
 r = client.post("/api/admin/stories/STORY-9999/action", json={"action": "approve"},
                 headers={"X-Admin-Key": "wrong"})
-check("C5 wrong admin key → 403 (enforce) leda 400 (dev bypass + validation)",
-      r.status_code in (403, 400), r.status_code)
+check("C5 wrong admin key → 403 (enforce) leda 400/404 (dev bypass + validation)",
+      r.status_code in (403, 400, 404), r.status_code)  # W35: unknown story → 404
 r = client.post(f"/api/admin/stories/{SID}/action", json={"action": "approve"}, headers=HDR_ADMIN)
 check("C6 admin approve 200 + share_text", r.status_code == 200 and "share_text" in r.json(), r.status_code)
 check("C7 share_text lo manavivaha.in + numbers ledu",
@@ -197,10 +197,10 @@ r = client.get("/api/support/faq", params={"q": "xyzabcnope"})
 check("D4 teliyani q → human support fallback",
       r.json()["faqs"][0]["id"] == "support_human", r.json()["faqs"][0]["id"])
 _faqs12 = client.get("/api/support/faq?limit=12").json()["faqs"]
-_TELUGU_WORDS = ("mee", "kavali", "cheyyandi", "vastundi", "matrame", "ayithe", "leda",
-                 "kooda", "chudandi", "pampandi", "istundi", "untundi", "avatali", "randi")
+_TELUGU_WORDS = ("మీ", "కావాలి", "చెయ్యండి", "వస్తుంది", "మాత్రమే", "అయితే", "లేదా",
+                 "కూడా", "చూడండి", "పంపండి", "ఇస్తుంది", "ఉంటుంది", "అవతలి", "రండి")
 _tel = sum(1 for f in _faqs12 if any(w in f["a"].lower() for w in _TELUGU_WORDS))
-check("D5 answers anni Telugu flavor (Tanglish, site convention)", _tel == len(_faqs12), _tel)
+check("D5 answers anni Telugu flavor (Telugu script)", _tel == len(_faqs12), _tel)
 
 # ═══════════════════════════════════════════════════════════════════════════
 section("E. DAILY STREAK")

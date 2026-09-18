@@ -10,10 +10,14 @@
 import { authHeaders, getAdminKey, setAdminKey } from "@/lib/api";
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { Duo, duo } from "@/lib/duo";
+import { useLang } from "@/lib/lang";
 
 type Stats = Record<string, any>;
 
 export default function GrowthPage() {
+  const { lang } = useLang();
+  const te = lang === "te";
   const [stats, setStats] = useState<Stats | null>(null);
   const [inv, setInv] = useState<Stats | null>(null);
   const [wa, setWa] = useState<Stats | null>(null);
@@ -29,7 +33,7 @@ export default function GrowthPage() {
   const saveKey = () => {
     setAdminKey(keyInput.trim());
     setKeySaved(Boolean(keyInput.trim()));
-    setNote(keyInput.trim() ? "✅ Admin key save ayyindi — ippudu leads data vasthundi" : "⚠️ Key khali ga undi");
+    setNote(keyInput.trim() ? (te ? "✅ Admin key save అయ్యింది — ఇప్పుడు leads data వస్తుంది" : "✅ Admin key saved — leads data will load") : (te ? "⚠️ Key ఖాళీగా ఉంది" : "⚠️ Key is empty"));
     load();
   };
 
@@ -45,7 +49,7 @@ export default function GrowthPage() {
       // 🐞 FIX: 403 vaste khali table chupinchadam kaadu — "admin key kavali" clear ga cheppali
       if ((s as Stats)?.detail || (l as Stats)?.detail) setNeedsAdminKey(true); else setNeedsAdminKey(false);
     } catch {
-      setNote("API reach avvaledu — backend run avutundo chusukondi");
+      setNote(te ? "API reach అవ్వలేదు — backend run అవుతుందో చూసుకోండి" : "API unreachable — check backend is running");
     }
   }, []);
 
@@ -57,7 +61,7 @@ export default function GrowthPage() {
       const d = await fetch(`/api/leads/followup/${id}`, { method: "POST", headers: authHeaders(true) }).then((r) => r.json());
       setNote(d.message_telugu || "Follow-up queued");
       load();
-    } catch { setNote("Follow-up pampaledu"); }
+    } catch { setNote(te ? "Follow-up పంపలేదు" : "Follow-up not sent"); }
     setBusy("");
   };
 
@@ -84,17 +88,18 @@ export default function GrowthPage() {
         <div className={`rounded-2xl border p-4 ${needsAdminKey ? "border-rose-300 bg-rose-50" : "border-gold/30 bg-white"}`}>
           <div className="text-[13px] font-bold text-maroon">🔐 Admin key (leads PII lock)</div>
           <p className="mt-1 text-[12px] text-gray-700">
-            Leads list + stats lo customer phone numbers untayi — kabatti ivi <b>admin key</b> tho matrame vasthayi.
-            Server lo <code>ADMIN_KEY</code> env pettandi, ade ikkada paste cheyyandi (browser lo matrame save avutundi, server ki pampamu).
+{te ? <>Leads list + stats లో customer phone numbers ఉంటాయి — కాబట్టి ఇవి <b>admin key</b> తోనే వస్తాయి.
+            Server లో <code>ADMIN_KEY</code> env పెట్టండి, అదే ఇక్కడ paste చెయ్యండి (browser లోనే save అవుతుంది, server కి పంపము).</> : <>Leads list + stats contain customer phone numbers — so they come only with <b>admin key</b>.
+            Put <code>ADMIN_KEY</code> env on server, paste it here (saved in browser only, never sent to server).</>}
           </p>
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <input aria-label="Admin key" type="password" value={keyInput} onChange={(e) => setKeyInput(e.target.value)}
               placeholder="ADMIN_KEY…" className="rounded-xl border border-maroon/25 px-3 py-2 text-[12px] font-mono w-64" />
             <button onClick={saveKey} className="rounded-xl bg-[#7A0C2E] px-4 py-2 text-[12px] font-bold text-white">💾 Save key</button>
             <button onClick={() => load()} className="rounded-xl border border-maroon/25 px-4 py-2 text-[12px] font-bold text-maroon">🔄 Reload</button>
-            {keySaved && <span className="text-[11px] text-emerald-700">✅ key save ayyindi ({(getAdminKey() || "").slice(0, 4)}••••)</span>}
+            {keySaved && <span className="text-[11px] text-emerald-700">{te ? <>✅ key save అయ్యింది ({(getAdminKey() || "").slice(0, 4)}••••)</> : <>✅ key saved ({(getAdminKey() || "").slice(0, 4)}••••)</>}</span>}
           </div>
-          {needsAdminKey && <p className="mt-2 text-[12px] font-semibold text-rose-700">⚠️ Server 403 ichindi — key save chesi malli reload cheyyandi.</p>}
+          {needsAdminKey && <p className="mt-2 text-[12px] font-semibold text-rose-700">{te ? "⚠️ Server 403 ఇచ్చింది — key save చేసి మళ్లీ reload చెయ్యండి." : "⚠️ Server gave 403 — save key and reload."}</p>}
         </div>
       </div>
       <div className="maroon-gradient text-white">
@@ -102,10 +107,11 @@ export default function GrowthPage() {
           <div className="text-[11px] font-bold bg-white/10 border border-white/20 rounded-full px-3 py-1 inline-block">
             📈 Growth + Ops dashboard
           </div>
-          <h1 className="mt-3 text-2xl md:text-3xl font-bold">Site traffic → Leads → Profiles</h1>
+          <h1 className="mt-3 text-2xl md:text-3xl font-bold"><Duo en="Site traffic → Leads → Profiles" te="సందర్శకులు → లీడ్స్ → ప్రొఫైళ్లు" /></h1>
           <p className="mt-2 text-[13px] opacity-90 telugu max-w-3xl">
-            Prathi visitor DB lo save avutaru (middleware tracking). Number isthe lead — mana WhatsApp follow-up tho profile ga marutaru.
-            WhatsApp posts anni anti-ban gap (120–170s random) tho — ee screen lo queue status chudochu.
+{te ? <>ప్రతి visitor DB లో save అవుతారు (middleware tracking). Number ఇస్తే lead — మన WhatsApp follow-up తో profile గా మారతారు.
+            WhatsApp posts అన్నీ anti-ban gap (120–170s random) తో — ఈ screen లో queue status చూడొచ్చు.</> : <>Every visitor saves to DB (middleware tracking). A number makes a lead — our WhatsApp follow-up converts them to profiles.
+            All WhatsApp posts go with anti-ban gap (120–170s random) — queue status visible on this screen.</>}
           </p>
           <div className="mt-3 flex flex-wrap gap-2 text-[12px]">
             <button onClick={load} className="px-4 py-2 rounded-full gold-gradient text-maroon font-bold">🔄 Refresh</button>
@@ -119,14 +125,14 @@ export default function GrowthPage() {
         {note && <div className="bg-amber-50 border border-amber-200 text-amber-900 rounded-2xl px-4 py-3 text-[13px]">{note}</div>}
 
         {!stats ? (
-          <div className="text-gray-500 text-sm">Load avutund…</div>
+          <div className="text-gray-500 text-sm">{te ? "Load అవుతుంది…" : "Loading…"}</div>
         ) : (
           <>
             {/* ---- KPI row ---- */}
             <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
-              <KPI label="Visits (total)" value={stats.visits_total} sub={`ee roju: ${stats.visits_today}`} />
+              <KPI label="Visits (total)" value={stats.visits_total} sub={te ? `ఈ రోజు: ${stats.visits_today}` : `today: ${stats.visits_today}`} />
               <KPI label="Unique visitors" value={stats.visitors_unique} sub="IP+device hash" />
-              <KPI label="Leads" value={stats.leads_total} sub={`kotha: ${stats.leads_new}`} tone="gold" />
+              <KPI label="Leads" value={stats.leads_total} sub={te ? `కొత్తవి: ${stats.leads_new}` : `new: ${stats.leads_new}`} tone="gold" />
               <KPI label="Lead conversion" value={`${stats.conversion}%`} sub="unique visitors → leads" tone="gold" />
               <KPI label="Profiles (inventory)" value={inv?.total_profiles} sub={`target ${inv?.launch_target}`} />
               <KPI label="WhatsApp sent" value={wa?.sent_total ?? 0} sub={wa?.whatsapp_mode === "off" ? "mode: off (offline)" : `mode: ${wa?.whatsapp_mode}`} />
@@ -158,7 +164,7 @@ export default function GrowthPage() {
             {/* ---- channels + top pages ---- */}
             <div className="grid md:grid-cols-2 gap-4">
               <div className="bg-white rounded-2xl border border-gold/25 p-4">
-                <div className="font-bold text-maroon text-[14px]">📲 Traffic channels (ekkada nunchi vacharu)</div>
+                <div className="font-bold text-maroon text-[14px]">{te ? "📲 Traffic channels (ఎక్కడ నుంచి వచ్చారు)" : "📲 Traffic channels (where from)"}</div>
                 <div className="mt-3 space-y-2">
                   {Object.entries(stats.by_channel || {}).map(([k, v]) => {
                     const max = Math.max(...Object.values(stats.by_channel as Record<string, number>).map(Number), 1);
@@ -171,18 +177,18 @@ export default function GrowthPage() {
                       </div>
                     );
                   })}
-                  {!Object.keys(stats.by_channel || {}).length && <div className="text-[12px] text-gray-500">Inka traffic ledu — channels post cheyyandi</div>}
+                  {!Object.keys(stats.by_channel || {}).length && <div className="text-[12px] text-gray-500">{te ? "ఇంకా traffic లేదు — channels post చెయ్యండి" : "No traffic yet — post to channels"}</div>}
                 </div>
               </div>
               <div className="bg-white rounded-2xl border border-gold/25 p-4">
-                <div className="font-bold text-maroon text-[14px]">🔥 Top pages (ekkada ekkuva chusthunnaru)</div>
+                <div className="font-bold text-maroon text-[14px]">{te ? "🔥 Top pages (ఎక్కడ ఎక్కువ చూస్తున్నారు)" : "🔥 Top pages (most viewed)"}</div>
                 <div className="mt-3 space-y-1.5">
                   {(stats.top_paths || []).map((p: any) => (
                     <div key={p.path} className="flex justify-between text-[12px] bg-cream rounded-xl px-3 py-2">
                       <span className="truncate">{p.path}</span><span className="font-bold text-maroon">{p.visits}</span>
                     </div>
                   ))}
-                  {!(stats.top_paths || []).length && <div className="text-[12px] text-gray-500">Inka data ledu</div>}
+                  {!(stats.top_paths || []).length && <div className="text-[12px] text-gray-500">{te ? "ఇంకా data లేదు" : "No data yet"}</div>}
                 </div>
               </div>
             </div>
@@ -190,7 +196,7 @@ export default function GrowthPage() {
             {/* ---- leads table ---- */}
             <div className="bg-white rounded-2xl border border-gold/25 p-4">
               <div className="flex items-center justify-between">
-                <div className="font-bold text-maroon text-[14px]">📱 Leads (number ichina vallu) — follow-up cheyyandi</div>
+                <div className="font-bold text-maroon text-[14px]">{te ? "📱 Leads (number ఇచ్చిన వాళ్లు) — follow-up చెయ్యండి" : "📱 Leads (gave numbers) — follow up"}</div>
                 <div className="text-[11px] text-gray-500">{leads.length} shown</div>
               </div>
               <div className="mt-3 overflow-x-auto">
@@ -221,7 +227,7 @@ export default function GrowthPage() {
                         </td>
                       </tr>
                     ))}
-                    {!leads.length && <tr><td colSpan={7} className="py-3 text-gray-500">Inka leads levu — QuickLead form / register tho vasthayi</td></tr>}
+                    {!leads.length && <tr><td colSpan={7} className="py-3 text-gray-500">{te ? "ఇంకా leads లేవు — QuickLead form / register తో వస్తాయి" : "No leads yet — they come via QuickLead form / register"}</td></tr>}
                   </tbody>
                 </table>
               </div>
@@ -243,7 +249,7 @@ export default function GrowthPage() {
                 <button onClick={() => waAction("/api/wa/reset_day")} className="px-4 py-2 rounded-full border border-gold/40 text-maroon font-bold text-[12px]">🔄 Reset day counter</button>
               </div>
               <div className="mt-2 text-[11px] text-gray-500">
-                Telegram mundu post avutundi → WhatsApp tarvata (random 120–170s gap, every 6 messages ki 8–20 min break, 8–22 IST only).
+                {te ? "Telegram ముందు post అవుతుంది → WhatsApp తర్వాత (random 120–170s gap, every 6 messages కి 8–20 min break, 8–22 IST only)." : "Telegram posts first → WhatsApp after (random 120–170s gap, 8–20 min break every 6 messages, 8–22 IST only)."}
               </div>
             </div>
 
@@ -255,7 +261,7 @@ export default function GrowthPage() {
                   {Object.entries(stats.leads_by_district || {}).map(([k, v]) => (
                     <div key={k} className="flex justify-between text-[12px]"><span>{k}</span><b className="text-maroon">{String(v)}</b></div>
                   ))}
-                  {!Object.keys(stats.leads_by_district || {}).length && <div className="text-[12px] text-gray-500">Data ledu</div>}
+                  {!Object.keys(stats.leads_by_district || {}).length && <div className="text-[12px] text-gray-500">{te ? "Data లేదు" : "No data"}</div>}
                 </div>
               </div>
               <div className="bg-white rounded-2xl border border-gold/25 p-4">
@@ -264,7 +270,7 @@ export default function GrowthPage() {
                   {Object.entries(stats.leads_by_source || {}).map(([k, v]) => (
                     <div key={k} className="flex justify-between text-[12px]"><span>{k}</span><b className="text-maroon">{String(v)}</b></div>
                   ))}
-                  {!Object.keys(stats.leads_by_source || {}).length && <div className="text-[12px] text-gray-500">Data ledu</div>}
+                  {!Object.keys(stats.leads_by_source || {}).length && <div className="text-[12px] text-gray-500">{te ? "Data లేదు" : "No data"}</div>}
                 </div>
               </div>
             </div>

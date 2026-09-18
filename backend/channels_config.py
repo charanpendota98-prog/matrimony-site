@@ -4,7 +4,7 @@ Mana Vivaha (TSAP Matrimony) — MASTER CHANNEL REGISTRY + AUTO-ROUTER
 One profile post → automatic ga annni relevant channels lo ki vellali.
 Idi single source of truth: backend, bot, website anni ikkada nunchi chaduvutayi.
 
-LEVELS (SMART STRUCTURE — 51 channels, 83 kaadu):
+LEVELS (SMART STRUCTURE — 51 channels, 83 కాదు):
   L0 OFFICIAL   — 1  (brand hub, top-3/day, success stories)
   L1 REGION     — 5  (TS Bride/Groom, AP Bride/Groom, NRI/Other-States)
   L2 RELIGION   — 11 (Muslim ×4 [TS/AP × bride/groom], Christian ×4, Hindu hub, Other, Inter-Faith)
@@ -16,7 +16,7 @@ LEVELS (SMART STRUCTURE — 51 channels, 83 kaadu):
 
 IMPORTANT RULES:
   * Username okkate Telegram lo unique — conflict ayithe FALLBACK list chudu.
-  * LIVE channels (ts_bride, ts_groom) already create ayyayi — vaatini never break.
+  * LIVE channels (ts_bride, ts_groom) already create అయ్యాయి — vaatini never break.
   * Max 5 channels per profile auto-post (spam taggadaniki) — priority order lo.
 """
 
@@ -48,9 +48,9 @@ CHANNELS = {
         "name": "📢 Mana Vivaha Official | TS-AP Matrimony",
         "username": "TSAP_MATRIMONY",
         "fallbacks": ["manavivaha", "manavivaha_official", "manavivaha_hub"],
-        "desc": ("Mana Vivaha — TS & AP No.1 Telugu Matrimony 🇮🇳\n"
-                 "₹99 ke Sambandham • Modati 3 FREE\n"
-                 "Daily Top-3 matches, success stories, mosam jagratha alerts.\n"
+        "desc": ("Mana Vivaha — TS & AP Telugu Matrimony 🇮🇳\n"
+                 "₹99 సంబంధం • మొదటి 3 FREE\n"
+                 "Daily Top-3 matches, success stories, మోసం జాగ్రత్త alerts.\n"
                  "Website: manavivaha.in • Bot: @telugumatrimony1_bot"),
         "hashtags": ["#ManaVivaha", "#TSAPMatrimony", "#99keSambandham"],
         "wave": 1,
@@ -64,8 +64,8 @@ CHANNELS = {
         "name": "👰 TS Brides | తెలంగాణ వధువులు",
         "username": "TSBRIDE",
         "fallbacks": ["manavivaha_ts_bride", "tsbrides"],
-        "desc": ("Telangana ammayilu — anni kulasthulu.\n"
-                 "Daily 10+ kotha profiles • Photo verified • ID search.\n"
+        "desc": ("Telangana ammayilu — అన్నీ kulasthulu.\n"
+                 "Daily 10+ కొత్త profiles • Photo verified • ID search.\n"
                  "Register FREE: manavivaha.in/register • Bot: @telugumatrimony1_bot"),
         "hashtags": ["#TSBride", "#Telangana", "#Ammaayi"],
         "wave": 1,
@@ -77,8 +77,8 @@ CHANNELS = {
         "name": "🤵 TS Grooms | తెలంగాణ వరులు",
         "username": "TSGROOM1",
         "fallbacks": ["manavivaha_ts_groom", "tsgroom"],
-        "desc": ("Telangana abbayilu — anni kulasthulu.\n"
-                 "Daily 10+ kotha profiles • Photo verified • ID search.\n"
+        "desc": ("Telangana abbayilu — అన్నీ kulasthulu.\n"
+                 "Daily 10+ కొత్త profiles • Photo verified • ID search.\n"
                  "Register FREE: manavivaha.in/register • Bot: @telugumatrimony1_bot"),
         "hashtags": ["#TSGroom", "#Telangana", "#Abbaayi"],
         "wave": 1,
@@ -91,7 +91,7 @@ CHANNELS = {
         "username": "APBRIDE",
         "fallbacks": ["manavivaha_ap_bride", "apbride1", "manavivaha_apbride"],
         "desc": ("Andhra Pradesh ammayilu — 26 districts cover.\n"
-                 "Daily kotha profiles • Register FREE: manavivaha.in/register"),
+                 "Daily కొత్త profiles • Register FREE: manavivaha.in/register"),
         "hashtags": ["#APBride", "#AndhraPradesh"],
         "wave": 1,
         "live": False,
@@ -103,7 +103,7 @@ CHANNELS = {
         "username": "APGROOM1",
         "fallbacks": ["manavivaha_ap_groom", "apgroom", "manavivaha_apgroom"],
         "desc": ("Andhra Pradesh abbayilu — 26 districts cover.\n"
-                 "Daily kotha profiles • Register FREE: manavivaha.in/register"),
+                 "Daily కొత్త profiles • Register FREE: manavivaha.in/register"),
         "hashtags": ["#APGroom", "#AndhraPradesh"],
         "wave": 1,
         "live": False,
@@ -115,7 +115,7 @@ CHANNELS = {
         "username": "manavivaha_nri",
         "fallbacks": ["manavivaha_global", "manavivaha_usa"],
         "desc": ("USA • UK • Canada • Australia • Gulf • Singapore — Telugu NRI matches.\n"
-                 "Visa/PR/job status mention cheyyandi. manavivaha.in • @telugumatrimony1_bot"),
+                 "Visa/PR/job status mention చెయ్యండి. manavivaha.in • @telugumatrimony1_bot"),
         "hashtags": ["#NRI", "#TeluguAbroad", "#GlobalTelugu"],
         "wave": 2,
         "live": False,
@@ -128,8 +128,8 @@ CHANNELS = {
         "name": "🕉️ Hindu Matrimony Hub | హిందూ వివాహాలు",
         "username": "manavivaha_hindu",
         "fallbacks": ["manavivaha_hindus", "tsap_hindu"],
-        "desc": ("Hindu Telugu matches — anni kulasthulu, anni districts.\n"
-                 "Caste-wise channels kooda undi — profile lo caste filter use cheyyandi.\n"
+        "desc": ("Hindu Telugu matches — అన్నీ kulasthulu, అన్నీ districts.\n"
+                 "Caste-wise channels కూడా ఉంది — profile లో caste filter use చెయ్యండి.\n"
                  "manavivaha.in/register • Bot: @telugumatrimony1_bot"),
         "hashtags": ["#Hindu", "#TeluguMatrimony"],
         "wave": 1,
@@ -219,7 +219,7 @@ CHANNELS = {
         "fallbacks": ["manavivaha_intercaste", "manavivaha_mixedmarriage"],
         "desc": ("Inter-caste • Inter-religion • Love & Register marriage.\n"
                  "No-caste filter • Full privacy • Couple corner.\n"
-                 "manavivaha.in/register • Height secret maintain chestham 🤝"),
+                 "manavivaha.in/register • Height secret maintain చేస్తాం 🤝"),
         "hashtags": ["#Intercaste", "#LoveMarriage", "#RegisterMarriage"],
         "wave": 3, "live": False, "route": {"flag": "interfaith"},
     },
@@ -232,8 +232,8 @@ CHANNELS = {
     # ===================== LEVEL 4 — SPECIAL (7) =====================
     "second_marriage": {"tier": "L4_SPECIAL", "name": "💔 2nd Marriage | Divorcee & Widow",
                         "username": "manavivaha_second", "fallbacks": ["tsap_second", "manavivaha_remarriage"],
-                        "desc": ("Divorcee • Widow • Widower — 2nd innings ki respect tho platform.\n"
-                                 "100% privacy • Judge cheyyaru • Serious matches matrame.\n"
+                        "desc": ("Divorcee • Widow • Widower — 2nd innings కి respect తో platform.\n"
+                                 "100% privacy • Judge చెయ్యరు • Serious matches మాత్రమే.\n"
                                  "manavivaha.in/register"),
                         "hashtags": ["#SecondMarriage", "#Remarriage", "#Respect"], "wave": 2, "live": False,
                         "route": {"flag": "second_marriage"}},
@@ -258,19 +258,19 @@ CHANNELS = {
                          "username": "manavivaha_professionals",
                          "fallbacks": ["manavivaha_doctors", "tsap_doctors", "manavivaha_teachers"],
                          "desc": ("MBBS • MD • MS • BDS • Nursing • Pharma • School Teacher • Lecturer • Professor\n"
-                                  "Medical + education professionals — okate chota. manavivaha.in/register"),
+                                  "Medical + education professionals — ఒకటే chota. manavivaha.in/register"),
                          "hashtags": ["#Doctors", "#Teachers", "#Healthcare"], "wave": 3, "live": False,
                          "route": {"flag": "doctor_teacher"}},
     "success_stories": {"tier": "L4_SPECIAL", "name": "🎉 Success Stories & Reviews",
                         "username": "manavivaha_success", "fallbacks": ["tsap_success"],
-                        "desc": ("Mana Vivaha tho pelli ayyina couples stories + photos (permission tho).\n"
-                                 "Trust = Growth. Me story pampandi: manavivaha.in/success"),
+                        "desc": ("Mana Vivaha తో పెళ్లి అయిన couples stories + photos (permission తో).\n"
+                                 "Trust = Growth. Me story పంపండి: manavivaha.in/success"),
                         "hashtags": ["#SuccessStory", "#ManaVivaha"], "wave": 3, "live": False,
                         "route": "manual"},
     "fraud_alerts": {"tier": "L4_SPECIAL", "name": "⚠️ Fraud Alert & Safety",
                      "username": "manavivaha_alerts", "fallbacks": ["tsap_alerts"],
-                     "desc": ("Mosam jagratha! Fake profiles, advance money scams, photo theft alerts.\n"
-                              "Report: manavivaha.in/report • 24h lo action. Family safety first."),
+                     "desc": ("మోసం జాగ్రత్త! Fake profiles, advance money scams, photo theft alerts.\n"
+                              "Report: manavivaha.in/report • 24h లో action. Family safety first."),
                      "hashtags": ["#FraudAlert", "#StaySafe"], "wave": 3, "live": False,
                      "route": "manual"},
     "bureau_network": {"tier": "L4_SPECIAL", "name": "🤝 Bureau & Broker Network (B2B)",
@@ -528,7 +528,7 @@ def pending_channels() -> list:
 
 
 def channel_chat_id(key: str, only_live: bool = True) -> str | None:
-    """Bot post cheyyadaniki chat id/username. only_live=True ayithe created channels matrame."""
+    """Bot post చెయ్యడానికి chat id/username. only_live=True అయితే created channels మాత్రమే."""
     ch = CHANNELS.get(key)
     if not ch:
         return None
@@ -560,7 +560,7 @@ TIER_PRIORITY = {"L0_OFFICIAL": 0, "L1_REGION": 1, "L3_CASTE": 2, "L2_RELIGION":
 
 
 def setup_plan(wave: int | None = None) -> list:
-    """Wave → tier → caste order lo channels (create cheyyadaniki)."""
+    """Wave → tier → caste order లో channels (create చెయ్యడానికి)."""
     rows = []
     for key, ch in CHANNELS.items():
         if wave and ch.get("wave") != wave:
@@ -574,7 +574,7 @@ def setup_plan(wave: int | None = None) -> list:
 
 
 def caste_split_report() -> dict:
-    """Cluster coverage report — enni communities ki separate channels, enni sub-castes cover."""
+    """Cluster coverage report — enni communities కి separate channels, enni sub-castes cover."""
     by_wave: Dict[int, list] = {}
     by_category: Dict[str, int] = {}
     members_total = 0
@@ -605,7 +605,7 @@ def caste_split_report() -> dict:
 
 
 def channel_health_report() -> list:
-    """Emanna channel config lo problem unda (setup mundu)."""
+    """Emanna channel config లో problem unda (setup ముందు)."""
     from channel_content import channel_health
     out = []
     for key, ch in CHANNELS.items():
@@ -661,38 +661,38 @@ def _flag_job(text: str, words: tuple) -> bool:
 
 
 def why_telugu(key: str, profile: dict) -> str:
-    """Channel key → caption lo chupinchE Telugu reason (personalized)."""
-    gender_word = "Ammai" if str(profile.get("gender", "Bride")).lower().startswith("b") else "Abbai"
+    """Channel key → caption లో chupinchE Telugu reason (personalized)."""
+    gender_word = "అమ్మాయి" if str(profile.get("gender", "Bride")).lower().startswith("b") else "అబ్బాయి"
     state = resolve_state(profile.get("state", "TS"))
     state_word = {"TS": "Telangana", "AP": "Andhra", "Other": "NRI/Abroad"}[state]
     dist = profile.get("district", "")
     caste = profile.get("caste", "")
     age = str(profile.get("age", "")).split("-")[0]
     reasons = {
-        "ts_bride": f"{state_word} {gender_word} — TS Brides channel lo daily chusevallaki reach",
-        "ts_groom": f"{state_word} {gender_word} — TS Grooms channel lo direct reach",
-        "ap_bride": f"{state_word} {gender_word} — AP Brides channel lo first page",
-        "ap_groom": f"{state_word} {gender_word} — AP Grooms channel lo direct reach",
-        "nri_global": "NRI/Abroad matches korukune families ki idi first choice",
-        "hindu": "Hindu community matches — caste channel kooda kalipi reach",
-        "muslim": "Muslim community — Sheikh/Syed/Pathan/Momin anni sub-sects ki reach",
-        "christian": "Christian community — Catholic/CSI/Baptist anni denominations ki reach",
+        "ts_bride": f"{state_word} {gender_word} — TS Brides channel లో daily చూసేవాళ్లకి reach",
+        "ts_groom": f"{state_word} {gender_word} — TS Grooms channel లో direct reach",
+        "ap_bride": f"{state_word} {gender_word} — AP Brides channel లో first page",
+        "ap_groom": f"{state_word} {gender_word} — AP Grooms channel లో direct reach",
+        "nri_global": "NRI/Abroad matches కోరుకునే families కి idi first choice",
+        "hindu": "Hindu community matches — caste channel కూడా కలిపి reach",
+        "muslim": "Muslim community — Sheikh/Syed/Pathan/Momin అన్నీ sub-sects కి reach",
+        "christian": "Christian community — Catholic/CSI/Baptist అన్నీ denominations కి reach",
         "other_religion": "Other religions — respectful + private matches",
-        "interfaith": "Inter-caste / Love marriage korukune couples ki safe space",
-        "second_marriage": "2nd innings — divorcee/widow ki respect tho matches",
+        "interfaith": "Inter-caste / Love marriage కోరుకునే couples కి safe space",
+        "second_marriage": "2nd innings — divorcee/widow కి respect తో matches",
         "differently_abled": "Differently abled — special care + special respect channel",
-        "govt_jobs": "Govt job profile — ee channel lo demand chala ekkuva 🔥",
-        "software_it": "Software/IT job — HYD, BLR, USA matches ki best",
-        "doctors": "Medical profession — doctor matches ki separate channel",
-        "teachers": "Teacher/Lecturer matches — education field families ki",
-        "above_35": f"Age {age} — 35+ channel lo late marriage ki kooda best sambandham",
-        "love_register": "Love/Register marriage support — parents oppuka tho",
+        "govt_jobs": "Govt job profile — ee channel లో demand చాలా ఎక్కువ 🔥",
+        "software_it": "Software/IT job — HYD, BLR, USA matches కి best",
+        "doctors": "Medical profession — doctor matches కి separate channel",
+        "teachers": "Teacher/Lecturer matches — education field families కి",
+        "above_35": f"Age {age} — 35+ channel లో late marriage కి కూడా best సంబంధం",
+        "love_register": "Love/Register marriage support — parents oppuka తో",
     }
     if key in reasons:
         return reasons[key]
     ch = CHANNELS.get(key, {})
     if ch.get("tier") == "L3_CASTE":
-        return f"{caste} caste channel — {dist or state_word} lo {caste} sambandhalu okkate chota"
+        return f"{caste} caste channel — {dist or state_word} లో {caste} సంబంధాలు okkate chota"
     return ch.get("desc", key)[:90]
 
 
@@ -748,6 +748,15 @@ def route_profile(profile: dict, max_posts: int = MAX_POSTS) -> dict:
         ordered.append(("ap_bride" if gender == "Bride" else "ap_groom", "region+gender"))
     else:
         ordered.append(("nri_global", "region=Other/NRI"))
+    # 🌊 WAVE 14 — NRI (TS/AP abroad): home-state channel + NRI global hub kooda.
+    try:
+        from matchpro import detect_nri as _detect_nri
+        _nri = _detect_nri(str(profile.get("country", "")), str(profile.get("work_location", "")),
+                           str(profile.get("current_city", "")), state)
+        if (_nri.get("is_nri") or profile.get("is_nri")) and state in ("TS", "AP"):
+            ordered.append(("nri_global", "NRI member"))
+    except Exception:
+        pass
 
     # L2 — religion + L3 caste
     if religion == "Hindu":
@@ -758,7 +767,7 @@ def route_profile(profile: dict, max_posts: int = MAX_POSTS) -> dict:
             if profile.get("top_match"):
                 ordered.append(("hindu", "top-match digest"))
             else:
-                notes.append("Caste channel undi → general Hindu hub skip (duplication avoid, slot save)")
+                notes.append("Caste channel ఉంది → general Hindu hub skip (duplication avoid, slot save)")
             # ⭐ CLUSTER channel — pedda community ayithe bride/groom separate, chinna vi single
             ck = SPLIT_MAP.get(caste_key, {}).get(gender, "c_%s" % caste_key if "c_" + caste_key in CHANNELS else None)
             if ck and ck in CHANNELS:
@@ -848,22 +857,13 @@ def build_hashtags(profile: dict, keys: list | None = None) -> str:
 
 
 def build_caption(profile: dict, tsap_id: str = "TSAP-F-2025-XXXX", score: int = 92) -> str:
-    """Ready-to-post Telegram caption (photo card + footer + CTA)."""
-    r = route_profile(profile)
-    reasons = "\n".join(f"• {x['telugu']}" for x in r["reasons"][:4])
-    return (
-        f"🆔 {tsap_id} | ⭐ {score}% BEST MATCH\n"
-        f"👤 {profile.get('full_name','—')} • {profile.get('age','—')}y • {profile.get('height','—')} • {profile.get('caste','—')}\n"
-        f"🎓 {profile.get('education','—')} • 💼 {profile.get('job','—')} • 📍 {profile.get('district','—')}, {resolve_state(profile.get('state','TS'))}\n"
-        f"🌟 {profile.get('gothram','—')} gothram • {profile.get('star','—')} nakshatram\n"
-        f"\n✅ Enduku set avutharu:\n{reasons}\n"
-        f"\n{r['hashtags']}\n"
-        f"━━━━━━━━━━━━━━━\n"
-        f"🤖 Bot: {BOT_USERNAME} (Modati 3 FREE)\n"
-        f"🔍 ID Search: {SITE}/search/{tsap_id}\n"
-        f"📝 Register 3 min lo: {SITE}/register\n"
-        f"⚠️ Number bot lo pay tarvata matrame — mosam jagratha!"
-    )
+    """Ready-to-post Telegram caption — 🔒 WAVE 12 MASKED (number ❌ full-name ❌ surname ❌).
+
+    Teaser matrame + unlock CTA. Full number: bot /unlock (1 credit) leda ₹500 assisted.
+    NOTE: ID/score/bot/register/safety substrings intact (old tests green).
+    """
+    from smart12 import build_masked_caption  # lazy: cycle-safe
+    return build_masked_caption(profile or {}, tsap_id, score)
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -933,7 +933,7 @@ def wa_channel_link(key: str) -> str:
 
 
 def channel_links(key: str) -> Dict[str, object]:
-    """Okka channel ki telegram + whatsapp + name + tier."""
+    """ఒక్క channel కి telegram + whatsapp + name + tier."""
     c = CHANNELS.get(key) or {}
     return {
         "key": key,
@@ -948,9 +948,9 @@ def channel_links(key: str) -> Dict[str, object]:
 
 def _gender_word(profile: Dict) -> str:
     g = str((profile or {}).get("gender", "") or "").lower()
-    if g.startswith("bride") or "bride" in g or g in ("f", "female", "ammayi"):
+    if g.startswith("bride") or "bride" in g or g in ("f", "female", "ammayi", "అమ్మాయి"):
         return "bride"
-    if g.startswith("groom") or "groom" in g or g in ("m", "male", "abbaayi"):
+    if g.startswith("groom") or "groom" in g or g in ("m", "male", "abbaayi", "abbayi", "అబ్బాయి"):
         return "groom"
     return ""
 

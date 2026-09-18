@@ -1,13 +1,13 @@
 """
 MANA VIVAHA — LAUNCH INVENTORY GENERATOR
 ========================================
-"Chala mandi undalsina avasaram ledu — 300–400 profiles unte chalu" → 360 realistic profiles.
+"చాలా మంది ఉండాల్సిన అవసరం లేదు — 300–400 profiles ఉంటే చాలు" → 360 realistic profiles.
 
 Enduku idi kavali:
   • Channels / matches / search eppudu khali ga kanipinchakudadu
   • Caste-wise channels ki sahi profiles (Reddy bride, Madiga groom…)
   • Star ↔ Rasi correct ga (porutham 10/10 pani cheyyadaniki)
-  • Leads vachinappudu "meela anti profiles unnayi" ani chupinchadaniki
+  • Leads vachinappudu "మీలా anti profiles ఉన్నాయి" ani chupinchadaniki
 
 Usage:
   python seed_launch_db.py --count 360 --out launch_profiles.json     # JSON generate
@@ -188,26 +188,26 @@ WEIGHTS = {"Bride": ["45kg", "48kg", "50kg", "52kg", "54kg", "56kg", "58kg"],
            "Groom": ["60kg", "65kg", "68kg", "72kg", "75kg", "78kg", "82kg"]}
 BLOOD = ["A+", "B+", "O+", "AB+", "A-", "O-"]
 ABOUT = [
-    "Simple Telugu family. Pelli tarvata kutumbam tho kalisi undadam istam. Godu bhakti + pani meeda nammakam.",
-    "Software job chesthunnanu, weekends lo intlo family tho time. Chaduvu ki ekkuva importance isthanu.",
-    "Traditional values + modern thinking. Photography and cooking istam. Family tho bond baguntundi.",
-    "Godu bhakthi, sraddha, manchi manasthtvam — ivi naa strength. Job stable, ippudu pelli chesukovalani undi.",
-    "Kutumbam lo andaru kalisi untam. Nenu manchi cooking chestanu, music vintam istam.",
-    "Business chesthunnanu. Hard working family background. Pelliki ready ga unnani, manchi pori/abbayi kosam chusthunnam.",
-    "Job + freelance chesthunnanu. Travel istam, books chadavatam istam. Family first always.",
-    "Govt job lo unnanu. Simple life, godu bhakti, manchi sambandham korukutunnam.",
+    "Simple Telugu family. పెళ్లి తర్వాత కుటుంబం తో కలిసి ఉండడం ఇష్టం. Godu భక్తి + pani మీద నమ్మకం.",
+    "Software job చేస్తున్నాను, weekends లో ఇంట్లో family తో time. చదువు కి ఎక్కువ importance ఇస్తాను.",
+    "Traditional values + modern thinking. Photography and cooking ఇష్టం. Family తో bond బాగుంటుంది.",
+    "Godu భక్తి, శ్రద్ధ, మంచి మనస్తత్వం — ఇవి నా strength. Job stable, ఇప్పుడు పెళ్లి చేసుకోవాలని ఉంది.",
+    "కుటుంబం లో అందరూ కలిసి ఉంటాం. నేను మంచి cooking చేస్తాను, music వింటాం ఇష్టం.",
+    "Business చేస్తున్నాను. Hard working family background. పెళ్లికి ready గా ఉన్నానని, మంచి పోరి/అబ్బాయి కోసం చూస్తున్నాం.",
+    "Job + freelance చేస్తున్నాను. Travel ఇష్టం, books chadavatam ఇష్టం. Family first always.",
+    "Govt job లో ఉన్నాను. Simple life, godu భక్తి, మంచి సంబంధం కోరుకుంటున్నాం.",
 ]
 EXPECT = [
-    "Manchi kutumbam nunchi vachina, pani meeda nammakam unna sambandham kavali.",
-    "Education + stable job unna partner kavali. Family values important.",
-    "Pelliki ready ga unna manchi manasthtvam unna partner kavali. Gothram match avvali.",
-    "Job chese partner kavali — Hyderabad/Bangalore lo work chesthe better.",
-    "Traditional family, manchi aachara sampradayalu unna inti nunchi sambandham kavali.",
+    "మంచి కుటుంబం నుంచి వచ్చిన, pani మీద నమ్మకం ఉన్న సంబంధం కావాలి.",
+    "Education + stable job ఉన్న partner కావాలి. Family values important.",
+    "పెళ్లికి ready గా ఉన్న మంచి మనస్తత్వం ఉన్న partner కావాలి. గోత్రం match అవ్వాలి.",
+    "Job చేసే partner కావాలి — Hyderabad/Bangalore లో work చేస్తే better.",
+    "Traditional family, మంచి ఆచార సంప్రదాయాలు ఉన్న ఇంటి నుంచి సంబంధం కావాలి.",
 ]
 
 
 def _dob_from_age(age: int, rnd: random.Random) -> str:
-    """Age → realistic DOB (janma roju random month/day)."""
+    """Age → realistic DOB (జన్మ రోజు random month/day)."""
     today = date(2026, 9, 14)
     days_extra = rnd.randint(0, 364)
     d = today - timedelta(days=age * 365 + days_extra)
@@ -245,8 +245,8 @@ def build_profiles(count: int = 360, seed: int = 42, gender: str = "") -> List[D
         first = rnd.choice(MALE_NAMES if g == "Groom" else FEMALE_NAMES)
         full_name = ("%s %s" % (first, surname)).strip() if rnd.random() > 0.25 else first
         star = rnd.choice(list(NAK_TO_RASI.keys()))
-        marital = "Pelli Kaledu" if age < 30 or rnd.random() > 0.12 else rnd.choice(
-            ["Pelli Ayyindi (Vidhava/Vidhurudu)", "Divorce Ayyindi"])
+        marital = "పెళ్లి కాలేదు" if age < 30 or rnd.random() > 0.12 else rnd.choice(
+            ["పెళ్లి Ayyindi (Vidhava/Vidhurudu)", "Divorce Ayyindi"])
         tsap = "TSAP-%s-2025-%s" % ("F" if g == "Bride" else "M", 5000 + idx)
         out.append({
             "tsap_id": tsap, "gender": g, "full_name": full_name, "age": age,

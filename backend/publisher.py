@@ -128,7 +128,7 @@ def publish_status() -> Dict:
         "bots": bot_pool.bot_health(),
         "whatsapp_instances": wa_pool.wa_health(),
         "dead_letters": len(WA_DEAD),
-        "order": "telegram → whatsapp (random gap) · okati fail aithe pakka bot/number ki failover",
+        "order": "telegram → whatsapp (random gap) · okati fail అయితే పక్క bot/number కి failover",
         "queued": len(PUBLISH_QUEUE),
         "published_total": len([x for x in PUBLISH_LOG if x.get("ok")]),
         "registry": {"total": st["total"], "live": st["live"], "to_create": st["to_create"]},
@@ -139,7 +139,13 @@ def publish_status() -> Dict:
 # MESSAGE BUILDERS
 # ---------------------------------------------------------------------------
 def build_whatsapp_text(profile: Dict, tsap_id: str, score: int = 92) -> str:
-    """WhatsApp formatting (*bold* — Telegram ** kadu)."""
+    """WhatsApp formatting (*bold* — Telegram ** కాదు). 🔒 WAVE 12 MASKED (name/number లేదు)."""
+    from smart12 import build_masked_whatsapp  # lazy: cycle-safe
+    return build_masked_whatsapp(profile or {}, tsap_id, score)
+
+
+def _build_whatsapp_text_legacy(profile: Dict, tsap_id: str, score: int = 92) -> str:
+    """Legacy full-detail builder (unused — reference కోసం)."""
     r = route_profile(profile)
     reasons = "\n".join(f"✅ {x['telugu']}" for x in r["reasons"][:3])
     return (
@@ -148,25 +154,25 @@ def build_whatsapp_text(profile: Dict, tsap_id: str, score: int = 92) -> str:
         f"━━━━━━━━━━━━━━━━\n"
         f"👤 *{profile.get('full_name','—')}*  ({profile.get('age','—')} yrs)\n"
         f"📍 {profile.get('district','—')}, {profile.get('state','TS')}\n"
-        f"💍 Caste: {profile.get('caste','—')}  |  Gothram: {profile.get('gothram','—')}\n"
+        f"💍 Caste: {profile.get('caste','—')}  |  గోత్రం: {profile.get('gothram','—')}\n"
         f"📏 Height: {profile.get('height','—')}  |  🩸 {profile.get('blood_group','—')}\n"
         f"🎓 {profile.get('education','—')} {profile.get('education_detail','')}\n"
         f"💼 {profile.get('job','—')} {profile.get('company','')}\n"
         f"💰 {profile.get('salary','—')}  |  📍 {profile.get('work_location','—')}\n"
-        f"🌟 Star: {profile.get('star','—')}  |  Rasi: {profile.get('rasi','—')}\n"
+        f"🌟 Star: {profile.get('star','—')}  |  రాశి: {profile.get('rasi','—')}\n"
         f"👨‍👩‍👧 {profile.get('father_name','—')} • {profile.get('family_type','—')} • {profile.get('native_place','—')}\n"
         f"━━━━━━━━━━━━━━━━\n"
-        f"*Enduku best match:*\n{reasons}\n"
+        f"*ఎందుకు best match:*\n{reasons}\n"
         f"━━━━━━━━━━━━━━━━\n"
         f"{r['hashtags']}\n"
-        f"🔍 Profile chudandi: {SITE}/search/{tsap_id}\n"
+        f"🔍 Profile చూడండి: {SITE}/search/{tsap_id}\n"
         f"📝 FREE register (3 min): {SITE}/register\n"
-        f"🤖 Bot: {BOT_USERNAME}  •  ⚠️ Advance money adigithe report cheyyandi"
+        f"🤖 Bot: {BOT_USERNAME}  •  ⚠️ Advance money అడిగితే report చెయ్యండి"
     )
 
 
 def build_share_text(profile: Dict, tsap_id: str) -> str:
-    """Profile owner WhatsApp/status lo share cheyyadaniki short text."""
+    """Profile owner WhatsApp/status లో share చెయ్యడానికి short text."""
     return (
         f"💍 Mana Vivaha — {profile.get('full_name','—')} ({profile.get('age','—')}y, "
         f"{profile.get('caste','—')}, {profile.get('district','—')})\n"
@@ -191,7 +197,7 @@ async def _send_telegram(chat: str, caption: str, photo_path: Optional[str], cfg
 
 
 async def _send_whatsapp_cloud(text: str, cfg: Dict) -> List[Dict]:
-    """Meta WhatsApp Business Cloud API — opt-in numbers ki (broadcast)."""
+    """Meta WhatsApp Business Cloud API — opt-in numbers కి (broadcast)."""
     results = []
     if cfg["dry_run"] or not (cfg["wa_token"] and cfg["wa_phone_id"]) or httpx is None:
         return [{"ok": True, "dry_run": True, "target": t} for t in cfg["wa_to"]] or \
@@ -212,7 +218,7 @@ async def _send_whatsapp_cloud(text: str, cfg: Dict) -> List[Dict]:
 
 
 async def _send_whatsapp_bridge(text: str, cfg: Dict) -> List[Dict]:
-    """Local bridge (Baileys) — WhatsApp groups/newsletter ki post."""
+    """Local bridge (Baileys) — WhatsApp groups/newsletter కి post."""
     results = []
     if cfg["dry_run"] or not cfg["wa_bridge_url"] or httpx is None:
         return [{"ok": True, "dry_run": True, "target": t} for t in cfg["wa_bridge_targets"]] or \
@@ -234,7 +240,7 @@ async def _send_whatsapp_bridge(text: str, cfg: Dict) -> List[Dict]:
 # WHATSAPP ANTI-BAN SENDER (random gap + typing + caps) — wa_antiban.py engine
 # ---------------------------------------------------------------------------
 def _bridge_base(cfg: Dict) -> str:
-    """Bridge base URL — '/send' suffix unna teesesi base istham."""
+    """Bridge base URL — '/send' suffix ఉన్న teesesi base ఇస్తాం."""
     url = (cfg.get("wa_bridge_url") or "").strip().rstrip("/")
     for suffix in ("/send-image", "/send", "/status"):
         if url.endswith(suffix):
@@ -247,7 +253,7 @@ def _public_base() -> str:
 
 
 def whatsapp_link(phone: str, text: str) -> str:
-    """Click-to-chat fallback — WhatsApp configure kakapoyina user ni notify cheyyochu."""
+    """Click-to-chat fallback — WhatsApp configure kakapoyina user ని notify cheyyochu."""
     import urllib.parse
     digits = "".join(ch for ch in str(phone or "") if ch.isdigit())
     if not digits:
@@ -258,7 +264,7 @@ def whatsapp_link(phone: str, text: str) -> str:
 
 
 async def _wa_send_via_instance(inst, item: Dict, cfg: Dict) -> Dict:
-    """Oka WhatsApp instance (bridge number) ki message pampu — image + text fallback tho."""
+    """ఒక WhatsApp instance (bridge number) కి message pampu — image + text fallback తో."""
     target = item["target"]
     text = wa_variantize(item["text"], SITE, BOT_USERNAME)
     base = (inst.url or "").rstrip("/")
@@ -266,7 +272,7 @@ async def _wa_send_via_instance(inst, item: Dict, cfg: Dict) -> Dict:
         if base.endswith(suffix):
             base = base[: -len(suffix)]
     if not base:
-        return {"ok": False, "error": "instance url ledu (%s)" % getattr(inst, "name", "?")}
+        return {"ok": False, "error": "instance url లేదు (%s)" % getattr(inst, "name", "?")}
     if cfg["dry_run"] or httpx is None:
         return {"ok": True, "dry_run": True, "target": target, "kind": item.get("kind", "post"),
                 "instance": getattr(inst, "name", "?"), "text_preview": text[:80]}
@@ -307,13 +313,28 @@ async def _wa_send_via_instance(inst, item: Dict, cfg: Dict) -> Dict:
                     "error": f"{type(e).__name__}: {e}"[:150]}
 
 
+# 🌊 WAVE 19 — purpose → number lane (3 separate numbers + both-backup)
+OTP_KINDS = {"otp"}
+CHANNEL_KINDS = {"post", "channel_post", "promo", "ad", "offer", "status_poster"}
+PERSONAL_KINDS = {"saved_search_alert", "interest_to_owner", "interest_confirm",
+                  "interest_accepted", "interest_accepted_owner", "interest_declined",
+                  "referral_join", "referral_commission", "namaste_welcome",
+                  "welcome_pack_resend", "lead_followup", "vendor_lead"}
+
+
 def _wa_lane(item: Dict) -> str:
-    """priority 0 = interest/request (fast lane) → requests lane; migilinavi post lane."""
-    return "requests" if int(item.get("priority", 1)) == 0 else "post"
+    kind = str(item.get("kind", "")).lower()
+    if kind in OTP_KINDS:
+        return "otp"
+    if kind in PERSONAL_KINDS:  # 🌊 WAVE 21 — personal DM eppudu personal lane (priority tho samandham ledu)
+        return "personal"
+    if kind in CHANNEL_KINDS or int(item.get("priority", 1)) >= 1:
+        return "channels"
+    return "personal"
 
 
 def _wa_pick_instance(item: Dict):
-    """Per-number anti-ban: ee kshanam lo e instance pampochu (gap/cap ok) — adi mundu istham."""
+    """Per-number anti-ban: ee kshanam లో e instance పంపొచ్చు (gap/cap ok) — adi ముందు ఇస్తాం."""
     lane = _wa_lane(item)
     for inst in wa_pool.get_pool().order(lane):
         try:
@@ -345,21 +366,22 @@ async def _wa_deliver(item: Dict, cfg: Dict) -> Dict:
         try:
             wa_pool.engine_for(res["instance"]).record_send(item.get("target"), ok=True,
                                                             detail=res.get("kind", ""),
-                                                            priority=item.get("priority", 1))
+                                                            priority=item.get("priority", 1),
+                                                            kind=str(item.get("kind", "")))
         except Exception:
             pass
     return res
 
 
 def dead_letters(limit: int = 50) -> Dict:
-    """Dead-letter list — 3 tries ayyaka kooda deliver kaani messages."""
+    """Dead-letter list — 3 tries అయ్యాక కూడా deliver కానీ messages."""
     return {"count": len(WA_DEAD), "items": WA_DEAD[-limit:],
-            "message_telugu": "Ivi 3 tries ayyaka kooda vellaledu — bridge/number problem. "
-                              "QR malli scan chesi /api/wa/dead/requeue tho pampandi."}
+            "message_telugu": "Ivi 3 tries అయ్యాక కూడా vellaledu — bridge/number problem. "
+                              "QR మళ్లీ scan చేసి /api/wa/dead/requeue తో పంపండి."}
 
 
 def requeue_dead(limit: int = 20) -> Dict:
-    """Dead-letters ni queue lo malli vey (bridge fix ayyaka)."""
+    """Dead-letters ని queue లో మళ్లీ vey (bridge fix అయ్యాక)."""
     moved = 0
     while WA_DEAD and moved < limit:
         rec = WA_DEAD.pop(0)
@@ -381,7 +403,7 @@ def enqueue_whatsapp(targets: List[str], text: str, image_id: str = "", image_pa
     cfg = config()
     if cfg["wa_mode"] == "off":
         return {"queued": False, "reason": "whatsapp_mode_off",
-                "note": "WHATSAPP_MODE=bridge|cloud_api chesi bridge connect cheyyandi"}
+                "note": "WHATSAPP_MODE=bridge|cloud_api చేసి bridge connect చెయ్యండి"}
     added = 0
     for t in [x for x in targets if x]:
         WA_QUEUE.append({
@@ -396,7 +418,7 @@ def enqueue_whatsapp(targets: List[str], text: str, image_id: str = "", image_pa
 
 
 async def _sleep_checking(seconds: float) -> None:
-    """Chunked sleep — pause/kill-switch ventane pani cheyyali."""
+    """Chunked sleep — pause/kill-switch వెంటనే pani చెయ్యాలి."""
     remaining = max(0.0, seconds)
     while remaining > 0:
         chunk = min(10.0, remaining)
@@ -407,7 +429,7 @@ async def _sleep_checking(seconds: float) -> None:
 
 
 async def _wa_worker_loop():
-    """WhatsApp queue worker — anti-ban rules tho ne pampisthundi (oka samayam lo okati)."""
+    """WhatsApp queue worker — anti-ban rules తో ne pampisthundi (ఒక samayam లో okati)."""
     while True:
         try:
             cfg = config()
@@ -437,7 +459,8 @@ async def _wa_worker_loop():
             res = await _wa_deliver(item, cfg)
             ok = bool(res.get("ok"))
             WA_ENGINE.record_send(item["target"], ok=ok, detail=res.get("error", "") or "",
-                                  priority=item.get("priority", 1))
+                                  priority=item.get("priority", 1),
+                                  kind=item.get("kind", ""))  # WAVE 24: OTP sends ki OTP gaps (25-60s)
             if ok:
                 WA_STATS["sent"] += 1
             else:
@@ -451,14 +474,14 @@ async def _wa_worker_loop():
                     item["queued_at"] = datetime.utcnow().isoformat()
                     WA_QUEUE.append(item)
                 else:
-                    # 💀 dead-letter — anni numbers fail + 3 tries ayyayi → admin alert (manual retry)
+                    # 💀 dead-letter — anni numbers fail + 3 tries అయ్యాయి → admin alert (manual retry)
                     dead = wa_pool.get_pool().dead_letter(item, res.get("attempts", []))
                     WA_DEAD.append(dead)
                     WA_STATS["dead"] += 1
                     try:
                         await bot_pool.get_pool().send_alert(
                             "🚨 *WhatsApp delivery fail*\nTarget: %s\nKind: %s\nAttempts: %s\nReason: %s\n\n"
-                            "Bridge QR check cheyyandi → /api/wa/dead/requeue tho malli pampochu."
+                            "Bridge QR check చెయ్యండి → /api/wa/dead/requeue తో మళ్లీ పంపొచ్చు."
                             % (item.get("target"), item.get("kind"), attempts,
                                str(res.get("error"))[:200]), parse_mode="Markdown")
                     except Exception:
@@ -590,7 +613,7 @@ async def _worker_loop(interval: float = 2.0):
 
 
 def start_worker() -> bool:
-    """FastAPI startup lo call chey — background queue worker start avutundi."""
+    """FastAPI startup లో call chey — background queue worker start అవుతుంది."""
     global _WORKER_TASK
     try:
         loop = asyncio.get_event_loop()
