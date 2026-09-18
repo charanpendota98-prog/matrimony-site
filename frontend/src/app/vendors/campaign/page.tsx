@@ -88,8 +88,8 @@ export default function VendorCampaignPage() {
         <div className="grid gap-2 sm:grid-cols-2">
           <label className="text-xs font-bold">Vendor ID*<input value={vendorId} onChange={(e) => setVendorId(e.target.value)}
             placeholder="MVV-0001" aria-label="Vendor ID" className="mt-1 w-full rounded-xl border px-3 py-2 font-mono" /></label>
-          <label className="text-xs font-bold">Vendor token (dashboard token)<input value={vToken} onChange={(e) => setVToken(e.target.value)}
-            placeholder="optional (prod lo)" aria-label="Vendor token" className="mt-1 w-full rounded-xl border px-3 py-2 font-mono" /></label>
+          <label className="text-xs font-bold">Vendor access code (dashboard)<input value={vToken} onChange={(e) => setVToken(e.target.value)}
+            placeholder="optional (prod lo)" aria-label="Vendor access code" className="mt-1 w-full rounded-xl border px-3 py-2 font-mono" /></label>
         </div>
         <label className="text-xs font-bold">Ad title*<input value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })}
           placeholder="Ex: Lens Studio — Wedding 4K + Drone" aria-label="Title" className="mt-1 w-full rounded-xl border px-3 py-2" /></label>

@@ -670,15 +670,15 @@ const set = (k: string, v: any) => {
             <div className="text-5xl">🎉</div>
             <h1 className="mt-2 text-2xl font-bold">{T("Profile ready అయ్యింది!", "Profile ready!")}</h1>
             <p className="text-[13px] opacity-90 mt-1 telugu">{T("మీ ID + card కింద ఉంది — WhatsApp status లో share చెయ్యండి, reach double అవుతుంది.", "Your ID + card are below — share on WhatsApp status, reach doubles.")}</p>
-            <div className="mt-4 inline-flex flex-col items-center gap-1.5 bg-white/10 border border-gold/40 rounded-2xl px-6 py-4 shadow-brandLg">
+            <div className="mt-4 inline-flex max-w-full flex-col items-center gap-1.5 bg-white/10 border border-gold/40 rounded-2xl px-4 sm:px-6 py-4 shadow-brandLg">
               <span className="text-[10px] font-bold uppercase tracking-widest opacity-70">{T("మీ ప్రొఫైల్ ID", "Your Profile ID")}</span>
-              <div className="flex items-center gap-2">
-                <span className="font-mono text-2xl font-extrabold tracking-wide text-gold">{tsap}</span>
-                <button onClick={() => copy(tsap, "id")} className="text-[11px] font-bold gold-gradient text-maroon px-3 py-1.5 rounded-full">
+              <div className="flex flex-wrap items-center justify-center gap-2">
+                <span className="font-mono text-lg sm:text-2xl font-extrabold tracking-wide text-gold break-all">{tsap}</span>
+                <button onClick={() => copy(tsap, "id")} className="shrink-0 text-[11px] font-bold gold-gradient text-maroon px-3 py-1.5 rounded-full">
                   {copied === "id" ? "✓" : "📋"}
                 </button>
               </div>
-              <span className="text-[10px] opacity-70">{T("ఈ ID తో మీ ప్రొఫైల్ ఎప్పుడైనా వెతకవచ్చు", "Search your profile anytime with this ID")}</span>
+              <span className="text-[10px] opacity-70 text-center">{T("ఈ ID తో మీ ప్రొఫైల్ ఎప్పుడైనా వెతకవచ్చు", "Search your profile anytime with this ID")}</span>
             </div>
           </div>
         </section>
@@ -736,7 +736,7 @@ const set = (k: string, v: any) => {
                     ? ` · ${result.quality.important_telugu.slice(0, 2).join(" · ")}` : ""}
                 </div>
                 <div className="mt-1 text-[11px] text-emerald-700">
-                  {T("✅ Login token save అయ్యింది — మీ inbox/credits/shortlist ఇప్పుడు మీ browser లో secure", "✅ Login token saved — your inbox/credits/shortlist now secure in your browser")} ({result.phone_masked ? `number: ${result.phone_masked}` : "number masked"})
+                  {T("✅ మీరు ఇప్పుడు login అయ్యారు — మీ inbox/credits/shortlist ఇప్పుడు safe గా ఉన్నాయి", "✅ You're now logged in — your inbox/credits/shortlist are safe and ready")} ({result.phone_masked ? `number: ${result.phone_masked}` : "number masked"})
                 </div>
               </div>
             ) : null}
@@ -747,7 +747,7 @@ const set = (k: string, v: any) => {
                 </div>
                 <div className="mt-1 text-[11px] text-emerald-800">
                   {result.welcome_pack.queue?.queued
-                    ? (te ? `✅ WhatsApp లో వెళ్లింది (${result.welcome_pack.queue?.kind || "welcome_pack"}) — మీ number ${result.phone_masked || ""} కి` : `✅ Sent on WhatsApp (${result.welcome_pack.queue?.kind || "welcome_pack"}) — to your number ${result.phone_masked || ""}`)
+                    ? (te ? `✅ WhatsApp లో వెళ్లింది — మీ number ${result.phone_masked || ""} కి` : `✅ Sent on WhatsApp — to your number ${result.phone_masked || ""}`)
                     : T("🕒 WhatsApp కి కొద్ది సేపట్లో వెళ్తుంది — కానీ ఈ 3 profiles ఇక్కడే చూడండి:", "🕒 On its way to your WhatsApp shortly — but see these 3 profiles here:")}
                 </div>
                 <div className="mt-2 grid gap-2 sm:grid-cols-3">
@@ -836,14 +836,14 @@ const set = (k: string, v: any) => {
                   ℹ️ {result.referral.joined_with.message_telugu || "Referral code lock అవ్వలేదు"} {T("— పర్వాలేదు, మీ సొంత code తో ఇప్పుడు start చెయ్యండి.", "— no problem, start now with your own code.")}
                 </div>
               ) : null}
-              <div className="mt-3 bg-white/10 border border-white/20 rounded-xl px-3 py-2 flex items-center gap-2">
-                <span className="font-mono text-base font-bold">{result.referral.my_code}</span>
+              <div className="mt-3 bg-white/10 border border-white/20 rounded-xl px-3 py-2 flex flex-wrap items-center gap-2">
+                <span className="font-mono text-base font-bold break-all">{result.referral.my_code}</span>
                 <button onClick={() => copy(String(result.referral.my_code), "refcode")}
-                  className="text-[11px] font-bold gold-gradient text-maroon px-2.5 py-1 rounded-full">
+                  className="shrink-0 text-[11px] font-bold gold-gradient text-maroon px-2.5 py-1 rounded-full">
                   {copied === "refcode" ? "copied ✓" : "code copy"}
                 </button>
                 <button onClick={() => copy(String(result.referral.my_link), "reflink")}
-                  className="text-[11px] font-bold bg-white/15 border border-white/25 px-2.5 py-1 rounded-full">
+                  className="shrink-0 text-[11px] font-bold bg-white/15 border border-white/25 px-2.5 py-1 rounded-full">
                   {copied === "reflink" ? "copied ✓" : "link copy"}
                 </button>
               </div>
@@ -965,30 +965,45 @@ const set = (k: string, v: any) => {
   return (
     <main className="min-h-screen pb-32" ref={topRef}>
       {/* ---------- sticky progress ---------- */}
-      <div className="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-gold/25 safe-top">
+      <div className="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-gold/25 safe-top shadow-sm">
         <div className="max-w-3xl mx-auto px-4 py-3">
           <div className="flex items-center gap-3">
-            <Link href="/" className="text-[12px] font-bold text-maroon">← Home</Link>
+            <Link href="/" className="text-[12px] font-bold text-maroon shrink-0">← Home</Link>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <span className="text-lg">{stepMeta.icon}</span>
+                <span className="grid place-items-center w-8 h-8 rounded-full maroon-gradient text-white text-sm shrink-0 shadow-soft">{stepMeta.icon}</span>
                 <div className="min-w-0">
                   <div className="text-[13px] font-bold text-ink truncate">
-                    Step {step} of 5 — <Duo en={stepMeta.label} te={stepMeta.labelTe || ""} />
+                    Step {step} <span className="opacity-40">/ 5</span> — <Duo en={stepMeta.label} te={stepMeta.labelTe || ""} />
                   </div>
                   <div className="text-[10px] text-gray-500 telugu truncate">{te ? stepMeta.hint : (stepMeta.hintEn || stepMeta.hint)}</div>
                 </div>
               </div>
             </div>
-            <div className="text-right shrink-0">
-              <div className="text-[11px] font-bold text-maroon">{strength}%</div>
-              <div className="text-[9px] text-gray-500">profile strength</div>
+            <div className="relative w-11 h-11 shrink-0" aria-label="profile strength">
+              <svg viewBox="0 0 40 40" className="w-11 h-11 -rotate-90">
+                <circle cx="20" cy="20" r="16.5" fill="none" stroke="#f1e6cf" strokeWidth="4" />
+                <circle cx="20" cy="20" r="16.5" fill="none" stroke="#7A0C2E" strokeWidth="4" strokeLinecap="round"
+                  strokeDasharray={2 * Math.PI * 16.5} strokeDashoffset={2 * Math.PI * 16.5 * (1 - strength / 100)}
+                  style={{ transition: "stroke-dashoffset 0.4s ease" }} />
+              </svg>
+              <span className="absolute inset-0 grid place-items-center text-[10px] font-extrabold text-maroon">{strength}%</span>
             </div>
           </div>
-          <div className="mt-2 flex items-center gap-1.5">
-            {STEPS.map((s) => (
+          <div className="mt-2.5 flex items-center gap-1">
+            {STEPS.map((s, i) => (
               <button key={s.n} onClick={() => { if (s.n < step) setStep(s.n); }}
-                className={`h-1.5 flex-1 rounded-full ${s.n <= step ? "maroon-gradient" : "bg-gray-200"}`} aria-label={`Step ${s.n}`} />
+                aria-label={`Step ${s.n}`}
+                className={`group relative flex-1 flex items-center ${i === 0 ? "" : ""}`}>
+                <span className={`grid place-items-center w-5 h-5 rounded-full text-[9px] font-extrabold shrink-0 transition-all ${
+                  s.n < step ? "maroon-gradient text-white" : s.n === step ? "bg-white border-2 border-maroon text-maroon shadow-soft scale-110" : "bg-gray-200 text-gray-400"
+                }`}>
+                  {s.n < step ? "✓" : s.n}
+                </span>
+                {i < STEPS.length - 1 && (
+                  <span className={`h-[3px] flex-1 rounded-full mx-0.5 ${s.n < step ? "maroon-gradient" : "bg-gray-200"}`} />
+                )}
+              </button>
             ))}
           </div>
           <div className="mt-1.5 flex items-center justify-between text-[10px] text-gray-500">
@@ -1066,7 +1081,7 @@ const set = (k: string, v: any) => {
           </div>
         )}
 
-        <div key={step} className="step-slide space-y-5">
+        <div key={step} className="step-slide bg-white rounded-3xl border border-gold/25 card-shadow p-4 sm:p-6 space-y-5">
           {/* ---------------- STEP 1 ---------------- */}
           {step === 1 && (
             <>
@@ -1075,7 +1090,7 @@ const set = (k: string, v: any) => {
                 <div className="mt-2 grid grid-cols-2 gap-3">
                   {[{ v: "Bride", l: "👰 పెళ్లి కూతురు", s: "Bride" }, { v: "Groom", l: "🤵 పెళ్లి కొడుకు", s: "Groom" }].map((g) => (
                     <button key={g.v} type="button" onClick={() => set("gender", g.v)}
-                      className={`rounded-2xl border-2 p-4 text-center ${f.gender === g.v ? "border-maroon bg-maroon-soft" : "border-gold/30 bg-white"}`}>
+                      className={`rounded-2xl border-2 p-4 text-center transition-all active:scale-[0.98] ${f.gender === g.v ? "border-maroon bg-maroon-soft shadow-soft" : "border-gold/30 bg-white hover:border-maroon/40"}`}>
                       <div className="text-2xl">{g.v === "Bride" ? "👰" : "🤵"}</div>
                       <div className="font-bold text-[14px] text-maroon mt-1 telugu">{g.l}</div>
                       <div className="text-[11px] text-gray-500">{g.s}</div>

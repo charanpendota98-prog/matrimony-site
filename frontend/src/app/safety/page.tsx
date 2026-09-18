@@ -269,7 +269,7 @@ export default function SafetyPage() {
                   {it.detail && <div className="text-[11px] text-gray-700 mt-1 telugu">{it.detail}</div>}
                 </div>
               ))}
-              {!(queue.items || []).length && <div className="text-[12px] text-gray-500">{te ? "Queue ఖాళీ — reports లేవు 👍" : "Queue empty — no reports 👍"}</div>}
+              {!(queue.items || []).length && <div className="text-[12px] text-gray-500">{te ? "Reports ఏమీ లేవు 👍" : "No reports 👍"}</div>}
             </div>
           </div>
         )}

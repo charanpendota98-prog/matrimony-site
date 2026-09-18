@@ -525,7 +525,7 @@ export default function RequestsPage() {
               {wa?.queued != null && Number(wa.queued) > 0 && (
                 <div className="bg-navy text-white rounded-2xl p-4">
                   <div className="font-bold text-[13px]">📲 {te ? "WhatsApp లో పంపుతున్నాం" : "Sending on WhatsApp"}</div>
-                  <div className="text-[11px] opacity-90 mt-1">{te ? `${wa.queued} messages queue లో ఉన్నాయి — త్వరలో వెళ్తాయి.` : `${wa.queued} messages queued — going out shortly.`}</div>
+                  <div className="text-[11px] opacity-90 mt-1">{te ? `${wa.queued} messages త్వరలో వెళ్తాయి.` : `${wa.queued} messages going out shortly.`}</div>
                 </div>
               )}
             </div>
@@ -729,7 +729,7 @@ export default function RequestsPage() {
       {needsLogin ? (
         <div className="mt-6">
           <AuthGate title={`🔒 ${duo("Login for your inbox / credits / shortlist", "ఇన్‌బాక్స్ / క్రెడిట్లు / షార్ట్‌లిస్ట్‌కు లాగిన్ చేయండి")}`}
-            note={te ? "ఈ private data token తో protect చేశాం (వేరే వాళ్లు మీ inbox చూడలేరు). Phone OTP login 10 seconds." : "This private data is token-protected (others can\u2019t see your inbox). Phone OTP login takes 10 seconds."} />
+            note={te ? "ఈ private data సురక్షితంగా ఉంచాం (వేరే వాళ్లు మీ inbox చూడలేరు). Phone OTP login 10 seconds." : "This private data is kept secure (others can\u2019t see your inbox). Phone OTP login takes 10 seconds."} />
         </div>
       ) : null}
     </main>

@@ -537,7 +537,7 @@ export default function MatchesAdvanced() {
   const sendAlerts = async () => {
     if (!getToken()) { setNeedsLogin(true); return; }
     const { ok, data, errorTelugu: eTel } = await apiPost<Row>(`/api/saved-searches/${myTsapId}/alerts`, {});
-    setNote(ok ? { ok: true, text: String(data?.message_telugu || (te ? "Alerts queue లో పెట్టాం" : "Alerts queued")) }
+    setNote(ok ? { ok: true, text: String(data?.message_telugu || (te ? "Alerts ఆన్ చేసాం" : "Alerts turned on")) }
                : { ok: false, text: eTel });
     if (ok) void loadServerSearches();
   };

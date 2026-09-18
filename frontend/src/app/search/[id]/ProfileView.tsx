@@ -413,7 +413,7 @@ export default function ProfileView() {
           ) : null}
 
           <p className="mt-4 text-center text-[11px] text-slate-500">
-            🔐 {data.consent_note_telugu || (te ? "Numbers consent తోనే exchange — మన consent ledger లో record ఉంటుంది" : "Numbers exchange with consent only — recorded in our consent ledger")}
+            🔐 {data.consent_note_telugu || (te ? "Numbers consent తోనే exchange అవుతాయి — ఇది ఎప్పుడూ safe గా ఉంటుంది" : "Numbers exchange with consent only — always kept safe")}
           </p>
         </>
       ) : null}
