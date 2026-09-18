@@ -134,8 +134,8 @@ export default function RequestsPage() {
   };
 
   const sendInterest = async () => {
-    if (!myId) return setToast({ kind: "err", text: te ? "ముందు మీ TSAP ID ఇవ్వండి (register చేశాక వస్తుంది)" : "Enter your TSAP ID first (you get it after register)" });
-    if (!toId.trim()) return setToast({ kind: "err", text: te ? "ఏ profile కి పంపాలి — TSAP ID type చెయ్యండి" : "Which profile to send to — type the TSAP ID" });
+    if (!myId) return setToast({ kind: "err", text: te ? "ముందు మీ Profile ID ఇవ్వండి (register చేశాక వస్తుంది)" : "Enter your Profile ID first (you get it after register)" });
+    if (!toId.trim()) return setToast({ kind: "err", text: te ? "ఏ profile కి పంపాలి — Profile ID type చెయ్యండి" : "Which profile to send to — type the Profile ID" });
     setBusy(true);
     setToast(null);
     try {
@@ -202,7 +202,7 @@ export default function RequestsPage() {
   };
 
   const checkPorutham = async () => {
-    if (!porA || !porB) return setToast({ kind: "err", text: te ? "రెండు TSAP ID ఇవ్వండి (bride + groom)" : "Enter both TSAP IDs (bride + groom)" });
+    if (!porA || !porB) return setToast({ kind: "err", text: te ? "రెండు Profile ID ఇవ్వండి (bride + groom)" : "Enter both Profile IDs (bride + groom)" });
     setBusy(true);
     try {
       const d = await fetch(`/api/porutham?bride=${porA.trim().toUpperCase()}&groom=${porB.trim().toUpperCase()}`).then((r) => r.json());
@@ -244,13 +244,13 @@ export default function RequestsPage() {
 
           <div className="mt-5 flex flex-wrap gap-3 items-end">
             <div>
-              <label className="text-[11px] font-bold opacity-90">{te ? "మీ TSAP ID" : "Your TSAP ID"}</label>
+              <label className="text-[11px] font-bold opacity-90">{te ? "మీ Profile ID" : "Your Profile ID"}</label>
               <input
                 value={myId}
                 onChange={(e) => setMyId(e.target.value.toUpperCase())}
                 onBlur={(e) => saveId(e.target.value)}
-                placeholder="TSAP-M-2025-1042"
-                className="mt-1 w-full max-w-[224px] sm:w-56 px-3 py-2 rounded-xl text-ink font-mono text-sm outline-none focus-brand" aria-label="TSAP-M-2025-1042" />
+                placeholder="RED001"
+                className="mt-1 w-full max-w-[224px] sm:w-56 px-3 py-2 rounded-xl text-ink font-mono text-sm outline-none focus-brand" aria-label="KAM001" />
             </div>
             <button onClick={() => saveId(myId)} className="gold-gradient text-maroon font-bold text-sm px-4 py-2.5 rounded-xl hover-lift">
               {te ? "నా dashboard చూడు" : "Load my dashboard"}
@@ -304,7 +304,7 @@ export default function RequestsPage() {
         {/* INBOX */}
         {tab === "inbox" && (
           <div className="space-y-3">
-            {!myId && <Empty text={te ? "మీ TSAP ID ఇవ్వండి — inbox చూడటానికి." : "Enter your TSAP ID — to see inbox."} />}
+            {!myId && <Empty text={te ? "మీ Profile ID ఇవ్వండి — inbox చూడటానికి." : "Enter your Profile ID — to see inbox."} />}
             {myId && inbox.received?.length === 0 && <Empty text={te ? "ఇంకా requests రాలేదు. మీ profile ని 1 channel లో post చెయ్యండి — reach పెరుగుతుంది." : "No requests yet. Post your profile to 1 channel — reach grows."} />}
             {inbox.received?.map((it: Req) => (
               <Reveal key={it.request_id}>
@@ -410,12 +410,12 @@ export default function RequestsPage() {
               <SectionHeading eyebrow={duo("1 credit = 1 profile", "1 క్రెడిట్ = 1 ప్రొఫైల్")} title={`💌 ${duo("Send interest", "ఇంట్రెస్ట్ పంపండి")}`} subtitle={te ? "Profile ID ఇవ్వండి — వాళ్లకి మన WhatsApp నుంచి మీ profile + card వెళ్తుంది." : "Enter profile ID — they get your profile + card from our WhatsApp."} telugu align="left" />
               <div className="mt-4 space-y-3">
                 <div>
-                  <label className="text-[12px] font-bold text-ink">Profile TSAP ID *</label>
+                  <label className="text-[12px] font-bold text-ink">Profile ID *</label>
                   <input
                     value={toId}
                     onChange={(e) => setToId(e.target.value.toUpperCase())}
-                    placeholder="TSAP-F-2025-1042"
-                    className="mt-1 w-full px-3 py-2.5 rounded-xl border border-gold/40 font-mono text-sm outline-none focus-brand" aria-label="TSAP-F-2025-1042" />
+                    placeholder="RED001"
+                    className="mt-1 w-full px-3 py-2.5 rounded-xl border border-gold/40 font-mono text-sm outline-none focus-brand" aria-label="RED001" />
                 </div>
                 {templates.length > 0 && (
                   <div>
@@ -537,12 +537,12 @@ export default function RequestsPage() {
           <div className="grid md:grid-cols-2 gap-5">
             <div className="bg-white rounded-2xl p-5 card-shadow border border-gold/20">
               <SectionHeading eyebrow={duo("Traditional 10 poruthams", "సాంప్రదాయ 10 పొరుతాలు")} title={`🔮 ${duo("Kundli / Porutham check", "జాతక / పొరుతం చూడండి")}`}
-                subtitle={te ? "Bride + groom TSAP ID ఇవ్వండి — 10 పొరుతాలు (rasi, nakshatra, gana, yoni, rajju, vedha, mahendra, stree deergha, vashya, adhipathi) calculate చేస్తాం." : "Enter bride + groom TSAP IDs — we calculate 10 poruthams (rasi, nakshatra, gana, yoni, rajju, vedha, mahendra, stree deergha, vashya, adhipathi)."} telugu align="left" />
+                subtitle={te ? "Bride + groom Profile ID ఇవ్వండి — 10 పొరుతాలు (rasi, nakshatra, gana, yoni, rajju, vedha, mahendra, stree deergha, vashya, adhipathi) calculate చేస్తాం." : "Enter bride + groom Profile IDs — we calculate 10 poruthams (rasi, nakshatra, gana, yoni, rajju, vedha, mahendra, stree deergha, vashya, adhipathi)."} telugu align="left" />
               <div className="mt-4 space-y-3">
-                <input value={porA} onChange={(e) => setPorA(e.target.value.toUpperCase())} placeholder="Bride TSAP ID — TSAP-F-2025-1042"
-                  className="w-full px-3 py-2.5 rounded-xl border border-gold/40 font-mono text-sm outline-none focus-brand" aria-label="Bride TSAP ID — TSAP-F-2025-1042" />
-                <input value={porB} onChange={(e) => setPorB(e.target.value.toUpperCase())} placeholder="Groom TSAP ID — TSAP-M-2025-1042"
-                  className="w-full px-3 py-2.5 rounded-xl border border-gold/40 font-mono text-sm outline-none focus-brand" aria-label="Groom TSAP ID — TSAP-M-2025-1042" />
+                <input value={porA} onChange={(e) => setPorA(e.target.value.toUpperCase())} placeholder="Bride Profile ID — RED001"
+                  className="w-full px-3 py-2.5 rounded-xl border border-gold/40 font-mono text-sm outline-none focus-brand" aria-label="Bride Profile ID — RED001" />
+                <input value={porB} onChange={(e) => setPorB(e.target.value.toUpperCase())} placeholder="Groom Profile ID — KAM001"
+                  className="w-full px-3 py-2.5 rounded-xl border border-gold/40 font-mono text-sm outline-none focus-brand" aria-label="Groom Profile ID — KAM001" />
                 <button onClick={checkPorutham} disabled={busy} className="w-full maroon-gradient text-white font-bold py-3 rounded-xl hover-lift disabled:opacity-60">
                   {te ? "🔮 Porutham calculate చెయ్" : "🔮 Calculate porutham"}
                 </button>
@@ -632,7 +632,7 @@ export default function RequestsPage() {
         {/* VIEWERS */}
         {tab === "viewers" && (
           <div className="space-y-3">
-            {!views ? <Empty text={te ? "మీ TSAP ID load చెయ్యండి — viewers చూడటానికి." : "Load your TSAP ID — to see viewers."} /> : (
+            {!views ? <Empty text={te ? "మీ Profile ID load చెయ్యండి — viewers చూడటానికి." : "Load your Profile ID — to see viewers."} /> : (
               <>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   {[["👀 Total views", views.total_views], ["🧑 Unique viewers", views.unique_viewers],
@@ -696,7 +696,7 @@ export default function RequestsPage() {
                       disabled={busy || !myId}
                       className="mt-4 w-full gold-gradient text-maroon font-bold py-2.5 rounded-xl hover-lift disabled:opacity-50"
                     >
-                      {myId ? `₹${p.price} pay → ${p.profiles} profiles` : te ? "మీ TSAP ID ఇవ్వండి" : "Enter your TSAP ID"}
+                      {myId ? `₹${p.price} pay → ${p.profiles} profiles` : te ? "మీ Profile ID ఇవ్వండి" : "Enter your Profile ID"}
                     </button>
                   </div>
                 </Reveal>

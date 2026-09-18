@@ -3,7 +3,7 @@
  * 🎯 MATCH & SEND CONSOLE — ₹500 assisted service (WAVE 12)
  * =========================================================
  * Flow:
- *   1. Buyer TSAP ID → perfect matches auto-load (score sort)
+ *   1. Buyer Profile ID → perfect matches auto-load (score sort)
  *   2. Neat filters → enni match ayithe anni chupisthundi
  *   3. ☑️ Select → order (₹500 + UTR paid) → 📩 Telegram / 💬 WhatsApp 1-click send
  *   4. 📋 Copy-list (NAME -- NUMBER) — manual paste fallback
@@ -58,7 +58,7 @@ export default function MatchSend() {
 
   const load = async () => {
     const id = buyerId.trim().toUpperCase();
-    if (!id) { setFlash(te ? "⚠️ Buyer TSAP ID ఇవ్వండి" : "⚠️ Enter buyer TSAP ID"); return; }
+    if (!id) { setFlash(te ? "⚠️ Buyer Profile ID ఇవ్వండి" : "⚠️ Enter buyer Profile ID"); return; }
     setLoading(true); setFlash(""); setData(null); setSel({}); setDeliverRes(null); setCopyList("");
     const qs = new URLSearchParams();
     qs.set("age_min", String(fAgeMin)); qs.set("age_max", String(fAgeMax));
@@ -194,8 +194,8 @@ export default function MatchSend() {
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <input value={buyerId} onChange={(e) => setBuyerId(e.target.value.toUpperCase())}
           onKeyDown={(e) => { if (e.key === "Enter") void load(); }}
-          placeholder="Buyer TSAP ID (ex: TSAP-M-2025-1042)"
-          aria-label="Buyer TSAP ID"
+          placeholder="Buyer Profile ID (ex: KAM001)"
+          aria-label="Buyer Profile ID"
           className="min-w-[260px] flex-1 rounded-xl border border-[#7A0C2E]/30 px-3 py-2 font-mono text-sm" />
         <button onClick={() => void load()} disabled={loading}
           className="rounded-xl bg-[#7A0C2E] px-5 py-2 text-sm font-bold text-white disabled:opacity-60">

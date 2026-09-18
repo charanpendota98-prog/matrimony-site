@@ -58,12 +58,12 @@ const TEXT = {
     heroSubA: "తెలంగాణ + ఆంధ్రప్రదేశ్ తెలుగు మ్యాట్రిమోనీ",
     heroSubB: (castes: number, total: number) => `Region • Religion • ${castes} Castes • Special — ${total} channels, ఒక్క రిజిస్టర్‌తో మీ ప్రొఫైల్ సరిపోయే అన్ని చోట్లకీ ఆటోమేటిక్‌గా వెళ్తుంది.`,
     heroSubC: (free: number) => `₹99 కే సంబంధం — మొదటి ${free} ప్రొఫైళ్లు FREE.`,
-    registerCta: "3 నిమిషాల్లో ఉచిత నమోదు",
+    registerCta: "ఉచిత నమోదు — FREE",
     botCta: "Telegram లో చేరండి",
     installApp: "App లాగా install చేసుకోండి",
     vibeTitle: "మీ ఇంటి శుభకార్యానికి — సరైన సంబంధం ఇక్కడే",
     trust: ["OTP + DOB వెరిఫైడ్", "ఫోటో-ప్రైవేట్ మోడ్", "యాక్సెప్ట్ తర్వాతే నంబర్", "వాటర్‌మార్క్ + ఫ్రాడ్ అలర్ట్స్"],
-    idSearchPh: "Profile ID తో వెతకండి — TSAP-F-2025-5775",
+    idSearchPh: "Profile ID తో వెతకండి — RED001",
     idSearchBtn: "వెతకండి",
     cardWhy: "ఎందుకు సెట్ అవుతారు?",
     cardTags: ["O+", "Rohini", "Bharadwaj"],
@@ -95,7 +95,7 @@ const TEXT = {
     howTitle: "4 దశల్లో ఆటోమేటిక్ సంబంధం",
     howSub: "Register అయ్యాక మీ profile అవసరమైన channels లో దానంతట అదే post అవుతుంది. మీరు manual గా ఏదీ చెయ్యక్కర్లేదు.",
     howSteps: (total: number) => [
-      { n: "01", t: "Register — 3 నిమిషాలు", d: "Personal, family, caste/astro, education, location + photo. 5 steps, mobile లోనే easy.", icon: "📝" },
+      { n: "01", t: "Register", d: "Personal, family, caste/astro, education, location + photo. 5 easy steps, mobile లోనే.", icon: "📝" },
       { n: "02", t: "Card + ID ready", d: "Profile card ఆటోమేటిక్‌గా generate అవుతుంది — అన్ని details, QR, watermark తో.", icon: "🎴" },
       { n: "03", t: "Channels లో auto-post", d: `మీ caste + state + job బట్టి ${total} channels నుంచి సరిపోయేవి — Telegram + WhatsApp.`, icon: "📢" },
       { n: "04", t: "Interest పంపు → number exchange", d: "నచ్చిన profile కి 💌 Interest పంపు (1 credit). Accept అయితే రెండు numbers WhatsApp లో ఆటోమేటిక్.", icon: "💌" },
@@ -171,7 +171,7 @@ const TEXT = {
     burDash: "Bureau dashboard →",
     faqEyebrow: "ప్రశ్నలు",
     faqTitle: "తరచూ అడిగేవి — స్పష్టమైన సమాధానాలు",
-    ctaTitle: "ఇప్పుడే మొదలుపెట్టండి — 3 నిమిషాలు చాలు",
+    ctaTitle: "ఇప్పుడే మొదలుపెట్టండి — FREE",
     ctaSub: (total: number, free: number, p99: PlanStat, p199: PlanStat, p299: PlanStat, p499: PlanStat) =>
       `Register FREE → profile card ready → ${total} channels network లో auto-post → మొదటి ${free} interest requests FREE. తర్వాత ₹${p99.price} → ${p99.profiles} profiles, ₹${p199.price} → ${p199.profiles}, ₹${p299.price} → ${p299.profiles}, ₹${p499.price} → ${p499.profiles} (VIP).`,
     ctaReg: "ఉచిత నమోదు",
@@ -195,13 +195,13 @@ const TEXT = {
     vendorPromoS: (total: number) => `₹149 నుంచి — ${total} channels + WhatsApp lanes + website banner + leads direct మీ WhatsApp కి.`,
     vendorPromoC: "Advertise చెయ్యండి →",
     faq: (total: number, p99: PlanStat, p199: PlanStat, p299: PlanStat, p499: PlanStat) => [
-      { q: "Register చెయ్యడానికి ఎంత time, ఎంత charge?", a: `5 steps — 3 నిమిషాలు. Register 100% FREE. మొదటి 3 interest requests కూడా FREE. ఆ తర్వాత ₹${p99.price} తో ${p99.profiles} profiles, ₹${p199.price} తో ${p199.profiles}, ₹${p299.price} తో ${p299.profiles}, ₹${p499.price} తో ${p499.profiles} profiles (₹10–20/profile).` },
+      { q: "Register చెయ్యడానికి ఎంత charge?", a: `Register 100% FREE. మొదటి 3 interest requests కూడా FREE. ఆ తర్వాత ₹${p99.price} తో ${p99.profiles} profiles, ₹${p199.price} తో ${p199.profiles}, ₹${p299.price} తో ${p299.profiles}, ₹${p499.price} తో ${p499.profiles} profiles (₹10–20/profile).` },
       { q: "Chatting ఉందా? ఎలా మాట్లాడుకోవాలి?", a: `Chatting లేదు — అంతే. మీకు నచ్చిన profile కి "💌 Interest పంపు" (1 credit). వాళ్ల profile + మీ details WhatsApp లో వాళ్లకి వెళ్తుంది. వాళ్లు Accept చేస్తే రెండు numbers ఆటోమేటిక్‌గా WhatsApp లో exchange అవుతాయి — direct గా మాట్లాడుకోవచ్చు. Decline చేస్తే మీ credit refund (మన trust policy).` },
       { q: "Number ఎప్పుడు కనిపిస్తుంది? Direct గా ఇస్తారా?", a: "Interest పంపినప్పుడు number lock లో ఉంటుంది. వాళ్లు Accept చేసిన తర్వాతే numbers exchange అవుతాయి — ఇద్దరూ ఒప్పుకున్నప్పుడే. అంటే spam calls, fake ids, మోసం — అన్నీ block. ఈ consent logic top matrimony sites లో ఇదే, కానీ మనం WhatsApp లో fast గా చేస్తాం." },
       { q: "నా photo public లో కనిపిస్తుందా?", a: "Photo-Private ON చేస్తే public లో blur గా కనిపిస్తుంది — WhatsApp/Telegram cards లో కూడా watermark. Interest accept అయ్యాకే clear photos. Screenshot misuse జరిగినా watermark + report system తో action తీసుకుంటాం." },
       { q: "నా profile ఏ channels లో post అవుతుంది?", a: `మీ caste + state + job బట్టి ${total} channels నుంచి సరిపోయేవి (max 5) — Region + Caste (bride/groom separate) + Religion + Special channels అన్నీ cover అవుతాయి.` },
       { q: "WhatsApp లో కూడా వస్తుందా?", a: "అవును — Telegram post అయ్యాక WhatsApp channels/groups కి కూడా వెళ్తుంది. Interest వచ్చినప్పుడు కూడా WhatsApp లోనే notification + profile card వస్తుంది." },
-      { q: "మోసం/fake profiles ఉంటే ఏం చేస్తారు?", a: "DOB + OTP verify, photo watermark, 3 reports → auto hide, @manavivaha_alerts లో fraud alerts. Advance money అడిగితే వెంటనే report చెయ్యండి — 24h లో action. Decline అయినా credit refund ఇస్తాం." },
+      { q: "మోసం/fake profiles ఉంటే ఏం చేస్తారు?", a: "DOB + OTP verify, photo watermark, 3 reports → auto hide, మా safety alerts లో fraud alerts. Advance money అడిగితే వెంటనే report చెయ్యండి — 24h లో action. Decline అయినా credit refund ఇస్తాం." },
     ],
   },
   en: {
@@ -210,12 +210,12 @@ const TEXT = {
     heroSubA: "Telangana + Andhra Pradesh Telugu Matrimony",
     heroSubB: (castes: number, total: number) => `Region • Religion • ${castes} Castes • Special — ${total} channels. One registration auto-posts your profile everywhere it fits.`,
     heroSubC: (free: number) => `₹99 Sambandham — first ${free} profiles FREE.`,
-    registerCta: "Register FREE — 3 minutes",
+    registerCta: "Register FREE",
     botCta: "Join on Telegram",
     installApp: "Install as app",
     vibeTitle: "For your family wedding — the right match is here",
     trust: ["OTP + DOB verified", "Photo-private mode", "Number only after accept", "Watermark + fraud alerts"],
-    idSearchPh: "Search by Profile ID — TSAP-F-2025-5775",
+    idSearchPh: "Search by Profile ID — RED001",
     idSearchBtn: "Search",
     cardWhy: "Why they match?",
     cardTags: ["O+", "Rohini", "Bharadwaj"],
@@ -247,7 +247,7 @@ const TEXT = {
     howTitle: "Sambandham in 4 automatic steps",
     howSub: "Once you register, your profile automatically posts to the right channels. You never have to post anything manually.",
     howSteps: (total: number) => [
-      { n: "01", t: "Register — 3 min", d: "Personal, family, caste/astro, education, location + photo. 5 steps, easy on mobile.", icon: "📝" },
+      { n: "01", t: "Register", d: "Personal, family, caste/astro, education, location + photo. 5 easy steps on mobile.", icon: "📝" },
       { n: "02", t: "Card + ID ready", d: "Profile card is auto-generated — all details, QR and watermark.", icon: "🎴" },
       { n: "03", t: "Auto-post to channels", d: `Best-fit channels from ${total}, based on your caste + state + job — Telegram + WhatsApp.`, icon: "📢" },
       { n: "04", t: "Send interest → number exchange", d: "Send 💌 Interest (1 credit) to profiles you like. On accept, both numbers exchange automatically on WhatsApp.", icon: "💌" },
@@ -323,7 +323,7 @@ const TEXT = {
     burDash: "Bureau dashboard →",
     faqEyebrow: "Questions",
     faqTitle: "Frequently asked — clear answers",
-    ctaTitle: "Start now — just 3 minutes",
+    ctaTitle: "Start now — it's FREE",
     ctaSub: (total: number, free: number, p99: PlanStat, p199: PlanStat, p299: PlanStat, p499: PlanStat) =>
       `Register FREE → profile card ready → auto-post across ${total} channels → first ${free} interest requests FREE. Then ₹${p99.price} → ${p99.profiles} profiles, ₹${p199.price} → ${p199.profiles}, ₹${p299.price} → ${p299.profiles}, ₹${p499.price} → ${p499.profiles} (VIP).`,
     ctaReg: "Register FREE",
@@ -347,13 +347,13 @@ const TEXT = {
     vendorPromoS: (total: number) => `From ₹149 — ${total} channels + WhatsApp lanes + website banner + leads straight to your WhatsApp.`,
     vendorPromoC: "Advertise →",
     faq: (total: number, p99: PlanStat, p199: PlanStat, p299: PlanStat, p499: PlanStat) => [
-      { q: "How much time and money to register?", a: `5 steps — 3 minutes. Registration is 100% FREE. First 3 interest requests are FREE too. Then ₹${p99.price} for ${p99.profiles} profiles, ₹${p199.price} for ${p199.profiles}, ₹${p299.price} for ${p299.profiles}, ₹${p499.price} for ${p499.profiles} profiles (₹10–20/profile).` },
+      { q: "How much money to register?", a: `Registration is 100% FREE. First 3 interest requests are FREE too. Then ₹${p99.price} for ${p99.profiles} profiles, ₹${p199.price} for ${p199.profiles}, ₹${p299.price} for ${p299.profiles}, ₹${p499.price} for ${p499.profiles} profiles (₹10–20/profile).` },
       { q: "Is there chatting? How do we talk?", a: `No chatting — that's it. Send "💌 Interest" (1 credit) to a profile you like. Your profile + details reach them on WhatsApp. If they Accept, both numbers auto-exchange on WhatsApp — talk directly. On Decline your credit is refunded (our trust policy).` },
       { q: "When is the number visible? Do you share directly?", a: "The number stays locked when you send interest. Numbers exchange only after they Accept — only when both agree. So spam calls, fake IDs and fraud are all blocked. Top matrimony sites use this same consent logic; we just do it fast on WhatsApp." },
       { q: "Is my photo visible in public?", a: "With Photo-Private ON it shows blurred in public — watermarked on WhatsApp/Telegram cards too. Clear photos only after interest accept. Watermark + report system acts on screenshot misuse." },
       { q: "Which channels will my profile be posted to?", a: `Best-fit channels (max 5) from ${total}, based on your caste + state + job — Region + Caste-wise (bride/groom separate) + Religion + Special channels, all covered.` },
       { q: "Does it come on WhatsApp too?", a: "Yes — after the Telegram post it also goes to WhatsApp channels/groups. Interest arrivals also notify you on WhatsApp with a profile card." },
-      { q: "What about fraud/fake profiles?", a: "DOB + OTP verify, photo watermark, 3 reports → auto hide, fraud alerts in @manavivaha_alerts. Report advance-money demands immediately — action within 24h. Declined credits are refunded." },
+      { q: "What about fraud/fake profiles?", a: "DOB + OTP verify, photo watermark, 3 reports → auto hide, fraud alerts in our safety channel. Report advance-money demands immediately — action within 24h. Declined credits are refunded." },
     ],
   },
 };
@@ -495,7 +495,7 @@ export default function Home() {
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src="/promo/bride-card.jpg" alt="Sample bride" className="w-20 h-24 rounded-xl object-cover border border-gold/40 shrink-0" />
                   <div className="min-w-0">
-                    <div className="font-bold text-sm text-maroon">TSAP-F-2025-5775</div>
+                    <div className="font-bold text-sm text-maroon">RED001</div>
                     <div className="text-[12px] text-gray-700 mt-0.5">25y • 5'4" • Reddy</div>
                     <div className="text-[12px] text-gray-700">BTech • Software @ Hyderabad</div>
                     <div className="text-[12px] text-gray-700">Nalgonda, TS</div>
@@ -691,7 +691,7 @@ export default function Home() {
                   </div>
                   <div className="bg-[#202c33] text-white text-[12px] rounded-xl p-3 max-w-[80%]">
 {te ? "Profile card + photo ఇక్కడే వస్తుంది 🎴" : "Profile card + photo arrives here 🎴"}
-                    <div className="text-[10px] opacity-70 mt-1">attachment: TSAP-M-2025-1042.png</div>
+                    <div className="text-[10px] opacity-70 mt-1">attachment: KAM001.png</div>
                   </div>
                   <div className="flex gap-2 pt-1">
                     <button className="flex-1 bg-emerald-600 text-white text-[12px] font-bold rounded-xl py-2">✅ Accept</button>
@@ -746,9 +746,8 @@ export default function Home() {
                 <div className="text-[13px] font-bold leading-tight">{ch.name}</div>
                 <div className="text-[11px] opacity-85 mt-1">{ch.status}</div>
                 <div className="mt-2 flex gap-1 flex-wrap">
-                  <span className="text-[10px] bg-white/20 px-2 py-1 rounded-full">{ch.username}</span>
                   <span className="text-[10px] bg-gold text-maroon px-2 py-1 rounded-full font-bold">
-                    {ch.live ? "Join" : `W${ch.wave}`}
+                    {ch.live ? (lang === "te" ? "Join చెయ్యండి" : "Join") : (lang === "te" ? "త్వరలో" : "Soon")}
                   </span>
                 </div>
               </a>
@@ -804,7 +803,7 @@ export default function Home() {
                   )}
                 </div>
                 <div className="text-[10px] text-gray-500 mt-1">
-                  {c.live ? "LIVE ✅" : `Wave-${c.wave}`}
+                  {c.live ? "LIVE ✅" : (lang === "te" ? "త్వరలో" : "Soon")}
                 </div>
               </Link>
             </Reveal>
@@ -841,7 +840,7 @@ export default function Home() {
                 </div>
                 <div className="text-[11px] text-gray-600 mt-1 line-clamp-2">{sp.desc}</div>
                 <div className="text-[10px] mt-2 font-bold text-gold-deep">
-                  {sp.live ? "LIVE ✅" : `Wave-${sp.wave}`}
+                  {sp.live ? "LIVE ✅" : (lang === "te" ? "త్వరలో" : "Soon")}
                 </div>
               </Link>
             </Reveal>

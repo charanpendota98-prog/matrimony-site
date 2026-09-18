@@ -85,9 +85,9 @@ export default function AstroConsole() {
       <div className="mt-3 rounded-2xl border p-4">
         <div className="font-bold text-[#7A0C2E]">🪐 36-Guna checker</div>
         <div className="mt-2 flex flex-wrap gap-2">
-          <input value={bride} onChange={(e) => setBride(e.target.value.toUpperCase())} placeholder="Bride TSAP ID"
+          <input value={bride} onChange={(e) => setBride(e.target.value.toUpperCase())} placeholder="Bride Profile ID"
             aria-label="Bride ID" className="min-w-[200px] flex-1 rounded-xl border px-3 py-2 font-mono text-sm" />
-          <input value={groom} onChange={(e) => setGroom(e.target.value.toUpperCase())} placeholder="Groom TSAP ID"
+          <input value={groom} onChange={(e) => setGroom(e.target.value.toUpperCase())} placeholder="Groom Profile ID"
             aria-label="Groom ID" className="min-w-[200px] flex-1 rounded-xl border px-3 py-2 font-mono text-sm" />
           <button onClick={() => void checkGuna()} className="rounded-xl bg-[#7A0C2E] px-5 py-2 text-sm font-bold text-white">🔍 Guna chudu</button>
         </div>

@@ -325,7 +325,7 @@ export default function PricingPage() {
         <div className="text-lg font-extrabold text-[#7A0C2E] telugu">
           {te ? "మొదటి 3 requests FREE — ఇప్పుడే start చెయ్యండి 🙏" : "First 3 requests FREE — start now 🙏"}
         </div>
-        <div className="text-xs text-[#7A0C2E]/80 telugu mt-1">{te ? "Card details అవసరం లేదు • 3 నిమిషాల్లో register" : "No card details needed • register in 3 minutes"}</div>
+        <div className="text-xs text-[#7A0C2E]/80 telugu mt-1">{te ? "Card details అవసరం లేదు • FREE register" : "No card details needed • register FREE"}</div>
         <div className="mt-4 flex flex-wrap gap-3 justify-center">
           <Link href="/register" className="rounded-xl bg-[#7A0C2E] text-white px-5 py-2.5 font-bold text-sm">Register FREE →</Link>
           <Link href="/channels" className="rounded-xl bg-white/70 text-[#7A0C2E] px-5 py-2.5 font-bold text-sm border border-[#7A0C2E]/20">{te ? `${CHANNEL_STATS.total} Channels చూడండి` : `See ${CHANNEL_STATS.total} channels`}</Link>

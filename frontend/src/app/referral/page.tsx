@@ -112,7 +112,7 @@ export default function ReferralPage() {
             <span className="px-3 py-1 rounded-full bg-white/10">ID: <b>{tsapId || "…"}</b></span>
             <input value={tsapId} onChange={(e) => setTsapId(e.target.value.toUpperCase())}
               className="px-3 py-1.5 rounded-full bg-white/10 border border-white/25 text-white placeholder-white/60 text-xs w-full max-w-[224px] sm:w-56"
-              placeholder={te ? "మీ TSAP ID (TSAP-F-2025-1042)" : "Your TSAP ID (TSAP-F-2025-1042)"} aria-label={te ? "మీ TSAP ID" : "Your TSAP ID"} />
+              placeholder={te ? "మీ Profile ID (RED001)" : "Your Profile ID (RED001)"} aria-label={te ? "మీ Profile ID" : "Your Profile ID"} />
             <span className="px-3 py-1 rounded-full bg-[#D4AF37] text-[#7A0C2E] font-bold">{tier.icon} {tier.key}</span>
             {s.paid_count > 0 && <span className="px-3 py-1 rounded-full bg-white/10">{s.paid_count} paying referrals</span>}
           </div>
@@ -121,6 +121,58 @@ export default function ReferralPage() {
 
       <div className="max-w-6xl mx-auto px-4">
         {err && <div className="mt-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs p-3">⚠️ {err}</div>}
+
+        {/* 🌟 ANYONE CAN EARN — who + how (neat, attractive) */}
+        <section className="mt-5 grid md:grid-cols-[1.2fr_1fr] gap-4">
+          <div className="bg-white rounded-3xl p-5 border border-[#D4AF37]/40 shadow-sm">
+            <h2 className="font-extrabold text-[#7A0C2E] text-[15px] telugu">
+              {te ? "🌟 ఎవరైనా join అయ్యి సంపాదించొచ్చు — అవసరాలు ఏమీ లేవు" : "🌟 Anyone can join and earn — no conditions"}
+            </h2>
+            <p className="text-[12px] text-gray-600 mt-1 telugu">
+              {te ? "పెళ్లి సంబంధం వెతకడం అవసరం లేదు — మీకు మీ స్నేహితులు, బంధువులు, పరిచయస్తులు ఉన్నా చాలు:" :
+                    "You don't need to be looking for a match — friends, family and contacts are enough:"}
+            </p>
+            <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {[
+                { i: "🎓", te: "విద్యార్థులు", en: "Students", d: { te: "pocket money కోసం", en: "for pocket money" } },
+                { i: "🏡", te: "గృహిణులు", en: "Homemakers", d: { te: "ఖాళీ సమయంలో", en: "in free time" } },
+                { i: "👨‍💼", te: "ఉద్యోగస్థులు", en: "Working people", d: { te: "side income గా", en: "as side income" } },
+                { i: "🏪", te: "షాపు / వ్యాపారస్తులు", en: "Shop owners", d: { te: "customers తో share", en: "share with customers" } },
+                { i: "🤝", te: "పెళ్లి బ్యూరోలు", en: "Marriage bureaus", d: { te: "B2B plans కూడా", en: "B2B plans too" } },
+                { i: "📱", te: "సోషల్ మీడియా లో", en: "On social media", d: { te: "status/groups లో", en: "status & groups" } },
+              ].map((x) => (
+                <div key={x.en} className="rounded-2xl bg-[#FFF8E7] border border-[#D4AF37]/30 p-2.5 text-center">
+                  <div className="text-xl">{x.i}</div>
+                  <div className="text-[11px] font-bold text-[#7A0C2E] mt-0.5">{te ? x.te : x.en}</div>
+                  <div className="text-[10px] text-gray-500">{te ? x.d.te : x.d.en}</div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-3 rounded-2xl bg-[#7A0C2E] text-white p-3 text-[12px] font-bold telugu text-center">
+              {te ? <>💡 10 మంది మీ link తో join అయ్యి pay చేస్తే = <span className="text-[#D4AF37]">₹500 మీ దగ్గర</span> — UPI లో</> : <>💡 10 people join & pay with your link = <span className="text-[#D4AF37]">₹500 yours</span> — via UPI</>}
+            </div>
+          </div>
+          <div className="bg-white rounded-3xl p-5 border border-gray-200 shadow-sm">
+            <h2 className="font-extrabold text-[#7A0C2E] text-[15px] telugu">
+              {te ? "⚡ 3 steps లో మొదలుపెట్టండి" : "⚡ Start in 3 steps"}
+            </h2>
+            <ol className="mt-3 space-y-3">
+              {[
+                { n: "1", te: "మీ referral link copy చెయ్యండి (క్రింద ఉంది)", en: "Copy your referral link (below)" },
+                { n: "2", te: "WhatsApp / groups / status లో share చెయ్యండి — ready messages క్రింద ఉన్నాయి", en: "Share on WhatsApp / groups / status — ready messages below" },
+                { n: "3", te: "ఎవరైనా register చేసి pay చేస్తే — మీకు ₹50 wallet లో. ₹100 అయ్యాక UPI కి payout", en: "Anyone registers & pays — ₹50 hits your wallet. Payout to UPI at ₹100" },
+              ].map((x) => (
+                <li key={x.n} className="flex items-start gap-2.5">
+                  <span className="shrink-0 w-6 h-6 rounded-full bg-[#D4AF37] text-[#7A0C2E] font-extrabold grid place-items-center text-[12px]">{x.n}</span>
+                  <span className="text-[12px] text-gray-700 telugu">{te ? x.te : x.en}</span>
+                </li>
+              ))}
+            </ol>
+            <Link href="/referral/register" className="mt-4 block text-center rounded-full bg-[#D4AF37] text-[#7A0C2E] px-4 py-2.5 text-[13px] font-extrabold shadow-soft">
+              {te ? "🎁 ఫ్రీ గా చేరండి — 1 నిమిషం" : "🎁 Join FREE — 1 minute"}
+            </Link>
+          </div>
+        </section>
 
         {/* CODE CARD */}
         <section className="mt-6 grid md:grid-cols-3 gap-4">

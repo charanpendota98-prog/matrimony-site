@@ -361,7 +361,7 @@ export default function MatchesAdvanced() {
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(true);
   const [sheet, setSheet] = useState(false);
-  const [myTsapId, setMyTsapId] = useState("TSAP-M-2025-1042");
+  const [myTsapId, setMyTsapId] = useState("KAM001");
   const [credits, setCredits] = useState(3);
   const [savedIds, setSavedIds] = useState<string[]>([]);
   const [sending, setSending] = useState("");
@@ -722,7 +722,7 @@ export default function MatchesAdvanced() {
             </button>
             <div className="hidden md:flex items-center gap-2 shrink-0">
               <input value={myTsapId} onChange={(e) => { const v = e.target.value.toUpperCase(); setMyTsapId(v); localStorage.setItem("tsap_id", v); }}
-                className="text-[11px] font-mono bg-white border border-gold/40 rounded-full px-3 py-2 w-44" title={te ? "మీ TSAP ID" : "Your TSAP ID"} aria-label="Text input" />
+                className="text-[11px] font-mono bg-white border border-gold/40 rounded-full px-3 py-2 w-44" title={te ? "మీ Profile ID" : "Your Profile ID"} aria-label="Text input" />
               <span className="text-[11px] bg-white border border-gold/40 rounded-full px-3 py-2">credits <b>{credits}</b></span>
             </div>
           </div>

@@ -64,7 +64,7 @@ export default function SafetyPage() {
   useEffect(() => { if (myId) loadMine(myId); }, [myId, loadMine]);
 
   const submitReport = async () => {
-    if (!report.target_id.trim()) { setMsg({ ok: false, text: te ? "ఎవరిని report చెయ్యాలి — TSAP ID ఇవ్వండి" : "Whom to report — enter TSAP ID" }); return; }
+    if (!report.target_id.trim()) { setMsg({ ok: false, text: te ? "ఎవరిని report చెయ్యాలి — Profile ID ఇవ్వండి" : "Whom to report — enter Profile ID" }); return; }
     setBusy(true);
     try {
       const d = await fetch("/api/report", {
@@ -163,14 +163,14 @@ export default function SafetyPage() {
           </div>
           <div className="mt-4 grid md:grid-cols-3 gap-3">
             <div className="md:col-span-1">
-              <label className="text-[12px] font-bold">{te ? "ఎవరిని report? (TSAP ID)" : "Whom to report? (TSAP ID)"}</label>
+              <label className="text-[12px] font-bold">{te ? "ఎవరిని report? (Profile ID)" : "Whom to report? (Profile ID)"}</label>
               <input value={report.target_id} onChange={(e) => setReport({ ...report, target_id: e.target.value.toUpperCase() })}
-                placeholder="TSAP-M-2025-1042" className="input-mobile font-mono" aria-label="TSAP-M-2025-1042" />
+                placeholder="RED001" className="input-mobile font-mono" aria-label="KAM001" />
             </div>
             <div className="md:col-span-1">
-              <label className="text-[12px] font-bold">{te ? "మీ TSAP ID (optional)" : "Your TSAP ID (optional)"}</label>
+              <label className="text-[12px] font-bold">{te ? "మీ Profile ID (optional)" : "Your Profile ID (optional)"}</label>
               <input value={myId} onChange={(e) => { setMyId(e.target.value.toUpperCase()); localStorage.setItem("tsap_id", e.target.value.toUpperCase()); }}
-                placeholder="TSAP-F-2025-1042" className="input-mobile font-mono" aria-label="TSAP-F-2025-1042" />
+                placeholder="RED001" className="input-mobile font-mono" aria-label="RED001" />
             </div>
             <div className="md:col-span-1">
               <label className="text-[12px] font-bold">Category</label>
@@ -219,7 +219,7 @@ export default function SafetyPage() {
                   <div className="h-2 gold-gradient" style={{ width: `${verify.trust_score}%` }} />
                 </div>
               </>
-            ) : <div className="text-[12px] text-gray-500 mt-2">{te ? "TSAP ID ఇవ్వండి — verification level చూడటానికి" : "Enter TSAP ID — to see verification level"}</div>}
+            ) : <div className="text-[12px] text-gray-500 mt-2">{te ? "Profile ID ఇవ్వండి — verification level చూడటానికి" : "Enter Profile ID — to see verification level"}</div>}
             <div className="mt-3 flex flex-wrap gap-2">
               {levels.filter((l) => l.level !== "none").map((l) => (
                 <button key={l.level} onClick={() => requestVerify(l.level)} disabled={!myId}

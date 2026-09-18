@@ -84,7 +84,7 @@ export default function RefundPage() {
           {te ? (
             <>
               <li>WhatsApp/Phone: <b>{SITE_CONFIG.supportPhoneDisplay}</b> లేదా email: <b>{SITE_CONFIG.supportEmail}</b></li>
-              <li>పంపాల్సినవి: TSAP ID • payment date • amount • Razorpay payment ID • reason (1 line)</li>
+              <li>పంపాల్సినవి: Profile ID • payment date • amount • Razorpay payment ID • reason (1 line)</li>
               <li>Verify చేసి <b>2 working days</b> లో approve/decline తెలియజేస్తాం.</li>
               <li>Approve అయితే <b>5–7 working days</b> లో మీ bank/UPI కి credited అవుతుంది (bank timing బట్టి).</li>
               <li>Refund confirmation email మీకు పంపిస్తాం.</li>
@@ -92,7 +92,7 @@ export default function RefundPage() {
           ) : (
             <>
               <li>WhatsApp/Phone: <b>{SITE_CONFIG.supportPhoneDisplay}</b> or email: <b>{SITE_CONFIG.supportEmail}</b></li>
-              <li>Send: TSAP ID • payment date • amount • Razorpay payment ID • reason (1 line)</li>
+              <li>Send: Profile ID • payment date • amount • Razorpay payment ID • reason (1 line)</li>
               <li>We verify and inform approve/decline within <b>2 working days</b>.</li>
               <li>On approval, credited to your bank/UPI in <b>5–7 working days</b> (depends on bank timing).</li>
               <li>Refund confirmation email is sent to you.</li>

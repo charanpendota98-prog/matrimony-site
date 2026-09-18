@@ -115,7 +115,6 @@ export default function ChannelsPage() {
                   <div className="flex justify-between items-start gap-2">
                     <div className="min-w-0 flex-1">
                       <div className="font-bold text-[13px] text-[#7A0C2E] truncate">{c.name}</div>
-                      <div className="text-[11px] text-gray-500">{c.username}</div>
                     </div>
                     <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-green-100 text-green-700 whitespace-nowrap">LIVE</span>
                   </div>
@@ -164,7 +163,7 @@ export default function ChannelsPage() {
           <div className="font-bold text-[#7A0C2E]">{te ? <>Mana Vivaha — {CHANNEL_STATS.total} ఛానళ్లు, ఒక్క వేదిక</> : <>Mana Vivaha — {CHANNEL_STATS.total} channels, one platform</>}</div>
           <div className="text-xs text-gray-500 mt-1">{te ? <>₹99 సంబంధం • మొదటి 3 FREE • ఇప్పుడు {liveCount} ఛానళ్లు live</> : <>₹99 Sambandham • First 3 FREE • {liveCount} channels live now</>}</div>
           <div className="flex justify-center gap-3 mt-3">
-            <Link href="/register" className="px-4 py-2 maroon-gradient text-white rounded-full text-xs font-bold">{te ? "3 నిమిషాల్లో నమోదు" : "Register in 3 min"}</Link>
+            <Link href="/register" className="px-4 py-2 maroon-gradient text-white rounded-full text-xs font-bold">{te ? "FREE గా నమోదు చెయ్యండి" : "Register FREE"}</Link>
             <Link href="/bureau" className="px-4 py-2 border border-[#D4AF37] text-[#7A0C2E] rounded-full text-xs font-bold">Bureau / Broker</Link>
           </div>
         </div>

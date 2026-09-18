@@ -16,9 +16,52 @@ WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 
 def generate_id(gender: str, year: int = 2025, seq: int = 1042) -> str:
-    """TSAP-F-2025-1042"""
+    """TSAP-F-2025-1042 (legacy format — old profiles ki)"""
     g = "F" if gender=="Bride" else "M"
     return f"TSAP-{g}-{year}-{seq:04d}"
+
+
+# ---------------------------------------------------------------------------
+# ⭐ CASTE-WISE PROFILE ID — RED001, KAM001, VIS001 (neat, short, caste-based)
+# ---------------------------------------------------------------------------
+CASTE_ID_CODES = {
+    "reddy": "RED", "kamma": "KAM", "kapu": "KAP", "velama": "VEL", "brahmin": "BRA",
+    "vysya": "VYS", "yadava_goud": "YAD", "mala": "MAL", "madiga": "MAD",
+    "viswabrahmana": "VIS", "munnuru_kapu": "MUN", "raju_kshatriya": "RAJ",
+    "padmashali_weavers": "PAD", "mudiraj": "MUD", "lambada_banjara": "LAM",
+    "others_bc": "OBC", "others_sc": "OSC", "others_st": "OST",
+}
+
+
+def caste_code(caste: str) -> str:
+    """'Reddy' → 'RED', 'Viswabrahmin' → 'VIS'; teliyani caste → first 3 letters (neat)."""
+    raw = str(caste or "").strip()
+    # grouped community names — explicit codes (OTH kakunda OSC/OBC/OST)
+    _low = raw.lower().replace("_", " ")
+    if "sc" in _low and ("other" in _low or "ఇతర" in raw):
+        return "OSC"
+    if "bc" in _low and ("other" in _low or "ఇతర" in raw):
+        return "OBC"
+    if "st" in _low and ("other" in _low or "ఇతర" in raw):
+        return "OST"
+    if raw:
+        try:
+            from channels_config import resolve_caste_key
+            key = resolve_caste_key(raw)
+            if key and key in CASTE_ID_CODES:
+                return CASTE_ID_CODES[key]
+        except Exception:
+            pass
+        letters = "".join(c for c in raw.upper() if c.isalpha())
+        if letters:
+            return letters[:3]
+    return "MVH"
+
+
+def generate_profile_id(caste: str, seq: int = 1) -> str:
+    """'Reddy' + 1 → RED001 · 'Viswabrahmin' + 42 → VIS042 · 1042 → RED1042."""
+    code = caste_code(caste)
+    return f"{code}{seq:03d}" if seq < 1000 else f"{code}{seq}"
 
 def create_profile_card(user: Dict, output_path: str) -> str:
     """

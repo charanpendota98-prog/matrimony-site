@@ -68,12 +68,21 @@ def _csv_append(p: Dict[str, Any]) -> None:
 
 
 def _gen_id(name: str) -> str:
-    base = re.sub(r"[^a-z]", "", (name or "").strip().lower().split()[0] if (name or "").strip() else "ref")[:10] or "ref"
-    for _ in range(50):
-        pid = f"{base}{random.randint(100, 999)}"
-        if not any(p.get("partner_id", "").lower() == pid for p in PARTNERS):
+    """Partner/referral code — name first 3 letters (CAPITAL) + 4 digits — CHA0001, CHA0002… (unique, perugutundi)."""
+    base = re.sub(r"[^a-z]", "", (name or "").strip().lower().split()[0] if (name or "").strip() else "ref")[:3]
+    base = (base or "REF").upper().ljust(3, "X")
+    nums = []
+    for p in PARTNERS:
+        m = re.fullmatch(r"([A-Z]{3})(\d{2,6})", str(p.get("partner_id", "")))
+        if m and m.group(1) == base:
+            nums.append(int(m.group(2)))
+    n = (max(nums) + 1) if nums else 1
+    for _ in range(200):
+        pid = f"{base}{n:04d}"
+        if not any(p.get("partner_id", "").lower() == pid.lower() for p in PARTNERS):
             return pid
-    return f"{base}{random.randint(1000, 9999)}"
+        n += 1
+    return f"{base}{random.randint(10000, 99999)}"
 
 
 def get_partner(pid: str) -> Optional[Dict[str, Any]]:

@@ -17,7 +17,7 @@ from matching_engine import (
     calculate_match_score, generate_personalized_reasons, find_top_matches,
     generate_profile_highlights,
 )
-from card_generator import generate_id, create_profile_card
+from card_generator import generate_id, create_profile_card, caste_code, generate_profile_id
 from credits import PLANS, can_view_number, deduct_credit, add_credits, can_search_id
 from referral import (
     generate_referral_code, process_referral_payment, get_leaderboard, parse_referral_type,
@@ -383,13 +383,18 @@ DB_PAYMENTS = []
 DB_POSTS = []
 DB_REFERRALS = []
 
-# Helper — unique TSAP ID (same number rendu sarlu raakudadu)
-def unique_tsap_id(gender: str, year: int = 2025) -> str:
-    for _ in range(50):
-        tid = generate_id(gender, year, random.randint(1000, 9999))
-        if not any(u.get("tsap_id") == tid for u in DB_USERS):
+# Helper — unique caste-wise Profile ID (same number rendu sarlu raakudadu)
+def unique_tsap_id(caste: str) -> str:
+    """Caste-wise Profile ID: Reddy → RED001, Viswabrahmin → VIS001 (per-caste sequence)."""
+    code = caste_code(caste)
+    existing = {str(u.get("tsap_id") or "") for u in DB_USERS}
+    n = sum(1 for t in existing if t.startswith(code)) + 1
+    for _ in range(500):
+        tid = f"{code}{n:03d}" if n < 1000 else f"{code}{n}"
+        if tid not in existing:
             return tid
-    return generate_id(gender, year, random.randint(10000, 99999))
+        n += 1
+    return f"{code}{random.randint(10000, 99999)}"
 
 
 def verify_webhook_signature(header_sig: str, secret: str, payload: str = "") -> bool:
@@ -621,14 +626,13 @@ async def register(
     # 2. ID Gen
     # WAVE 27 — ID-gen + append atomic (double-submit → rendu veru IDs, duplicate ID never)
     with _REGISTER_LOCK:
-        tsap_id = unique_tsap_id(gender, 2025)
+        tsap_id = unique_tsap_id(caste)
         # referral code — TSAP ID nunchi derive (unique, deterministic) [FIX: mundu undefined `seq` tho crash avutundi]
         _dup_phone = any(u.get("phone") == phone for u in DB_USERS)
         if _dup_phone:
             abuse_log("duplicate_phone_register", tsap_id)
             abuse_count("duplicate_phone_registers")
-        _ref_seq = "".join(ch for ch in tsap_id if ch.isdigit())[-5:] or str(random.randint(10000, 99999))
-        my_ref_code = f"TSAP-REF-{_ref_seq}"
+        my_ref_code = ""   # ensure_referrer_profile() — name nunchi short code (CHA0001 style)
 
         # 3. Save DB - Advanced Full
         user = {
@@ -2359,7 +2363,7 @@ def demo_seed(request: Request = None):
                             "role": sd["gender"], "existing": True})
             continue
         prefer = sd.pop("prefer_id", None)
-        tsap_id = prefer if (prefer and not any(u.get("tsap_id") == prefer for u in DB_USERS)) else unique_tsap_id(sd["gender"])
+        tsap_id = prefer if (prefer and not any(u.get("tsap_id") == prefer for u in DB_USERS)) else unique_tsap_id(sd.get("caste", ""))
         user = {**sd, "tsap_id": tsap_id, "credits": 3, "plan": "FREE", "wallet": 0,
                 "marital_status": sd.get("marital_status", "Pelli Kaledu"),
                 "mandal": sd.get("district", ""), "religion": sd.get("religion", "Hindu"),
@@ -3249,7 +3253,7 @@ def api_bulk_profiles(payload: dict, request: Request = None):
             continue
         u = dict(sd)
         u["demo"] = True                       # 🎬 seed/inventory profile — demo login allowed (real users ki OTP)
-        u.setdefault("tsap_id", unique_tsap_id(sd.get("gender", "Bride"), 2025))
+        u.setdefault("tsap_id", unique_tsap_id(sd.get("caste", "")))
         u.setdefault("religion", "Hindu")
         u.setdefault("mother_tongue", "Telugu")
         u.setdefault("gothram", "-")

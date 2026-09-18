@@ -171,7 +171,7 @@ export default function PartnerRegisterPage() {
       <section className="mt-5 rounded-2xl border border-slate-200 bg-white p-4">
         <h2 className="text-sm font-bold">📊 <Duo en="My partner dashboard" te="నా భాగస్వామి డాష్‌బోర్డ్" /></h2>
         <div className="mt-2 flex gap-2">
-          <input value={lookup} onChange={(e) => setLookup(e.target.value)} placeholder="charan108"
+          <input value={lookup} onChange={(e) => setLookup(e.target.value.toUpperCase())} placeholder="CHA0001"
             className="flex-1 rounded-xl border border-slate-300 px-3 py-2 text-sm" />
           <button onClick={loadDash} className="rounded-xl border border-[#7A0C2E] px-4 py-2 text-sm font-bold text-maroon">
             {te ? "చూడు" : "View"}

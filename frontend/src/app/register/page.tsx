@@ -33,12 +33,33 @@ import {
 
 const DRAFT_KEY = "tsap_reg_draft_v3";
 const STEPS = [
-  { n: 1, label: "Basic", labelTe: "ప్రాథమిక", icon: "🙋", hint: "మీ basic details — 30 seconds", hintEn: "Your basic details — 30 seconds" },
-  { n: 2, label: "Community", labelTe: "సామాజిక", icon: "💍", hint: "Caste + star details — card కి కావాలి", hintEn: "Caste + star details — needed for card" },
+  { n: 1, label: "Basic", labelTe: "ప్రాథమిక", icon: "🙋", hint: "మీ basic details", hintEn: "Your basic details" },
+  { n: 2, label: "Caste + Astrology", labelTe: "కులం + జ్యోతిషం", icon: "💍", hint: "Caste + జ్యోతిషం (star, rasi) — card కి కావాలి", hintEn: "Caste + astrology details — needed for card" },
   { n: 3, label: "Education", labelTe: "విద్య", icon: "🎓", hint: "చదువు + ఉద్యోగం", hintEn: "Education + job" },
   { n: 4, label: "Family", labelTe: "కుటుంబం", icon: "👨‍👩‍👧", hint: "Family + contact", hintEn: "Family + contact" },
   { n: 5, label: "Photo", labelTe: "ఫోటో", icon: "📸", hint: "Photo + finish (చివరి details)", hintEn: "Photo + finish (settlement details)" },
 ];
+
+/* raw channel handle (@manavivaha_kamma_bride) → neat name (Kamma Brides) — user ki clarify avvadam */
+function prettyChannel(raw: string): string {
+  let s = String(raw || "").replace(/^@/, "")
+    .replace(/^(manavivaha|tsap)_/i, "").replace(/_/g, " ")
+    .replace(/\d+$/, "").trim().toLowerCase();
+  const special: Record<string, string> = {
+    tsbride: "TS Brides (Telangana)", tsgroom: "TS Grooms (Telangana)",
+    apbride: "AP Brides", apgroom: "AP Grooms",
+    matrimony: "Main Channel", hindu: "Hindu Community",
+    nri: "NRI / Abroad", second: "Second Marriage", able: "Differently Abled",
+    govt: "Govt Jobs", software: "Software / IT", professionals: "Doctors & Teachers",
+    success: "Success Stories", alerts: "Safety Alerts", "35plus": "Age 35+",
+    interfaith: "Interfaith", "other religions": "Other Religions",
+    "others sc": "SC Community", "others bc": "BC Community", "others st": "ST Community",
+  };
+  if (special[s]) return special[s];
+  s = s.replace(/\bts\b/g, "TS").replace(/\bap\b/g, "AP")
+    .replace(/\bbride\b/g, "Brides").replace(/\bgroom\b/g, "Grooms");
+  return s.replace(/\b\w/g, (c) => c.toUpperCase());
+}
 
 const DEFAULT_FORM: Record<string, any> = {
   gender: "", full_name: "", dob: "", birth_time: "", age: "", height: "",
@@ -209,7 +230,7 @@ function PillGroup({
 }) {
   return (
     <div>
-      <div className="text-[15px] font-extrabold text-ink">
+      <div className="text-[13px] font-extrabold text-ink">
         {label} {required ? <span className="req-star">*</span> : null}
       </div>
       {hint && <div className="hint">{hint}</div>}
@@ -239,7 +260,7 @@ function SelectField({
 }) {
   return (
     <div>
-      <div className="text-[15px] font-extrabold text-ink">
+      <div className="text-[13px] font-extrabold text-ink">
         {label} {required ? <span className="req-star">*</span> : null}
       </div>
       {hint && <div className="hint">{hint}</div>}
@@ -692,7 +713,7 @@ const set = (k: string, v: any) => {
               </div>
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {result.publish_targets.map((t: string) => (
-                  <span key={t} className="inline-flex items-center rounded-full bg-white border border-emerald-300 text-emerald-900 font-bold text-[11px] px-2.5 py-1">{t}</span>
+                  <span key={t} className="inline-flex items-center rounded-full bg-white border border-emerald-300 text-emerald-900 font-bold text-[11px] px-2.5 py-1">📢 {prettyChannel(t)}</span>
                 ))}
               </div>
               <a href={SITE_CONFIG.botUrl} target="_blank" rel="noreferrer"
@@ -729,7 +750,7 @@ const set = (k: string, v: any) => {
             </div>
             {result.quality ? (
               <div className="mt-2 rounded-xl border border-gold/40 bg-white p-3 text-[12px]">
-                <div className="font-bold text-maroon">📝 Mee profile completeness: {result.quality.percent}%</div>
+                <div className="font-bold text-maroon">📝 {T("మీ profile — quality check", "Your profile — quality check")}</div>
                 <div className="mt-1 text-gray-600">
                   {result.quality.verdict_telugu}
                   {Array.isArray(result.quality.important_telugu) && result.quality.important_telugu.length
@@ -940,7 +961,7 @@ const set = (k: string, v: any) => {
           <div className="bg-navy text-white rounded-2xl p-4">
             <div className="font-bold text-[14px]">{T("ఇప్పుడు ఏం చెయ్యాలి? (2 steps)", "What to do now? (2 steps)")}</div>
             <ol className="mt-2 text-[12px] space-y-1 opacity-90 list-decimal list-inside">
-              <li>{T(`మీ profile ${CHANNEL_STATS.total} channels లో post అవుతుంది (4 main + caste-wise) — 30 నిమిషాల్లో live`, `Your profile will post to ${CHANNEL_STATS.total} channels (4 main + caste-wise) — live in 30 minutes`)}</li>
+              <li>{T(`మీ profile మీ caste channel కి వెళ్తుంది (4 main + caste-wise)`, `Your profile goes to your caste channel (4 main + caste-wise)`)}</li>
               <li>{T(<>Matches చూసి <b>💌 Interest పంపు</b> — మొదటి 3 FREE, వాళ్లకి WhatsApp లో మీ profile వెళ్తుంది</>, <>See matches, <b>💌 send Interest</b> — first 3 FREE, they get your profile on WhatsApp</>)}</li>
             </ol>
             <div className="mt-3 flex flex-wrap gap-2">
@@ -980,14 +1001,14 @@ const set = (k: string, v: any) => {
                 </div>
               </div>
             </div>
-            <div className="relative w-11 h-11 shrink-0" aria-label="profile strength">
+            <div className="relative w-11 h-11 shrink-0" aria-label="step progress">
               <svg viewBox="0 0 40 40" className="w-11 h-11 -rotate-90">
                 <circle cx="20" cy="20" r="16.5" fill="none" stroke="#f1e6cf" strokeWidth="4" />
                 <circle cx="20" cy="20" r="16.5" fill="none" stroke="#7A0C2E" strokeWidth="4" strokeLinecap="round"
                   strokeDasharray={2 * Math.PI * 16.5} strokeDashoffset={2 * Math.PI * 16.5 * (1 - strength / 100)}
                   style={{ transition: "stroke-dashoffset 0.4s ease" }} />
               </svg>
-              <span className="absolute inset-0 grid place-items-center text-[10px] font-extrabold text-maroon">{strength}%</span>
+              <span className="absolute inset-0 grid place-items-center text-[10px] font-extrabold text-maroon">{step}/5</span>
             </div>
           </div>
           <div className="mt-2.5 flex items-center gap-1">
@@ -1006,8 +1027,7 @@ const set = (k: string, v: any) => {
               </button>
             ))}
           </div>
-          <div className="mt-1.5 flex items-center justify-between text-[10px] text-gray-500">
-            <span>{T(`≈ ${Math.max(1, 5 - step)} నిమిషాలు మిగిలింది`, `≈ ${Math.max(1, 5 - step)} min left`)}</span>
+          <div className="mt-1.5 flex items-center justify-end text-[10px] text-gray-500">
             <span>{savedAt ? T(`💾 draft save ${savedAt}`, `💾 draft saved ${savedAt}`) : "💾 auto-save ON"}</span>
           </div>
         </div>
@@ -1164,6 +1184,11 @@ const set = (k: string, v: any) => {
                 <TextField label="Sub caste" optional value={f.sub_caste} onChange={(v) => set("sub_caste", v)}
                   placeholder="Pakanati / Deshathi / Telaga…" />
               ))}
+              <div className="pt-1 pb-0.5 flex items-center gap-2">
+                <span className="text-[12px] font-extrabold text-maroon">🕉️ {T("జ్యోతిషం (Astrology)", "Astrology (Jyothishyam)")}</span>
+                <span className="h-px flex-1 bg-gold/40" />
+                <span className="text-[10px] text-gray-500">{T("పొరుతం కి కావాలి", "needed for porutham")}</span>
+              </div>
               <TextField label="Gothram" optional value={f.gothram} onChange={(v) => set("gothram", v)}
                 placeholder="Bharadwaj" hint={T("Porutham report కి కావాలి", "Needed for porutham report")} />
               <SearchSelect label="Star / Nakshatram" options={NAKSHATRAS.map((n) => n.en)} value={f.star}
@@ -1374,7 +1399,7 @@ const set = (k: string, v: any) => {
                 <label className="text-[13px] font-bold text-emerald-900">🤝 Referral code (friend/partner ichara?)</label>
                 <input value={f.referral_code}
                   onChange={(e) => set("referral_code", e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, "").slice(0, 20))}
-                  placeholder="Ex: charan519 / LAK42 (optional)"
+                  placeholder="Ex: CHA0001 (optional)"
                   aria-label="Referral code"
                   className="input-mobile mt-2 font-mono tracking-wide" />
                 <div className="hint mt-1">

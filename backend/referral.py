@@ -170,21 +170,30 @@ def check_bonus_eligibility(referrer_stats: Dict) -> Dict:
 
 
 def generate_short_code(name: str, existing_codes: Optional[list] = None) -> str:
-    """Short code — 3 letters + 2 digits = 5 chars — LAK42 — phone లో easy type."""
+    """Referral code — name first 3 letters (CAPITAL) + 4 digits — CHA0001, CHA0002…
+    Per-name sequence (perugutundi), unique gaane untundi — phone lo easy type."""
     existing = {str(c).upper() for c in (existing_codes or [])}
     clean = "".join(c for c in str(name or "") if c.isalpha()).upper()
-    base = (clean[:3] or "MV").ljust(3, "X")
-    for _ in range(200):
-        code = "%s%02d" % (base, random.randint(10, 99))
+    base = (clean[:3] or "MVX").ljust(3, "X")
+    # aa base tho unna existing codes lo max number → +1 (mistake avvakunda unique)
+    nums = []
+    for c in existing:
+        m = re.fullmatch(r"([A-Z]{3})(\d{2,6})", c)
+        if m and m.group(1) == base:
+            nums.append(int(m.group(2)))
+    n = (max(nums) + 1) if nums else 1
+    for _ in range(300):
+        code = "%s%04d" % (base, n)
         if code not in existing:
             return code
-    return "%s%03d" % (base, random.randint(100, 999))
+        n += 1
+    return "%s%04d" % (base, random.randint(1000, 9999))
 
 
 def generate_referral_code(tsap_id: str, existing_codes: Optional[list] = None) -> str:
-    """TSAP-M-2025-1042 → LAK42 (deterministic-ish + unique check)."""
+    """Legacy wrapper — ippudu name-based short code (CHA0001 style) via ensure_referrer_profile."""
     if existing_codes:
-        return generate_short_code("LAK", existing_codes)
+        return generate_short_code("MVX", existing_codes)
     try:
         seq = str(tsap_id).split("-")[-1]
         return "%s%s" % (random.choice(["LAK", "RAJ", "SAI", "SRI", "POO", "KAR"]), seq[-2:])

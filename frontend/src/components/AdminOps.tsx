@@ -242,7 +242,7 @@ export function PublishPanel() {
     void load();
   };
   const republish = async () => {
-    if (!tsap.trim()) { setFlash(te ? "TSAP ID ఇవ్వండి" : "Give TSAP ID"); return; }
+    if (!tsap.trim()) { setFlash(te ? "Profile ID ఇవ్వండి" : "Give Profile ID"); return; }
     const r = await fetch(withToken(`/api/publish/now/${tsap.trim().toUpperCase()}?score=92`), { method: "POST", headers: authHeaders(true) });
     const d = await r.json();
     setFlash(d.success ? `✅ re-post queued → ${(d.targets || []).length} targets` : (d.detail || "done"));
@@ -268,8 +268,8 @@ export function PublishPanel() {
         </div>
       )}
       <div className="my-2 flex flex-wrap items-center gap-2 text-xs">
-        <input value={tsap} onChange={(e) => setTsap(e.target.value)} placeholder="TSAP-F-2025-1042"
-          className="rounded-lg border px-3 py-1.5 font-mono" aria-label="TSAP ID" />
+        <input value={tsap} onChange={(e) => setTsap(e.target.value)} placeholder="RED001"
+          className="rounded-lg border px-3 py-1.5 font-mono" aria-label="Profile ID" />
         <button onClick={() => void republish()} className="rounded-full bg-[#7A0C2E] px-4 py-1.5 font-bold text-white">🔁 Re-post profile</button>
         <button onClick={() => void digest()} className="rounded-full bg-[#0F1F3C] px-4 py-1.5 font-bold text-white">🌅 Send digest now</button>
         <button onClick={() => void load()} className="ml-auto underline">↻ refresh</button>

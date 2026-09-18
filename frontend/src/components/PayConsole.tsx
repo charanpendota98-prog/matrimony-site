@@ -72,7 +72,7 @@ export default function PayConsole() {
   };
 
   const clawback = async () => {
-    if (!clawId.trim()) { setFlash(te ? "TSAP ID ఇవ్వండి" : "Give TSAP ID"); return; }
+    if (!clawId.trim()) { setFlash(te ? "Profile ID ఇవ్వండి" : "Give Profile ID"); return; }
     const r = await fetch(withToken(`/api/admin/refund/${clawId.trim().toUpperCase()}?amount=${encodeURIComponent(clawAmt || "0")}&reason=admin_clawback`),
       { method: "POST", headers: authHeaders(true) });
     const d = await r.json();
@@ -107,7 +107,7 @@ export default function PayConsole() {
       <div className="mb-2 flex flex-wrap items-center gap-2 text-xs">
         <button onClick={() => void loadAudit()} className="rounded-full bg-[#0F1F3C] px-3 py-1.5 font-bold text-white">\U0001F9FE Money audit</button>
         <input value={clawId} onChange={(e) => setClawId(e.target.value)} placeholder="TSAP-ID (clawback)"
-          className="w-40 rounded-lg border px-2 py-1.5 font-mono" aria-label="TSAP ID" />
+          className="w-40 rounded-lg border px-2 py-1.5 font-mono" aria-label="Profile ID" />
         <input value={clawAmt} onChange={(e) => setClawAmt(e.target.value)} placeholder="\u20B9 amt"
           className="w-20 rounded-lg border px-2 py-1.5 font-mono" aria-label="amount" />
         <button onClick={() => void clawback()} className="rounded-full bg-amber-100 px-3 py-1.5 font-bold text-amber-800">\u21A9\uFE0F Commission clawback</button>

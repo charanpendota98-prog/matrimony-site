@@ -17,7 +17,7 @@ export default function SiteFooter() {
         { href: "/matches", teL: "సంబంధాలు & Filters", enL: "Matches & Filters" },
         { href: "/castes", teL: "కులాల వారీగా", enL: "Caste-wise" },
         { href: "/stories", teL: "విజయ గాథలు", enL: "Success stories" },
-        { href: "/porutham", teL: "పొరుతం Report (10)", enL: "Porutham Report (10)" },
+        { href: "/porutham", teL: "జ్యోతిషం — పొరుతం (10)", enL: "Jyothishyam — Porutham (10)" },
         { href: "/safety", teL: "Trust & Safety Center", enL: "Trust & Safety Center" },
       ],
     },

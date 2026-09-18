@@ -34,7 +34,7 @@ const NAV_EARN: NavItem[] = [
 ];
 
 const NAV_MORE: NavItem[] = [
-  { href: "/porutham", en: "Porutham", te: "పొరుతం", icon: "💍" },
+  { href: "/porutham", en: "Jyothishyam", te: "జ్యోతిషం", icon: "💍" },
   { href: "/stories", en: "Stories", te: "కథలు", icon: "💑" },
   { href: "/safety", en: "Safety", te: "భద్రత", icon: "🛡️" },
   { href: "/verify", en: "Verify profile", te: "Profile verify", icon: "✅" },
@@ -144,7 +144,7 @@ export default function SiteHeader() {
             href="/porutham"
             className="hidden md:inline-flex px-3.5 py-2 text-[13px] font-semibold border border-maroon/30 text-maroon rounded-full hover:bg-maroon-soft transition"
           >
-            💍 <Duo en="Porutham" te="పొరుతం" />
+            💍 <Duo en="Jyothishyam" te="జ్యోతిషం" />
           </Link>
           {ready && tsapId && sessionOk ? (
 

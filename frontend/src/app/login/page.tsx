@@ -111,8 +111,8 @@ export default function LoginPage() {
         </div>
 
         <label htmlFor="phone" className="mt-4 block text-sm font-semibold text-slate-700">{te ? "📞 మొబైల్ నంబర్ (10 digits)" : "📞 Mobile number (10 digits)"}</label>
-        <input id="phone" inputMode="numeric" autoComplete="tel" value={phone} maxLength={13}
-          onChange={(e) => setPhone(e.target.value)}
+        <input id="phone" inputMode="numeric" autoComplete="tel" value={phone} maxLength={10}
+          onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
           onKeyDown={(e) => { if (e.key === "Enter") void (tab === "password" && !forgot ? onPasswordLogin() : tab === "otp" && stage === "phone" ? onSend() : onVerify()); }}
           placeholder="98480 12345"
           className="mt-1 w-full rounded-xl border border-rose-300 px-3 py-2 text-lg tracking-wide focus:border-[#7A0C2E] focus:outline-none" />

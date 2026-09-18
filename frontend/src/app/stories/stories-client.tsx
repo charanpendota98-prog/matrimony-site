@@ -117,7 +117,7 @@ export default function StoriesClient() {
           placeholder={te ? "మీ story (20+ letters) — ఎలా కలిశారు, ఎప్పుడు పెళ్లి…" : "Your story (20+ letters) — how you met, when married…"} aria-label={te ? "మీ story" : "Your story"}
           rows={3} className="mt-2 w-full rounded-xl border px-3 py-2 text-sm outline-none focus:border-emerald-500" />
         <input value={form.partner_id} onChange={(e) => setForm({ ...form, partner_id: e.target.value })}
-          placeholder="Partner TSAP ID (optional)" aria-label="Partner TSAP ID"
+          placeholder="Partner Profile ID (optional)" aria-label="Partner Profile ID"
           className="mt-2 w-full rounded-xl border px-3 py-2 text-sm outline-none focus:border-emerald-500" />
         <button onClick={submit} disabled={sending}
           className="mt-3 rounded-xl bg-emerald-700 px-5 py-2 font-bold text-white hover:bg-emerald-800 disabled:opacity-60">

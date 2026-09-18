@@ -86,7 +86,7 @@ export default function ProfileView() {
     setLoading(false);
     if (!ok || !d) {
       setData(null);
-      setErr(status === 404 ? (te ? `🔍 TSAP ID దొరకలేదు: ${id} — ID correct గా ఉందా check చెయ్యండి (register అయ్యారా?)` : `🔍 TSAP ID not found: ${id} — check the ID is correct (registered?)`) : errorTelugu);
+      setErr(status === 404 ? (te ? `🔍 Profile ID దొరకలేదు: ${id} — ID correct గా ఉందా check చెయ్యండి (register అయ్యారా?)` : `🔍 Profile ID not found: ${id} — check the ID is correct (registered?)`) : errorTelugu);
       return;
     }
     setData(d);
@@ -116,7 +116,7 @@ export default function ProfileView() {
     if (nl) { setNeedsLogin(true); return; }
     if (ok) setMsg({ ok: true, text: String(d?.message_telugu || (te ? "Interest పంపించారు ✅ — accept అయితే numbers exchange" : "Interest sent ✅ — numbers exchange on accept")) });
     else if (status === 402) setMsg({ ok: false, text: te ? "⚠️ Credits అయిపోయాయి — ₹99 → 5 profiles. Numbers కూడా accept తోనే (consent)." : "⚠️ Credits over — ₹99 → 5 profiles. Numbers also only with accept (consent)." });
-    else if (status === 404) setMsg({ ok: false, text: te ? "మీ TSAP ID register చెయ్యలేదు — ముందు FREE register చెయ్యండి." : "Your TSAP ID is not registered — FREE register first." });
+    else if (status === 404) setMsg({ ok: false, text: te ? "మీ Profile ID register చెయ్యలేదు — ముందు FREE register చెయ్యండి." : "Your Profile ID is not registered — FREE register first." });
     else setMsg({ ok: false, text: eTel });
   };
 
@@ -175,7 +175,7 @@ export default function ProfileView() {
           <span>🔍</span>
           <input value={searchId} onChange={(e) => setSearchId(e.target.value.toUpperCase())}
             onKeyDown={(e) => { if (e.key === "Enter") void load(searchId.trim()); }}
-            placeholder="TSAP ID (ex: TSAP-F-2025-1042)" aria-label="TSAP ID search"
+            placeholder="Profile ID (ex: RED001)" aria-label="Profile ID search"
             className="flex-1 bg-transparent text-sm outline-none" />
           <button onClick={() => void load(searchId.trim())} className="rounded-xl bg-[#7A0C2E] px-3 py-1.5 text-[12px] font-bold text-white">{te ? "చూడు" : "View"}</button>
         </div>

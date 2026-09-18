@@ -53,7 +53,7 @@ export default function PayBox({ planCode, price, label }: { planCode: string; p
 
   const createOrder = async () => {
     const id = myId();
-    if (!id) { setMsg(te ? "⚠️ ముందు login/register చెయ్యండి (మీ TSAP ID కావాలి)" : "⚠️ Login/register first (your TSAP ID is needed)"); return; }
+    if (!id) { setMsg(te ? "⚠️ ముందు login/register చెయ్యండి (మీ Profile ID కావాలి)" : "⚠️ Login/register first (your Profile ID is needed)"); return; }
     setBusy(true); setMsg("");
     try {
       const r = await fetch("/api/pay/order", {

@@ -196,13 +196,13 @@ export default function VendorRegisterPage() {
             value={f.business_name} onChange={(e) => set("business_name", e.target.value)} aria-label="Business name" />
           <div className="grid sm:grid-cols-2 gap-3">
             <input className="input-mobile" placeholder={te ? "Owner పేరు" : "Owner name"} value={f.owner_name} onChange={(e) => set("owner_name", e.target.value)} aria-label={te ? "Owner పేరు" : "Owner name"} />
-            <input className="input-mobile" placeholder="Experience (years)" value={f.experience_years} onChange={(e) => set("experience_years", e.target.value)} inputMode="numeric" aria-label="Experience (years)" />
+            <input className="input-mobile" placeholder="Experience (years)" value={f.experience_years} onChange={(e) => set("experience_years", e.target.value.replace(/\D/g, "").slice(0, 2))} inputMode="numeric" aria-label="Experience (years)" />
           </div>
           <div className="grid sm:grid-cols-2 gap-3">
             <input className="input-mobile" placeholder="Mobile number * (10 digits)" value={f.phone}
-              onChange={(e) => set("phone", e.target.value)} inputMode="tel" aria-label="Mobile number * (10 digits)" />
+              onChange={(e) => set("phone", e.target.value.replace(/\D/g, "").slice(0, 10))} inputMode="numeric" aria-label="Mobile number * (10 digits)" />
             <input className="input-mobile" placeholder={te ? "WhatsApp number (వేరు ఉంటే)" : "WhatsApp number (if different)"} value={f.whatsapp}
-              onChange={(e) => set("whatsapp", e.target.value)} inputMode="tel" aria-label="WhatsApp number" />
+              onChange={(e) => set("whatsapp", e.target.value.replace(/\D/g, "").slice(0, 10))} inputMode="numeric" aria-label="WhatsApp number" />
           </div>
           <div className="grid sm:grid-cols-3 gap-3">
             <input className="input-mobile" placeholder="City / town *" value={f.city} onChange={(e) => set("city", e.target.value)} aria-label="City / town *" />
