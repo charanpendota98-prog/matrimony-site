@@ -129,11 +129,11 @@ export default function VendorsPage() {
 
         {/* DIRECTORY */}
         <section className="mt-6">
-          <div className="flex items-center justify-between">
-            <h2 className="font-bold text-maroon text-lg">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="font-bold text-maroon text-lg min-w-0">
               {cat ? `${cats.find((c) => c.key === cat)?.icon || ""} ${cats.find((c) => c.key === cat)?.en || cat}` : te ? "అన్ని vendors" : "All vendors"} — {vendors.length}
             </h2>
-            {loading && <span className="text-[11px] text-gray-500">⏳ {duo("loading…", "లోడ్ అవుతోంది…")}</span>}
+            {loading && <span className="text-[11px] text-gray-500 shrink-0">⏳ {duo("loading…", "లోడ్ అవుతోంది…")}</span>}
           </div>
 
           {!loading && vendors.length === 0 && (

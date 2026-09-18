@@ -153,7 +153,7 @@ export default function LoginPage() {
                   className="mt-1 w-full rounded-xl border border-rose-300 px-3 py-2 text-lg focus:border-[#7A0C2E] focus:outline-none" />
               </>
             ) : null}
-            {devCode && fStage === "reset" ? <p className="mt-1 text-xs text-emerald-700">DEV MODE OTP: <b>{devCode}</b></p> : null}
+            {devCode && fStage === "reset" ? <p className="mt-1 text-xs text-emerald-700">{te ? <>మీ OTP: <b>{devCode}</b></> : <>Your OTP: <b>{devCode}</b></>}</p> : null}
           </>
         ) : tab === "otp" && stage === "otp" ? (
           <>
@@ -163,7 +163,7 @@ export default function LoginPage() {
               onKeyDown={(e) => { if (e.key === "Enter") void onVerify(); }}
               placeholder="1234"
               className="mt-1 w-full rounded-xl border border-rose-300 px-3 py-2 text-center text-2xl tracking-[0.4em] focus:border-[#7A0C2E] focus:outline-none" />
-            {devCode && <p className="mt-1 text-xs text-emerald-700">DEV MODE OTP: <b>{devCode}</b> {te ? "(SMS provider configure చెయ్యక)" : "(SMS provider not configured)"}</p>}
+            {devCode && <p className="mt-1 text-xs text-emerald-700">{te ? <>మీ OTP: <b>{devCode}</b></> : <>Your OTP: <b>{devCode}</b></>}</p>}
           </>
         ) : null}
 

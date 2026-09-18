@@ -126,7 +126,7 @@ const TEXT = {
     ],
     casteEyebrow: "కులాల వారీగా",
     casteTitle: (n: number) => `${n} కుల ఛానళ్లు — 1 కులం = 1 ఛానల్`,
-    casteSub: "Bride + Groom ఇద్దరూ ఒకే channel లో — #Bride / #Groom hashtag తో filter. 5000 members దాటాకే split చేస్తాం (empty channels fail అవుతాయి).",
+    casteSub: "Bride + Groom ఇద్దరూ ఒకే channel లో — #Bride / #Groom hashtag తో filter చేసుకోవచ్చు. మీ కులం channel busy అయ్యే కొద్దీ కొత్త matches ఎక్కువ వస్తాయి.",
     casteAction: "కులాల జాబితా",
     casteMore: (n: number) => `+ ఇంకా ${n} castes (Boya, Kuruba, Uppara, Vaddera, Rajaka, Viswakarma, Kummara, Gandla, Devanga, Koya, Gond, SC/ST sub-castes...) —`,
     casteFull: "full list చూడు",
@@ -278,7 +278,7 @@ const TEXT = {
     ],
     casteEyebrow: "Caste-wise",
     casteTitle: (n: number) => `${n} caste channels — 1 caste = 1 channel`,
-    casteSub: "Brides + grooms in one channel — filter with #Bride / #Groom hashtags. We split only after 5000 members (empty channels fail).",
+    casteSub: "Brides + grooms in one channel — filter with #Bride / #Groom hashtags. The busier your caste channel gets, the more matches you see.",
     casteAction: "See caste list",
     casteMore: (n: number) => `+ ${n} more castes (Boya, Kuruba, Uppara, Vaddera, Rajaka, Viswakarma, Kummara, Gandla, Devanga, Koya, Gond, SC/ST sub-castes...) —`,
     casteFull: "see full list",
@@ -665,14 +665,16 @@ export default function Home() {
             {/* RIGHT: WhatsApp mockup (real message we send) */}
             <Reveal delay={140}>
               <div className="rounded-3xl overflow-hidden card-shadow-lg border border-black/10 bg-[#0b141a]">
-<div className="bg-[#202c33] px-4 py-3 flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full gold-gradient flex items-center justify-center font-bold text-maroon">MV</div>
-                  <span className="ml-auto text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-gray-300 font-bold">{te ? "నమూనా message" : "Sample message"}</span>
-                  <div className="min-w-0">
+                <div className="bg-[#202c33] px-4 py-3 flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full gold-gradient flex items-center justify-center font-bold text-maroon shrink-0">MV</div>
+                  <div className="min-w-0 flex-1">
                     <div className="text-white text-[13px] font-bold truncate">Mana Vivaha Matrimony</div>
-                    <div className="text-[10px] text-emerald-300">🟢 online • verified business</div>
+                    <div className="text-[10px] text-emerald-300 truncate">🟢 online • verified business</div>
                   </div>
-                  <span className="ml-auto text-[10px] text-gray-400">🔒 secured</span>
+                  <div className="shrink-0 flex flex-col items-end gap-1">
+                    <span className="text-[9px] px-2 py-0.5 rounded-full bg-white/10 text-gray-300 font-bold whitespace-nowrap">{te ? "నమూనా" : "Sample"}</span>
+                    <span className="text-[9px] text-gray-400 whitespace-nowrap">🔒 {te ? "సురక్షితం" : "secured"}</span>
+                  </div>
                 </div>
                 <div className="p-3 space-y-2 dotted-bg">
                   <div className="bg-[#005c4b] text-white text-[12px] rounded-xl rounded-tl-sm p-3 leading-relaxed max-w-[95%]">

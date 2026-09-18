@@ -258,14 +258,14 @@ function SelectField({
 function Stepper({ label, value, onChange, max = 10 }: { label: string; value: string; onChange: (v: string) => void; max?: number }) {
   const n = parseInt(value || "0", 10) || 0;
   return (
-    <div className="flex items-center justify-between bg-white rounded-2xl border border-gold/30 px-3 py-2">
-      <span className="text-[13px] font-bold text-ink">{label}</span>
-      <div className="flex items-center gap-3">
+    <div className="flex items-center justify-between gap-2 bg-white rounded-2xl border border-gold/30 px-3 py-2">
+      <span className="text-[13px] font-bold text-ink min-w-0 truncate">{label}</span>
+      <div className="flex items-center gap-2 shrink-0">
         <button type="button" onClick={() => onChange(String(Math.max(0, n - 1)))}
-          className="w-11 h-11 rounded-full maroon-gradient text-white text-xl font-bold leading-none">−</button>
-        <span className="w-7 text-center font-bold text-maroon">{n}</span>
+          className="w-10 h-10 rounded-full maroon-gradient text-white text-xl font-bold leading-none shrink-0">−</button>
+        <span className="w-6 text-center font-bold text-maroon shrink-0">{n}</span>
         <button type="button" onClick={() => onChange(String(Math.min(max, n + 1)))}
-          className="w-11 h-11 rounded-full gold-gradient text-maroon text-xl font-bold leading-none">+</button>
+          className="w-10 h-10 rounded-full gold-gradient text-maroon text-xl font-bold leading-none shrink-0">+</button>
       </div>
     </div>
   );
