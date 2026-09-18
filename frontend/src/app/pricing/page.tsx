@@ -285,7 +285,6 @@ export default function PricingPage() {
           <div className="font-bold">💳 {te ? "చెల్లింపు & భద్రత" : "Payment & security"}</div>
           <ul className="mt-3 space-y-1.5 text-xs opacity-90">
             {PAY_METHODS.map((m) => <li key={m}>✅ {m}</li>)}
-            <li>✅ Razorpay secure checkout (PCI-DSS)</li>
             <li>{te ? "✅ GST invoice (request చేసిన 24h లో)" : "✅ GST invoice (within 24h of request)"}</li>
             <li>{te ? "✅ Auto-renewal లేదు • Hidden charges లేవు" : "✅ No auto-renewal • No hidden charges"}</li>
           </ul>
