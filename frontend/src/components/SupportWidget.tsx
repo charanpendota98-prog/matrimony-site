@@ -5,12 +5,14 @@
  * /api/support/faq?q= tho Telugu Q&A search — login avasaram ledu.
  */
 import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { apiGet } from "@/lib/api";
 import { useLang } from "@/lib/lang";
 
 type Faq = { id: string; q: string; a: string };
 
 export default function SupportWidget() {
+  const pathname = usePathname();
   const { lang } = useLang();
   const te = lang === "te";
   const [open, setOpen] = useState(false);
@@ -39,6 +41,10 @@ export default function SupportWidget() {
     return () => { if (timer.current) clearTimeout(timer.current); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, q]);
+
+
+  // 🛡️ R10 — register wizard lo footer buttons tho clash vaddhu (hooks taruvate — rules-of-hooks safe)
+  if (pathname?.startsWith("/register")) return null;
 
   return (
     <div className="fixed bottom-20 right-4 z-50 flex flex-col items-end gap-2 sm:bottom-6">

@@ -103,7 +103,8 @@ export default function SiteFooter() {
       </div>
 
       <div className="border-t border-white/10">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row items-center justify-between gap-2 text-[11px] opacity-70">
+        {/* pb-28 → mobile sticky CTA bar ee lines moopu koorchukuni undadu (overlap fix) */}
+        <div className="max-w-7xl mx-auto px-4 pt-4 pb-28 lg:pb-4 flex flex-col md:flex-row items-center justify-between gap-2 text-[11px] opacity-70">
           <div>© {year} {SITE_CONFIG.brandName} ({SITE_CONFIG.legalName}) • Made for TS/AP with ❤️</div>
           <div className="text-center md:text-right">
             {te ? "⚠️ Advance money అడిగితే వెంటనే report చెయ్యండి — మోసం జాగ్రత్త!" : "⚠️ Report advance-money demands immediately — beware of fraud!"}

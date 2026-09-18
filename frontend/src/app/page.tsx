@@ -535,7 +535,7 @@ export default function Home() {
                   <img src="/promo/bride-card.jpg" alt="Sample bride" className="w-20 h-24 rounded-xl object-cover border border-gold/40 shrink-0" />
                   <div className="min-w-0">
                     <div className="font-bold text-sm text-maroon">RED001</div>
-                    <div className="text-[12px] text-gray-700 mt-0.5">25y • 5'4" • Reddy</div>
+                    <div className="text-[12px] text-gray-700 mt-0.5">25y • 5&prime;4&Prime; • Reddy</div>
                     <div className="text-[12px] text-gray-700">BTech • Software @ Hyderabad</div>
                     <div className="text-[12px] text-gray-700">Nalgonda, TS</div>
                     <div className="mt-1.5 flex flex-wrap gap-1">

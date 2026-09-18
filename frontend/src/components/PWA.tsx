@@ -58,6 +58,11 @@ export default function PWA() {
     localStorage.setItem("tsap_pwa_dismissed", "1");
   };
 
+  // 🛡️ R10 — StickyCTA tho bottom overlap vaddhu: ee bar visible ayite CTA bar hide
+  useEffect(() => {
+    window.dispatchEvent(new Event(show ? "tsap:pwa-bar-on" : "tsap:pwa-bar-off"));
+  }, [show]);
+
   if (installed) return null;
   if (!show) return null;
   const iosMode = isIOS && !promptEvent;
