@@ -24,6 +24,8 @@ import { authHeaders } from "@/lib/api";
 import { Duo, duo } from "@/lib/duo";
 import { useLang } from "@/lib/lang";
 import PhotoFlow from "@/components/PhotoFlow";
+import { TelegramIcon, WhatsAppIcon } from "@/components/BrandIcons";
+import { waLink } from "@/lib/wa";
 import {
   BLOOD_GROUPS, BODY_TYPES, CASTES, CASTE_SUBCASTES, CHILDREN_OPTIONS, COMPLEXIONS, DISTRICTS_BY_STATE, EDUCATIONS, FAMILY_STATUSES,
   FAMILY_TYPES, FAMILY_VALUES, HEIGHTS, JOBS, MARITAL_STATUSES, MOTHER_TONGUES, NAKSHATRAS, NAK_TO_RASI,
@@ -547,8 +549,11 @@ const set = (k: string, v: any) => {
         setPhotoUrl(d.url);
         setPhotoInfo(`${d.kb} KB ✅ uploaded — card lo mee photo vasthundi`);
       } else {
+        const det: any = d?.detail;
         setPhotoInfo("");
-        setErrs([d.detail || T("Photo upload అవ్వలేదు", "Photo upload failed")]);
+        setErrs([det?.message_telugu || det?.te || det?.en ||
+                 (typeof d?.detail === "string" ? d.detail : "") ||
+                 T("Photo upload అవ్వలేదు — clear photo తీసి మళ్లీ try చెయ్యండి", "Photo upload failed — take a clear photo and retry")]);
       }
     } catch {
       setErrs([T("Network problem — photo మళ్లీ try చెయ్యండి", "Network problem — retry photo upload")]);
@@ -716,10 +721,20 @@ const set = (k: string, v: any) => {
                   <span key={t} className="inline-flex items-center rounded-full bg-white border border-emerald-300 text-emerald-900 font-bold text-[11px] px-2.5 py-1">📢 {prettyChannel(t)}</span>
                 ))}
               </div>
-              <a href={SITE_CONFIG.botUrl} target="_blank" rel="noreferrer"
-                className="mt-3 inline-flex items-center gap-1.5 rounded-xl maroon-gradient text-white font-bold text-[12px] px-4 py-2.5">
-                ✈️ {T("Telegram లో join అవ్వండి", "Join on Telegram")}
-              </a>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <a href={SITE_CONFIG.officialChannelUrl} target="_blank" rel="noreferrer"
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-[#229ED9] text-white font-bold text-[12px] px-4 py-2.5 shadow-soft hover:brightness-110 active:scale-[0.97] transition">
+                  <TelegramIcon className="w-4 h-4" mono />
+                  {T("Telegram లో join అవ్వండి", "Join on Telegram")}
+                </a>
+                {waLink("official") ? (
+                  <a href={waLink("official")} target="_blank" rel="noreferrer"
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-[#25D366] text-white font-bold text-[12px] px-4 py-2.5 shadow-soft hover:brightness-110 active:scale-[0.97] transition">
+                    <WhatsAppIcon className="w-4 h-4" mono />
+                    {T("WhatsApp లో join అవ్వండి", "Join on WhatsApp")}
+                  </a>
+                ) : null}
+              </div>
             </div>
           ) : null}
 

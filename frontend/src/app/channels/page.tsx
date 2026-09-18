@@ -4,6 +4,8 @@ import Link from "next/link";
 import { ALL_CHANNELS, CHANNEL_STATS, CHANNEL_TIERS, Channel } from "@/lib/channels";
 import { Duo } from "@/lib/duo";
 import { useLang } from "@/lib/lang";
+import { waLink } from "@/lib/wa";
+import { TelegramIcon, WhatsAppIcon } from "@/components/BrandIcons";
 
 export default function ChannelsPage() {
   const { lang } = useLang();
@@ -121,12 +123,16 @@ export default function ChannelsPage() {
                   <div className="text-[11px] text-gray-600 mt-1 line-clamp-2">{c.desc}</div>
                   <div className="flex flex-wrap gap-2 mt-2">
                     <a href={(liveLinks[c.key]?.telegram || c.link)} target="_blank" rel="noreferrer"
-                      className="px-3 py-1.5 maroon-gradient text-white rounded-full text-[11px] font-bold">
-                      {te ? "Telegram లో join" : "Join Telegram"}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#229ED9] text-white rounded-full text-[11px] font-bold shadow-soft hover:brightness-110 active:scale-95 transition">
+                      <TelegramIcon className="w-3.5 h-3.5" mono />
+                      {te ? "Telegram" : "Telegram"}
                     </a>
-                    {liveLinks[c.key]?.whatsapp ? (
-                      <a href={liveLinks[c.key].whatsapp} target="_blank" rel="noreferrer"
-                        className="px-3 py-1.5 bg-green-600 text-white rounded-full text-[11px] font-bold">WhatsApp</a>
+                    {(liveLinks[c.key]?.whatsapp || waLink(c.key)) ? (
+                      <a href={liveLinks[c.key]?.whatsapp || waLink(c.key)} target="_blank" rel="noreferrer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#25D366] text-white rounded-full text-[11px] font-bold shadow-soft hover:brightness-110 active:scale-95 transition">
+                        <WhatsAppIcon className="w-3.5 h-3.5" mono />
+                        WhatsApp
+                      </a>
                     ) : null}
                   </div>
                 </div>

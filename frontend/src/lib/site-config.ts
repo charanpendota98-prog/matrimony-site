@@ -26,6 +26,9 @@ export const SITE_CONFIG = {
   botUsername: "@telugumatrimony1_bot",
   botUrl: "https://t.me/telugumatrimony1_bot",
   unlockBot: (tsapId: string) => `https://t.me/telugumatrimony1_bot?start=unlock_${encodeURIComponent(tsapId)}`,
+  // public-facing "Telegram" link — official CHANNEL (bot wording eppudu chupinchamu)
+  officialChannel: "@TSAP_MATRIMONY",
+  officialChannelUrl: "https://t.me/TSAP_MATRIMONY",
   supportWhatsapp: (process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP || "").trim(),
   supportPhone: (process.env.NEXT_PUBLIC_SUPPORT_PHONE || "").trim(),
   supportEmail: (process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "care@manavivaha.in").trim(),

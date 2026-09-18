@@ -6,6 +6,8 @@ import Reveal from "@/components/Reveal";
 import SectionHeading from "@/components/SectionHeading";
 import { CASTES, buildSlug } from "@/lib/seo-pages";
 import { CHANNEL_STATS } from "@/lib/channels";
+import { waLink } from "@/lib/wa";
+import { TelegramIcon, WhatsAppIcon } from "@/components/BrandIcons";
 import { useLang } from "@/lib/lang";
 
 export default function CastesClient() {
@@ -53,18 +55,39 @@ export default function CastesClient() {
                     {c.live ? "🟢 Live" : (te ? "త్వరలో" : "Soon")}
                   </span>
                 </div>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <Link href={`/castes/${buildSlug(c.key, "bride")}`}
-                    className="text-[12px] font-bold maroon-gradient text-white px-3 py-1.5 rounded-full">
-                    {te ? "👰 Brides (వధువులు)" : "👰 Brides"}
-                  </Link>
-                  <Link href={`/castes/${buildSlug(c.key, "groom")}`}
-                    className="text-[12px] font-bold border border-maroon/30 text-maroon px-3 py-1.5 rounded-full">
-                    {te ? "🤵 Grooms (వరులు)" : "🤵 Grooms"}
-                  </Link>
-                  <a href={c.bride?.link || c.link} target="_blank" rel="noreferrer" className="text-[12px] font-bold text-maroon px-2 py-1.5">
-                    {te ? "Telegram →" : "Telegram →"}
-                  </a>
+                <div className="mt-3 space-y-1.5">
+                  <div className="flex items-center gap-1.5">
+                    <Link href={`/castes/${buildSlug(c.key, "bride")}`}
+                      className="flex-1 text-center text-[12px] font-bold maroon-gradient text-white px-3 py-2 rounded-xl hover-lift">
+                      {te ? "👰 వధువులు" : "👰 Brides"}
+                    </Link>
+                    <a href={c.bride?.link || c.link} target="_blank" rel="noreferrer" aria-label={(te ? "వధువుల Telegram" : "Brides Telegram")}
+                      className="grid place-items-center w-9 h-9 rounded-full bg-[#229ED9] text-white shadow-soft hover:brightness-110 active:scale-95 transition">
+                      <TelegramIcon className="w-4 h-4" mono />
+                    </a>
+                    {waLink(c.bride?.key || c.key) ? (
+                      <a href={waLink(c.bride?.key || c.key)} target="_blank" rel="noreferrer" aria-label={(te ? "వధువుల WhatsApp" : "Brides WhatsApp")}
+                        className="grid place-items-center w-9 h-9 rounded-full bg-[#25D366] text-white shadow-soft hover:brightness-110 active:scale-95 transition">
+                        <WhatsAppIcon className="w-4 h-4" mono />
+                      </a>
+                    ) : null}
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <Link href={`/castes/${buildSlug(c.key, "groom")}`}
+                      className="flex-1 text-center text-[12px] font-bold border border-maroon/30 text-maroon px-3 py-2 rounded-xl hover-lift">
+                      {te ? "🤵 వరులు" : "🤵 Grooms"}
+                    </Link>
+                    <a href={c.groom?.link || c.bride?.link || c.link} target="_blank" rel="noreferrer" aria-label={(te ? "వరుల Telegram" : "Grooms Telegram")}
+                      className="grid place-items-center w-9 h-9 rounded-full bg-[#229ED9] text-white shadow-soft hover:brightness-110 active:scale-95 transition">
+                      <TelegramIcon className="w-4 h-4" mono />
+                    </a>
+                    {waLink(c.groom?.key) ? (
+                      <a href={waLink(c.groom?.key)} target="_blank" rel="noreferrer" aria-label={(te ? "వరుల WhatsApp" : "Grooms WhatsApp")}
+                        className="grid place-items-center w-9 h-9 rounded-full bg-[#25D366] text-white shadow-soft hover:brightness-110 active:scale-95 transition">
+                        <WhatsAppIcon className="w-4 h-4" mono />
+                      </a>
+                    ) : null}
+                  </div>
                 </div>
               </div>
             </Reveal>

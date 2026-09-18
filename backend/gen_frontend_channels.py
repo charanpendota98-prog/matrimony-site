@@ -32,12 +32,11 @@ def main():
             "username": "@" + ch["username"],
             "link": f"https://t.me/{ch['username']}",
             "deepLink": f"https://t.me/telugumatrimony1_bot?start=ch_{ch['username'].lower()}",
-            "desc": " ".join(ch["desc"].split()),
+            # site-only: "… Register FREE: site | Bot: @x" trailer strip (site meeda redundant + bot wording radhu)
+            "desc": " ".join(ch["desc"].split()).split(" Register FREE:")[0],
             "hashtags": ch.get("hashtags", []),
             "wave": ch.get("wave", 4),
             "live": bool(ch.get("live")),
-            "status": "LIVE ✅ Bot Admin" if ch.get("live") else f"Wave-{ch.get('wave')}",
-            "fallbacks": ch.get("fallbacks", []),
         })
     # Register form dropdown — 43 caste channels + religion options + Open
     caste_options = [c.get("route", {}).get("caste") for c in CHANNELS.values()
@@ -54,7 +53,7 @@ def main():
     ts += "// Mana Vivaha | TSAP Matrimony — MASTER CHANNEL REGISTRY\n\n"
     ts += "export type Channel = {\n  key: string;\n  tier: string;\n  name: string;\n  username: string;\n"
     ts += "  link: string;\n  deepLink: string;\n  desc: string;\n  hashtags: string[];\n"
-    ts += "  wave: number;\n  live: boolean;\n  status: string;\n  fallbacks: string[];\n};\n\n"
+    ts += "  wave: number;\n  live: boolean;\n};\n\n"
     ts += f"export const CHANNEL_STATS = {json.dumps(stats, ensure_ascii=False)} as const;\n\n"
     ts += f"export const CHANNEL_TIERS = {json.dumps(tiers, ensure_ascii=False, indent=2)} as const;\n\n"
     ts += "export const ALL_CHANNELS: Channel[] = " + json.dumps(rows, ensure_ascii=False, indent=2) + ";\n\n"

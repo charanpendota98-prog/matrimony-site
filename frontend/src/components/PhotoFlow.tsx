@@ -8,6 +8,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Duo, duo } from "@/lib/duo";
 import { useLang } from "@/lib/lang";
+import { compressImage } from "@/lib/telugu-data";
 
 type Status = {
   photo_url: string; photo_status: string;
@@ -36,8 +37,10 @@ export default function PhotoFlow({ tsapId, onDone }: { tsapId: string; onDone?:
     if (!f) return;
     setBusy(true); setErr("");
     try {
+      // camera photos 5-10MB vastayi — backend 5MB limit undi, so client-side compress (1200px, q85)
+      const small = await compressImage(f, 1200, 0.85);
       const fd = new FormData();
-      fd.append("file", f);
+      fd.append("file", small);
       fd.append("tsap_id", tsapId);
       const r = await fetch("/api/photo/upload", { method: "POST", body: fd });
       const d = await r.json().catch(() => ({}));

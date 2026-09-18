@@ -38,7 +38,7 @@ export default function StickyCTA() {
           {lang === "te" ? "ఉచిత నమోదు" : "Register FREE"}
         </Link>
         <a
-          href={SITE_CONFIG.botUrl}
+          href={SITE_CONFIG.officialChannelUrl}
           target="_blank"
           rel="noreferrer"
           className="flex-1 text-center py-3 rounded-xl gold-gradient text-maroon text-sm font-bold"

@@ -4,6 +4,8 @@
 import Link from "next/link";
 import { CASTES, buildSlug } from "@/lib/seo-pages";
 import { CHANNEL_STATS } from "@/lib/channels";
+import { waLink } from "@/lib/wa";
+import { TelegramIcon, WhatsAppIcon } from "@/components/BrandIcons";
 import { useLang } from "@/lib/lang";
 
 type Caste = {
@@ -14,7 +16,7 @@ type Caste = {
 };
 type District = { slug: string; name: string; state: string };
 type Chan = {
-  name?: string; username?: string; link?: string; deepLink?: string;
+  key?: string; name?: string; username?: string; link?: string; deepLink?: string;
   desc?: string; live?: boolean; wave?: number; hashtags?: string[];
 };
 
@@ -155,17 +157,38 @@ export default function CasteClient({ caste, role, district, chan, otherChan }: 
         </div>
 
         <aside className="space-y-4">
-          <div className="bg-navy text-white rounded-2xl p-5">
-            <div className="font-bold">{chan?.name}</div>
-            <div className="text-[12px] opacity-85 mt-1">{myChanLabel} — Telegram</div>
-            <div className="text-[11px] opacity-70 mt-1">
-              {chan?.live ? "🟢 Live" : te ? "🟡 త్వరలో open అవుతుంది" : "🟡 Opens soon"}
+          <div className="bg-navy text-white rounded-2xl p-5 card-shadow">
+            <div className="flex items-center justify-between gap-2">
+              <div className="font-bold leading-tight">{myChanLabel}</div>
+              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap ${chan?.live ? "bg-emerald-400/20 text-emerald-300" : "bg-amber-400/20 text-amber-300"}`}>
+                {chan?.live ? "● LIVE" : te ? "త్వరలో" : "Soon"}
+              </span>
             </div>
-            <a href={chan?.deepLink} target="_blank" rel="noreferrer"
-              className="mt-3 block text-center gold-gradient text-maroon font-bold text-[12px] py-2.5 rounded-xl">
-              {te ? "✈️ Telegram లో join అవ్వండి" : "✈️ Join on Telegram"}
-            </a>
-            <Link href="/channels" className="mt-2 block text-center border border-white/25 text-white font-bold text-[12px] py-2.5 rounded-xl">
+            <div className="text-[11px] opacity-70 mt-0.5">
+              {te ? "కొత్త సంబంధాలు రోజూ ఇక్కడే" : "New matches posted here daily"}
+            </div>
+            <div className="mt-3 space-y-2">
+              <a href={chan?.link} target="_blank" rel="noreferrer"
+                className="flex items-center justify-center gap-2 w-full bg-[#229ED9] text-white font-bold text-[13px] py-2.5 rounded-xl shadow-soft hover:brightness-110 active:scale-[0.97] transition">
+                <TelegramIcon className="w-4 h-4" mono />
+                {te ? "Telegram లో join అవ్వండి" : "Join on Telegram"}
+              </a>
+              {waLink(chan?.key) ? (
+                <a href={waLink(chan?.key)} target="_blank" rel="noreferrer"
+                  className="flex items-center justify-center gap-2 w-full bg-[#25D366] text-white font-bold text-[13px] py-2.5 rounded-xl shadow-soft hover:brightness-110 active:scale-[0.97] transition">
+                  <WhatsAppIcon className="w-4 h-4" mono />
+                  {te ? "WhatsApp లో join అవ్వండి" : "Join on WhatsApp"}
+                </a>
+              ) : null}
+              {otherChan ? (
+                <a href={otherChan.link} target="_blank" rel="noreferrer"
+                  className="flex items-center justify-center gap-2 w-full border border-white/25 text-white font-bold text-[12px] py-2 rounded-xl hover:bg-white/10 transition">
+                  <TelegramIcon className="w-3.5 h-3.5" mono />
+                  {otherChanLabel} — Telegram
+                </a>
+              ) : null}
+            </div>
+            <Link href="/channels" className="mt-3 block text-center text-[11px] underline underline-offset-2 opacity-80 hover:opacity-100">
               {te ? <>అన్ని {CHANNEL_STATS.total} channels →</> : <>All {CHANNEL_STATS.total} channels →</>}
             </Link>
           </div>

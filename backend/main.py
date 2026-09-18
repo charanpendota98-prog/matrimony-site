@@ -904,7 +904,7 @@ async def register(
                              "అయితే మాత్రమే numbers exchange (consent) · Paid: ₹99→5 profiles"),
         card_url=user.get("card_url", card_url),
         credits=user.get("credits", 3),
-        message_telugu=("🎉 Congratulations! Me ID: %s. Me profile admin approve లో ఉంది (2 min). Top 3 FREE matches ready!%s"
+        message_telugu=("🎉 Congratulations! మీ ID: %s. మీ profile త్వరలో live అవుతుంది — Top 3 FREE matches ready!%s"
                         % (tsap_id, (" మీ friend code తో +%d FREE credit వచ్చింది 🎁" % _ref_bonus) if _ref_bonus else "")),
         next_steps=["Admin approve (2 min)", "Top 3 FREE with reason",
                     "₹99 pay → 5 profiles + boost (మొదటి 3 FREE)",
@@ -2616,7 +2616,7 @@ async def verify_selfie(file: UploadFile = File(...), tsap_id: str = Form(""), r
     u["selfie_status"] = "pending"
     u["selfie_checks"] = verdict["checks"]
     return {"success": True, "url": u["selfie_url"], "status": "pending", "checks": verdict["checks"],
-            "message_telugu": "🤳 Selfie clear గా ఉంది — verification కి వెళ్లింది ✅ (admin approve చెయ్యగానే badge వస్తుంది)"}
+            "message_telugu": "🤳 Selfie clear గా ఉంది — verification అయ్యాక ✅ verified badge వస్తుంది"}
 
 
 @app.get("/api/admin/photos/pending")
@@ -2818,11 +2818,12 @@ def otp_send(payload: dict):
     dev = str(os.getenv("OTP_DEV_MODE", "true")).lower() in ("1", "true", "yes", "on")
     out = {"success": True, "phone": f"XXXXXX{phone[-4:]}", "expires_in_min": 10,
            "channel": ch.get("channel", "dev"), "purpose": purpose,
-           "message_telugu": f"{CHANNEL_TELUGU.get(ch.get('channel', 'dev'), '')} (+91 XXXXXX{phone[-4:]}). 10 నిమిషాల్లో enter చెయ్యండి."}
+           "message_telugu": f"📱 OTP వచ్చింది (+91 XXXXXX{phone[-4:]}). 10 నిమిషాల్లో enter చెయ్యండి."}
     if dev:
+        # dev/SMS-provider-lekapothi — code ni dev_code field lo istham (frontend "మీ OTP" ani chupistundi).
+        # message_telugu lo DEV wording raakudadu — user ki telisi poreddi.
         out["dev_code"] = code
-        out["message_telugu"] += f" [DEV — code: {code}]"
-        out["note"] = "Production: WHATSAPP_MODE=bridge (FREE) leda MSG91_KEY పెట్టండి — appudu code response లో raadu."
+        out["ops_note"] = "SMS provider ledu — code dev_code field lo (production lo WHATSAPP_MODE=bridge leda MSG91_KEY pettandi)"
     return out
 
 

@@ -53,7 +53,7 @@ export default function ContentConsole() {
       const r = await fetch("/api/photo/upload", { method: "POST", headers: authHeaders(), body: fd });
       const d = await r.json();
       if (d?.photo_url || d?.url) { cb(d.photo_url || d.url); setFlash(te ? "📸 Photo upload అయ్యింది" : "📸 Photo uploaded"); }
-      else setFlash(d.detail || (te ? "Upload fail — URL paste చెయ్యండి" : "Upload failed — paste URL"));
+      else setFlash((d?.detail?.te || d?.detail?.message_telugu || d?.detail) || (te ? "Upload fail — URL paste చెయ్యండి" : "Upload failed — paste URL"));
     } catch { setFlash(te ? "Upload fail — URL paste చెయ్యండి" : "Upload failed — paste URL"); }
     setUploading(false);
   };

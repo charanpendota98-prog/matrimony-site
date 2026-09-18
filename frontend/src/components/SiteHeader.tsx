@@ -10,32 +10,29 @@ import { LangToggle, useLang } from "@/lib/lang";
 
 type NavItem = { href: string; en: string; te: string; icon: string; xl?: boolean };
 
-/* Desktop pills — trimmed to the 10 most-used (rest live in the menu card) */
+/* Desktop pills — neat 7 (menu card lo migatha anni) */
 const NAV_MAIN: NavItem[] = [
   { href: "/", en: "Home", te: "హోమ్", icon: "🏠" },
   { href: "/matches", en: "Matches", te: "సంబంధాలు", icon: "💘" },
   { href: "/requests", en: "Requests", te: "రిక్వెస్టులు", icon: "💌" },
-  { href: "/me", en: "My Account", te: "నా అకౌంట్", icon: "🙋" },
   { href: "/channels", en: "Channels", te: "ఛానళ్లు", icon: "📢" },
   { href: "/castes", en: "Castes", te: "కులాలు", icon: "🪔" },
   { href: "/pricing", en: "Pricing", te: "ధరలు", icon: "💰" },
   { href: "/referral", en: "Referral", te: "రెఫరల్", icon: "🤝" },
-  { href: "/stories", en: "Stories", te: "కథలు", icon: "💑", xl: true },
-  { href: "/vendors", en: "Vendors", te: "వెండర్లు", icon: "🏪", xl: true },
-  { href: "/safety", en: "Safety", te: "భద్రత", icon: "🛡️", xl: true },
 ];
 
 const NAV_EARN: NavItem[] = [
   { href: "/referral", en: "Referral dashboard", te: "రెఫరల్ డాష్‌బోర్డ్", icon: "🤝" },
   { href: "/referral/register", en: "Become a referrer", te: "రెఫరర్‌గా చేరండి", icon: "🎁" },
   { href: "/bureau", en: "Bureau (B2B)", te: "బ్యూరో (B2B)", icon: "🏛️" },
-  { href: "/vendors", en: "Vendors", te: "వెండర్లు", icon: "🏪" },
   { href: "/vendors/register", en: "List your business", te: "మీ business చేర్చండి", icon: "📝" },
 ];
 
 const NAV_MORE: NavItem[] = [
+  { href: "/me", en: "My Account", te: "నా అకౌంట్", icon: "🙋" },
   { href: "/porutham", en: "Jyothishyam", te: "జ్యోతిషం", icon: "💍" },
   { href: "/stories", en: "Stories", te: "కథలు", icon: "💑" },
+  { href: "/vendors", en: "Vendors", te: "వెండర్లు", icon: "🏪" },
   { href: "/safety", en: "Safety", te: "భద్రత", icon: "🛡️" },
   { href: "/verify", en: "Verify profile", te: "Profile verify", icon: "✅" },
 ];
@@ -229,7 +226,7 @@ export default function SiteHeader() {
               <Duo en="🔍 Search matches" te="🔍 సంబంధాలు వెతకండి" />
             </Link>
             <a
-              href={SITE_CONFIG.botUrl}
+              href={SITE_CONFIG.officialChannelUrl}
               target="_blank"
               rel="noreferrer"
               className="flex-1 text-center px-4 py-3 rounded-xl gold-gradient text-maroon text-sm font-bold"

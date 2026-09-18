@@ -334,7 +334,7 @@ class CardBuilder:
         d.rectangle([0, y0, W, y0 + 4], fill=GOLD)
         rid = _s(u.get("tsap_id"), "TSAP-F-2025-XXXX")
 
-        d.text((24, y0 + 16), f"Number: Pay tarvata lock  {ICON['dot']}  (1 Credit)   {ICON['dot']}   Bot: {BOT}",
+        d.text((24, y0 + 16), f"Number: Interest Accept అయ్యాకే  {ICON['dot']}  🔒 Safe  {ICON['dot']}   Telegram: Mana Vivaha",
                fill=GOLD_LIGHT, font=F(15, True))
         d.text((24, y0 + 44), f"ID Search: {SITE}/search/{rid}   {ICON['dot']}   Register FREE: {SITE}/register",
                fill=WHITE, font=F(13))
@@ -347,7 +347,7 @@ class CardBuilder:
                fill=GOLD_LIGHT, font=F(12))
         d.text((24, y0 + 114), "! Direct గా money అడిగితే వెంటనే report చెయ్యండి - మోసం జాగ్రత్త!",
                fill=(255, 190, 190), font=F(12, True))
-        d.text((24, y0 + 142), f"Watermark: {rid}  {ICON['dot']}  (c) Mana Vivaha {os.getenv('YEAR','2025')}",
+        d.text((24, y0 + 142), f"{rid}  {ICON['dot']}  (c) Mana Vivaha {os.getenv('YEAR','2025')}",
                fill=(200, 200, 200), font=F(11))
 
         # QR → ID search

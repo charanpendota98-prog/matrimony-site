@@ -181,7 +181,6 @@ export default function ReferralPage() {
               <div>
                 <div className="text-xs text-gray-500">{te ? "మీ referral code" : "Your referral code"}</div>
                 <div className="text-3xl font-extrabold text-[#7A0C2E] tracking-wide">{dash?.code || "…"}</div>
-                {dash?.alias && <div className="text-[11px] text-gray-500 mt-1">alias: {dash.alias} {te ? "(ఇది కూడా పని చేస్తుంది)" : "(this works too)"}</div>}
               </div>
               <div className="flex flex-col gap-2 text-xs">
                 <button onClick={() => copy(link, "link")} className="rounded-full bg-[#7A0C2E] text-white px-4 py-2 font-bold">{te ? "🔗 Link copy" : "🔗 Copy link"}</button>

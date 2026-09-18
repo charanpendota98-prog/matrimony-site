@@ -43,10 +43,13 @@ export default function CasteLandingPage({ params }: Params) {
       role={role}
       district={district ? { slug: district.slug, name: district.name, state: district.state } : null}
       chan={chan ? {
-        name: chan.name, username: chan.username, link: chan.link, deepLink: chan.deepLink,
+        key: chan.key, name: chan.name, username: chan.username, link: chan.link, deepLink: chan.deepLink,
         desc: chan.desc, live: chan.live, wave: chan.wave, hashtags: chan.hashtags,
       } : null}
-      otherChan={otherChan ? { username: otherChan.username } : null}
+      otherChan={otherChan ? {
+        key: otherChan.key, name: otherChan.name, username: otherChan.username,
+        link: otherChan.link, live: otherChan.live,
+      } : null}
     />
   );
 }

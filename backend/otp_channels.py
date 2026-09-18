@@ -125,6 +125,6 @@ CHANNEL_TELUGU = {
     "wa": "📲 WhatsApp లో OTP పంపించాం (FREE)",
     "telegram": "✈️ Telegram lo OTP pampinchaam (FREE)",
     "sms": "📩 SMS lo OTP pampinchaam",
-    "dev": "🧪 DEV MODE — OTP response లో ఉంది",
+    "dev": "📱 OTP ready అయ్యింది",
     "none": "⚠️ OTP channel configure కాలేదు — support కి చెప్పండి",
 }

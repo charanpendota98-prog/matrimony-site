@@ -12,7 +12,7 @@ import { SITE_CONFIG } from "@/lib/site-config";
 import { apiGet } from "@/lib/api";
 import { useLang, type Lang } from "@/lib/lang";
 
-const BOT = SITE_CONFIG.botUrl;
+const BOT = SITE_CONFIG.officialChannelUrl;
 
 /* ------------------------------------------------------------------ */
 /* 🌊 WAVE 30 — live home numbers (NO DUMMY) + Telugu/English toggle  */
@@ -409,22 +409,22 @@ export default function Home() {
 
         <div className="relative max-w-7xl mx-auto px-4 pt-8 pb-10 grid lg:grid-cols-[1.15fr_0.85fr] gap-10 items-center">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-gold/40 shadow-soft text-[11px] font-bold text-maroon">
-              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulseRing" />
+            <div className="anim-hero inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-gold/40 shadow-soft text-[11px] font-bold text-maroon">
+              <span className="w-2 h-2 rounded-full bg-green-500 pulse-live" />
               {L.liveBadge(hs.channels_live, hs.channels_total)}
             </div>
 
-            <h1 className="mt-4 text-[32px] md:text-[46px] font-bold text-maroon leading-[1.12]">
+            <h1 className="anim-hero-1 mt-4 text-[32px] md:text-[46px] font-bold text-maroon leading-[1.12]">
               {L.heroTitle}
             </h1>
 
-            <p className="mt-3 text-sm md:text-base text-gray-700 telugu leading-relaxed max-w-xl">
+            <p className="anim-hero-2 mt-3 text-sm md:text-base text-gray-700 telugu leading-relaxed max-w-xl">
               {L.heroSubA}.{" "}
               <b>{L.heroSubB(hs.castes_covered, hs.channels_total)}</b>{" "}
               <b>{L.heroSubC(hs.free_first)}</b>
             </p>
 
-            <div className="mt-5 flex flex-wrap gap-3">
+            <div className="anim-hero-3 mt-5 flex flex-wrap gap-3">
               <Link
                 href="/register"
                 className="px-6 py-3.5 rounded-full maroon-gradient text-white text-sm font-bold shadow-brand hover:shadow-brandLg transition"
@@ -432,12 +432,12 @@ export default function Home() {
                 🚀 {L.registerCta}
               </Link>
               <a
-                href={BOT}
+                href={SITE_CONFIG.officialChannelUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="px-6 py-3.5 rounded-full gold-gradient text-maroon text-sm font-bold shadow-soft"
+                className="px-6 py-3.5 rounded-full gold-gradient text-maroon text-sm font-bold shadow-soft hover:brightness-105 transition"
               >
-                ✈️ {L.botCta} — {SITE_CONFIG.botUsername}
+                ✈️ {L.botCta}
               </a>
               <button
                 onClick={() => window.dispatchEvent(new Event("tsap:install-show"))}
@@ -744,7 +744,9 @@ export default function Home() {
                 }`}
               >
                 <div className="text-[13px] font-bold leading-tight">{ch.name}</div>
-                <div className="text-[11px] opacity-85 mt-1">{ch.status}</div>
+                <div className="text-[11px] opacity-85 mt-1">
+                  {ch.live ? (lang === "te" ? "🟢 LIVE — join చెయ్యండి" : "🟢 LIVE — join now") : (lang === "te" ? "త్వరలో ప్రారంభం" : "Coming soon")}
+                </div>
                 <div className="mt-2 flex gap-1 flex-wrap">
                   <span className="text-[10px] bg-gold text-maroon px-2 py-1 rounded-full font-bold">
                     {ch.live ? (lang === "te" ? "Join చెయ్యండి" : "Join") : (lang === "te" ? "త్వరలో" : "Soon")}
@@ -1066,7 +1068,7 @@ export default function Home() {
                 <div className="text-[11px] opacity-80">ID search</div>
                 <div className="font-mono text-gold text-lg">{SITE_CONFIG.domain}/search</div>
                 <div className="text-[11px] opacity-80 mt-2">Telegram</div>
-                <div className="font-mono text-gold text-lg">{SITE_CONFIG.botUsername}</div>
+                <div className="font-mono text-gold text-lg">{SITE_CONFIG.officialChannel}</div>
               </div>
             </div>
           </div>
