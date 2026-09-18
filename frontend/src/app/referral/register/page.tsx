@@ -63,9 +63,13 @@ export default function PartnerRegisterPage() {
   return (
     <main className="mx-auto max-w-2xl px-4 py-8">
       <h1 className="text-2xl font-extrabold text-maroon">🤝 <Duo en="Become a Referral Partner" te="రిఫరల్ భాగస్వామి అవండి" /></h1>
+      <p className="mt-1 text-sm text-emerald-800 font-bold telugu">
+        {duo("You don't need to be looking for a match — anyone can become a partner and earn.",
+             "మీకు పెళ్లి సంబంధం వెతకాల్సిన అవసరం లేదు — ఎవరైనా భాగస్వామిగా చేరి సంపాదించుకోవచ్చు.")}
+      </p>
       <p className="mt-1 text-sm text-slate-600 telugu">
-        {duo("Enter details — you get your ID + link. Friends join + pay, you get ₹50/payment (wallet → UPI).",
-             "వివరాలు ఇవ్వండి — మీ ID + లింక్ వస్తుంది. ఫ్రెండ్స్ జాయిన్ + పే చేస్తే మీకు ₹50/పేమెంట్.")}
+        {duo("Enter details below — you get your ID + link. Whoever joins + pays through it, you get ₹50/payment (wallet → UPI).",
+             "కింద వివరాలు ఇవ్వండి — మీ ID + లింక్ వస్తుంది. ఈ లింక్ ద్వారా ఎవరు జాయిన్ అయ్యి పే చేసినా మీకు ₹50/పేమెంట్ వస్తుంది.")}
       </p>
 
       {!done ? (

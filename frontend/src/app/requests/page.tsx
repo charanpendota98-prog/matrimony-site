@@ -230,7 +230,7 @@ export default function RequestsPage() {
         <div className="max-w-6xl mx-auto px-4 py-10">
           <Reveal>
             <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-3 py-1 text-[11px] font-bold">
-              {te ? "🚫 Chatting లేదు • 💌 Interest request • 🛡️ Anti-ban WhatsApp delivery" : "🚫 No chatting • 💌 Interest request • 🛡️ Anti-ban WhatsApp delivery"}
+              {te ? "🚫 Chatting లేదు • 💌 Interest request • ✅ Safe WhatsApp delivery" : "🚫 No chatting • 💌 Interest request • ✅ Safe WhatsApp delivery"}
             </div>
             <h1 className="mt-3 text-2xl md:text-4xl font-bold"><Duo en="Requests Dashboard" te="రిక్వెస్ట్‌ల డాష్‌బోర్డ్" /></h1>
             <p className="mt-2 text-[13px] md:text-sm opacity-90 telugu max-w-3xl">
@@ -522,18 +522,10 @@ export default function RequestsPage() {
                 </div>
               )}
 
-              {wa?.antiban && (
+              {wa?.queued != null && Number(wa.queued) > 0 && (
                 <div className="bg-navy text-white rounded-2xl p-4">
-                  <div className="font-bold text-[13px]">🛡️ WhatsApp anti-ban status</div>
-                  <div className="mt-2 text-[11px] opacity-90 grid grid-cols-2 gap-1">
-                    <span>Gap: {wa.antiban.random_gap}</span>
-                    <span>{te ? "రోజు cap" : "Daily cap"}: {wa.antiban.daily_cap}</span>
-                    <span>Today sent: {wa.antiban.sent_today}</span>
-                    <span>Queue: {wa.queued}</span>
-                    <span>Type sim: {wa.antiban.sent_since_break >= 0 ? "ON" : "OFF"}</span>
-                    <span>Hours: {wa.antiban.active_hours_ist?.[0]}–{wa.antiban.active_hours_ist?.[1]} IST</span>
-                  </div>
-                  <div className="text-[10px] opacity-70 mt-2">{te ? "Telegram post అయ్యాక → WhatsApp (random gap) — ban risk తక్కువ" : "After Telegram post → WhatsApp (random gap) — low ban risk"}</div>
+                  <div className="font-bold text-[13px]">📲 {te ? "WhatsApp లో పంపుతున్నాం" : "Sending on WhatsApp"}</div>
+                  <div className="text-[11px] opacity-90 mt-1">{te ? `${wa.queued} messages queue లో ఉన్నాయి — త్వరలో వెళ్తాయి.` : `${wa.queued} messages queued — going out shortly.`}</div>
                 </div>
               )}
             </div>

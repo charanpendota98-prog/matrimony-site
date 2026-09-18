@@ -84,14 +84,14 @@ export default function CasteClient({ caste, role, district, chan, otherChan }: 
               {te ? (
                 <>
                   <li><b>FREE register</b> (3 నిమిషాలు) — personal, family, caste/astro, education, location + photo.</li>
-                  <li><b>Auto-post:</b> మీ profile card {chan?.username} channel లో + WhatsApp group లో (anti-ban safe).</li>
+                  <li><b>Auto-post:</b> మీ profile card {chan?.username} channel లో + WhatsApp group లో పోస్ట్ అవుతుంది.</li>
                   <li><b>💌 Interest పంపండి:</b> నచ్చిన profile కి — వాళ్లకి మన WhatsApp నుంచి మీ profile card వెళ్తుంది.</li>
                   <li><b>✅ Accept అయితే:</b> రెండు numbers automatic గా exchange ({role === "bride" ? "groom" : "bride"} side consent తో).</li>
                 </>
               ) : (
                 <>
                   <li><b>Register FREE</b> (3 minutes) — personal, family, caste/astro, education, location + photo.</li>
-                  <li><b>Auto-post:</b> your profile card goes to the {chan?.username} channel + WhatsApp group (anti-ban safe).</li>
+                  <li><b>Auto-post:</b> your profile card goes to the {chan?.username} channel + WhatsApp group.</li>
                   <li><b>💌 Send interest:</b> to profiles you like — they get your profile card from our WhatsApp.</li>
                   <li><b>✅ On accept:</b> both numbers exchange automatically (with the {role === "bride" ? "groom" : "bride"} side&apos;s consent).</li>
                 </>
@@ -161,11 +161,11 @@ export default function CasteClient({ caste, role, district, chan, otherChan }: 
             <div className="font-bold">{chan?.name}</div>
             <div className="text-[12px] opacity-85 mt-1">{chan?.username}</div>
             <div className="text-[11px] opacity-70 mt-1">
-              {chan?.live ? "🟢 Live" : te ? `🟡 Wave-${chan?.wave || 1} లో open అవుతుంది` : `🟡 Opens in Wave-${chan?.wave || 1}`} • {(chan?.hashtags || []).length} hashtags
+              {chan?.live ? "🟢 Live" : te ? "🟡 త్వరలో open అవుతుంది" : "🟡 Opens soon"}
             </div>
             <a href={chan?.deepLink} target="_blank" rel="noreferrer"
               className="mt-3 block text-center gold-gradient text-maroon font-bold text-[12px] py-2.5 rounded-xl">
-              {te ? "🤖 Bot తో join అవ్వండి" : "🤖 Join via bot"}
+              {te ? "✈️ Telegram లో join అవ్వండి" : "✈️ Join on Telegram"}
             </a>
             <Link href="/channels" className="mt-2 block text-center border border-white/25 text-white font-bold text-[12px] py-2.5 rounded-xl">
               {te ? <>అన్ని {CHANNEL_STATS.total} channels →</> : <>All {CHANNEL_STATS.total} channels →</>}

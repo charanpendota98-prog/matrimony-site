@@ -349,9 +349,9 @@ export default function ProfileView() {
                   {unlocking ? "Unlocking…" : "📞 Number Unlock (1 credit)"}
                 </button>
                 <a href={SITE_CONFIG.unlockBot(profile.tsap_id)} target="_blank" rel="noreferrer"
-                  title={te ? "Bot opens — 1 credit తో number వస్తుంది" : "Bot opens — number for 1 credit"}
+                  title={te ? "Telegram లో ఓపెన్ అవుతుంది — 1 క్రెడిట్‌తో number వస్తుంది" : "Opens on Telegram — number for 1 credit"}
                   className="rounded-xl gold-gradient px-4 py-2.5 text-sm font-bold text-maroon">
-                  📞 Full details + Number (Bot)
+                  📞 {te ? "పూర్తి వివరాలు + నంబర్" : "Full details + Number"}
                 </a>
                 </>
               )}

@@ -2,7 +2,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { CHANNEL_STATS } from "@/lib/channels";
 import { SITE_CONFIG } from "@/lib/site-config";
 import { useSession, logout } from "@/lib/auth";
 import { apiGet } from "@/lib/api";
@@ -106,15 +105,15 @@ export default function SiteHeader() {
         scrolled ? "glass border-gold/30 shadow-soft" : "bg-cream border-transparent"
       }`}
     >
-      <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 h-16 flex items-center justify-between gap-2">
         {/* Brand */}
-        <Link href="/" className="flex items-center gap-2.5 min-w-0 focus-brand rounded-xl">
-          <div className="w-10 h-10 maroon-gradient rounded-xl flex items-center justify-center text-gold font-bold text-lg shadow-gold shrink-0">
+        <Link href="/" className="flex items-center gap-2 min-w-0 flex-1 focus-brand rounded-xl">
+          <div className="w-9 h-9 sm:w-10 sm:h-10 maroon-gradient rounded-xl flex items-center justify-center text-gold font-bold text-base sm:text-lg shadow-gold shrink-0">
             {SITE_CONFIG.logoText}
           </div>
           <div className="min-w-0">
-            <div className="font-bold text-maroon leading-none truncate">{SITE_CONFIG.brandName}</div>
-            <div className="text-[10px] text-gray-500 telugu leading-tight truncate">
+            <div className="font-bold text-maroon leading-none truncate text-[14px] sm:text-base">{SITE_CONFIG.brandName}</div>
+            <div className="hidden sm:block text-[10px] text-gray-500 telugu leading-tight truncate">
               {SITE_CONFIG.legalName} • {SITE_CONFIG.taglineTelugu}
             </div>
           </div>
@@ -139,7 +138,7 @@ export default function SiteHeader() {
         </nav>
 
         {/* Right actions */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           <LangToggle compact />
           <Link
             href="/porutham"
@@ -148,6 +147,7 @@ export default function SiteHeader() {
             💍 <Duo en="Porutham" te="పొరుతం" />
           </Link>
           {ready && tsapId && sessionOk ? (
+
             <span className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 text-[13px] font-semibold border border-emerald-300 bg-emerald-50 text-emerald-800 rounded-full">
               <Link href="/me" className="hover:underline">👤 {tsapId.length > 14 ? `${tsapId.slice(0, 9)}…${tsapId.slice(-4)}` : tsapId}</Link>
               <button
@@ -168,9 +168,10 @@ export default function SiteHeader() {
           )}
           <Link
             href="/register"
-            className="px-4 py-2.5 rounded-full text-[13px] font-bold maroon-gradient text-white shadow-soft hover:shadow-brand transition"
+            className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-full text-[12px] sm:text-[13px] font-bold maroon-gradient text-white shadow-soft hover:shadow-brand transition whitespace-nowrap"
           >
-            <Duo en="Register FREE" te="ఉచిత నమోదు" />
+            <span className="hidden sm:inline"><Duo en="Register FREE" te="ఉచిత నమోదు" /></span>
+            <span className="sm:hidden"><Duo en="Register" te="నమోదు" /></span>
           </Link>
           <button
             aria-label={te ? "మెనూ" : "Menu"}
@@ -233,14 +234,11 @@ export default function SiteHeader() {
               rel="noreferrer"
               className="flex-1 text-center px-4 py-3 rounded-xl gold-gradient text-maroon text-sm font-bold"
             >
-              Telegram Bot
+              <Duo en="Telegram Channel" te="టెలిగ్రామ్ ఛానల్" />
             </a>
           </div>
           <div className="flex justify-center pt-3">
             <LangToggle />
-          </div>
-          <div className="text-[11px] text-center text-gray-500 pt-1">
-            {CHANNEL_STATS.total} channels • {CHANNEL_STATS.by_tier.L3_CASTE} castes • {SITE_CONFIG.botUsername}
           </div>
         </div>
       </div>

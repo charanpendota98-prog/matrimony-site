@@ -87,7 +87,7 @@ const TEXT = {
     statCastesSub: "Reddy నుంచి SC/ST వరకు",
     statChat: "No chatting",
     statChatT: "చాటింగ్ లేదు — direct contact",
-    statChatS: "Anti-ban WhatsApp delivery",
+    statChatS: "Safe WhatsApp delivery",
     statPrice: (p99: PlanStat) => `₹${p99.price}→${p99.profiles}`,
     statPriceL: (p199: PlanStat, p299: PlanStat) => `Profiles (₹${p199.price}→${p199.profiles}, ₹${p299.price}→${p299.profiles})`,
     statPriceS: (free: number) => `మొదటి ${free} requests FREE`,
@@ -110,19 +110,19 @@ const TEXT = {
       { i: "✅", t: "3. Accept అయితే numbers exchange", d: "వాళ్లు accept చేస్తే — రెండు numbers ఆటోమేటిక్‌గా WhatsApp లో. Direct గా call/chat చేసుకోవచ్చు, మనం middle లో ఉండము." },
       { i: "↩️", t: "4. Decline అయితే credit refund", d: "ఈ సారి కుదరలేదంటే polite message + మీ credit తిరిగి వస్తుంది. అంటే ఎవరూ money waste చెయ్యరు." },
     ],
-    reqChips: ["🚫 0 chatting", "🔒 Consent first", "↩️ Decline = refund", "🛡️ Anti-ban WhatsApp"],
+    reqChips: ["🚫 0 chatting", "🔒 Consent first", "↩️ Decline = refund", "✅ Safe delivery"],
     priceStrip: (p: PlanStat, tag: string) => ({ p: `₹${p.price}`, n: `${p.profiles} profiles`, s: tag }),
     priceTags: ["₹20/profile — entry", "₹17/profile — popular", "₹12/profile — best value"],
     chEyebrow: "ఛానల్ నెట్‌వర్క్",
     chTitle: (total: number) => `${total} ఛానళ్లు — మీ ప్రొఫైల్ అన్నిచోట్లకు`,
     chSub: "Region + Religion + Caste + Special. ఒక్క approve = అన్ని related channels లో post.",
     chAction: (total: number) => `అన్ని ${total} ఛానళ్లు`,
-    flowTitle: "🤖 Auto-post flow — ఒక్క register, అన్నిచోట్లకీ",
+    flowTitle: "📢 ఒక్క నమోదు — అన్ని సరైన ఛానళ్లలో ప్రొఫైల్",
     flow: [
-      { t: "1. Profile submit", d: "Register 5 steps + photo" },
-      { t: "2. Router decide", d: "Caste × State × Gender × Job × Special flags" },
-      { t: "3. Telegram + WhatsApp", d: "Bot card + caption + hashtags post" },
-      { t: "4. Retry + log", d: "429/error → 3 retries, publish log audit" },
+      { t: "1. మీ వివరాలు", d: "5 సులభమైన స్టెప్స్ + ఫోటో" },
+      { t: "2. సరైన ఛానల్ ఎంపిక", d: "కులం × రాష్ట్రం × వృత్తి బట్టి" },
+      { t: "3. Telegram + WhatsApp", d: "ప్రొఫైల్ కార్డ్ auto-post" },
+      { t: "4. మీకు నోటిఫికేషన్", d: "ఎవరైనా interest పంపితే వెంటనే మీకు తెలుస్తుంది" },
     ],
     casteEyebrow: "కులాల వారీగా",
     casteTitle: (n: number) => `${n} కుల ఛానళ్లు — 1 కులం = 1 ఛానల్`,
@@ -159,8 +159,8 @@ const TEXT = {
       `🔁 Renewal offer: పాత customers కి ₹${r.price} → ${r.profiles} profiles (first-time ₹99 → 5) • 🏢 Bureau: ₹${b.price}/mo → ${b.profiles} profiles + monthly report`,
     addonCta1: "Plans + add-ons కొనండి →",
     addonCta2: "👀 ఎవరు చూశారో చూడండి",
-    refTitle: "🏆 Referral — మీ link share, మీ earning",
-    refSub: (per: number) => `మీ referral link (short code: LAK42 లాంటిది) share చెయ్యండి — ప్రతి profile pay కి ₹${per}. Bureaus/brokers కి ప్రత్యేక dashboard + leaderboard.`,
+    refTitle: "🏆 సంపాదించండి — Referral Program",
+    refSub: (per: number) => `మీకు పెళ్లి సంబంధం అవసరం లేకపోయినా — ఎవరైనా ఈ program లో join అవ్వొచ్చు! మీ link ద్వారా ఎవరైనా join అయ్యి pay చేస్తే మీకు ₹${per} వస్తుంది. Bureaus/brokers కి కూడా ప్రత్యేక dashboard ఉంది.`,
     refCards: (per: number, ms: string) => [{ k: "Per pay", v: `₹${per}` }, { k: "25 pays", v: ms }, { k: "Payout", v: "UPI weekly" }],
     refCta1: "నా referral code →",
     refCta2: "Referrer గా join",
@@ -199,8 +199,8 @@ const TEXT = {
       { q: "Chatting ఉందా? ఎలా మాట్లాడుకోవాలి?", a: `Chatting లేదు — అంతే. మీకు నచ్చిన profile కి "💌 Interest పంపు" (1 credit). వాళ్ల profile + మీ details WhatsApp లో వాళ్లకి వెళ్తుంది. వాళ్లు Accept చేస్తే రెండు numbers ఆటోమేటిక్‌గా WhatsApp లో exchange అవుతాయి — direct గా మాట్లాడుకోవచ్చు. Decline చేస్తే మీ credit refund (మన trust policy).` },
       { q: "Number ఎప్పుడు కనిపిస్తుంది? Direct గా ఇస్తారా?", a: "Interest పంపినప్పుడు number lock లో ఉంటుంది. వాళ్లు Accept చేసిన తర్వాతే numbers exchange అవుతాయి — ఇద్దరూ ఒప్పుకున్నప్పుడే. అంటే spam calls, fake ids, మోసం — అన్నీ block. ఈ consent logic top matrimony sites లో ఇదే, కానీ మనం WhatsApp లో fast గా చేస్తాం." },
       { q: "నా photo public లో కనిపిస్తుందా?", a: "Photo-Private ON చేస్తే public లో blur గా కనిపిస్తుంది — WhatsApp/Telegram cards లో కూడా watermark. Interest accept అయ్యాకే clear photos. Screenshot misuse జరిగినా watermark + report system తో action తీసుకుంటాం." },
-      { q: "నా profile ఏ channels లో post అవుతుంది?", a: `మీ caste + state + job బట్టి ${total} channels నుంచి సరిపోయేవి (max 5) — ఉదాహరణకి Reddy TS Bride Software అయితే @TSBRIDE + @manavivaha_reddy_bride + @manavivaha_software. Main + caste ప్రకారం (bride/groom separate) + religion + special అన్నీ cover.` },
-      { q: "WhatsApp లో కూడా వస్తుందా? Anti-ban safe ఏ?", a: "అవును — Telegram post అయ్యాక WhatsApp channels/groups కి కూడా వెళ్తుంది. మనం మనిషిలానే post చేస్తాం: 120–170 seconds random gap, typing simulation, రోజు caps, రాత్రి ఆపటం — WhatsApp ban risk చాలా తక్కువ. Interest వచ్చినప్పుడు కూడా WhatsApp లోనే notification + profile card." },
+      { q: "నా profile ఏ channels లో post అవుతుంది?", a: `మీ caste + state + job బట్టి ${total} channels నుంచి సరిపోయేవి (max 5) — Region + Caste (bride/groom separate) + Religion + Special channels అన్నీ cover అవుతాయి.` },
+      { q: "WhatsApp లో కూడా వస్తుందా?", a: "అవును — Telegram post అయ్యాక WhatsApp channels/groups కి కూడా వెళ్తుంది. Interest వచ్చినప్పుడు కూడా WhatsApp లోనే notification + profile card వస్తుంది." },
       { q: "మోసం/fake profiles ఉంటే ఏం చేస్తారు?", a: "DOB + OTP verify, photo watermark, 3 reports → auto hide, @manavivaha_alerts లో fraud alerts. Advance money అడిగితే వెంటనే report చెయ్యండి — 24h లో action. Decline అయినా credit refund ఇస్తాం." },
     ],
   },
@@ -239,7 +239,7 @@ const TEXT = {
     statCastesSub: "Reddy to SC/ST",
     statChat: "No chatting",
     statChatT: "No chatting — direct contact",
-    statChatS: "Anti-ban WhatsApp delivery",
+    statChatS: "Safe WhatsApp delivery",
     statPrice: (p99: PlanStat) => `₹${p99.price}→${p99.profiles}`,
     statPriceL: (p199: PlanStat, p299: PlanStat) => `Profiles (₹${p199.price}→${p199.profiles}, ₹${p299.price}→${p299.profiles})`,
     statPriceS: (free: number) => `First ${free} requests FREE`,
@@ -262,19 +262,19 @@ const TEXT = {
       { i: "✅", t: "3. Accept → numbers exchange", d: "If they accept — both numbers automatically on WhatsApp. Call/chat directly; we stay out of the middle." },
       { i: "↩️", t: "4. Decline → credit refund", d: "If it doesn't work out, a polite message goes out + your credit comes back. Nobody wastes money." },
     ],
-    reqChips: ["🚫 0 chatting", "🔒 Consent first", "↩️ Decline = refund", "🛡️ Anti-ban WhatsApp"],
+    reqChips: ["🚫 0 chatting", "🔒 Consent first", "↩️ Decline = refund", "✅ Safe delivery"],
     priceStrip: (p: PlanStat, tag: string) => ({ p: `₹${p.price}`, n: `${p.profiles} profiles`, s: tag }),
     priceTags: ["₹20/profile — entry", "₹17/profile — popular", "₹12/profile — best value"],
     chEyebrow: "Channel network",
     chTitle: (total: number) => `${total} channels — your profile reaches everywhere it fits`,
     chSub: "Region + Religion + Caste + Special. One approval = posted to all matching channels.",
     chAction: (total: number) => `All ${total} channels`,
-    flowTitle: "🤖 Auto-post flow — one register, everywhere",
+    flowTitle: "📢 One registration — posted to every matching channel",
     flow: [
-      { t: "1. Profile submit", d: "Register 5 steps + photo" },
-      { t: "2. Router decides", d: "Caste × State × Gender × Job × Special flags" },
-      { t: "3. Telegram + WhatsApp", d: "Bot card + caption + hashtags posted" },
-      { t: "4. Retry + log", d: "429/error → 3 retries, publish log audit" },
+      { t: "1. Your details", d: "5 easy steps + photo" },
+      { t: "2. Right channel picked", d: "Based on caste × state × occupation" },
+      { t: "3. Telegram + WhatsApp", d: "Profile card auto-posted" },
+      { t: "4. You get notified", d: "The moment someone sends interest" },
     ],
     casteEyebrow: "Caste-wise",
     casteTitle: (n: number) => `${n} caste channels — 1 caste = 1 channel`,
@@ -311,8 +311,8 @@ const TEXT = {
       `🔁 Renewal offer: existing customers ₹${r.price} → ${r.profiles} profiles (first-time ₹99 → 5) • 🏢 Bureau: ₹${b.price}/mo → ${b.profiles} profiles + monthly report`,
     addonCta1: "Buy plans + add-ons →",
     addonCta2: "👀 See who viewed you",
-    refTitle: "🏆 Referral — share your link, earn money",
-    refSub: (per: number) => `Share your referral link (short code like LAK42) — ₹${per} for every profile that pays. Special dashboard + leaderboard for bureaus/brokers.`,
+    refTitle: "🏆 Earn — Referral Program",
+    refSub: (per: number) => `You don't need to be looking for a match to join this program — anyone can! Share your link, and you earn ₹${per} every time someone joins and pays through it. Special dashboard for bureaus/brokers too.`,
     refCards: (per: number, ms: string) => [{ k: "Per pay", v: `₹${per}` }, { k: "25 pays", v: ms }, { k: "Payout", v: "UPI weekly" }],
     refCta1: "My referral code →",
     refCta2: "Join as referrer",
@@ -351,8 +351,8 @@ const TEXT = {
       { q: "Is there chatting? How do we talk?", a: `No chatting — that's it. Send "💌 Interest" (1 credit) to a profile you like. Your profile + details reach them on WhatsApp. If they Accept, both numbers auto-exchange on WhatsApp — talk directly. On Decline your credit is refunded (our trust policy).` },
       { q: "When is the number visible? Do you share directly?", a: "The number stays locked when you send interest. Numbers exchange only after they Accept — only when both agree. So spam calls, fake IDs and fraud are all blocked. Top matrimony sites use this same consent logic; we just do it fast on WhatsApp." },
       { q: "Is my photo visible in public?", a: "With Photo-Private ON it shows blurred in public — watermarked on WhatsApp/Telegram cards too. Clear photos only after interest accept. Watermark + report system acts on screenshot misuse." },
-      { q: "Which channels will my profile be posted to?", a: `Best-fit channels (max 5) from ${total}, based on your caste + state + job — e.g. Reddy TS Bride Software → @TSBRIDE + @manavivaha_reddy_bride + @manavivaha_software. Main + caste-wise (bride/groom separate) + religion + special, all covered.` },
-      { q: "Does it come on WhatsApp too? Is anti-ban safe?", a: "Yes — after the Telegram post it also goes to WhatsApp channels/groups. We post like a human: 120–170 second random gaps, typing simulation, daily caps, night pause — very low WhatsApp ban risk. Interest arrivals also notify you on WhatsApp with a profile card." },
+      { q: "Which channels will my profile be posted to?", a: `Best-fit channels (max 5) from ${total}, based on your caste + state + job — Region + Caste-wise (bride/groom separate) + Religion + Special channels, all covered.` },
+      { q: "Does it come on WhatsApp too?", a: "Yes — after the Telegram post it also goes to WhatsApp channels/groups. Interest arrivals also notify you on WhatsApp with a profile card." },
       { q: "What about fraud/fake profiles?", a: "DOB + OTP verify, photo watermark, 3 reports → auto hide, fraud alerts in @manavivaha_alerts. Report advance-money demands immediately — action within 24h. Declined credits are refunded." },
     ],
   },
@@ -694,7 +694,7 @@ export default function Home() {
                     <button className="flex-1 bg-white/10 text-white text-[12px] font-bold rounded-xl py-2">❌ Decline (refund)</button>
                   </div>
                   <div className="text-[10px] text-gray-400 text-center pt-1">
-                    🛡️ Mana posts: 120–170s random gap • typing simulation • daily caps
+                    🛡️ {te ? "మీ number safe గా ఉంటుంది — accept చేస్తేనే exchange" : "Your number stays safe — exchanged only on accept"}
                   </div>
                 </div>
               </div>
@@ -764,8 +764,10 @@ export default function Home() {
                 </div>
               ))}
             </div>
-            <div className="mt-3 bg-navy text-white rounded-xl p-3 text-[11px] font-mono overflow-x-auto scrollbar-hide">
-              Reddy + TS + Bride + Software → <span className="text-gold">@TSBRIDE → @manavivaha_reddy → @manavivaha_software</span> (max 5 channels)
+            <div className="mt-3 bg-navy text-white rounded-xl p-3 text-[11px]">
+              {te
+                ? <>ఉదా: Reddy + TS + Software job → <span className="text-gold font-bold">TS Bride/Groom + Reddy + Software</span> ఛానళ్లలో ప్రొఫైల్ కనిపిస్తుంది</>
+                : <>e.g. Reddy + TS + Software job → profile shows in <span className="text-gold font-bold">TS Bride/Groom + Reddy + Software</span> channels</>}
             </div>
           </div>
         </Reveal>

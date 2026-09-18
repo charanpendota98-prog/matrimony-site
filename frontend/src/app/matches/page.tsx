@@ -688,7 +688,7 @@ export default function MatchesAdvanced() {
             {sending === row.tsap_id ? duo("Sending…", "పంపిస్తున్నాం…") : `💌 ${duo("Interest (1 credit)", "ఇంట్రెస్ట్ (1 క్రెడిట్)")}`}
           </button>
           <a href={SITE_CONFIG.unlockBot(row.tsap_id)} target="_blank" rel="noreferrer"
-            title={duo("Bot opens — number for 1 credit", "బాట్ ఓపెన్ అవుతుంది — 1 క్రెడిట్‌తో నంబర్ వస్తుంది")}
+            title={duo("Opens on Telegram — number for 1 credit", "టెలిగ్రామ్‌లో ఓపెన్ అవుతుంది — 1 క్రెడిట్‌తో నంబర్ వస్తుంది")}
             className="flex-1 min-w-[140px] py-2.5 rounded-xl gold-gradient text-maroon text-[12px] font-bold text-center">
             📞 {duo("Full details + Number", "పూర్తి వివరాలు + నంబర్")}
           </a>

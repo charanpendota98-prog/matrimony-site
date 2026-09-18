@@ -670,11 +670,15 @@ const set = (k: string, v: any) => {
             <div className="text-5xl">🎉</div>
             <h1 className="mt-2 text-2xl font-bold">{T("Profile ready అయ్యింది!", "Profile ready!")}</h1>
             <p className="text-[13px] opacity-90 mt-1 telugu">{T("మీ ID + card కింద ఉంది — WhatsApp status లో share చెయ్యండి, reach double అవుతుంది.", "Your ID + card are below — share on WhatsApp status, reach doubles.")}</p>
-            <div className="mt-4 inline-flex items-center gap-2 bg-white/10 border border-white/25 rounded-2xl px-4 py-3">
-              <span className="font-mono text-lg font-bold">{tsap}</span>
-              <button onClick={() => copy(tsap, "id")} className="text-[11px] font-bold gold-gradient text-maroon px-3 py-1.5 rounded-full">
-                {copied === "id" ? "copied ✓" : "copy"}
-              </button>
+            <div className="mt-4 inline-flex flex-col items-center gap-1.5 bg-white/10 border border-gold/40 rounded-2xl px-6 py-4 shadow-brandLg">
+              <span className="text-[10px] font-bold uppercase tracking-widest opacity-70">{T("మీ ప్రొఫైల్ ID", "Your Profile ID")}</span>
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-2xl font-extrabold tracking-wide text-gold">{tsap}</span>
+                <button onClick={() => copy(tsap, "id")} className="text-[11px] font-bold gold-gradient text-maroon px-3 py-1.5 rounded-full">
+                  {copied === "id" ? "✓" : "📋"}
+                </button>
+              </div>
+              <span className="text-[10px] opacity-70">{T("ఈ ID తో మీ ప్రొఫైల్ ఎప్పుడైనా వెతకవచ్చు", "Search your profile anytime with this ID")}</span>
             </div>
           </div>
         </section>
@@ -682,10 +686,19 @@ const set = (k: string, v: any) => {
         <div className="max-w-3xl mx-auto px-4 py-6 space-y-4">
           {result.publish_targets?.length ? (
             <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4">
-              <div className="font-bold text-emerald-900">{T("📢 Auto-post queue అయ్యింది", "📢 Auto-post queued")}</div>
-              <div className="text-[12px] text-emerald-800 mt-1">
-                {result.publish_targets.join(" • ")} {T("+ WhatsApp (anti-ban random gap తో)", "+ WhatsApp (with anti-ban random gap)")}
+              <div className="font-bold text-emerald-900 text-[15px]">📢 {T("మీ ప్రొఫైల్ ఇక్కడ post అవుతుంది", "Your profile is posted here")}</div>
+              <div className="text-[12px] text-emerald-800 mt-1 telugu">
+                {T("మీ కులం/ప్రాంతం బట్టి ఈ ఛానళ్లలో + WhatsApp లో మీ ప్రొఫైల్ కనిపిస్తుంది — రోజూ కొత్త సంబంధాలు చూడాలంటే join అవ్వండి:", "Based on your caste/region your profile shows in these channels + WhatsApp — join them to see new matches every day:")}
               </div>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {result.publish_targets.map((t: string) => (
+                  <span key={t} className="inline-flex items-center rounded-full bg-white border border-emerald-300 text-emerald-900 font-bold text-[11px] px-2.5 py-1">{t}</span>
+                ))}
+              </div>
+              <a href={SITE_CONFIG.botUrl} target="_blank" rel="noreferrer"
+                className="mt-3 inline-flex items-center gap-1.5 rounded-xl maroon-gradient text-white font-bold text-[12px] px-4 py-2.5">
+                ✈️ {T("Telegram లో join అవ్వండి", "Join on Telegram")}
+              </a>
             </div>
           ) : null}
 
@@ -749,15 +762,17 @@ const set = (k: string, v: any) => {
                   ))}
                 </div>
                 {(result.welcome_pack.channels || []).length > 0 && (
-                  <div className="mt-2">
-                    <div className="text-[12px] font-bold text-maroon">📢 Mee caste channels — daily matches ikkada</div>
-                    <div className="mt-1 flex flex-wrap gap-1.5">
+                  <div className="mt-3 bg-white rounded-xl border border-gold/40 p-3">
+                    <div className="text-[13px] font-bold text-maroon">📢 {T("మీ కులం/ప్రాంతానికి సంబంధించిన సంబంధాలు ఇక్కడ వస్తాయి — Join అవ్వండి", "New matches for your caste/region come here — Join now")}</div>
+                    <div className="mt-2 space-y-1.5">
                       {(result.welcome_pack.channels || []).map((ch: any) => (
-                        <span key={ch.key} className="inline-flex items-center gap-1 rounded-full border border-maroon/20 bg-white px-2 py-1 text-[10px]">
-                          <b className="text-maroon">{ch.name}</b>
-                          {ch.telegram && <a className="text-sky-700 underline" href={ch.telegram} target="_blank" rel="noopener noreferrer">✈️ Telegram</a>}
-                          {ch.whatsapp && <a className="text-emerald-700 underline" href={ch.whatsapp} target="_blank" rel="noopener noreferrer">🟢 WhatsApp</a>}
-                        </span>
+                        <div key={ch.key} className="flex items-center justify-between gap-2 rounded-xl bg-cream/70 border border-gold/25 px-3 py-2">
+                          <span className="text-[12px] font-bold text-maroon truncate">{ch.name}</span>
+                          <div className="flex gap-1.5 shrink-0">
+                            {ch.telegram && <a className="rounded-full bg-sky-600 text-white text-[10px] font-bold px-2.5 py-1" href={ch.telegram} target="_blank" rel="noopener noreferrer">✈️ Telegram</a>}
+                            {ch.whatsapp && <a className="rounded-full bg-emerald-600 text-white text-[10px] font-bold px-2.5 py-1" href={ch.whatsapp} target="_blank" rel="noopener noreferrer">🟢 WhatsApp</a>}
+                          </div>
+                        </div>
                       ))}
                     </div>
                   </div>

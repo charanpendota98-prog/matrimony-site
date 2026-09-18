@@ -251,7 +251,7 @@ export default function VendorsPage() {
             <h3 className="font-bold">{te ? "📢 మన channels లో మీ promo ఎలా వెళ్తుంది" : "📢 How your promo travels our channels"}</h3>
             <ul className="mt-2 space-y-1 text-[12px] opacity-90">
               <li>{te ? "• Telegram: మీ city/caste channel + 4 main channels (bride/groom TS/AP)" : "• Telegram: your city/caste channel + 4 main channels (bride/groom TS/AP)"}</li>
-              <li>{te ? "• WhatsApp: anti-ban safe order లో (random gaps, daily caps) — status + groups" : "• WhatsApp: in anti-ban safe order (random gaps, daily caps) — status + groups"}</li>
+              <li>{te ? "• WhatsApp: status + groups లో కూడా" : "• WhatsApp: status + groups too"}</li>
               <li>{te ? "• Website: home top banner, /vendors page లో top slot, matches sidebar" : "• Website: home top banner, top slot on /vendors, matches sidebar"}</li>
               <li>{te ? "• Poster with QR — మీ customers direct గా WhatsApp చెయ్యొచ్చు" : "• Poster with QR — your customers can WhatsApp directly"}</li>
             </ul>

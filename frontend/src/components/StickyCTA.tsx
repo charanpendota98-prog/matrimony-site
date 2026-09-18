@@ -43,7 +43,7 @@ export default function StickyCTA() {
           rel="noreferrer"
           className="flex-1 text-center py-3 rounded-xl gold-gradient text-maroon text-sm font-bold"
         >
-          Telegram Bot
+          {lang === "te" ? "టెలిగ్రామ్ ఛానల్" : "Telegram Channel"}
         </a>
       </div>
     </div>

@@ -93,9 +93,13 @@ export default function ReferralPage() {
             <div>
               <h1 className="text-2xl md:text-3xl font-extrabold telugu">🤝 <Duo en="Referral Program" te="రెఫరల్ ప్రోగ్రామ్" /> — <span className="text-[#D4AF37]">{duo("₹50 per paying referral", "చెల్లించిన ప్రతి రెఫరల్‌కు ₹50")}</span></h1>
               <p className="text-xs md:text-sm opacity-90 telugu mt-1">
-{te ? <>మీ friend ₹99 (లేదా ఏదైనా plan ≥₹29) pay చేస్తే — మీకు <b>₹50 flat</b> · వాళ్లకి <b>+1 credit FREE</b> · ₹50 ఒక్కసారి మాత్రమే, అంతే (tiers = badges)
-                {" "}<span className="text-[#D4AF37] font-bold">ఎవ్వరు ఎన్ని అయినా refer చెయ్యొచ్చు — limit లేదు, conditions లేవు.</span></> : <>When your friend pays ₹99 (or any plan ≥₹29) — you get <b>₹50 flat</b> · they get <b>+1 credit FREE</b> · ₹50 only once, that\u2019s it (tiers = badges)
-                {" "}<span className="text-[#D4AF37] font-bold">Anyone can refer any number — no limit, no conditions.</span></>}
+                {te ? <b className="text-[#D4AF37]">మీకు పెళ్లి సంబంధం వెతకాల్సిన అవసరం లేకపోయినా — ఎవరైనా ఈ program లో join అయ్యి సంపాదించుకోవచ్చు.</b>
+                  : <b className="text-[#D4AF37]">You don&apos;t need to be looking for a match yourself — anyone can join this program and earn.</b>}
+              </p>
+              <p className="text-xs md:text-sm opacity-90 telugu mt-2">
+{te ? <>మీ link ద్వారా ఎవరైనా join అయ్యి ₹99 (లేదా ఏదైనా plan) pay చేస్తే — మీకు <b>₹50 flat</b> · వాళ్లకి <b>+1 credit FREE</b>.
+                {" "}<span className="font-bold">ఎంత మందినైనా refer చెయ్యొచ్చు — limit లేదు.</span></> : <>When anyone joins with your link and pays ₹99 (or any plan) — you get <b>₹50 flat</b> · they get <b>+1 credit FREE</b>.
+                {" "}<span className="font-bold">Refer as many people as you like — no limit.</span></>}
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
