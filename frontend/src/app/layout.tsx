@@ -15,32 +15,32 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE),
   title: {
     default: "మనవివాహం — Telugu Matrimony | ₹99 Sambandham | First 3 FREE",
-    template: "%s | మనవివాహం (Mana Vivaha)",
+    template: "%s | మనవివాహం (Manavivaha)",
   },
   description:
-`Telangana + Andhra Pradesh Telugu Matrimony. ${CHANNEL_STATS.total} channels — 4 main (TS/AP × Bride/Groom), caste-wise (bride/groom separate), religion, special. ₹99 Sambandham, first 3 profiles FREE, photo-private, DOB verified, Telegram + WhatsApp auto-post. Register in 3 minutes!`,
+`Telangana + Andhra Pradesh Telugu Matrimony. ${CHANNEL_STATS.total} channels — 4 main (TS/AP × Bride/Groom), caste-wise (bride/groom separate), religion, special. ₹99 Sambandham, first 3 profiles FREE, photo-private, DOB verified, Telegram + WhatsApp channels. Register in 3 minutes!`,
   keywords: [
     "Telugu matrimony", "TS matrimony", "AP matrimony", "Reddy matrimony", "Kamma matrimony",
     "Kapu matrimony", "Madiga matrimony", "Lambada matrimony", "Muslim matrimony Telugu",
     "Christian matrimony Telugu", "second marriage Telugu", "₹99 matrimony", "manavivaha",
     "Telangana brides", "Telangana grooms", "Andhra brides", "NRI Telugu matrimony",
   ],
-  authors: [{ name: "Mana Vivaha" }],
-  applicationName: "Mana Vivaha",
+  authors: [{ name: "మనవివాహం (Manavivaha)" }],
+  applicationName: "మనవివాహం",
   alternates: { canonical: "/" },
   openGraph: {
     type: "website",
     locale: "te_IN",
     url: SITE,
-    siteName: "Mana Vivaha — TSAP Matrimony",
-    title: "Mana Vivaha — TS-AP Telugu Matrimony | ₹99 Sambandham",
+    siteName: "మనవివాహం — Telugu Matrimony",
+    title: "మనవివాహం — Telugu Matrimony | ₹99 సంబంధం",
     description:
 `${CHANNEL_STATS.total} channels, 43 castes (top castes with bride/groom separate), ₹99 → 5 profiles, first 3 FREE. Photo-private + DOB verified.`,
     images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "మనవివాహం — Telugu Matrimony" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Mana Vivaha — TS-AP Telugu Matrimony",
+    title: "మనవివాహం — Telugu Matrimony",
     description: `₹99 Sambandham • First 3 FREE • ${CHANNEL_STATS.total} channels • caste-wise`,
     images: ["/og-image.png"],
   },
@@ -52,7 +52,7 @@ export const metadata: Metadata = {
     apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180" }],
     shortcut: ["/favicon.png"],
   },
-  appleWebApp: { capable: true, title: "Mana Vivaha", statusBarStyle: "default" },
+  appleWebApp: { capable: true, title: "మనవివాహం", statusBarStyle: "default" },
   formatDetection: { telephone: true },
   category: "Matrimony",
 };

@@ -140,12 +140,12 @@ def create_profile_card(user: Dict, output_path: str) -> str:
 
     # Footer — number lock + hashtags + QR
     draw.rectangle([0, H-180, W, H], fill=bg_color)
-    draw.text((20, H-170), f"📞 Number: Interest Accept అయ్యాకే 🔒 • Telegram: Mana Vivaha", fill=GOLD, font=font_small)
+    draw.text((20, H-170), f"📞 Number: Interest Accept అయ్యాకే 🔒 • Telegram: manavivaha.in", fill=GOLD, font=font_small)
     draw.text((20, H-145), f"🔍 ID Search: {CARD_SITE}/search/{user.get('tsap_id','TSAP-1042')}", fill=WHITE, font=font_small)
     hashtags = f"#{user.get('caste','Reddy')} #{user.get('state','TS')} #{user.get('gender','Bride')} #Age{user.get('age','24')} #{user.get('education','BTech')} #{user.get('district','Nalgonda')}"
     draw.text((20, H-120), hashtags, fill=GOLD, font=font_tiny)
     draw.text((20, H-100), f"⚠️ Direct money అడిగితే fraud! • {user.get('tsap_id','TSAP-1042')}", fill=WHITE, font=font_tiny)
-    draw.text((20, H-70), f"Referral: {user.get('referral_code','—')} • Mana Vivaha", fill=WHITE, font=font_tiny)
+    draw.text((20, H-70), f"Referral: {user.get('referral_code','—')} • manavivaha.in", fill=WHITE, font=font_tiny)
 
     # QR code (ID search)
     qr = qrcode.QRCode(version=1, box_size=4, border=1)

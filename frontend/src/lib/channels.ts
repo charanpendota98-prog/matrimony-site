@@ -1,5 +1,5 @@
 // AUTO-GENERATED from backend/channels_config.py — edit registry, run gen_frontend_channels.py
-// Mana Vivaha | TSAP Matrimony — MASTER CHANNEL REGISTRY
+// మనవివాహం | TSAP Matrimony — MASTER CHANNEL REGISTRY
 
 export type Channel = {
   key: string;
@@ -58,11 +58,11 @@ export const ALL_CHANNELS: Channel[] = [
   {
     "key": "official",
     "tier": "L0_OFFICIAL",
-    "name": "📢 TSAP Matrimony Official | మన వివాహ — TS-AP",
+    "name": "📢 మనవివాహం Official — TS-AP",
     "username": "@TSAP_MATRIMONY",
     "link": "https://t.me/TSAP_MATRIMONY",
     "deepLink": "https://t.me/telugumatrimony1_bot?start=ch_tsap_matrimony",
-    "desc": "మన వివాహ — TS/AP తెలుగు మ్యాట్రిమోని. రోజూ టాప్-3 సంబంధాలు, విజయ గాథలు, మోసం హెచ్చరికలు. 3 requests FREE, ₹99లో 5.",
+    "desc": "మనవివాహం — TS/AP తెలుగు మ్యాట్రిమోని. రోజూ టాప్-3 సంబంధాలు, విజయ గాథలు, మోసం హెచ్చరికలు. 3 requests FREE, ₹99లో 5.",
     "hashtags": [
       "#ManaVivaha",
       "#TSAPMatrimony",

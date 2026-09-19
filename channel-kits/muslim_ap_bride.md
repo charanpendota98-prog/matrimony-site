@@ -15,7 +15,7 @@ Username: `manavivaha_muslim_ap_bride`
 Description:
 
 ```
-ఆంధ్రా ముస్లిం వధువులు — AP. ఫోటో గోప్యం, నిజమైన profiles, 3 requests FREE, ₹99లో 5. #Muslim #Bride #AndhraPradesh Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
+ఆంధ్రా ముస్లిం వధువులు — AP. ఫోటో గోప్యం, నిజమైన profiles, 3 requests FREE, ₹99లో 5. #Muslim #Bride #AndhraPradesh Register FREE: manavivaha.in | Telegram: @telugumatrimony1_bot
 ```
 
 ## 2) Bot ni admin cheyyi
@@ -60,7 +60,7 @@ Telugu Matrimony — TS + AP
 ```
 📜 *CHANNEL RULES — 👰 Muslim Ap Brides | Muslim_Ap వధువులు*
 ━━━━━━━━━━━━━━━━━━
-1️⃣ Only Mana Vivaha admin posts — members message చెయ్యకుండా చూడగలరు
+1️⃣ Only మనవివాహం admin posts — members message చెయ్యకుండా చూడగలరు
 2️⃣ Profile details upload చెయ్యాలి అంటే *@telugumatrimony1_bot* కి phone/photo పంపండి
 3️⃣ ఎవరికీ *advance money* పంపొద్దు — డబ్బు అడిగితే వెంటనే screenshot → report
 4️⃣ Caste/religion గురించి discriminative comments, personal abuses → instant ban

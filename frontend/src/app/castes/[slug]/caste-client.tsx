@@ -88,14 +88,14 @@ export default function CasteClient({ caste, role, district, chan, otherChan }: 
               {te ? (
                 <>
                   <li><b>FREE register</b> — personal, family, caste/astro, education, location + photo.</li>
-                  <li><b>Auto-post:</b> మీ profile card <b>{myChanLabel}</b> channel లో + WhatsApp group లో పోస్ట్ అవుతుంది.</li>
+                  <li><b>Profile post:</b> మీ profile card <b>{myChanLabel}</b> channel లో + WhatsApp group లో పోస్ట్ అవుతుంది.</li>
                   <li><b>💌 Interest పంపండి:</b> నచ్చిన profile కి — వాళ్లకి మన WhatsApp నుంచి మీ profile card వెళ్తుంది.</li>
                   <li><b>✅ Accept అయితే:</b> రెండు numbers automatic గా exchange ({role === "bride" ? "groom" : "bride"} side consent తో).</li>
                 </>
               ) : (
                 <>
                   <li><b>Register FREE</b> — personal, family, caste/astro, education, location + photo.</li>
-                  <li><b>Auto-post:</b> your profile card goes to the <b>{myChanLabel}</b> channel + WhatsApp group.</li>
+                  <li><b>Profile post:</b> your profile card goes to the <b>{myChanLabel}</b> channel + WhatsApp group.</li>
                   <li><b>💌 Send interest:</b> to profiles you like — they get your profile card from our WhatsApp.</li>
                   <li><b>✅ On accept:</b> both numbers exchange automatically (with the {role === "bride" ? "groom" : "bride"} side&apos;s consent).</li>
                 </>

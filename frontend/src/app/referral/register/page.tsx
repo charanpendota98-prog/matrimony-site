@@ -190,7 +190,7 @@ export default function PartnerRegisterPage() {
                   className="rounded-full bg-[#7A0C2E] text-white px-4 py-2 text-[12px] font-bold">
                   {copied ? "copied ✓" : (te ? "🔗 Link copy" : "🔗 Copy link")}
                 </button>
-                <a href={`https://wa.me/?text=${encodeURIComponent(te ? `Mana Vivaha లో register అవ్వండి — నా link తో join అయితే మీకు +1 credit FREE 🎁 ${dash.link}` : `Register in Mana Vivaha — join with my link, get +1 credit FREE 🎁 ${dash.link}`)}`}
+                <a href={`https://wa.me/?text=${encodeURIComponent(te ? `మనవివాహం లో register అవ్వండి — నా link తో join అయితే మీకు +1 credit FREE 🎁 ${dash.link}` : `Register on మనవివాహం — join with my link, get +1 credit FREE 🎁 ${dash.link}`)}`}
                   target="_blank" rel="noreferrer"
                   className="rounded-full bg-[#25D366] text-white px-4 py-2 text-[12px] font-bold">
                   📲 WhatsApp share

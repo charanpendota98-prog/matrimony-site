@@ -160,7 +160,7 @@ export default function ProfileView() {
 
   const shareWhatsApp = () => {
     if (!profile) return;
-    const text = `🙏 Mana Vivaha profile — ${firstName(profile.full_name)} (${profile.tsap_id})\n` +
+    const text = `🙏 మనవివాహం profile — ${firstName(profile.full_name)} (${profile.tsap_id})\n` +
       `${profile.age}y • ${profile.height || "—"} • ${profile.caste} • ${profile.education} • ${profile.job}\n` +
       `📍 ${profile.district}, ${profile.state} • 💰 ${profile.salary}\n` +
       `🔒 Number locked — ${te ? "interest accept అయితే exchange" : "exchange on interest accept"}\n` +

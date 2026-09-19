@@ -113,7 +113,7 @@ export default function SiteHeader() {
               మనవివాహం
             </div>
             <div className="hidden sm:block text-[10px] text-gray-500 leading-tight truncate">
-              Mana Vivaha • {te ? "తెలుగు మ్యాట్రిమోనీ" : "Telugu Matrimony"}
+              మనవివాహం • {te ? "తెలుగు మ్యాట్రిమోనీ" : "Telugu Matrimony"}
             </div>
           </div>
         </Link>

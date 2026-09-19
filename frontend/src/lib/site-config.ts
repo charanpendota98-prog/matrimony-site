@@ -9,9 +9,9 @@
 
 export const SITE_CONFIG = {
   // ---------- Brand ----------
-  brandName: "Mana Vivaha",
+  brandName: "మనవివాహం",
   brandNameTe: "మనవివాహం",           // 💍 R13: brand peru neat ga Telugu lo
-  legalName: "TSAP Matrimony",
+  legalName: "Manavivaha",
   logoText: "MV",
   logoImage: "/logo.png",             // 💍 R13: kotha marriage logo (rings + lotus) — MV text kaadu
   tagline: "Telugu Matrimony",
@@ -62,7 +62,7 @@ export const SITE_CONFIG = {
       { price: 99, profiles: 5, label: "Sambandham" },
       { price: 199, profiles: 12, label: "Family" },
       { price: 299, profiles: 25, label: "Premium" },
-      { price: 499, profiles: 50, label: "Vivaha VIP" },
+      { price: 499, profiles: 50, label: "VIP" },
     ],
     addons: [
       { price: 49, label: "Profile Boost (7 days)" },

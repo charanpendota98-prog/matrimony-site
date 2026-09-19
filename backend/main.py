@@ -17,7 +17,7 @@ from matching_engine import (
     calculate_match_score, generate_personalized_reasons, find_top_matches,
     generate_profile_highlights,
 )
-from card_generator import generate_id, create_profile_card, caste_code, generate_profile_id
+from card_generator import generate_id, caste_code, generate_profile_id
 from credits import PLANS, can_view_number, deduct_credit, add_credits, can_search_id
 from referral import (
     generate_referral_code, process_referral_payment, get_leaderboard, parse_referral_type,

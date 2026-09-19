@@ -1,6 +1,6 @@
 "use client";
 /**
- * 🔐 ADMIN PANEL — Mana Vivaha
+ * 🔐 ADMIN PANEL — మనవివాహం
  * ============================
  * Tabs:
  *   👥 Profiles   → approve (auto-post ki veltundi) / manual credit gift

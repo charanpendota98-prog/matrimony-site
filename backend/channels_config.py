@@ -23,8 +23,8 @@ IMPORTANT RULES:
 from typing import Dict, List
 
 BOT_USERNAME = "@telugumatrimony1_bot"
-BRAND = "Mana Vivaha"
-LEGAL_BRAND = "TSAP Matrimony"
+BRAND = "మనవివాహం"
+LEGAL_BRAND = "Manavivaha"
 SITE = "https://manavivaha.in"
 
 # ---------------------------------------------------------------------------
@@ -45,10 +45,10 @@ CHANNELS = {
     # ===================== LEVEL 0 — OFFICIAL =====================
     "official": {
         "tier": "L0_OFFICIAL",
-        "name": "📢 Mana Vivaha Official | TS-AP Matrimony",
+        "name": "📢 మనవివాహం Official — TS-AP",
         "username": "TSAP_MATRIMONY",
         "fallbacks": ["manavivaha", "manavivaha_official", "manavivaha_hub"],
-        "desc": ("Mana Vivaha — TS & AP Telugu Matrimony 🇮🇳\n"
+        "desc": ("మనవివాహం — TS & AP Telugu Matrimony 🇮🇳\n"
                  "₹99 సంబంధం • మొదటి 3 FREE\n"
                  "Daily Top-3 matches, success stories, మోసం జాగ్రత్త alerts.\n"
                  "Website: manavivaha.in • Bot: @telugumatrimony1_bot"),
@@ -263,7 +263,7 @@ CHANNELS = {
                          "route": {"flag": "doctor_teacher"}},
     "success_stories": {"tier": "L4_SPECIAL", "name": "🎉 Success Stories & Reviews",
                         "username": "manavivaha_success", "fallbacks": ["tsap_success"],
-                        "desc": ("Mana Vivaha తో పెళ్లి అయిన couples stories + photos (permission తో).\n"
+                        "desc": ("మనవివాహం తో పెళ్లి అయిన couples stories + photos (permission తో).\n"
                                  "Trust = Growth. Me story పంపండి: manavivaha.in/success"),
                         "hashtags": ["#SuccessStory", "#ManaVivaha"], "wave": 3, "live": False,
                         "route": "manual"},

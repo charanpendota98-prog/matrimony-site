@@ -100,7 +100,7 @@ export default function PayBox({ planCode, price, label }: { planCode: string; p
       order_id: order.rzp_order_id,
       amount: order.checkout_amount_paise,
       currency: "INR",
-      name: "Mana Vivaha",
+      name: "మనవివాహం",
       description: order.label || label,
       handler: async (resp: any) => {
         setBusy(true);

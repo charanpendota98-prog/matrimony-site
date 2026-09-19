@@ -76,7 +76,7 @@ PLANS: Dict[str, Dict] = {
     },
     "S_499": {
         "code": "S_499", "price": 499, "profiles": 50, "validity_days": 90,
-        "label": "Vivaha VIP", "telugu": "₹499 → 50 profiles", "badge": "VIP • ₹10/profile",
+        "label": "VIP", "telugu": "₹499 → 50 profiles", "badge": "VIP",
         "per_profile": 10, "perks": ["50 interest requests", "🎯 Matchmaker assist (మన team call చేసి matches చూపిస్తుంది)",
                                    "⚡ 90-day boost", "💍 Wedding vendor discounts", "Priority WhatsApp support"],
     },

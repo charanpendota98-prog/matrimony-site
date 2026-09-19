@@ -1,6 +1,6 @@
 "use client";
 /**
- * 🏪 VENDOR ADS & DIRECTORY — Mana Vivaha
+ * 🏪 VENDOR ADS & DIRECTORY — మనవివాహం
  * ======================================
  * "Pelli sambandham related vaallaki promotions kooda cheyyali bestga"
  *  • 18 categories (catering, photography, decorations, hall, pandit, makeup...)
@@ -192,7 +192,7 @@ export default function VendorsPage() {
         <section id="packages" className="mt-10">
           <h2 className="font-bold text-maroon text-xl">💰 <Duo en="Ad Packages — publicity for your business" te="మీ వ్యాపారానికి ప్రచారం" /></h2>
           <p className="text-[12px] text-gray-600 mt-1 telugu">
-            {pkgs?.headline || (te ? "మీ business ని Mana Vivaha లో promote చెయ్యండి — ₹149 నుంచి" : "Promote your business in Mana Vivaha — from ₹149")}
+            {pkgs?.headline || (te ? "మీ business ని మనవివాహం లో promote చెయ్యండి — ₹149 నుంచి" : "Promote your business on మనవివాహం — from ₹149")}
           </p>
           <div className="mt-4 grid md:grid-cols-2 lg:grid-cols-3 gap-4">
             {(pkgs?.packages || []).map((p: any) => (
@@ -242,7 +242,7 @@ export default function VendorsPage() {
         {/* WHY */}
         <section className="mt-8 grid md:grid-cols-2 gap-4">
           <div className="bg-white rounded-3xl border border-gold/30 p-5">
-            <h3 className="font-bold text-maroon">{te ? "🎯 ఎందుకు Mana Vivaha?" : "🎯 Why Mana Vivaha?"}</h3>
+            <h3 className="font-bold text-maroon">{te ? "🎯 ఎందుకు మనవివాహం?" : "🎯 Why మనవివాహం?"}</h3>
             <ul className="mt-2 space-y-1 text-[12px] text-gray-700">
               {(pkgs?.why_telugu || []).map((w: string) => <li key={w}>{w}</li>)}
             </ul>

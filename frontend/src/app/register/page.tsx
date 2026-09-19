@@ -1081,7 +1081,7 @@ const set = (k: string, v: any) => {
                 <ul className="mt-1 space-y-0.5 text-emerald-900">
                   <li>✅ <b>{(clarity?.free?.profiles ?? 3)} profiles</b> {T("చూడొచ్చు (full details)", "you can see (full details)")}</li>
                   <li>✅ <b>{(clarity?.free?.requests ?? 3)} interests</b> {T("పంపొచ్చు", "you can send")}</li>
-                  <li>✅ {T("Profile card FREE + auto-post", "Profile card FREE + auto-post")}</li>
+                  <li>✅ {T("Profile card FREE + channel post", "Profile card FREE + channel post")}</li>
                 </ul>
               </div>
               <div className="bg-rose-50 border border-rose-200 rounded-xl p-3">
@@ -1447,8 +1447,8 @@ const set = (k: string, v: any) => {
                 <input type="checkbox" checked={!!f.consent} onChange={(e) => set("consent", e.target.checked)}
                   className="mt-1 w-5 h-5 accent-[#7A0C2E]" />
                 <span className="text-[12px] text-gray-700">
-{T(<>నా details <b>నిజం</b> అని confirm చేస్తున్నాను. <b>Mana Vivaha</b> terms + privacy policy accept చేస్తున్నాను —
-                  details channels లో post అవుతాయి, number accept అయ్యాకే share అవుతుంది.</>, <>I confirm my details are <b>true</b>. I accept <b>Mana Vivaha</b> terms + privacy policy —
+{T(<>నా details <b>నిజం</b> అని confirm చేస్తున్నాను. <b>మనవివాహం</b> terms + privacy policy accept చేస్తున్నాను —
+                  details channels లో post అవుతాయి, number accept అయ్యాకే share అవుతుంది.</>, <>I confirm my details are <b>true</b>. I accept <b>మనవివాహం</b> terms + privacy policy —
                   details post in channels, number shared only after accept.</>)}
                 </span>
               </label>

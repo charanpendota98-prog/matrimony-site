@@ -70,8 +70,8 @@ export default function StoriesClient() {
       <div className="mt-4"><FeaturedStories limit={6} /></div>
       <h2 className="mt-8 text-xl font-extrabold text-rose-900">💬 <Duo en="Community stories" te="మీ కథలు" /></h2>
       <p className="mt-1 text-gray-600">
-{te ? <>Mana Vivaha ద్వారా కలిసిన జంటలు 🎉 — మీకు కూడా ఇలాంటి సంబంధం కావాలంటే{" "}
-        <Link href="/register" className="font-semibold text-rose-700 underline">3 min లో register</Link> (మొదటి 3 FREE).</> : <>Couples united through Mana Vivaha 🎉 — if you want such a match too{" "}
+{te ? <>మనవివాహం ద్వారా కలిసిన జంటలు 🎉 — మీకు కూడా ఇలాంటి సంబంధం కావాలంటే{" "}
+        <Link href="/register" className="font-semibold text-rose-700 underline">3 min లో register</Link> (మొదటి 3 FREE).</> : <>Couples united through మనవివాహం 🎉 — if you want such a match too{" "}
         <Link href="/register" className="font-semibold text-rose-700 underline">register in 3 min</Link> (first 3 FREE).</>}
       </p>
 
@@ -85,7 +85,7 @@ export default function StoriesClient() {
       <div className="mt-6 space-y-4">
         {stories.map((s) => (
           <article key={s.story_id} className="rounded-2xl border border-rose-100 bg-white p-5 shadow-sm">
-            <p className="font-bold text-rose-900">💑 {s.couple_names || "Mana Vivaha జంట"}{s.district ? ` · ${s.district}` : ""}</p>
+            <p className="font-bold text-rose-900">💑 {s.couple_names || "మనవివాహం జంట"}{s.district ? ` · ${s.district}` : ""}</p>
             <p className="mt-2 whitespace-pre-wrap text-gray-700">“{s.text}”</p>
             <div className="mt-3 flex items-center justify-between">
               <button

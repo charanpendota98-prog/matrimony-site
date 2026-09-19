@@ -98,7 +98,7 @@ function PoruthamInner() {
 
   const shareWa = () => {
     if (!res) return;
-    const txt = `💍 10-Porutham Report — Mana Vivaha\n${res.bride?.full_name || res._bride} ❤️ ${res.groom?.full_name || res._groom}\n`
+    const txt = `💍 10-Porutham Report — మనవివాహం\n${res.bride?.full_name || res._bride} ❤️ ${res.groom?.full_name || res._groom}\n`
       + `Score: ${res.score}/${res.max_score} (${res.stars}★)\n${res.verdict}\n`
       + `Details: https://manavivaha.in/porutham`;
     window.open(`https://wa.me/?text=${encodeURIComponent(txt)}`, "_blank");

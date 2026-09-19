@@ -38,7 +38,7 @@ const FALLBACK: HomeStats = {
     { code: "S_99", price: 99, profiles: 5, label: "Sambandham", telugu: "₹99 → 5 profiles", badge: "Entry" },
     { code: "S_199", price: 199, profiles: 12, label: "Family", telugu: "₹199 → 12 profiles", badge: "Popular" },
     { code: "S_299", price: 299, profiles: 25, label: "Premium", telugu: "₹299 → 25 profiles", badge: "Best value" },
-    { code: "S_499", price: 499, profiles: 50, label: "Vivaha VIP", telugu: "₹499 → 50 profiles", badge: "VIP" },
+    { code: "S_499", price: 499, profiles: 50, label: "VIP", telugu: "₹499 → 50 profiles", badge: "VIP" },
   ],
   renewal: { price: 99, profiles: 8 },
   bureau: [
@@ -77,7 +77,7 @@ const TEXT = {
       `${total} channels — Region • Religion • Caste • Special`,
       `₹99 కే సంబంధం — మొదటి ${free} నంబర్లు FREE`,
       "Photo-Private • DOB Verified • Watermark protected",
-      "Telegram + WhatsApp auto-post",
+      "Telegram + WhatsApp channels లో post",
       `${castes} castes: Reddy నుంచి Madiga, Lambada, Boya వరకు`,
       "Muslim • Christian • Inter-faith channels కూడా",
       "Referral — ప్రతి profile కి ₹50",
@@ -98,7 +98,7 @@ const TEXT = {
     howSteps: (total: number) => [
       { n: "01", t: "Register", d: "Personal, family, caste/astro, education, location + photo. 5 easy steps, mobile లోనే.", icon: "📝" },
       { n: "02", t: "Card + ID ready", d: "Profile card ఆటోమేటిక్‌గా generate అవుతుంది — అన్ని details, QR, watermark తో.", icon: "🎴" },
-      { n: "03", t: "Channels లో auto-post", d: `మీ caste + state + job బట్టి ${total} channels నుంచి సరిపోయేవి — Telegram + WhatsApp.`, icon: "📢" },
+      { n: "03", t: "Channels లో మీ profile", d: `మీ caste + state + job బట్టి ${total} channels నుంచి సరిపోయేవి — Telegram + WhatsApp.`, icon: "📢" },
       { n: "04", t: "Interest పంపు → number exchange", d: "నచ్చిన profile కి 💌 Interest పంపు (1 credit). Accept అయితే రెండు numbers WhatsApp లో ఆటోమేటిక్.", icon: "💌" },
     ],
     reqEyebrow: "అడ్వాన్స్‌డ్ రిక్వెస్ట్ విధానం",
@@ -122,7 +122,7 @@ const TEXT = {
     flow: [
       { t: "1. మీ వివరాలు", d: "5 సులభమైన స్టెప్స్ + ఫోటో" },
       { t: "2. సరైన ఛానల్ ఎంపిక", d: "కులం × రాష్ట్రం × వృత్తి బట్టి" },
-      { t: "3. Telegram + WhatsApp", d: "ప్రొఫైల్ కార్డ్ auto-post" },
+      { t: "3. Telegram + WhatsApp", d: "మీ profile card పోస్ట్" },
       { t: "4. మీకు నోటిఫికేషన్", d: "ఎవరైనా interest పంపితే వెంటనే మీకు తెలుస్తుంది" },
     ],
     casteEyebrow: "కులాల వారీగా",
@@ -139,13 +139,13 @@ const TEXT = {
     pricingSub: (free: number, p99: PlanStat, p199: PlanStat, p299: PlanStat, p499: PlanStat) =>
       `Register FREE. మొదటి ${free} interest requests FREE. తర్వాత ₹${p99.price} → ${p99.profiles} profiles, ₹${p199.price} → ${p199.profiles}, ₹${p299.price} → ${p299.profiles}, ₹${p499.price} → ${p499.profiles}. ప్రతి tier కి ₹/profile తగ్గుతుంది — decline అయితే credit refund.`,
     planTags: ["Start ఇక్కడే", "Entry • ₹20/profile", "Most popular • ₹17/profile", "Best value • ₹12/profile", "VIP • ₹10/profile"],
-    planNames: ["FREE", "Sambandham", "Family", "Premium", "Vivaha VIP"],
+    planNames: ["FREE", "Sambandham", "Family", "Premium", "VIP"],
     planCredits: (free: number, p99: PlanStat, p199: PlanStat, p299: PlanStat, p499: PlanStat) => [
       `మొదటి ${free} profiles FREE`, `${p99.profiles} profiles • 30 days`, `${p199.profiles} profiles • 45 days`,
       `${p299.profiles} profiles • 60 days`, `${p499.profiles} profiles • 90 days`,
     ],
     planFeatures: [
-      ["3 interest requests FREE", "WhatsApp లో మీ profile share", "channel network auto-post", "ID search always open", "Photo-private mode"],
+      ["3 interest requests FREE", "WhatsApp లో మీ profile share", "channel network లో post", "ID search always open", "Photo-private mode"],
       ["5 interest requests", "⚡ 7-day profile boost (channel top)", "Accept అయితే number exchange", "Decline అయితే credit refund", "Referral తో ₹50 earn"],
       ["12 interest requests", "✅ Photo-verified badge", "🔮 Free 10-porutham report (1)", "Daily fresh matches digest", "Family bureau assist"],
       ["25 interest requests", "⚡ 30-day boost (top of channel)", "👀 Who-viewed-me 60 days", "✅ Verified badge", "Telugu dedicated support"],
@@ -174,7 +174,7 @@ const TEXT = {
     faqTitle: "తరచూ అడిగేవి — స్పష్టమైన సమాధానాలు",
     ctaTitle: "ఇప్పుడే మొదలుపెట్టండి — FREE",
     ctaSub: (total: number, free: number, p99: PlanStat, p199: PlanStat, p299: PlanStat, p499: PlanStat) =>
-      `Register FREE → profile card ready → ${total} channels network లో auto-post → మొదటి ${free} interest requests FREE. తర్వాత ₹${p99.price} → ${p99.profiles} profiles, ₹${p199.price} → ${p199.profiles}, ₹${p299.price} → ${p299.profiles}, ₹${p499.price} → ${p499.profiles} (VIP).`,
+      `Register FREE → profile card ready → ${total} channels network లో post → మొదటి ${free} interest requests FREE. తర్వాత ₹${p99.price} → ${p99.profiles} profiles, ₹${p199.price} → ${p199.profiles}, ₹${p299.price} → ${p299.profiles}, ₹${p499.price} → ${p499.profiles} (VIP).`,
     ctaReg: "ఉచిత నమోదు",
     ctaBot: "Telegram లో చేరండి",
     trustTitle: "🛡️ నమ్మకం & భద్రత",
@@ -209,7 +209,7 @@ const TEXT = {
     liveBadge: (live: number, total: number) => `Your profile — LIVE across ${total}+ channels`,
     heroTitle: "Perfect matches, close to home",
     heroSubA: "Telangana + Andhra Pradesh Telugu Matrimony",
-    heroSubB: (castes: number, total: number) => `Region • Religion • ${castes} Castes • Special — ${total} channels. One registration auto-posts your profile everywhere it fits.`,
+    heroSubB: (castes: number, total: number) => `Region • Religion • ${castes} Castes • Special — ${total} channels. One registration puts your profile everywhere it fits.`,
     heroSubC: (free: number) => `₹99 Sambandham — first ${free} profiles FREE.`,
     registerCta: "Register FREE",
     botCta: "Join on Telegram",
@@ -229,7 +229,7 @@ const TEXT = {
       `${total} channels — Region • Religion • Caste • Special`,
       `₹99 Sambandham — first ${free} profiles FREE`,
       "Photo-Private • DOB Verified • Watermark protected",
-      "Telegram + WhatsApp auto-post",
+      "Telegram + WhatsApp channels లో post",
       `${castes} castes: Reddy to Madiga, Lambada, Boya`,
       "Muslim • Christian • Inter-faith channels too",
       "Referral — ₹50 per profile",
@@ -250,7 +250,7 @@ const TEXT = {
     howSteps: (total: number) => [
       { n: "01", t: "Register", d: "Personal, family, caste/astro, education, location + photo. 5 easy steps on mobile.", icon: "📝" },
       { n: "02", t: "Card + ID ready", d: "Profile card is auto-generated — all details, QR and watermark.", icon: "🎴" },
-      { n: "03", t: "Auto-post to channels", d: `Best-fit channels from ${total}, based on your caste + state + job — Telegram + WhatsApp.`, icon: "📢" },
+      { n: "03", t: "Post to channels", d: `Best-fit channels from ${total}, based on your caste + state + job — Telegram + WhatsApp.`, icon: "📢" },
       { n: "04", t: "Send interest → number exchange", d: "Send 💌 Interest (1 credit) to profiles you like. On accept, both numbers exchange automatically on WhatsApp.", icon: "💌" },
     ],
     reqEyebrow: "Advanced request model",
@@ -274,7 +274,7 @@ const TEXT = {
     flow: [
       { t: "1. Your details", d: "5 easy steps + photo" },
       { t: "2. Right channel picked", d: "Based on caste × state × occupation" },
-      { t: "3. Telegram + WhatsApp", d: "Profile card auto-posted" },
+      { t: "3. Telegram + WhatsApp", d: "Profile card posted" },
       { t: "4. You get notified", d: "The moment someone sends interest" },
     ],
     casteEyebrow: "Caste-wise",
@@ -291,13 +291,13 @@ const TEXT = {
     pricingSub: (free: number, p99: PlanStat, p199: PlanStat, p299: PlanStat, p499: PlanStat) =>
       `Register FREE. First ${free} interest requests FREE. Then ₹${p99.price} → ${p99.profiles} profiles, ₹${p199.price} → ${p199.profiles}, ₹${p299.price} → ${p299.profiles}, ₹${p499.price} → ${p499.profiles}. ₹/profile drops every tier — credit refund on decline.`,
     planTags: ["Start here", "Entry • ₹20/profile", "Most popular • ₹17/profile", "Best value • ₹12/profile", "VIP • ₹10/profile"],
-    planNames: ["FREE", "Sambandham", "Family", "Premium", "Vivaha VIP"],
+    planNames: ["FREE", "Sambandham", "Family", "Premium", "VIP"],
     planCredits: (free: number, p99: PlanStat, p199: PlanStat, p299: PlanStat, p499: PlanStat) => [
       `First ${free} profiles FREE`, `${p99.profiles} profiles • 30 days`, `${p199.profiles} profiles • 45 days`,
       `${p299.profiles} profiles • 60 days`, `${p499.profiles} profiles • 90 days`,
     ],
     planFeatures: [
-      ["3 interest requests FREE", "Your profile shared on WhatsApp", "Channel network auto-post", "ID search always open", "Photo-private mode"],
+      ["3 interest requests FREE", "Your profile shared on WhatsApp", "Profile posted in channels", "ID search always open", "Photo-private mode"],
       ["5 interest requests", "⚡ 7-day profile boost (channel top)", "Number exchange on accept", "Credit refund on decline", "Earn ₹50 via referral"],
       ["12 interest requests", "✅ Photo-verified badge", "🔮 Free 10-porutham report (1)", "Daily fresh matches digest", "Family bureau assist"],
       ["25 interest requests", "⚡ 30-day boost (top of channel)", "👀 Who-viewed-me 60 days", "✅ Verified badge", "Dedicated Telugu support"],
@@ -326,7 +326,7 @@ const TEXT = {
     faqTitle: "Frequently asked — clear answers",
     ctaTitle: "Start now — it's FREE",
     ctaSub: (total: number, free: number, p99: PlanStat, p199: PlanStat, p299: PlanStat, p499: PlanStat) =>
-      `Register FREE → profile card ready → auto-post across ${total} channels → first ${free} interest requests FREE. Then ₹${p99.price} → ${p99.profiles} profiles, ₹${p199.price} → ${p199.profiles}, ₹${p299.price} → ${p299.profiles}, ₹${p499.price} → ${p499.profiles} (VIP).`,
+      `Register FREE → profile card ready → posted across ${total} channels → first ${free} interest requests FREE. Then ₹${p99.price} → ${p99.profiles} profiles, ₹${p199.price} → ${p199.profiles}, ₹${p299.price} → ${p299.profiles}, ₹${p499.price} → ${p499.profiles} (VIP).`,
     ctaReg: "Register FREE",
     ctaBot: "Join on Telegram",
     trustTitle: "🛡️ Trust & Safety",
@@ -399,7 +399,7 @@ export default function Home() {
   const tickerItems = L.ticker(hs.channels_total, hs.castes_covered, hs.free_first);
 
   const PLANS = [
-    { name: L.planNames[0], price: "₹0", tag: L.planTags[0], credits: L.planCredits(hs.free_first, p99, p199, p299, p499)[0], features: (L.planFeatures[0] as string[]).map((f) => f.replace("channel network auto-post", `${hs.channels_total} channel network`).replace("channel network", `${hs.channels_total} channels`)) },
+    { name: L.planNames[0], price: "₹0", tag: L.planTags[0], credits: L.planCredits(hs.free_first, p99, p199, p299, p499)[0], features: (L.planFeatures[0] as string[]).map((f) => f.replace("channel network లో post", `${hs.channels_total} channel network`).replace("channel network", `${hs.channels_total} channels`)) },
     { name: L.planNames[1], price: `₹${p99.price}`, tag: L.planTags[1], credits: L.planCredits(hs.free_first, p99, p199, p299, p499)[1], features: L.planFeatures[1] as string[] },
     { name: L.planNames[2], price: `₹${p199.price}`, tag: L.planTags[2], popular: true, credits: L.planCredits(hs.free_first, p99, p199, p299, p499)[2], features: L.planFeatures[2] as string[] },
     { name: L.planNames[3], price: `₹${p299.price}`, tag: L.planTags[3], credits: L.planCredits(hs.free_first, p99, p199, p299, p499)[3], features: L.planFeatures[3] as string[] },
@@ -527,7 +527,7 @@ export default function Home() {
               <div className="relative bg-white rounded-[2rem] p-5 card-shadow-lg border border-gold/30">
 <div className="flex items-center flex-wrap gap-1.5">
                   <div className="text-[10px] font-bold text-gold-deep uppercase tracking-widest">
-                    Mana Vivaha
+                    మనవివాహం
                   </div>
                   <div className="ml-auto flex items-center gap-1.5">
                     <div className="text-[10px] px-2 py-1 rounded-full bg-slate-100 text-slate-500 font-bold whitespace-nowrap">
@@ -806,7 +806,7 @@ export default function Home() {
           ))}
         </div>
 
-        {/* Auto-post flow explainer */}
+        {/* Channel post flow explainer */}
         <Reveal>
           <div className="mt-5 bg-white rounded-2xl p-5 card-shadow border border-gold/25">
             <div className="font-bold text-maroon text-[15px]">{L.flowTitle}</div>

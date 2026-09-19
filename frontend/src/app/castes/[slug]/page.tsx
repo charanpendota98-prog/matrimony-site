@@ -20,11 +20,11 @@ export function generateMetadata({ params }: Params): Metadata {
   const title = `${caste.name} ${role === "bride" ? "Bride" : "Groom"} ${district ? district.name : "TS/AP"} Matrimony`;
   return {
     title,
-    description: `${caste.name} ${role} profiles ${where} — Mana Vivaha (TSAP Matrimony). ${caste.name} ${role === "bride" ? "brides" : "grooms"} Telegram channel లో verified profiles, WhatsApp లో interest పంపండి, ₹99 → 5 profiles. మొదటి 3 requests FREE. Chatting లేదు — consent based contact.`,
+    description: `${caste.name} ${role} profiles ${where} — మనవివాహం (Manavivaha). ${caste.name} ${role === "bride" ? "brides" : "grooms"} Telegram channel లో verified profiles, WhatsApp లో interest పంపండి, ₹99 → 5 profiles. మొదటి 3 requests FREE. Chatting లేదు — consent based contact.`,
     keywords: [
       `${caste.name.toLowerCase()} matrimony`, `${caste.name.toLowerCase()} bride ${district?.name || "hyderabad"}`,
       `${caste.name.toLowerCase()} groom`, `${caste.name.toLowerCase()} sambandham`,
-      `telugu matrimony ${district?.name || "telangana"}`, "TSAP matrimony", "manavivaha",
+      `telugu matrimony ${district?.name || "telangana"}`, "Telugu matrimony", "manavivaha",
     ],
     alternates: { canonical: `${SITE_CONFIG.siteUrl}/castes/${params.slug}` },
   };

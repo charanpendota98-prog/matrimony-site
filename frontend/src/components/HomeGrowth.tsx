@@ -120,7 +120,7 @@ export function ReligionsStrip() {
         <SectionHeading
           eyebrow={duo("All faiths welcome", "అన్ని మతాలకు స్వాగతం")}
           title={duo("Hindu • Muslim • Christian", "హిందూ • ముస్లిం • క్రిస్టియన్")}
-          subtitle={duo("Select a religion — all its castes A–Z, auto-posted to your caste channel.", "Religion select చెయ్యగానే ఆ మతం castes అన్నీ A–Z — మీ caste channel లో auto-post.")}
+          subtitle={duo("Select a religion — all its castes A–Z, posted to your caste channel.", "Religion select చెయ్యగానే ఆ మతం castes అన్నీ A–Z — మీ caste channel లో post.")}
           telugu
         />
       </Reveal>

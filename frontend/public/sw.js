@@ -54,7 +54,7 @@ self.addEventListener("message", (e) => { if (e.data === "skipWaiting") self.ski
 self.addEventListener("push", (event) => {
   let d = {};
   try { d = event.data ? event.data.json() : {}; } catch { d = {}; }
-  const title = d.title || "💍 Mana Vivaha";
+  const title = d.title || "💍 మనవివాహం";
   const body = d.body || "కొత్త matches వచ్చాయి — చూడండి!";
   const url = d.url || "/matches";
   event.waitUntil(

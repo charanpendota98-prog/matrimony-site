@@ -270,7 +270,7 @@ class CardBuilder:
         # verified tick block
         d.rounded_rectangle([x, self.y + 192, W - 30, self.y + 236], 12, fill=(238, 246, 238))
         d.text((x + 12, self.y + 200),
-               f"{ICON['check']} Mana Vivaha verified profile  {ICON['dot']}  Photo watermark  {ICON['dot']}  మోసం జాగ్రత్త",
+               f"{ICON['check']} మనవివాహం verified profile  {ICON['dot']}  Photo watermark  {ICON['dot']}  మోసం జాగ్రత్త",
                fill=GREEN, font=F(13, True))
         self.y += 316
 
@@ -345,7 +345,7 @@ class CardBuilder:
         d.rectangle([0, y0, W, y0 + 4], fill=GOLD)
         rid = _s(u.get("tsap_id"), "TSAP-F-2025-XXXX")
 
-        d.text((24, y0 + 16), f"Number: Interest Accept అయ్యాకే  {ICON['dot']}  🔒 Safe  {ICON['dot']}   Telegram: Mana Vivaha",
+        d.text((24, y0 + 16), f"Number: Interest Accept అయ్యాకే  {ICON['dot']}  🔒 Safe  {ICON['dot']}   Telegram: మనవివాహం",
                fill=GOLD_LIGHT, font=F(15, True))
         d.text((24, y0 + 44), f"ID Search: {SITE}/search/{rid}   {ICON['dot']}   Register FREE: {SITE}/register",
                fill=WHITE, font=F(13))
@@ -358,7 +358,7 @@ class CardBuilder:
                fill=GOLD_LIGHT, font=F(12))
         d.text((24, y0 + 114), "! Direct గా money అడిగితే వెంటనే report చెయ్యండి - మోసం జాగ్రత్త!",
                fill=(255, 190, 190), font=F(12, True))
-        d.text((24, y0 + 142), f"{rid}  {ICON['dot']}  (c) Mana Vivaha {os.getenv('YEAR','2025')}",
+        d.text((24, y0 + 142), f"{rid}  {ICON['dot']}  (c) మనవివాహం {os.getenv('YEAR','2025')}",
                fill=(200, 200, 200), font=F(11))
 
         # QR → ID search

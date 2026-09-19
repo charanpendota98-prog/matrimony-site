@@ -110,7 +110,7 @@ export default function VendorDetailPage({ params }: { params: { id: string } })
             <div className="md:col-span-2 space-y-4">
               <div className="bg-white rounded-3xl border border-gold/30 p-5">
                 <div className="font-bold text-maroon">About</div>
-                <p className="mt-2 text-[13px] text-gray-700">{v.about || (te ? "Mana Vivaha verified vendor." : "Mana Vivaha verified vendor.")}</p>
+                <p className="mt-2 text-[13px] text-gray-700">{v.about || (te ? "మనవివాహం verified vendor." : "మనవివాహం verified vendor.")}</p>
                 <div className="mt-3 grid sm:grid-cols-2 gap-2 text-[12px]">
                   {v.service_areas && <div className="bg-cream rounded-xl px-3 py-2">🗺️ Service areas: <b>{v.service_areas}</b></div>}
                   {v.price_range && <div className="bg-cream rounded-xl px-3 py-2">💰 Rates: <b>{v.price_range}</b></div>}

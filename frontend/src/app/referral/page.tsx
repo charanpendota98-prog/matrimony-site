@@ -1,6 +1,6 @@
 "use client";
 /**
- * 🤝 REFERRAL DASHBOARD — Mana Vivaha 2.0
+ * 🤝 REFERRAL DASHBOARD — మనవివాహం 2.0
  * ======================================
  * "₹99 kabatti first time vallu pay chestharu — kabatti manam ₹50 istham referal vallaki."
  * Ee page live API nunchi: code, link, clicks, registrations, payments, wallet,

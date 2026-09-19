@@ -53,7 +53,7 @@ export default function SiteFooter() {
               className="w-10 h-10 rounded-xl object-cover" />
             <div>
               <div className="font-bold text-gold leading-none telugu text-[16px]">మనవివాహం</div>
-              <div className="text-[10px] opacity-70">Mana Vivaha • {te ? "తెలుగు మ్యాట్రిమోనీ" : "Telugu Matrimony"}</div>
+              <div className="text-[10px] opacity-70">మనవివాహం • {te ? "తెలుగు మ్యాట్రిమోనీ" : "Telugu Matrimony"}</div>
             </div>
           </div>
           <div className="text-xs opacity-75 mt-3 telugu leading-relaxed">
