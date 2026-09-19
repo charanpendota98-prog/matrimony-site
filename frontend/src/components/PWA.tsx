@@ -71,10 +71,10 @@ export default function PWA() {
     <div className="fixed bottom-3 left-3 right-3 md:left-auto md:right-4 md:w-[360px] z-40 no-print">
       <div className="bg-white rounded-2xl border border-gold/40 shadow-brand p-3 flex items-center gap-3 step-slide">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/icons/icon-192.png" alt="మనవివాహం app" className="w-11 h-11 rounded-xl border border-gold/30" />
+        <img src="/icons/icon-192.png" alt="మన వివాహ app" className="w-11 h-11 rounded-xl border border-gold/30" />
         <div className="flex-1 min-w-0">
           <div className="text-[12px] font-bold text-maroon">
-            {te ? "📲 మనవివాహం app లాగా install చేసుకోండి" : "📲 Install మనవివాహం as app"}
+            {te ? "📲 మన వివాహ app లాగా install చేసుకోండి" : "📲 Install మన వివాహ as app"}
           </div>
           {iosMode ? (
             <div className="text-[11px] text-gray-600 telugu">

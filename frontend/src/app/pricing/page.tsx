@@ -1,6 +1,6 @@
 "use client";
 /**
- * 💰 PRICING — మనవివాహం (R13: BA-level minimal — sodi teesi, clean & premium)
+ * 💰 PRICING — మన వివాహ (R13: BA-level minimal — sodi teesi, clean & premium)
  * ------------------------------------------------------------------
  * Plan cards + కొన్ని essentials matrame. Okka line lo clarity:
  *   FREE start → ₹29/₹99/₹199/₹299/₹499 → numbers accept తర్వాతే.

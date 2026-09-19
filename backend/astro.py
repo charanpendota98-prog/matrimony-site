@@ -1,5 +1,5 @@
 """
-🪐 WAVE 13 — PEDDA ASTROLOGY SYSTEM (Mana Vivaha)
+🪐 WAVE 13 — PEDDA ASTROLOGY SYSTEM (మన వివాహ)
 =================================================
 1. 36-GUNA (Ashtakoota) real vedic math — nakshatra + rasi nunchi:
    Varna 1 · Vashya 2 · Tara 3 · Yoni 2 · Graha-Maitri 5 · Gana 6 · Bhakoot 7 · Nadi 8 = 36

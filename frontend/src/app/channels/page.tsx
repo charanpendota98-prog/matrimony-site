@@ -59,7 +59,7 @@ export default function ChannelsPage() {
 
         {/* Hero + stats */}
         <div className="maroon-gradient rounded-[1.5rem] p-6 text-white">
-          <h1 className="font-bold text-xl">📢 <Duo en="మనవివాహం — Channel Network" te="మన ఛానల్ నెట్‌వర్క్" /></h1>
+          <h1 className="font-bold text-xl">📢 <Duo en="మన వివాహ — Channel Network" te="మన ఛానల్ నెట్‌వర్క్" /></h1>
           <p className="text-xs sm:text-sm mt-2 opacity-90 leading-relaxed">
             {te
               ? <>మీరు నమోదు చేసుకున్నాక, మీ ప్రొఫైల్ మీ ప్రాంతం, కులం, మతం బట్టి సరిపోయే ఛానళ్లలో దానంతటదే పోస్ట్ అవుతుంది — మీరు వేరే ఏమీ చెయ్యక్కర్లేదు.</>
@@ -166,7 +166,7 @@ export default function ChannelsPage() {
 
         {/* Footer CTA */}
         <div className="mt-4 bg-white rounded-[1.5rem] p-6 card-shadow text-center">
-          <div className="font-bold text-[#7A0C2E]">{te ? <>మనవివాహం — {CHANNEL_STATS.total} ఛానళ్లు, ఒక్క వేదిక</> : <>మనవివాహం — {CHANNEL_STATS.total} channels, one platform</>}</div>
+          <div className="font-bold text-[#7A0C2E]">{te ? <>మన వివాహ — {CHANNEL_STATS.total} ఛానళ్లు, ఒక్క వేదిక</> : <>మన వివాహ — {CHANNEL_STATS.total} channels, one platform</>}</div>
           <div className="text-xs text-gray-500 mt-1">{te ? <>₹99 సంబంధం • మొదటి 3 FREE • ఇప్పుడు {liveCount} ఛానళ్లు live</> : <>₹99 Sambandham • First 3 FREE • {liveCount} channels live now</>}</div>
           <div className="flex justify-center gap-3 mt-3">
             <Link href="/register" className="px-4 py-2 maroon-gradient text-white rounded-full text-xs font-bold">{te ? "FREE గా నమోదు చెయ్యండి" : "Register FREE"}</Link>

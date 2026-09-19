@@ -9,8 +9,8 @@
 
 export const SITE_CONFIG = {
   // ---------- Brand ----------
-  brandName: "మనవివాహం",
-  brandNameTe: "మనవివాహం",           // 💍 R13: brand peru neat ga Telugu lo
+  brandName: "మన వివాహ",
+  brandNameTe: "మన వివాహ",           // 💍 R13: brand peru neat ga Telugu lo
   legalName: "Manavivaha",
   logoText: "MV",
   logoImage: "/logo.png",             // 💍 R13: kotha marriage logo (rings + lotus) — MV text kaadu

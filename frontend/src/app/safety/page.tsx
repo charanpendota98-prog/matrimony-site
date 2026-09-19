@@ -117,7 +117,7 @@ export default function SafetyPage() {
       <section className="maroon-gradient text-white">
         <div className="max-w-5xl mx-auto px-4 py-9">
           <div className="text-[11px] font-bold bg-white/10 border border-white/20 rounded-full px-3 py-1 inline-block">
-            🛡️ Trust & Safety • మనవివాహం
+            🛡️ Trust & Safety • మన వివాహ
           </div>
           <h1 className="mt-3 text-2xl md:text-4xl font-bold"><Duo en="Your safety is our responsibility" te="మీ భద్రత మా బాధ్యత" /></h1>
           <p className="mt-2 text-[13px] md:text-sm opacity-90 telugu max-w-3xl">

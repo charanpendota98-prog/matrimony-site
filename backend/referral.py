@@ -316,7 +316,7 @@ def validate_referral(code: str, all_users: List[Dict]) -> Dict:
         return {"ok": False, "valid_code": False, "reason": "not_found", "code": code,
                 "message_telugu": "⚠️ ఈ code దొరకలేదు — code సరిగా చూసుకోండి (లేదా code లేకుండా register అవ్వొచ్చు)"}
     st = stats_of(ref)
-    name = ref.get("full_name") or ref.get("name") or "Mana Vivaha member"
+    name = ref.get("full_name") or ref.get("name") or "మన వివాహ member"
     return {"ok": True, "valid_code": True, "code": _code_of(ref), "alias": ref.get("referral_alias", ""),
             "referrer_name": name, "referrer_id": ref.get("tsap_id"),
             "tier": tier_of(st["paid_count"])["key"], "paid_count": st["paid_count"],
@@ -848,37 +848,54 @@ def share_kit(user: Dict) -> Dict:
     ensure_referrer_profile(user, [])
     code = _code_of(user)
     link = user.get("referral_link") or ("https://manavivaha.in/r/%s" % code)
-    name = user.get("full_name") or user.get("name") or "Mana Vivaha"
+    name = user.get("full_name") or user.get("name") or "మన వివాహ"
     wa = ("🙏 నమస్తే! నేను %s.\n\n"
-          "Mana Vivaha (TS-AP Telugu Matrimony) — ₹99 సంబంధం, మొదటి 3 requests FREE.\n"
+          "మన వివాహ (TS-AP Telugu Matrimony) — ₹99 సంబంధం, మొదటి 3 requests FREE.\n"
           "✅ నిజమైన profiles • ఫోటో గోప్యం • 52 Telegram channels\n"
           "✅ మీ సొంత code %s తో register చేస్తే +1 credit EXTRA FREE!\n\n"
           "👉 %s\n"
           "🔗 ఛానెల్: https://t.me/TSAP_MATRIMONY") % (name, code, link)
     variants = [
         wa,
-        ("💍 పెళ్లి చూసుకుంటున్నారా? Mana Vivaha — TS/AP Telugu matrimony.\n"
+        ("💍 పెళ్లి చూసుకుంటున్నారా? మన వివాహ — TS/AP Telugu matrimony.\n"
          "₹99 → 5 profiles • మొదటి 3 FREE • numbers రెండు వైపులా ok అయ్యాకే.\n"
          "నా code *%s* తో register చేస్తే మీకు +1 credit FREE 🎁\n%s") % (code, link),
-        ("👰🤵 Mana Vivaha లో రోజూ కొత్త profiles (Reddy, Kamma, Kapu, Mala, Madiga... caste-wise channels).\n"
+        ("👰🤵 మన వివాహ లో రోజూ కొత్త profiles (Reddy, Kamma, Kapu, Mala, Madiga... caste-wise channels).\n"
          "నా code: %s → %s\n+1 credit FREE (నా referral)!") % (code, link),
         ("🔔 నమస్తే! మీ ఇంట్లో/relative circle లో పెళ్లి చూసుకుంటున్న వాళ్లకి ఈ link పంపండి:\n%s\n"
-         "Mana Vivaha — 3 requests FREE, ₹99 కి 5 profiles. నా code *%s* (bonus credit ఉంది).") % (link, code),
-        ("🙏 %s గారు, Mana Vivaha లో register చెయ్యండి — photo private, fraud జాగ్రత్త, Telugu support.\n"
+         "మన వివాహ — 3 requests FREE, ₹99 కి 5 profiles. నా code *%s* (bonus credit ఉంది).") % (link, code),
+        ("🙏 %s గారు, మన వివాహ లో register చెయ్యండి — photo private, fraud జాగ్రత్త, Telugu support.\n"
          "%s\nCode: *%s* (+1 credit FREE)") % (name, link, code),
     ]
-    tg = "💍 Mana Vivaha — TS/AP Telugu Matrimony\n₹99 సంబంధం • మొదటి 3 FREE\nనా code: %s\n%s" % (code, link)
+    tg = "💍 మన వివాహ — TS/AP Telugu Matrimony\n₹99 సంబంధం • మొదటి 3 FREE\nనా code: %s\n%s" % (code, link)
+    # 🎬 WAVE 40 — VIDEO KIT: promoters వీడియో చేసుకుని promote చేయడానికి ready scripts
+    video_kit = [
+        {"style": "15-sec reel (Instagram/YouTube Shorts)",
+         "script": ("[0-3s] క్లోజ్-అప్: 'పెళ్లి సంబంధాలు వెతుకుతున్నారా?'\n"
+                    "[3-8s] స్క్రీన్ రికార్డింగ్: మన వివాహ site — profiles, ₹99 plan\n"
+                    "[8-12s] 'మొదటి 3 సంబంధాలు FREE! నా code %s తో register చెయ్యండి'\n"
+                    "[12-15s] లింక్ చూపించండి: %s + 'లైక్ షేర్ చెయ్యండి!'") % (code, link)},
+        {"style": "30-sec talking video (WhatsApp Status)",
+         "script": ("'నమస్తే! మీ ఇంట్లో, ఫ్రెండ్స్ లో పెళ్లి సంబంధాలు వెతుకుతున్న వాళ్లు ఉన్నారా? "
+                    "మన వివాహ అనే Telugu matrimony site చూడండి — నిజమైన profiles, ఫోటో ప్రైవసీ, "
+                    "కులం వారీగా ఛానళ్లు. మొదటి 3 సంబంధాలు FREE. నా code %s తో register చేస్తే bonus కూడా ఉంది. "
+                    "లింక్ బయోలో ఉంది — షేర్ చేయండి!'") % code},
+        {"style": "Testimonial (ఎవరైనా match అయ్యాక)",
+         "script": ("'మా ఫ్రెండ్ కి మన వివాహ ద్వారా సంబంధం కుదిరింది — నేను refer చేసి ₹%d సంపాదించాను! "
+                    "మీకు కూడా పరిచయాలు ఉంటే ఇది చూడండి — %s'") % (FIRST_PAY_COMMISSION, link)},
+    ]
     return {
         "code": code, "link": link, "alias": user.get("referral_alias"),
         "whatsapp_messages": variants, "whatsapp_share": "https://wa.me/?text=" + _urlenc(variants[0]),
         "whatsapp_share_variants": ["https://wa.me/?text=" + _urlenc(v) for v in variants],
-        "telegram_share": "https://t.me/share/url?url=%s&text=%s" % (_urlenc(link), _urlenc("Mana Vivaha — నా code %s" % code)),
-        "sms_text": "Mana Vivaha Telugu Matrimony — నా code %s తో register చెయ్యండి (+1 credit FREE): %s" % (code, link),
+        "telegram_share": "https://t.me/share/url?url=%s&text=%s" % (_urlenc(link), _urlenc("మన వివాహ — నా code %s" % code)),
+        "sms_text": "మన వివాహ Telugu Matrimony — నా code %s తో register చెయ్యండి (+1 credit FREE): %s" % (code, link),
         "poster_text": "💰 ₹50 per paying referral\nCode: %s\n%s" % (code, link),
         "poster_card": "/api/referral/%s/poster.png" % _tsap_or_code(user),
         "qr_target": link,
         "status_text": "Manavivaha.in/r/%s — నా code తో register చేస్తే +1 credit free 🎁" % code,
-        "message_telugu": "📲 Share చెయ్యడానికి 5 ready messages (WhatsApp), Telegram link, poster — అన్నీ ఇక్కడే!",
+        "video_kit": video_kit,
+        "message_telugu": "📲 Share చెయ్యడానికి 5 ready messages (WhatsApp), Telegram link, poster, వీడియో scripts — అన్నీ ఇక్కడే!",
     }
 
 
@@ -921,7 +938,7 @@ def get_leaderboard(all_users: List[Dict], limit: int = 10, period: str = "all",
             earned = sum(float(l.get("amount", 0)) for l in entries)
         rows.append({
             # WAVE 25 — public board: FIRST name matrame (surname hidden — W13 rule)
-            "name": str(u.get("full_name") or u.get("name") or "Mana Vivaha member").split()[0],
+            "name": str(u.get("full_name") or u.get("name") or "మన వివాహ member").split()[0],
             "code": _code_of(u), "tsap_id": u.get("tsap_id"),
             "refers": refers,
             "paid": paid,
@@ -1028,7 +1045,7 @@ def referrer_join_text(referrer, referee):
         "వాళ్లు మొదటి payment (₹99/₹199...) చెయ్యగానే మీకు *₹50* మీ wallet లో వెళ్తుంది.\n"
         "మీ code: %s | మీ link: %s\n\n"
         "ఇంకా మందికి పంపండి — ప్రతి paying friend కి ₹50 (limit లేదు) 💰\n"
-        "— Mana Vivaha · /referral లో మీ dashboard"
+        "— మన వివాహ · /referral లో మీ dashboard"
         % (_name_of(referrer, "Garu"), _name_of(referee), _code_of(referrer),
            referrer.get("referral_link") or "https://manavivaha.in/r/%s" % _code_of(referrer)))
 
@@ -1059,7 +1076,7 @@ def referrer_commission_text(referrer, referee, result):
         lines.append("➡️ ఇంకా %d paying referrals → %s" % (nxt["need"], nxt["title"]))
     lines.append("")
     lines.append("Payout ₹100 నుంచి (3 days లో) — /referral లో request పెట్టండి 🏦")
-    lines.append("— Mana Vivaha")
+    lines.append("— మన వివాహ")
     return "\n".join(lines)
 
 

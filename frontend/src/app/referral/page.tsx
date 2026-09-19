@@ -1,6 +1,6 @@
 "use client";
 /**
- * 🤝 REFERRAL DASHBOARD — మనవివాహం 2.0
+ * 🤝 REFERRAL DASHBOARD — మన వివాహ 2.0
  * ======================================
  * "₹99 kabatti first time vallu pay chestharu — kabatti manam ₹50 istham referal vallaki."
  * Ee page live API nunchi: code, link, clicks, registrations, payments, wallet,
@@ -239,10 +239,24 @@ export default function ReferralPage() {
 
           {/* WALLET + PAYOUT */}
           <div className="bg-white rounded-3xl p-5 border border-gray-200 shadow-sm">
-            <div className="text-xs text-gray-500">Wallet balance</div>
+            <div className="text-xs text-gray-500">{te ? "👍 మీ Wallet" : "Your Wallet"}</div>
             <div className="text-3xl font-extrabold text-[#7A0C2E]">₹{s.wallet ?? 0}</div>
+            <div className="mt-2 grid grid-cols-3 gap-2 text-center">
+              <div className="rounded-xl bg-[#FFF8E7] p-2">
+                <div className="text-sm font-extrabold text-[#7A0C2E]">₹{s.lifetime_earned ?? 0}</div>
+                <div className="telugu text-[10px] text-gray-600">{te ? "మొత్తం సంపాదన" : "Total earned"}</div>
+              </div>
+              <div className="rounded-xl bg-green-50 p-2">
+                <div className="text-sm font-extrabold text-green-700">₹{s.paid_out ?? 0}</div>
+                <div className="telugu text-[10px] text-gray-600">{te ? "చెల్లించబడింది" : "Total settled"}</div>
+              </div>
+              <div className="rounded-xl bg-amber-50 p-2">
+                <div className="text-sm font-extrabold text-amber-700">₹{s.pending_payout ?? 0}</div>
+                <div className="telugu text-[10px] text-gray-600">{te ? "ప్రాసెస్‌లో" : "In process"}</div>
+              </div>
+            </div>
             <div className="text-[11px] text-gray-500 mt-1">
-              Pending payout ₹{s.pending_payout ?? 0} · paid out ₹{s.paid_out ?? 0} · min payout ₹{dash?.commission_rules?.min_payout ?? 100}
+              {te ? <>Payout అయ్యాక balance ₹0 అవుతుంది — సంపాదన history ఎప్పుడూ పైన కనిపిస్తుంది · min payout ₹{dash?.commission_rules?.min_payout ?? 100}</> : <>After payout balance resets to ₹0 — earnings history stays above · min payout ₹{dash?.commission_rules?.min_payout ?? 100}</>}
             </div>
             {(s.pending_friends ?? 0) > 0 && (
               <div className="mt-3 rounded-xl border border-[#D4AF37]/50 bg-[#FFF8E7] p-3 text-[11px] text-[#7A0C2E] telugu">
@@ -304,10 +318,25 @@ export default function ReferralPage() {
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="font-bold text-[#7A0C2E] telugu">📲 <Duo en="Share kit — ready messages for WhatsApp/Status" te="వాట్సాప్/స్టేటస్‌కు రెడీ మెసేజ్‌లు" /></h2>
             {tsapId ? (
+              <>
               <div className="flex gap-2 text-xs">
                 <a href={`/api/referral/${tsapId}/poster.png?style=square`} className="rounded-full bg-[#7A0C2E] text-white px-3 py-1.5 font-bold">🖼️ Poster (square)</a>
                 <a href={`/api/referral/${tsapId}/poster.png?style=status`} className="rounded-full bg-[#0F1F3C] text-white px-3 py-1.5 font-bold">📱 Status poster</a>
               </div>
+              {/* 🎬 W40 — VIDEO KIT */}
+              <div className="mt-3 rounded-2xl border border-[#7A0C2E]/15 bg-[#FFF8E7]/60 p-3">
+                <div className="telugu text-xs font-bold text-[#7A0C2E]">🎬 {te ? "వీడియో చేసి ప్రమోట్ చెయ్యండి (ready scripts)" : "Promo video scripts"}</div>
+                <div className="telugu mt-1 text-[10px] text-gray-600">{te ? "ఈ scripts చదివి ఫోన్‌లో record చేసి, status/reels లో పెట్టండి — మీ code తో ఎక్కువ మంది register అవుతారు." : "Record these on your phone, post as status/reels — more people register with your code."}</div>
+                <div className="mt-2 space-y-2">
+                  {((dash?.share_kit?.video_kit || []) as { style: string; script: string }[]).map((v, i) => (
+                    <details key={i} className="rounded-xl bg-white p-2">
+                      <summary className="telugu cursor-pointer text-[11px] font-bold text-[#7A0C2E]">🎬 {v.style}</summary>
+                      <pre className="telugu mt-1 whitespace-pre-wrap text-[11px] text-gray-700">{v.script}</pre>
+                    </details>
+                  ))}
+                </div>
+              </div>
+              </>
             ) : null}
           </div>
 

@@ -1,4 +1,4 @@
-# 📢 మనవివాహం Official | మనవివాహం — TS-AP
+# 📢 మన వివాహ Official | మన వివాహ — TS-AP
 
 - **Key:** `official`  •  **Tier:** L0_OFFICIAL  •  **Wave:** 1  •  **Status:** create ⬜
 - **Username:** `@TSAP_MATRIMONY` (already taken? → @manavivaha, @manavivaha_official, @manavivaha_hub)
@@ -8,14 +8,14 @@
 
 ## 1) Channel create (phone → New Channel)
 
-Name: `📢 మనవివాహం Official | మనవివాహం — TS-AP`
+Name: `📢 మన వివాహ Official | మన వివాహ — TS-AP`
 
 Username: `TSAP_MATRIMONY`
 
 Description:
 
 ```
-మనవివాహం — TS/AP తెలుగు మ్యాట్రిమోని. రోజూ టాప్-3 సంబంధాలు, విజయ గాథలు, మోసం హెచ్చరికలు. 3 requests FREE, ₹99లో 5. Register FREE: manavivaha.in | Telegram: @telugumatrimony1_bot
+మన వివాహ — TS/AP తెలుగు మ్యాట్రిమోని. రోజూ టాప్-3 సంబంధాలు, విజయ గాథలు, మోసం హెచ్చరికలు. 3 requests FREE, ₹99లో 5. Register FREE: manavivaha.in | Telegram: @telugumatrimony1_bot
 ```
 
 ## 2) Bot ni admin cheyyi
@@ -25,7 +25,7 @@ Channel → Manage → Administrators → Add Admin → `@telugumatrimony1_bot` 
 ## 3) 📌 Pinned welcome post (idi pin cheyyi)
 
 ```
-🙏 *📢 మనవివాహం Official | మనవివాహం — TS-AP*
+🙏 *📢 మన వివాహ Official | మన వివాహ — TS-AP*
 ━━━━━━━━━━━━━━━━━━
 Telugu Matrimony — TS + AP
 ఇక్కడ ఏం దొరుకుతుంది:
@@ -56,9 +56,9 @@ Telugu Matrimony — TS + AP
 ## 4) Rules post
 
 ```
-📜 *CHANNEL RULES — 📢 మనవివాహం Official | మనవివాహం — TS-AP*
+📜 *CHANNEL RULES — 📢 మన వివాహ Official | మన వివాహ — TS-AP*
 ━━━━━━━━━━━━━━━━━━
-1️⃣ Only మనవివాహం admin posts — members message చెయ్యకుండా చూడగలరు
+1️⃣ Only మన వివాహ admin posts — members message చెయ్యకుండా చూడగలరు
 2️⃣ Profile details upload చెయ్యాలి అంటే *@telugumatrimony1_bot* కి phone/photo పంపండి
 3️⃣ ఎవరికీ *advance money* పంపొద్దు — డబ్బు అడిగితే వెంటనే screenshot → report
 4️⃣ Caste/religion గురించి discriminative comments, personal abuses → instant ban
@@ -72,7 +72,7 @@ Telugu Matrimony — TS + AP
 ## 5) WhatsApp / status లో share text
 
 ```
-💍 *📢 మనవివాహం Official | మనవివాహం — TS-AP*
+💍 *📢 మన వివాహ Official | మన వివాహ — TS-AP*
 TS + AP తెలుగు మ్యాట్రిమోని — రోజూ కొత్త సంబంధాలు
 
 ✅ 3 requests FREE

@@ -92,7 +92,7 @@ export default function PushBell({ myId }: { myId: string }) {
   const test = async () => {
     setBusy(true); setMsg("");
     const { ok, data, errorTelugu } = await apiPost<Record<string, any>>(`/api/push/notify/${encodeURIComponent(myId)}`, {
-      title: te ? "💍 మనవివాహం — test alert!" : "💍 మనవివాహం — test alert!",
+      title: te ? "💍 మన వివాహ — test alert!" : "💍 మన వివాహ — test alert!",
       body: te ? "Alerts పని చేస్తున్నాయి ✅ — కొత్త matches వస్తే ఇలా వస్తుంది" : "Alerts work ✅ — new matches come like this",
       url: "/me",
     });

@@ -49,11 +49,11 @@ export default function SiteFooter() {
         <div>
           <div className="flex items-center gap-2.5">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={SITE_CONFIG.logoImage} alt="మనవివాహం logo" width={40} height={40}
+            <img src={SITE_CONFIG.logoImage} alt="మన వివాహ logo" width={40} height={40}
               className="w-10 h-10 rounded-xl object-cover" />
             <div>
-              <div className="font-bold text-gold leading-none telugu text-[16px]">మనవివాహం</div>
-              <div className="text-[10px] opacity-70">మనవివాహం • {te ? "తెలుగు మ్యాట్రిమోనీ" : "Telugu Matrimony"}</div>
+              <div className="font-bold text-gold leading-none telugu text-[16px]">మన వివాహ</div>
+              <div className="text-[10px] opacity-70">మన వివాహ • {te ? "తెలుగు మ్యాట్రిమోనీ" : "Telugu Matrimony"}</div>
             </div>
           </div>
           <div className="text-xs opacity-75 mt-3 telugu leading-relaxed">

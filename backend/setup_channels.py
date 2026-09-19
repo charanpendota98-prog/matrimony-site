@@ -106,7 +106,7 @@ class BotAPI:
     def set_chat_photo(self, chat_id, path):
         return self.call_file("setChatPhoto", {"chat_id": chat_id}, "photo", path)
 
-    def create_invite_link(self, chat_id, name="Mana Vivaha"):
+    def create_invite_link(self, chat_id, name="మన వివాహ"):
         return self.call("createChatInviteLink", {"chat_id": chat_id, "name": name}).get("result", {})
 
     def export_invite_link(self, chat_id):
@@ -233,7 +233,7 @@ def print_plan(wave: int | None = None) -> None:
 def write_plan_md(path: str | None = None, wave: int | None = None) -> str:
     rows = plan_rows(wave)
     path = path or os.path.join(ROOT, "CHANNELS-SETUP-CHECKLIST.md")
-    lines = ["# 📢 Mana Vivaha — Channel Setup Checklist (%d channels)" % len(rows), "",
+    lines = ["# 📢 మన వివాహ — Channel Setup Checklist (%d channels)" % len(rows), "",
              "> ఈ file `setup_channels.py --plan` తో auto-generate అయ్యింది. Prathi channel కి:",
              "> **Name → Username → Description → 📌 pinned post** (copy-paste ready).", "",
              "## ⚡ Fastest way (automation)", "",
@@ -441,7 +441,7 @@ def configure_channel(bot: "BotAPI", key: str, state: dict, force_photo: bool = 
 
     invite = st.get("invite_link")
     if not invite:
-        inv = bot.create_invite_link(chat_id, "Mana Vivaha")
+        inv = bot.create_invite_link(chat_id, "మన వివాహ")
         invite = inv.get("invite_link") or bot.export_invite_link(chat_id)
         steps.append({"step": "invite_link", "ok": bool(invite), "link": invite})
     else:
@@ -587,7 +587,7 @@ class FakeBot:
     def set_chat_photo(self, chat_id, path):
         return self._rec("setChatPhoto", {"chat_id": chat_id, "path": path})
 
-    def create_invite_link(self, chat_id, name="Mana Vivaha"):
+    def create_invite_link(self, chat_id, name="మన వివాహ"):
         r = self._rec("createChatInviteLink", {"chat_id": chat_id, "name": name})
         r["result"] = {"invite_link": "https://t.me/+MANAVIVAHA%04d" % (abs(hash(chat_id)) % 10000)}
         return r["result"]
@@ -673,7 +673,7 @@ def env_token(cli_token: str | None) -> str:
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description="Mana Vivaha channel setup automation")
+    ap = argparse.ArgumentParser(description="మన వివాహ channel setup automation")
     ap.add_argument("--plan", action="store_true", help="creation plan print + CHANNELS-SETUP-CHECKLIST.md")
     ap.add_argument("--kit", action="store_true", help="prathi channel కి kit file (channel-kits/)")
     ap.add_argument("--create-list", action="store_true", help="📱 Telugu copy-paste create list (phone కి)")

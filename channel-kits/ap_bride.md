@@ -58,7 +58,7 @@ Telugu Matrimony — TS + AP
 ```
 📜 *CHANNEL RULES — 👰 AP Brides | ఆంధ్రా వధువులు*
 ━━━━━━━━━━━━━━━━━━
-1️⃣ Only మనవివాహం admin posts — members message చెయ్యకుండా చూడగలరు
+1️⃣ Only మన వివాహ admin posts — members message చెయ్యకుండా చూడగలరు
 2️⃣ Profile details upload చెయ్యాలి అంటే *@telugumatrimony1_bot* కి phone/photo పంపండి
 3️⃣ ఎవరికీ *advance money* పంపొద్దు — డబ్బు అడిగితే వెంటనే screenshot → report
 4️⃣ Caste/religion గురించి discriminative comments, personal abuses → instant ban

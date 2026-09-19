@@ -67,7 +67,7 @@ def poster_card(user: Dict, code: str = "", link: str = "", out_path: Optional[s
 
     code = (code or user.get("referral_code") or "MV100").upper()
     link = link or user.get("referral_link") or ("https://%s/r/%s" % (site, code))
-    name = (user.get("full_name") or user.get("name") or "Mana Vivaha Member").strip()[:28]
+    name = (user.get("full_name") or user.get("name") or "మన వివాహ Member").strip()[:28]
     W, H = (1080, 1080) if style != "status" else (1080, 1920)
     out_path = out_path or os.path.join(POSTER_DIR, "%s_%s.png" % (_safe(code.lower()), style))
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
@@ -75,7 +75,7 @@ def poster_card(user: Dict, code: str = "", link: str = "", out_path: Optional[s
     img = Image.new("RGB", (W, H), BRAND_CREAM)
     d = ImageDraw.Draw(img)
 
-    # top bar — 💍 R13: kotha marriage logo + మనవివాహం
+    # top bar — 💍 R13: kotha marriage logo + మన వివాహ
     d.rectangle([0, 0, W, 150], fill=BRAND_MAROON)
     _tx = 48
     try:
@@ -87,7 +87,7 @@ def poster_card(user: Dict, code: str = "", link: str = "", out_path: Optional[s
             _tx = 180
     except Exception:
         _tx = 48
-    d.text((_tx, 36), "మనవివాహం", font=_font(56), fill=BRAND_GOLD)
+    d.text((_tx, 36), "మన వివాహ", font=_font(56), fill=BRAND_GOLD)
     d.text((_tx, 106), "TS - AP TELUGU MATRIMONY  |  " + site, font=_font(26, False), fill=BRAND_CREAM)
 
     y = 200

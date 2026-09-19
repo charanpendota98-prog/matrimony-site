@@ -20,7 +20,7 @@ from typing import Dict, List
 
 SITE = "https://manavivaha.in"
 BOT = "@telugumatrimony1_bot"
-BRAND = "మనవివాహం"
+BRAND = "మన వివాహ"
 LEGAL = "Manavivaha"
 
 TITLE_LIMIT = 128          # Telegram channel title max
@@ -77,7 +77,7 @@ SPECIAL_TITLE = {
     "fraud_alerts": ("🚨 Fraud Alerts", "మోసం జాగ్రత్త"),
     "bureau_network": ("🤝 Bureau / Broker Network", "బ్రోకర్ల నెట్‌వర్క్"),
 }
-OFFICIAL_TITLE = ("📢 మనవివాహం Official", "మనవివాహం — TS-AP")
+OFFICIAL_TITLE = ("📢 మన వివాహ Official", "మన వివాహ — TS-AP")
 
 
 def _caste_key_from_channel(key: str) -> str:
@@ -213,7 +213,7 @@ def perfect_description(key: str, ch: Dict | None = None) -> str:
     tags = " ".join((ch.get("hashtags") or [])[:3])
     tail = "Register FREE: manavivaha.in | Telegram: %s" % BOT
     if key == "official":
-        body = ("మనవివాహం — TS/AP తెలుగు మ్యాట్రిమోని. రోజూ టాప్-3 సంబంధాలు, విజయ గాథలు, "
+        body = ("మన వివాహ — TS/AP తెలుగు మ్యాట్రిమోని. రోజూ టాప్-3 సంబంధాలు, విజయ గాథలు, "
                 "మోసం హెచ్చరికలు. 3 requests FREE, ₹99లో 5.")
     elif ch.get("sub") in ("muslim", "christian"):
         sub_te = "ముస్లిం" if ch["sub"] == "muslim" else "క్రైస్తవ"
@@ -293,7 +293,7 @@ def rules_post(key: str) -> str:
     return (
         "📜 *CHANNEL RULES — %s*\n"
         "━━━━━━━━━━━━━━━━━━\n"
-        "1️⃣ Only మనవివాహం admin posts — members message చెయ్యకుండా చూడగలరు\n"
+        "1️⃣ Only మన వివాహ admin posts — members message చెయ్యకుండా చూడగలరు\n"
         "2️⃣ Profile details upload చెయ్యాలి అంటే *%s* కి phone/photo పంపండి\n"
         "3️⃣ ఎవరికీ *advance money* పంపొద్దు — డబ్బు అడిగితే వెంటనే screenshot → report\n"
         "4️⃣ Caste/religion గురించి discriminative comments, personal abuses → instant ban\n"

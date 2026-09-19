@@ -1,5 +1,5 @@
 """
-Mana Vivaha — AUTO-PUBLISHER (Telegram + WhatsApp)
+మన వివాహ — AUTO-PUBLISHER (Telegram + WhatsApp)
 ===================================================
 Profile register avvagane / admin approve avvagane → related channels anni
 chotaki automatic ga vellali. Idi aa engine.
@@ -147,7 +147,7 @@ def build_whatsapp_text(profile: Dict, tsap_id: str, score: int = 92) -> str:
 def build_share_text(profile: Dict, tsap_id: str) -> str:
     """Profile owner WhatsApp/status లో share చెయ్యడానికి short text."""
     return (
-        f"💍 Mana Vivaha — {profile.get('full_name','—')} ({profile.get('age','—')}y, "
+        f"💍 మన వివాహ — {profile.get('full_name','—')} ({profile.get('age','—')}y, "
         f"{profile.get('caste','—')}, {profile.get('district','—')})\n"
         f"🆔 {tsap_id} | {profile.get('education','')} {profile.get('job','')}\n"
         f"🔍 Chudandi: {SITE}/search/{tsap_id}\n"

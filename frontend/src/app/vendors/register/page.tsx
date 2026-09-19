@@ -1,6 +1,6 @@
 "use client";
 /**
- * 🏪 VENDOR REGISTER — mee business ni మనవివాహం lo promote cheyyandi
+ * 🏪 VENDOR REGISTER — mee business ni మన వివాహ lo promote cheyyandi
  * ==================================================================
  * 18 categories (catering, photography, decorations, hall, pandit...) + ad packages ₹149 → ₹3999.
  * Register → payment (UPI/PhonePe) → admin verify (2 గంటల్లో) → listing ACTIVE + promo post + poster.
@@ -151,7 +151,7 @@ export default function VendorRegisterPage() {
           <div className="text-[12px] opacity-90 mb-1">
             <Link href="/vendors" className="underline">← Vendors</Link>
           </div>
-          <h1 className="text-2xl font-extrabold">{te ? "🏪 మీ business ని మనవివాహం లో add చెయ్యండి" : "🏪 Add your business to మనవివాహం"}</h1>
+          <h1 className="text-2xl font-extrabold">{te ? "🏪 మీ business ని మన వివాహ లో add చెయ్యండి" : "🏪 Add your business to మన వివాహ"}</h1>
           <p className="text-[13px] opacity-90 mt-2 telugu">
             Catering, photography, decorations, hall, tent, pandit, jewellery, makeup, DJ, invitations, cars, planner —
             {te ? <>2 నిమిషాల్లో register. <b>Enquiries direct మీ WhatsApp కి.</b> ₹149 నుంచి.</> : <>Register in 2 minutes. <b>Enquiries direct to your WhatsApp.</b> From ₹149.</>}

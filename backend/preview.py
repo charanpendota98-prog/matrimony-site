@@ -59,7 +59,7 @@ def _fit(draw, text: str, font, max_w: int) -> str:
 
 def _brand_bar(draw, W: int, H: int, label: str = "MANA VIVAHA • TELUGU MATRIMONY",
                img: "Image.Image" = None) -> None:
-    """💍 R13 — brand bar: kotha marriage logo + మనవివాహం (Telugu peru neat ga)."""
+    """💍 R13 — brand bar: kotha marriage logo + మన వివాహ (Telugu peru neat ga)."""
     draw.rectangle([0, H - 74, W, H], fill=MAROON_DARK)
     x = 50
     if img is not None:
@@ -71,7 +71,7 @@ def _brand_bar(draw, W: int, H: int, label: str = "MANA VIVAHA • TELUGU MATRIM
                 x = 112
         except Exception:
             x = 50
-    draw.text((x, H - 52), "మనవివాహం", font=_font(26, True), fill=GOLD)
+    draw.text((x, H - 52), "మన వివాహ", font=_font(26, True), fill=GOLD)
     draw.text((x + 170, H - 48), label, font=_font(16), fill=(240, 224, 190))
     draw.text((W - 340, H - 52), "manavivaha.in", font=_font(22), fill=CREAM)
 
@@ -135,7 +135,7 @@ def og_porutham_png(bride: Dict, groom: Dict, result: Dict, out_path: Optional[s
     d = ImageDraw.Draw(img)
     d.rectangle([0, 0, W, 120], fill=MAROON)
     d.text((50, 24), "10-PORUTHAM KUNDLI MATCH", font=_font(40, True), fill=GOLD)
-    d.text((50, 76), "Mana Vivaha • Telugu traditional match report", font=_font(24), fill=CREAM)
+    d.text((50, 76), "మన వివాహ • Telugu traditional match report", font=_font(24), fill=CREAM)
 
     score = r.get("score", "—")
     d.ellipse([60, 170, 340, 450], fill=MAROON)

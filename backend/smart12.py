@@ -1,5 +1,5 @@
 """
-🔒 WAVE 12 — SMART REVEAL ENGINE (Mana Vivaha)
+🔒 WAVE 12 — SMART REVEAL ENGINE (మన వివాహ)
 ==============================================
 User demand (100% workable, top sites kanna advanced):
 
@@ -337,7 +337,7 @@ def build_copy_list(buyer: Dict, targets: List[Dict], order_id: str = "") -> str
       1. Sravani K. -- 9848012345 (TSAP-F-2042 · Kamma · 26)
     """
     bname = first_masked((buyer or {}).get("full_name", ""))
-    lines = [f"💍 Mana Vivaha — {bname} గారు, మీ కోసం {len(targets)} profiles "
+    lines = [f"💍 మన వివాహ — {bname} గారు, మీ కోసం {len(targets)} profiles "
              f"(₹{ASSISTED_PRICE} paid ✅{f' · {order_id}' if order_id else ''}):", ""]
     for i, t in enumerate(targets or [], 1):
         icon = "👰" if t.get("gender") == "Bride" else ("🤵" if t.get("gender") == "Groom" else "💍")
@@ -368,7 +368,7 @@ def build_personal_card(target: Dict, buyer_name: str = "") -> str:
 def build_personal_pack(buyer: Dict, targets: List[Dict], order_id: str = "") -> List[str]:
     """DM sequence: header + 1 msg per profile (Telegram limit-safe chunks)."""
     bname = first_masked((buyer or {}).get("full_name", ""))
-    header = (f"💍 Mana Vivaha — {bname} గారు, నమస్తే! 🙏\n"
+    header = (f"💍 మన వివాహ — {bname} గారు, నమస్తే! 🙏\n"
               f"₹{ASSISTED_PRICE} payment వచ్చింది ✅ — meekosam handpicked "
               f"{len(targets)} profiles 👇 (numbers meekosame unlock){f' · {order_id}' if order_id else ''}")
     return [header] + [build_personal_card(t, bname) for t in (targets or [])]

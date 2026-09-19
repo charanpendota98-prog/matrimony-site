@@ -1447,8 +1447,8 @@ const set = (k: string, v: any) => {
                 <input type="checkbox" checked={!!f.consent} onChange={(e) => set("consent", e.target.checked)}
                   className="mt-1 w-5 h-5 accent-[#7A0C2E]" />
                 <span className="text-[12px] text-gray-700">
-{T(<>నా details <b>నిజం</b> అని confirm చేస్తున్నాను. <b>మనవివాహం</b> terms + privacy policy accept చేస్తున్నాను —
-                  details channels లో post అవుతాయి, number accept అయ్యాకే share అవుతుంది.</>, <>I confirm my details are <b>true</b>. I accept <b>మనవివాహం</b> terms + privacy policy —
+{T(<>నా details <b>నిజం</b> అని confirm చేస్తున్నాను. <b>మన వివాహ</b> terms + privacy policy accept చేస్తున్నాను —
+                  details channels లో post అవుతాయి, number accept అయ్యాకే share అవుతుంది.</>, <>I confirm my details are <b>true</b>. I accept <b>మన వివాహ</b> terms + privacy policy —
                   details post in channels, number shared only after accept.</>)}
                 </span>
               </label>

@@ -1,5 +1,5 @@
 """
-📢 WAVE 13 — VENDOR ADS ENGINE (Mana Vivaha revenue)
+📢 WAVE 13 — VENDOR ADS ENGINE (మన వివాహ revenue)
 =====================================================
 Photographers / decoration / catering / halls / shopping-malls / jewelry... —
 vallu campaign create chesthe, scope prakaram audience ki matrame ads:

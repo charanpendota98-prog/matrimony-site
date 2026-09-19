@@ -46,10 +46,10 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
   const p = await fetchProfile(id);
   const name = p?.full_name ? String(p.full_name) : "Telugu Matrimony Profile";
   const bits = [p?.age ? `${p.age} yrs` : "", p?.caste, p?.education, p?.job, p?.district].filter(Boolean).join(" • ");
-  const title = `${name} (${id}) — ${bits || "Profile"} | మనవివాహం`;
+  const title = `${name} (${id}) — ${bits || "Profile"} | మన వివాహ`;
   const description = p
-    ? `${bits}. Porutham, family, horoscope details + interest పంపండి. మనవివాహం — Telugu matrimony (TS + AP), ${CHANNEL_STATS.total} channels, 3 FREE requests.`
-    : `మనవివాహం — Telugu matrimony. TS + AP, 43 castes, ${CHANNEL_STATS.total} channels, 3 FREE requests. Register FREE.`;
+    ? `${bits}. Porutham, family, horoscope details + interest పంపండి. మన వివాహ — Telugu matrimony (TS + AP), ${CHANNEL_STATS.total} channels, 3 FREE requests.`
+    : `మన వివాహ — Telugu matrimony. TS + AP, 43 castes, ${CHANNEL_STATS.total} channels, 3 FREE requests. Register FREE.`;
   const base = siteBase();
   const ogImage = `${base}/api/og/profile/${encodeURIComponent(id)}.png`;
   return {
@@ -60,7 +60,7 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
       title,
       description,
       url: `${base}/search/${encodeURIComponent(id)}`,
-      siteName: "మనవివాహం",
+      siteName: "మన వివాహ",
       type: "profile",
       locale: "te_IN",
       images: [{ url: ogImage, width: 1200, height: 630, alt: title }],
@@ -84,9 +84,9 @@ export default function Page({ params }: { params: { id: string } }) {
             "@type": "Person",
             identifier: safeId,
             url: `${base}/search/${encodeURIComponent(safeId)}`,
-            name: "మనవివాహం verified profile",
-            description: "Telugu matrimony profile — మనవివాహం (TS + AP)",
-            isPartOf: { "@type": "WebSite", name: "మనవివాహం", url: base },
+            name: "మన వివాహ verified profile",
+            description: "Telugu matrimony profile — మన వివాహ (TS + AP)",
+            isPartOf: { "@type": "WebSite", name: "మన వివాహ", url: base },
           }),
         }}
       />

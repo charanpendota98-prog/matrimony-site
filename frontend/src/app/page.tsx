@@ -9,6 +9,7 @@ import OffersBanner from "@/components/OffersBanner";
 import BannerSlot from "@/components/BannerSlot";
 import SectionHeading from "@/components/SectionHeading";
 import { FinalCta, ReligionsStrip, StoriesStrip, TeaserStrip } from "@/components/HomeGrowth";
+import DailyStrip from "@/components/DailyStrip";
 import { SITE_CONFIG } from "@/lib/site-config";
 import { apiGet } from "@/lib/api";
 import { useLang, type Lang } from "@/lib/lang";
@@ -527,7 +528,7 @@ export default function Home() {
               <div className="relative bg-white rounded-[2rem] p-5 card-shadow-lg border border-gold/30">
 <div className="flex items-center flex-wrap gap-1.5">
                   <div className="text-[10px] font-bold text-gold-deep uppercase tracking-widest">
-                    మనవివాహం
+                    మన వివాహ
                   </div>
                   <div className="ml-auto flex items-center gap-1.5">
                     <div className="text-[10px] px-2 py-1 rounded-full bg-slate-100 text-slate-500 font-bold whitespace-nowrap">
@@ -619,6 +620,9 @@ export default function Home() {
       <section className="max-w-7xl mx-auto px-4 pt-3">
         <OffersBanner />
       </section>
+
+      {/* ================= DAILY MATCHES (admin select — W40) ================= */}
+      <DailyStrip />
 
       {/* ================= ANNOUNCEMENTS (CMS) ================= */}
       <section className="max-w-7xl mx-auto px-4 pt-3">
@@ -715,9 +719,9 @@ export default function Home() {
               <div className="rounded-3xl overflow-hidden card-shadow-lg border border-black/10 bg-[#0b141a]">
                 <div className="bg-[#202c33] px-4 py-3 flex items-center gap-3">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={SITE_CONFIG.logoImage} alt="మనవివాహం" width={36} height={36} className="w-9 h-9 rounded-full object-cover shrink-0" />
+                  <img src={SITE_CONFIG.logoImage} alt="మన వివాహ" width={36} height={36} className="w-9 h-9 rounded-full object-cover shrink-0" />
                   <div className="min-w-0 flex-1">
-                    <div className="text-white text-[13px] font-bold truncate telugu">మనవివాహం</div>
+                    <div className="text-white text-[13px] font-bold truncate telugu">మన వివాహ</div>
                     <div className="text-[10px] text-emerald-300 truncate">🟢 online • verified business</div>
                   </div>
                   <div className="shrink-0 flex flex-col items-end gap-1">

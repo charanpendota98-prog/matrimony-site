@@ -209,7 +209,7 @@ def seed_cms() -> Dict:
     """Admin 1-click: demo pages + stories (edit/delete చెయ్యొచ్చు)."""
     added = []
     if not get_page("about-us"):
-        upsert_page("about-us", "About మనవివాహం", "మనవివాహం గురించి",
+        upsert_page("about-us", "About మన వివాహ", "మన వివాహ గురించి",
                     "TS & AP's most advanced Telugu matrimony — region, religion, caste and special channels with smart auto-posting.",
                     "TS & AP ల అత్యంత అధునాతన తెలుగు మ్యాట్రిమోనీ — region, religion, caste, special ఛానళ్లతో స్మార్ట్ ఆటో-పోస్టింగ్.",
                     tags=["info", "trust"])
@@ -221,8 +221,8 @@ def seed_cms() -> Dict:
                     tags=["info", "support"])
         added.append("page:contact-us")
     if not STORIES:
-        upsert_story("", "Ravi Kumar", "Lakshmi", "", "Met through మనవివాహం TS channel — married in 3 months!",
-                     "మనవివాహం TS ఛానల్ ద్వారా పరిచయం — 3 నెలల్లో పెళ్లి!", "Hyderabad", "2026-02-14",
+        upsert_story("", "Ravi Kumar", "Lakshmi", "", "Met through మన వివాహ TS channel — married in 3 months!",
+                     "మన వివాహ TS ఛానల్ ద్వారా పరిచయం — 3 నెలల్లో పెళ్లి!", "Hyderabad", "2026-02-14",
                      tags=["hyderabad", "love"])
         upsert_story("", "Suresh", "Anitha", "", "Parents found the perfect alliance via caste channel.",
                      "కుల ఛానల్ ద్వారా తల్లిదండ్రులు మంచి సంబంధం కుదిర్చారు.", "Vijayawada", "2026-05-20",

@@ -50,7 +50,7 @@ def main():
     stats = channel_stats()
 
     ts = "// AUTO-GENERATED from backend/channels_config.py — edit registry, run gen_frontend_channels.py\n"
-    ts += "// Mana Vivaha | TSAP Matrimony — MASTER CHANNEL REGISTRY\n\n"
+    ts += "// మన వివాహ | TSAP Matrimony — MASTER CHANNEL REGISTRY\n\n"
     ts += "export type Channel = {\n  key: string;\n  tier: string;\n  name: string;\n  username: string;\n"
     ts += "  link: string;\n  deepLink: string;\n  desc: string;\n  hashtags: string[];\n"
     ts += "  wave: number;\n  live: boolean;\n};\n\n"

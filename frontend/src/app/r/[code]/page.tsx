@@ -87,7 +87,7 @@ export default function ReferralLandingPage() {
         )}
 
         <div className="mt-4 text-[11px] text-gray-400">
-          {te ? "మనవివాహం · manavivaha.in · ₹99 సంబంధం" : "మనవివాహం · manavivaha.in · ₹99 Sambandham"}
+          {te ? "మన వివాహ · manavivaha.in · ₹99 సంబంధం" : "మన వివాహ · manavivaha.in · ₹99 Sambandham"}
         </div>
       </div>
     </main>

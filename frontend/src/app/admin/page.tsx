@@ -1,6 +1,6 @@
 "use client";
 /**
- * 🔐 ADMIN PANEL — మనవివాహం
+ * 🔐 ADMIN PANEL — మన వివాహ
  * ============================
  * Tabs:
  *   👥 Profiles   → approve (auto-post ki veltundi) / manual credit gift
@@ -10,6 +10,8 @@
 import { useCallback, useEffect, useState } from "react";
 import AuthGate from "@/components/AuthGate";
 import MatchSend from "@/components/MatchSend";
+import DailyMatches from "@/components/DailyMatches";
+import DataTools from "@/components/DataTools";
 import AstroConsole from "@/components/AstroConsole";
 import AdsConsole from "@/components/AdsConsole";
 import PayConsole from "@/components/PayConsole";
@@ -226,15 +228,24 @@ export default function AdminPage() {
           <div className="text-xs bg-[#7A0C2E] text-white px-3 py-1 rounded-full">Admin only</div>
         </div>
 
-        <div className="flex flex-wrap gap-2 mb-4">
-          {[["payouts", duo("💰 Referral Payouts (live)", "💰 రెఫరల్ చెల్లింపులు")], ["vendors", duo("🏪 Vendor Ads (live)", "🏪 వెండర్ ప్రకటనలు")],
-            ["matchsend", duo("🎯 Match & Send (₹500)", "🎯 మ్యాచ్ & సెండ")], ["astro", duo("🪐 Astro", "🪐 జ్యోతిషం")], ["ads", duo("📢 Ads", "📢 ప్రకటనలు")], ["pay", duo("💳 Payments", "💳 చెల్లింపులు")], ["offers", duo("🎉 Offers", "🎉 ఆఫర్లు")], ["content", duo("📝 Content (CMS)", "📝 కంటెంట్")], ["channels", duo("📡 Channels + Poster", "📡 ఛానళ్లు")], ["profiles", duo("👥 Profiles", "👥 ప్రొఫైళ్లు")], ["analytics", duo("📊 Analytics", "📊 విశ్లేషణ")],
-            ["photos", duo("📸 Photo Review", "📸 ఫోటో పరిశీలన")],
-            ["safety", duo("🛡️ Safety", "🛡️ భద్రత")], ["ops", duo("📮 Ops", "📮 ఆప్స్")]].map(([k, l]) => (
-            <button key={k} onClick={() => setTab(k)}
-              className={`px-5 py-2 rounded-full text-sm font-bold ${tab === k ? "maroon-gradient text-white" : "bg-white border"}`}>{l}</button>
-          ))}
-        </div>
+        {/* W40 — neat grouped tabs (easy navigation) */}
+        {[
+          { g: te ? "💰 డబ్బు" : "💰 Money", items: [["payouts", duo("💰 Referral Payouts (live)", "💰 రెఫరల్ చెల్లింపులు")], ["pay", duo("💳 Payments", "💳 చెల్లింపులు")]] },
+          { g: te ? "🚀 గ్రోత్" : "🚀 Growth", items: [["matchsend", duo("🎯 Match & Send (₹500)", "🎯 మ్యాచ్ & సెండ్")], ["daily", duo("🗓️ Daily Matches", "🗓️ ఈ రోజు మ్యాచ్‌లు")], ["ads", duo("📢 Ads", "📢 ప్రకటనలు")], ["offers", duo("🎉 Offers", "🎉 ఆఫర్లు")]] },
+          { g: te ? "👥 యూజర్లు" : "👥 Users", items: [["profiles", duo("👥 Profiles", "👥 ప్రొఫైళ్లు")], ["photos", duo("📸 Photo Review", "📸 ఫోటో పరిశీలన")], ["safety", duo("🛡️ Safety", "🛡️ భద్రత")]] },
+          { g: te ? "📝 కంటెంట్" : "📝 Content", items: [["content", duo("📝 Content (CMS)", "📝 కంటెంట్")], ["astro", duo("🪐 Astro", "🪐 జ్యోతిషం")], ["channels", duo("📡 Channels + Poster", "📡 ఛానళ్లు")]] },
+          { g: te ? "⚙️ సిస్టమ్" : "⚙️ System", items: [["vendors", duo("🏪 Vendor Ads (live)", "🏪 వెండర్ ప్రకటనలు")], ["analytics", duo("📊 Analytics", "📊 విశ్లేషణ")], ["ops", duo("📮 Ops", "📮 ఆప్స్")], ["data", duo("📤 Excel + Retention", "📤 ఎక్సెల్ + రిటెన్షన్")]] },
+        ].map((grp) => (
+          <div key={grp.g} className="mb-3">
+            <div className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-gray-400">{grp.g}</div>
+            <div className="flex flex-wrap gap-2">
+              {grp.items.map(([k, l]) => (
+                <button key={k} onClick={() => setTab(k)}
+                  className={`px-4 py-2 rounded-full text-[13px] font-bold ${tab === k ? "maroon-gradient text-white" : "bg-white border"}`}>{l}</button>
+              ))}
+            </div>
+          </div>
+        ))}
 
         <div className="grid md:grid-cols-4 gap-3 mb-4">
           <div className="bg-white rounded-2xl p-4 shadow-sm text-center"><div className="text-2xl font-bold text-orange-600">{queue.count || 0}</div><div className="text-xs">Payout requests</div></div>
@@ -250,7 +261,9 @@ export default function AdminPage() {
             <h2 className="font-bold text-[#7A0C2E]">
               {tab === "payouts" ? duo("💰 Referral Payout Queue — approve with UTR (audit trail)", "💰 రెఫరల్ చెల్లింపులు — UTR తో ఆమోదం")
                 : tab === "vendors" ? duo("🏪 Vendor Ads — approve (UTR) → listing live + promo post", "🏪 వెండర్ ప్రకటనలు — ఆమోదం → లైవ్")
-                : tab === "profiles" ? duo("Profiles — Approve → auto-post", "ప్రొఫైళ్లు — ఆమోదం → ఆటో-పోస్ట్") : duo("Analytics", "విశ్లేషణ")}
+                : tab === "profiles" ? duo("Profiles — Approve → post", "ప్రొఫైళ్లు — ఆమోదం → పోస్ట్")
+                : tab === "daily" ? duo("🗓️ Matches of the Day — select → caste channels boost post", "🗓️ ఈ రోజు మ్యాచ్‌లు — select → కుల ఛానళ్లలో పోస్ట్")
+                : tab === "data" ? duo("📤 Excel downloads + 3-year retention", "📤 ఎక్సెల్ డౌన్‌లోడ్‌లు + 3 సంవత్సరాల రిటెన్షన్") : duo("Analytics", "విశ్లేషణ")}
             </h2>
             <div className="flex gap-2">
               {tab === "payouts" && (
@@ -271,6 +284,20 @@ export default function AdminPage() {
           </div>
 
           {/* ---------------- MATCH & SEND (₹500 assisted) ---------------- */}
+          {tab === "daily" && (
+            <>
+              <h2 className="font-bold text-[#7A0C2E] mt-2">🗓️ Matches of the Day — {te ? "ఎంపిక → ఛానళ్లలో బూస్ట్ పోస్ట్" : "select → boost post in channels"}</h2>
+              <DailyMatches />
+            </>
+          )}
+
+          {tab === "data" && (
+            <>
+              <h2 className="font-bold text-[#7A0C2E] mt-2">📤 {te ? "Excel + Retention" : "Excel + Retention"}</h2>
+              <DataTools />
+            </>
+          )}
+
           {tab === "matchsend" && (
             <>
               <h2 className="font-bold text-[#7A0C2E] mt-2">🎯 Match &amp; Send — buyer ID → perfect matches → personal Telegram/WhatsApp</h2>

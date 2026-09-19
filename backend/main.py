@@ -4,7 +4,7 @@ All endpoints: Register, ID Search, Matches, Credits, Referral, Bureau, Admin, P
 """
 from fastapi import FastAPI, HTTPException, Request, UploadFile, File, Form, Body
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, Response
 from typing import Any, Dict, Optional
 import os, random, json, re
 import threading
@@ -64,6 +64,7 @@ from wa_antiban import ENGINE as WA_ENGINE
 # 🛡️ WAVE 9 — hardening layer (auth tokens, admin key, rate limit, validation, abuse ledger)
 import db_store as DBSTORE  # noqa: E402  # 🌊 WAVE 22 — core DB persistence
 import money_audit as MAUD  # noqa: E402  # 🌊 WAVE 26 — money audit trail
+import retention as RETENTION  # 🗑️ WAVE 40: 3-year profile auto-delete (archive first)
 from hardening import (
     auth_enforced, require_owner, require_admin, rate_limit_hit, too_many,
     apply_security_headers, posture as security_posture, abuse_snapshot, abuse_log,
@@ -209,6 +210,16 @@ async def _startup_publisher():
                 len(DB_USERS), len(DB_INTERESTS), len(DB_PAYMENTS)))
     except Exception as e:
         print("[DB] restore skip:", str(e)[:80])
+    # 🗑️ WAVE 40 — 3-year retention: restore tarvata ventane okasari + roju oosari
+    # (money-safe: wallet/plan/boost active unna profiles skip; archive mundu — data poyedam ledu)
+    try:
+        _ret = RETENTION.run(DB_USERS, DB_INTERESTS, DB_VIEWS, DB_SAVES)
+        if _ret.get("deleted"):
+            print(f"[RETENTION] {_ret['deleted']} profiles (3+ years) archived+deleted → {_ret.get('archive','')}")
+        _retention_save()
+        RETENTION.start_daily(lambda: (RETENTION.run(DB_USERS, DB_INTERESTS, DB_VIEWS, DB_SAVES), _retention_save()))
+    except Exception as e:
+        print("[RETENTION] startup skip:", str(e)[:80])
     # demo/launch inventory: empty DB aithe (dev/preview lo) ventane profiles — site khali ga kanipinchadu
     if str(os.getenv("DEMO_SEED_ENABLED", "true")).lower() in ("1", "true", "yes", "on") and not DB_USERS:
         try:
@@ -403,6 +414,15 @@ VERIFIED_PHONES = set()  # OTP verify ayyina numbers
 DB_REPORTS = safety.DB_REPORTS      # safety reports (moderation queue)
 DB_BLOCKS = safety.DB_BLOCKS        # block list (search/interest lo respect avutundi)
 DB_PAYMENTS = []
+
+
+def _retention_save():
+    """🗑️ WAVE 40 — retention delete ayyaka force save (debounce ledu)."""
+    try:
+        DBSTORE.save(DBSTORE.snapshot(DB_USERS, DB_INTERESTS, DB_PAYMENTS, DB_OTPS,
+                                      VERIFIED_PHONES, DB_VIEWS, DB_SAVES, DB_DIGEST), force=True)
+    except Exception as e:
+        print("[RETENTION] save fail:", str(e)[:80])
 DB_POSTS = []
 DB_REFERRALS = []
 
@@ -971,9 +991,9 @@ async def register(
             "poster_url": "/api/referral/%s/poster.png" % tsap_id,
             "poster_status_url": "/api/referral/%s/poster.png?style=status" % tsap_id,
             "share_message": (
-                "🙏 నమస్తే! నేను %s — Mana Vivaha (TSAP) matrimony లో profile pettanu.\n"
+                "🙏 నమస్తే! నేను %s — మన వివాహ (TSAP) matrimony లో profile pettanu.\n"
                 "మీ family/relatives/business circle లో పెళ్లి చూసుకునే వాళ్లకి ఈ link పంపండి 👇\n%s\n"
-                "Free registration + 3 matches FREE. నా code: %s\n— Mana Vivaha · manavivaha.in"
+                "Free registration + 3 matches FREE. నా code: %s\n— మన వివాహ · manavivaha.in"
                 % (user.get("full_name") or tsap_id, user.get("referral_link", ""), user.get("referral_code", ""))),
             "dashboard": "/referral",
         },
@@ -1507,6 +1527,172 @@ def admin_referrals_csv(request: Request):
     return FileResponse(RP19.CSV_FILE, media_type="text/csv", filename="referral_partners.csv")
 
 
+# ============================================================================
+# 🗓️ WAVE 40 — MATCHES OF THE DAY + RETENTION + EXCEL EXPORTS (admin power)
+# ============================================================================
+DAILY_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "daily_matches.json")
+
+
+def _load_daily() -> dict:
+    try:
+        with open(DAILY_FILE, encoding="utf-8") as f:
+            d = json.load(f)
+            return d if isinstance(d, dict) else {}
+    except Exception:
+        return {}
+
+
+def _daily_row(u: dict) -> dict:
+    """Public card row — phone/PII lekunda (matches list shape)."""
+    return {"tsap_id": u.get("tsap_id"), "full_name": u.get("full_name", ""),
+            "gender": u.get("gender"), "age": u.get("age"), "caste": u.get("caste", ""),
+            "district": u.get("district", ""), "state": u.get("state", ""),
+            "education": u.get("education", ""), "job": u.get("job", ""),
+            "salary": u.get("salary", ""), "marital_status": u.get("marital_status", ""),
+            "star": u.get("star", ""), "has_photo": bool(u.get("photo_url") or u.get("photo_path")),
+            "photo_url": u.get("photo_url", "") if u.get("privacy_mode") != "private" else "",
+            "card_url": u.get("card_url", ""), "score": u.get("score", 0),
+            "verification": u.get("verification", ""), "boosted": bool(u.get("boost_until"))}
+
+
+@app.get("/api/daily-matches")
+def daily_matches_public():
+    """🗓️ Public — ఈ రోజు featured profiles (admin select chesina 'Matches of the Day')."""
+    today = datetime.utcnow().strftime("%Y-%m-%d")
+    ids = _load_daily().get(today, [])
+    rows = []
+    for tid in ids:
+        u = _find_user(tid)
+        if u and not u.get("is_banned"):
+            rows.append(_daily_row(u))
+    return {"success": True, "date": today, "count": len(rows), "matches": rows,
+            "note_telugu": "🗓️ ఈ రోజు ఎంపిక profiles — ⚡ Boost తో మీ profile కూడా ఇక్కడ రావచ్చు"}
+
+
+@app.get("/api/admin/daily-matches/candidates")
+def daily_matches_candidates(request: Request, limit: int = 60):
+    """Admin — candidates: ⚡ boost active (paid) users FIRST, then fresh registrations."""
+    require_admin(request)
+    limit = clamp_int(limit, "limit", 1, 200, 60)
+    now_iso = datetime.utcnow().isoformat()
+    boosted = [u for u in DB_USERS if str(u.get("boost_until") or "") > now_iso and not u.get("is_banned")]
+    boosted_ids = {id(u) for u in boosted}
+    others = [u for u in DB_USERS if id(u) not in boosted_ids and not u.get("is_banned")]
+    others.sort(key=lambda u: str(u.get("created_at", "")), reverse=True)
+    rows = []
+    for u in (boosted + others)[:limit]:
+        rows.append({**_daily_row(u), "boost_active": id(u) in boosted_ids, "phone": u.get("phone", "")})
+    today = datetime.utcnow().strftime("%Y-%m-%d")
+    return {"success": True, "today": _load_daily().get(today, []), "boosted_count": len(boosted),
+            "count": len(rows), "candidates": rows,
+            "note_telugu": "⚡ Boost active (paid) users mundu — vari caste channels lo TOP post"}
+
+
+@app.post("/api/admin/daily-matches")
+async def daily_matches_set(payload: dict, request: Request):
+    """Admin — ఈ రోజు 'Matches of the Day' select → profiles vari caste channels lo post (boost)."""
+    require_admin(request)
+    ids = [str(x).strip().upper() for x in (payload or {}).get("profile_ids", []) if str(x).strip()]
+    if not ids:
+        raise HTTPException(400, "profile_ids list ఇవ్వండి (ex: [\"RED001\",\"KAM002\"])")
+    ids = ids[:30]
+    users = []
+    for tid in ids:
+        u = _find_user(tid)
+        if not u:
+            raise HTTPException(404, f"ID {tid} దొరకలేదు")
+        users.append(u)
+    do_post = bool((payload or {}).get("post_to_channels", True))
+    posted, failed = [], []
+    if do_post:
+        for u in users:
+            try:
+                await publish_profile(u, u["tsap_id"], int(u.get("score", 92)))
+                posted.append(u["tsap_id"])
+            except Exception as e:
+                failed.append({"id": u["tsap_id"], "error": str(e)[:80]})
+    today = datetime.utcnow().strftime("%Y-%m-%d")
+    data = _load_daily()
+    data[today] = ids
+    try:
+        with open(DAILY_FILE, "w", encoding="utf-8") as f:
+            json.dump({k: v for k, v in sorted(data.items())[-60:]}, f, ensure_ascii=False, default=str)
+    except Exception as e:
+        print("[DAILY] save fail:", str(e)[:80])
+    return {"success": True, "date": today, "selected": ids,
+            "posted": posted, "failed": failed,
+            "message_telugu": f"🗓️ {len(ids)} profiles ఈ రోజు 'Matches of the Day' — {len(posted)} caste channels lo post ayyayi"}
+
+
+@app.get("/api/admin/retention/preview")
+def admin_retention_preview(request: Request, years: int = 0):
+    """🗑️ Admin — 3-year policy: ye profiles delete avtayi (dry preview)."""
+    require_admin(request)
+    p = RETENTION.preview(DB_USERS, years or None)
+    return {"success": True, **p, "policy_years": RETENTION.RETENTION_YEARS,
+            "note_telugu": "Money/plan active ఉన్న profiles skip — archive ముందే జరుగుతుంది, డేటా పోదు"}
+
+
+@app.post("/api/admin/retention/run")
+def admin_retention_run(payload: dict, request: Request):
+    """🗑️ Admin — retention run NOW (archive → delete → save)."""
+    require_admin(request)
+    years = int((payload or {}).get("years", 0) or 0) or None
+    res = RETENTION.run(DB_USERS, DB_INTERESTS, DB_VIEWS, DB_SAVES, years=years)
+    if res.get("deleted"):
+        _retention_save()
+    return {"success": True, **res}
+
+
+def _csv_response(header, rows, filename):
+    import csv
+    import io as _io
+    buf = _io.StringIO()
+    w = csv.writer(buf)
+    w.writerow(header)
+    for r in rows:
+        w.writerow([("" if v is None else str(v)) for v in r])
+    return Response("\ufeff" + buf.getvalue(), media_type="text/csv; charset=utf-8",
+                    headers={"Content-Disposition": f'attachment; filename="{filename}"'})
+
+
+@app.get("/api/admin/export/users.csv")
+def admin_export_users(request: Request):
+    """📤 ADMIN — FULL profiles sheet (Excel-ready CSV, Telugu BOM tho)."""
+    require_admin(request)
+    hdr = ["profile_id", "name", "gender", "age", "phone", "caste", "religion", "district", "state",
+           "education", "job", "salary", "marital_status", "height", "star", "raasi", "created_at",
+           "credits", "plan", "wallet", "lifetime_earned", "phone_verified", "has_photo", "boost_until", "banned"]
+    rows = [[u.get("tsap_id"), u.get("full_name"), u.get("gender"), u.get("age"), u.get("phone"),
+             u.get("caste"), u.get("religion"), u.get("district"), u.get("state"),
+             u.get("education"), u.get("job"), u.get("salary"), u.get("marital_status"), u.get("height"),
+             u.get("star"), u.get("raasi"), u.get("created_at"), u.get("credits"), u.get("plan"),
+             u.get("wallet", 0), u.get("lifetime_earned", 0), bool(u.get("phone_verified")),
+             bool(u.get("photo_url") or u.get("photo_path")), u.get("boost_until", ""), bool(u.get("is_banned"))]
+            for u in DB_USERS]
+    return _csv_response(hdr, rows, "manavivaha_profiles.csv")
+
+
+@app.get("/api/admin/export/payments.csv")
+def admin_export_payments(request: Request):
+    """📤 ADMIN — payments sheet (orders + status + UTR)."""
+    require_admin(request)
+    hdr = ["order_id", "profile_id", "plan", "amount", "status", "utr", "at"]
+    rows = [[p.get("order_id"), p.get("tsap_id"), p.get("plan") or p.get("kind"), p.get("amount"),
+             p.get("status"), p.get("utr", ""), p.get("at")] for p in DB_PAYMENTS]
+    return _csv_response(hdr, rows, "manavivaha_payments.csv")
+
+
+@app.get("/api/admin/export/leads.csv")
+def admin_export_leads(request: Request):
+    """📤 ADMIN — leads sheet (name/phone/source/status)."""
+    require_admin(request)
+    hdr = ["name", "phone", "source", "status", "touches", "at", "note"]
+    rows = [[l.get("name", ""), l.get("phone", ""), l.get("source", ""), l.get("status", ""),
+             l.get("touches", 1), l.get("at", ""), l.get("note", "")] for l in growth.DB_LEADS]
+    return _csv_response(hdr, rows, "manavivaha_leads.csv")
+
+
 @app.get("/api/referral/{tsap_id}/payouts")
 def referral_payouts(tsap_id: str, request: Request = None):
     """మీ payout history — request → paid/rejected + UTR."""
@@ -1736,7 +1922,7 @@ def channels(tier: Optional[str] = None):
         items = out_tiers.get(tier, [])
         return {"tier": tier, "channels": items, "count": len(items), "stats": channel_stats()}
     return {
-        "brand": "Mana Vivaha | TSAP Matrimony",
+        "brand": "మన వివాహ | TSAP Matrimony",
         "site": "https://manavivaha.in",
         "bot": "@telugumatrimony1_bot",
         "stats": channel_stats(),
@@ -3586,7 +3772,7 @@ def api_og_porutham(bride: str, groom: str):
 
 
 @app.get("/api/og/site.png")
-def api_og_site(title: str = "Mana Vivaha — Telugu Matrimony", subtitle: str = "52 channels • 43 castes • TS + AP"):
+def api_og_site(title: str = "మన వివాహ — Telugu Matrimony", subtitle: str = "52 channels • 43 castes • TS + AP"):
     path = preview.og_generic_png(title, subtitle, name="site")
     if not path or not os.path.exists(path):
         raise HTTPException(500, "Preview generate avvaledu")
@@ -4230,7 +4416,7 @@ def push_notify(tsap_id: str, payload: dict, request: Request = None):
         raise HTTPException(404, "Profile dorakaledu")
     d = payload or {}
     return {"tsap_id": tsap_id, **A11.push_notify(
-        tsap_id, str(d.get("title", "💍 Mana Vivaha — కొత్త matches!")),
+        tsap_id, str(d.get("title", "💍 మన వివాహ — కొత్త matches!")),
         str(d.get("body", "మీకు 2 కొత్త matches vachayi — చూడండి!")),
         str(d.get("url", "/matches")))}
 

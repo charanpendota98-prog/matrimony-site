@@ -17,7 +17,7 @@ from __future__ import annotations
 import os
 from typing import Any, Dict, List, Optional
 
-OTP_TEXT = "Mana Vivaha OTP: {code} (10 min valid). Evariki cheppakandi 🙏"
+OTP_TEXT = "మన వివాహ OTP: {code} (10 min valid). Evariki cheppakandi 🙏"
 
 
 def _wa_send(phone: str, text: str) -> Dict[str, Any]:
