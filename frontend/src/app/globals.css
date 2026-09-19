@@ -101,6 +101,33 @@ body {
 
 .hairline { border-color: rgba(212, 175, 55, 0.28); }
 
+/* ---------- Cinematic wedding story hero ---------- */
+.wedding-story { position: relative; height: 190vh; background: #120713; }
+.wedding-story__sticky { position: sticky; top: 0; min-height: 100svh; overflow: hidden; isolation: isolate; }
+.wedding-story__scene { position: absolute; inset: -5%; transform-origin: center; transition: transform .08s linear; touch-action: pan-y; cursor: grab; }
+.wedding-story__scene:active { cursor: grabbing; }
+.wedding-story__image { position: absolute; inset: 0; background: url('/promo/hero-wedding.jpg') center/cover; filter: saturate(.82) contrast(1.06); }
+.wedding-story__shade { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(19,5,17,.9) 0%, rgba(39,9,28,.55) 45%, rgba(15,5,15,.18) 100%), linear-gradient(0deg, rgba(16,3,13,.8), transparent 60%); }
+.wedding-story__glow { position: absolute; border-radius: 999px; filter: blur(30px); background: #f4c969; opacity: .24; animation: weddingGlow 5s ease-in-out infinite; }
+.wedding-story__glow--one { width: 18rem; height: 18rem; right: 12%; top: 8%; }
+.wedding-story__glow--two { width: 9rem; height: 9rem; left: 52%; bottom: 10%; animation-delay: -2s; }
+.wedding-story__mandapam { position: absolute; right: 17%; top: 20%; width: 30%; height: 46%; border: 1px solid rgba(246,211,125,.5); opacity: .68; transition: opacity .8s, transform .8s; transform: translateY(calc((1 - var(--story-progress, 0)) * 18px)); }
+.wedding-story__mandapam .pillar { position: absolute; top: 8%; bottom: 0; width: 7%; background: linear-gradient(90deg, #a66528, #f1c469, #7d421d); box-shadow: 0 0 24px rgba(246,194,85,.35); }
+.wedding-story__mandapam .pillar--left { left: 5%; }.wedding-story__mandapam .pillar--right { right: 5%; }
+.wedding-story__mandapam .roof { position: absolute; left: -8%; right: -8%; top: 0; height: 13%; border-radius: 50% 50% 0 0; background: linear-gradient(#f2c66d, #8c401f); box-shadow: 0 0 30px rgba(246,194,85,.4); }
+.wedding-story__mandapam .fire { position: absolute; left: 48%; bottom: 13%; color: #ffd879; font-size: 2.5rem; text-shadow: 0 0 26px #ff7b2e; animation: fireFlicker .7s ease-in-out infinite alternate; }
+.wedding-story__couple { position: absolute; right: 25%; top: 50%; display: flex; align-items: end; gap: 2rem; font-size: clamp(3.5rem, 8vw, 7rem); filter: drop-shadow(0 12px 15px rgba(0,0,0,.3)); transition: transform 1.1s cubic-bezier(.22,1,.36,1), gap 1.1s; }
+.wedding-story__couple--0 { transform: translate(18%, 20%) scale(.78); opacity: .05; }.wedding-story__couple--1 { transform: translate(12%, 10%) scale(.86); opacity: .5; }.wedding-story__couple--2 { transform: translate(4%, 2%) scale(.94); opacity: .88; }.wedding-story__couple--3 { transform: translate(0, 0) scale(1); opacity: 1; gap: .7rem; }.wedding-story__couple--4 { transform: translate(-3%, -2%) scale(1.04); opacity: 1; gap: .25rem; }
+.wedding-story__couple .garland { position: absolute; left: 45%; top: 15%; color: #ffd875; font-size: 2rem; opacity: 0; transition: opacity .5s; }.wedding-story__couple--3 .garland,.wedding-story__couple--4 .garland { opacity: 1; }
+.wedding-story__petals { position: absolute; top: 16%; left: 55%; color: #ffd36c; letter-spacing: 2rem; opacity: .65; animation: petalsFloat 7s linear infinite; }
+.wedding-story__copy { position: absolute; z-index: 2; left: max(1.25rem, calc((100vw - 80rem)/2)); top: 50%; width: min(46rem, 52vw); transform: translateY(-50%); }
+.wedding-story__hint { position: absolute; z-index: 2; bottom: 1.5rem; right: 1.5rem; color: rgba(255,255,255,.65); font-size: .7rem; }
+@keyframes weddingGlow { 50% { transform: translate(16px, 12px) scale(1.12); opacity: .35; } }
+@keyframes fireFlicker { to { transform: scale(1.12) rotate(3deg); opacity: .8; } }
+@keyframes petalsFloat { 0% { transform: translateY(-10px); opacity: 0; } 20%,80% { opacity: .7; } 100% { transform: translateY(150px) translateX(-50px); opacity: 0; } }
+@media (max-width: 700px) { .wedding-story { height: 165vh; }.wedding-story__copy { left: 1.25rem; right: 1.25rem; top: 12%; width: auto; transform: none; }.wedding-story__copy h2 { font-size: 2.15rem; }.wedding-story__scene { inset: -2%; }.wedding-story__mandapam { right: 8%; top: 38%; width: 62%; height: 36%; }.wedding-story__couple { right: 17%; top: 57%; font-size: 4.5rem; gap: 1.3rem; }.wedding-story__hint { bottom: 1rem; left: 1.25rem; right: auto; } }
+@media (prefers-reduced-motion: reduce) { .wedding-story { height: auto; min-height: 34rem; }.wedding-story__sticky { position: relative; min-height: 34rem; }.wedding-story__scene { transform: none !important; }.wedding-story__glow,.wedding-story__petals,.wedding-story__mandapam .fire { animation: none; }.wedding-story__copy { top: 50%; transform: translateY(-50%); } }
+
 /* ---------- Scroll reveal ---------- */
 .reveal {
   opacity: 0;
