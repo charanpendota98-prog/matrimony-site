@@ -260,8 +260,8 @@ check("register success lo 'enti vachindi' card (credits + lock + CTA)",
 check("matches page lo 🔒 number locked chip + phone_masked", "phone_masked" in match_pg and "Number:" in match_pg)
 check("matches page lo clarity banner + pricing CTA",
       "Numbers ivvamu" in match_pg and "₹99 → 5 profiles" in match_pg)
-check("pricing page lo FREE vs PAID boxes + numbers ivvamu",
-      "FREE లో (₹0)" in pricing_pg and "🔒 phone numbers ఇవ్వము" in pricing_pg)
+check("pricing page lo numbers policy clarity (R13 minimal — okka line)",
+      "రెండు వైపులా accept అయ్యాకే" in pricing_pg)
 check("search page lo leak ki avakasam ledu (safe fields matrame)",
       "p.full_name" in search_pg or "profile" in search_pg)
 

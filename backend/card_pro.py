@@ -170,10 +170,21 @@ class CardBuilder:
         d.rectangle([0, 0, W, 118], fill=self.accent)
         d.rectangle([0, 112, W, 118], fill=GOLD)
 
-        # brand block
-        d.rounded_rectangle([24, 20, 84, 80], 14, fill=GOLD)
-        d.text((38, 32), "MV", fill=self.accent, font=F(28, True))
-        d.text((100, 22), f"{BRAND}  •  {LEGAL}", fill=WHITE, font=F(22, True))
+        # 💍 R13: brand block — kotha marriage logo (rings+lotus) paste; MV text kaadu
+        _logo_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                  "brand", "logo-square-256.png")
+        if os.path.exists(_logo_path):
+            try:
+                _lg = Image.open(_logo_path).convert("RGBA").resize((58, 58), Image.LANCZOS)
+                _m = _lg.split()[3] if _lg.mode == "RGBA" else None
+                self.img.paste(_lg, (26, 21), _m)
+            except Exception:
+                d.rounded_rectangle([24, 20, 84, 80], 14, fill=GOLD)
+                d.text((38, 32), "మన", fill=self.accent, font=F(24, True))
+        else:
+            d.rounded_rectangle([24, 20, 84, 80], 14, fill=GOLD)
+            d.text((38, 32), "మన", fill=self.accent, font=F(24, True))
+        d.text((100, 22), f"మనవివాహం  •  {BRAND}", fill=WHITE, font=F(22, True))
         d.text((100, 52), "TS-AP Telugu Matrimony  •  \u20b999 సంబంధం",
                fill=GOLD_LIGHT, font=F(14))
 

@@ -399,9 +399,12 @@ def test_pricing_pages_and_payments():
     pages = {name: pathlib_read(os.path.join(root, "frontend", "src", "app", name, "page.tsx"))
              for name in ("pricing", "terms", "privacy", "refund")}
     check("/pricing page undi + /api/plans nunchi data", "/api/plans" in pages["pricing"])
+    # 💍 R13: pricing minimal redesign — sodi remove (user order). Tier cards + addons +
+    # renewal + FAQ inka unnayi; pata "Compare" table / "Vivaha VIP" label / "Single Request" text kaadu
     check("/pricing lo anni tiers + addons + renewal", all(x in pages["pricing"] for x in
-          ("S_499", "Vivaha VIP", "addons", "renewal", "Compare")))
-    check("/pricing lo micro tier explain + FAQ", pages["pricing"].count("details") > 0 and "Single Request" in pages["pricing"])
+          ("S_499", "S_29", "S_99", "S_199", "S_299", "Add-ons", "Renewal", "Referral")))
+    check("/pricing lo micro tier + FAQ + numbers policy", "₹29" in pages["pricing"]
+          and "FAQ" in pages["pricing"] and "రెండు వైపులా accept" in pages["pricing"])
     check("/refund policy lo decline-refund + 7-day + GST", all(x in pages["refund"] for x in
           ("7 ", "declin", "GST", "6")))
     check("/terms lo eligibility 18+/21+ + chatting ledu + banned list", all(x in pages["terms"] for x in

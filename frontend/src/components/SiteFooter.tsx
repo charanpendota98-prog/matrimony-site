@@ -45,15 +45,15 @@ export default function SiteFooter() {
   return (
     <footer className="mt-10 navy-gradient text-white no-print">
       <div className="max-w-7xl mx-auto px-4 py-10 grid md:grid-cols-4 gap-8 text-sm">
-        {/* Brand */}
+        {/* Brand — 💍 R13: kotha marriage logo + peru Telugu lo */}
         <div>
           <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 gold-gradient rounded-xl flex items-center justify-center text-maroon font-bold text-lg">
-              MV
-            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={SITE_CONFIG.logoImage} alt="మనవివాహం logo" width={40} height={40}
+              className="w-10 h-10 rounded-xl object-cover" />
             <div>
-              <div className="font-bold text-gold leading-none">Mana Vivaha</div>
-              <div className="text-[10px] opacity-70">TSAP Matrimony</div>
+              <div className="font-bold text-gold leading-none telugu text-[16px]">మనవివాహం</div>
+              <div className="text-[10px] opacity-70">Mana Vivaha • {te ? "తెలుగు మ్యాట్రిమోనీ" : "Telugu Matrimony"}</div>
             </div>
           </div>
           <div className="text-xs opacity-75 mt-3 telugu leading-relaxed">

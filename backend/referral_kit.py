@@ -75,10 +75,20 @@ def poster_card(user: Dict, code: str = "", link: str = "", out_path: Optional[s
     img = Image.new("RGB", (W, H), BRAND_CREAM)
     d = ImageDraw.Draw(img)
 
-    # top bar
+    # top bar — 💍 R13: kotha marriage logo + మనవివాహం
     d.rectangle([0, 0, W, 150], fill=BRAND_MAROON)
-    d.text((48, 44), "MANA VIVAHA", font=_font(56), fill=BRAND_GOLD)
-    d.text((48, 108), "TS - AP TELUGU MATRIMONY  |  " + site, font=_font(26, False), fill=BRAND_CREAM)
+    _tx = 48
+    try:
+        from PIL import Image as _PILImage
+        _lp = os.path.join(os.path.dirname(os.path.abspath(__file__)), "brand", "logo-square-256.png")
+        if os.path.exists(_lp):
+            _lg = _PILImage.open(_lp).convert("RGBA").resize((104, 104), _PILImage.LANCZOS)
+            img.paste(_lg, (48, 23), _lg.split()[3])
+            _tx = 180
+    except Exception:
+        _tx = 48
+    d.text((_tx, 36), "మనవివాహం", font=_font(56), fill=BRAND_GOLD)
+    d.text((_tx, 106), "TS - AP TELUGU MATRIMONY  |  " + site, font=_font(26, False), fill=BRAND_CREAM)
 
     y = 200
     d.text((48, y), "REFERRAL BONUS  -  Rs.50", font=_font(66), fill=BRAND_MAROON)

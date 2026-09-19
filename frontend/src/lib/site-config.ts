@@ -10,9 +10,11 @@
 export const SITE_CONFIG = {
   // ---------- Brand ----------
   brandName: "Mana Vivaha",
+  brandNameTe: "మనవివాహం",           // 💍 R13: brand peru neat ga Telugu lo
   legalName: "TSAP Matrimony",
   logoText: "MV",
-  tagline: "TS-AP No.1 Telugu Matrimony",
+  logoImage: "/logo.png",             // 💍 R13: kotha marriage logo (rings + lotus) — MV text kaadu
+  tagline: "Telugu Matrimony",
   taglineTelugu: "₹99 ke Sambandham • Modati 3 FREE • Chatting ledu",
   domain: "manavivaha.in",
   siteUrl: process.env.SITE_URL || "https://manavivaha.in",

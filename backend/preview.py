@@ -57,9 +57,22 @@ def _fit(draw, text: str, font, max_w: int) -> str:
     return text + "…"
 
 
-def _brand_bar(draw, W: int, H: int, label: str = "MANA VIVAHA • TSAP MATRIMONY") -> None:
+def _brand_bar(draw, W: int, H: int, label: str = "MANA VIVAHA • TELUGU MATRIMONY",
+               img: "Image.Image" = None) -> None:
+    """💍 R13 — brand bar: kotha marriage logo + మనవివాహం (Telugu peru neat ga)."""
     draw.rectangle([0, H - 74, W, H], fill=MAROON_DARK)
-    draw.text((50, H - 52), label, font=_font(24, True), fill=GOLD)
+    x = 50
+    if img is not None:
+        try:
+            _lp = os.path.join(os.path.dirname(os.path.abspath(__file__)), "brand", "logo-square-256.png")
+            if os.path.exists(_lp):
+                _lg = Image.open(_lp).convert("RGBA").resize((46, 46), Image.LANCZOS)
+                img.paste(_lg, (50, H - 60), _lg.split()[3])
+                x = 112
+        except Exception:
+            x = 50
+    draw.text((x, H - 52), "మనవివాహం", font=_font(26, True), fill=GOLD)
+    draw.text((x + 170, H - 48), label, font=_font(16), fill=(240, 224, 190))
     draw.text((W - 340, H - 52), "manavivaha.in", font=_font(22), fill=CREAM)
 
 
@@ -104,7 +117,7 @@ def og_profile_png(user: Dict, out_path: Optional[str] = None) -> Optional[str]:
     d.rounded_rectangle([W - 520, y + 10, W - 60, y + 62], radius=26, fill=GOLD)
     d.text((W - 500, y + 24), "Details + Interest: manavivaha.in", font=_font(22, True), fill=MAROON)
 
-    _brand_bar(d, W, H)
+    _brand_bar(d, W, H, img=img)
     out_path = out_path or os.path.join(PREVIEW_DIR, "profile-%s.png" % tsap)
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
     img.save(out_path, "PNG", optimize=True)
@@ -162,7 +175,7 @@ def og_porutham_png(bride: Dict, groom: Dict, result: Dict, out_path: Optional[s
     d.rounded_rectangle([400, 496, 1140, 546], radius=16, fill=GOLD)
     d.text((420, 508), _fit(d, line, _font(22, True), 700), font=_font(22, True), fill=MAROON)
 
-    _brand_bar(d, W, H, "MANA VIVAHA • PORUTHAM REPORT")
+    _brand_bar(d, W, H, "జ్యోతిషం PORUTHAM REPORT", img=img)
     out_path = out_path or os.path.join(PREVIEW_DIR, "పొరుతం-%s-%s.png" % (b.get("tsap_id", "A"), g.get("tsap_id", "B")))
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
     img.save(out_path, "PNG", optimize=True)
@@ -182,7 +195,7 @@ def og_generic_png(title: str, subtitle: str, out_path: Optional[str] = None, na
     d.text((60, 330), "52 channels • 43 castes • TS + AP • 3 FREE requests", font=_font(26), fill=CREAM)
     d.rounded_rectangle([60, 420, 620, 480], radius=26, fill=GOLD)
     d.text((84, 436), "manavivaha.in — FREE గా register చెయ్యండి", font=_font(22, True), fill=MAROON)
-    _brand_bar(d, W, H)
+    _brand_bar(d, W, H, img=img)
     out_path = out_path or os.path.join(PREVIEW_DIR, "og-%s.png" % name)
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
     img.save(out_path, "PNG", optimize=True)

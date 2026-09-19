@@ -1,7 +1,7 @@
 {
-  "name": "Mana Vivaha — TSAP Telugu Matrimony",
-  "short_name": "Mana Vivaha",
-  "description": "Telangana + Andhra Pradesh Telugu matrimony. 52 channels, 43 castes, 3 FREE requests, ₹99 Sambandham. Porutham report + verified profiles.",
+  "name": "మనవివాహం — Telugu Matrimony",
+  "short_name": "మనవివాహం",
+  "description": "TS + AP తెలుగు మ్యాట్రిమోనీ — మొదటి 3 requests FREE",
   "lang": "te-IN",
   "dir": "ltr",
   "start_url": "/?utm_source=pwa",
@@ -10,16 +10,50 @@
   "orientation": "portrait",
   "background_color": "#FFF8E7",
   "theme_color": "#7A0C2E",
-  "categories": ["social", "lifestyle"],
+  "categories": [
+    "social",
+    "lifestyle"
+  ],
   "icons": [
-    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
   ],
   "shortcuts": [
-    { "name": "Matches", "short_name": "Matches", "url": "/matches" },
-    { "name": "Porutham report", "short_name": "Porutham", "url": "/porutham" },
-    { "name": "Requests 💌", "short_name": "Requests", "url": "/requests" },
-    { "name": "Register FREE", "short_name": "Register", "url": "/register" }
+    {
+      "name": "Matches",
+      "short_name": "Matches",
+      "url": "/matches"
+    },
+    {
+      "name": "Porutham report",
+      "short_name": "Porutham",
+      "url": "/porutham"
+    },
+    {
+      "name": "Requests 💌",
+      "short_name": "Requests",
+      "url": "/requests"
+    },
+    {
+      "name": "Register FREE",
+      "short_name": "Register",
+      "url": "/register"
+    }
   ]
 }
