@@ -6,7 +6,7 @@ from fastapi import FastAPI, HTTPException, Request, UploadFile, File, Form, Bod
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, Response
 from typing import Any, Dict, Optional
-import os, random, json, re
+import os, random, json, re, hashlib, hmac
 import threading
 from collections import defaultdict
 from datetime import datetime, timedelta
@@ -234,6 +234,10 @@ async def _startup_publisher():
             raise RuntimeError("ADMIN_KEY (32+ random chars) is required in production")
         if not CONTROL_AUTH._accounts():
             raise RuntimeError("No CONTROL owner/worker account configured in production")
+        otp_ready = bool(os.getenv("MSG91_KEY", "").strip() or os.getenv("FAST2SMS_KEY", "").strip())
+        otp_ready = otp_ready or (os.getenv("WHATSAPP_MODE", "").lower() == "bridge" and bool(os.getenv("WA_INSTANCES", "").strip() or os.getenv("WHATSAPP_BRIDGE_URL", "").strip()))
+        if not otp_ready:
+            raise RuntimeError("Production OTP provider is not configured (WhatsApp bridge or SMS provider required)")
     ok = start_worker()
     st = publish_status()
     start_wa_worker()
@@ -3207,8 +3211,10 @@ def auth_reset(payload: dict):
         raise
     except Exception:
         pass
-    if code != rec.get("code"):
-        raise HTTPException(400, "❌ OTP tappu — మళ్లీ try చెయ్యండి")
+    expected = str(rec.get("code_hash", ""))
+    valid = hmac.compare_digest(_otp_digest(code), expected) if expected else hmac.compare_digest(code, str(rec.get("code", "")))
+    if not valid:
+        raise HTTPException(400, "❌ OTP తప్పు లేదా invalid — మళ్లీ try చెయ్యండి")
     u = next((x for x in DB_USERS if x.get("phone") == phone), None)
     if not u:
         raise HTTPException(404, "ఈ number తో account లేదు — ముందు register అవ్వండి")
@@ -3218,6 +3224,11 @@ def auth_reset(payload: dict):
     PW_LOCKS.pop(phone, None)
     return {"success": True, "tsap_id": u["tsap_id"], "auth_token": sign_token(u["tsap_id"]),
             "message_telugu": "✅ Password మారింది — ఇప్పుడు number + password తో login చెయ్యండి 🔑"}
+
+
+def _otp_digest(code: str) -> str:
+    secret = os.getenv("TSAP_AUTH_SECRET", "tsap-otp-dev-only").encode("utf-8")
+    return hmac.new(secret, str(code).encode("utf-8"), hashlib.sha256).hexdigest()
 
 
 @app.post("/api/otp/send")
@@ -3248,13 +3259,18 @@ def otp_send(payload: dict):
             "success": False, "message_telugu": "⚠️ Ganta లో 5 OTP limit — 1 hour తర్వాత try చెయ్యండి (abuse protection)"})
     code = f"{random.randint(1000, 9999)}"
     purpose = str(d.get("purpose", "login")).strip()[:16] or "login"
-    DB_OTPS[phone] = {"code": code, "expires": (datetime.utcnow() + timedelta(minutes=10)).isoformat(),
+    DB_OTPS[phone] = {"code_hash": _otp_digest(code), "expires": (datetime.utcnow() + timedelta(minutes=10)).isoformat(),
                       "tries": 0, "sent_at": datetime.utcnow().isoformat(), "purpose": purpose,
                       "history": (_hour + [datetime.utcnow().isoformat()])[-10:]}
     # 🌊 WAVE 18 — FREE channels first (WA bridge → Telegram → SMS), dev fallback
     ch = otp_channel_send(phone, code, DB_USERS)
-    DB_OTPS[phone]["channel"] = ch.get("channel", "dev")
-    dev = str(os.getenv("OTP_DEV_MODE", "true")).lower() in ("1", "true", "yes", "on")
+    DB_OTPS[phone]["channel"] = ch.get("channel", "none")
+    dev = str(os.getenv("OTP_DEV_MODE", "false")).lower() in ("1", "true", "yes", "on")
+    if str(os.getenv("APP_ENV", "")).lower() in ("production", "prod"):
+        dev = False
+    if not ch.get("ok") and not dev:
+        DB_OTPS.pop(phone, None)
+        raise HTTPException(503, "OTP service temporarily unavailable — please try again later")
     out = {"success": True, "phone": f"XXXXXX{phone[-4:]}", "expires_in_min": 10,
            "channel": ch.get("channel", "dev"), "purpose": purpose,
            "message_telugu": f"📱 OTP వచ్చింది (+91 XXXXXX{phone[-4:]}). 10 నిమిషాల్లో enter చెయ్యండి."}
@@ -3288,8 +3304,11 @@ def otp_verify(payload: dict):
         abuse_log("otp_locked", phone[-4:])
         abuse_count("otp_locked")
         raise HTTPException(429, "చాలా sarlu try చేశారు — కొత్త OTP teesukondi (15 min lock)")
-    if code != rec["code"]:
-        return JSONResponse(status_code=400, content={"success": False, "message_telugu": "❌ OTP tappu — మళ్లీ try చెయ్యండి",
+    expected = str(rec.get("code_hash", ""))
+    # Backward-compatible read for OTPs created before the hash migration.
+    valid = hmac.compare_digest(_otp_digest(code), expected) if expected else hmac.compare_digest(code, str(rec.get("code", "")))
+    if not valid:
+        return JSONResponse(status_code=400, content={"success": False, "error": "invalid_otp", "message_telugu": "❌ OTP తప్పు లేదా invalid — సరైన OTP enter చెయ్యండి",
                                                       "tries_left": max(0, 5 - rec["tries"])})
     VERIFIED_PHONES.add(phone)
     DB_OTPS.pop(phone, None)
