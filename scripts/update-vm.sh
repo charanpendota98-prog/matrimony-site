@@ -25,8 +25,24 @@ STAMP="[$(date +%H:%M:%S)]"
 
 say() { echo -e "$STAMP $1"; }
 
-# ---- 0. clone dir detect (script ni repo lopala unna run chestaru) ----
-cd "$(dirname "$0")/.." || { say "❌ repo dir dorakaledu"; exit 1; }
+# ---- 0. clone dir detect (repo lopala leda standalone download — rendu work avvali) ----
+FOUND=""
+if [ -f "$(dirname "$0")/../docker-compose.yml" ] && [ -d "$(dirname "$0")/../backend" ]; then
+    FOUND="$(cd "$(dirname "$0")/.." && pwd)"
+elif [ -f docker-compose.yml ] && [ -d backend ]; then
+    FOUND="$(pwd)"
+else
+    # common clone paths — VM meeda ekkada unna dorukutundi
+    for CAND in "$HOME/matrimony-site" "$HOME/shubhalagnam" "$HOME/manavivaha"; do
+        if [ -f "$CAND/docker-compose.yml" ] && [ -d "$CAND/backend" ]; then FOUND="$CAND"; break; fi
+    done
+fi
+if [ -z "$FOUND" ]; then
+    say "❌ Repo clone dorakaledu. Mee VM lo clone ekkada undo cheppandi (docker-compose.yml unna dir) —"
+    say "   akkadi nunchi run cheyandi: bash <clone-dir>/scripts/update-vm.sh"
+    exit 1
+fi
+cd "$FOUND" || { say "❌ cd fail: $FOUND"; exit 1; }
 say "📁 Repo dir: $(pwd)"
 
 mkdir -p "$BACKUP_DIR"
