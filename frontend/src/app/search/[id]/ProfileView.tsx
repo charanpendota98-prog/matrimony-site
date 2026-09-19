@@ -21,6 +21,7 @@ import { SITE_CONFIG } from "@/lib/site-config";
 import { firstName } from "@/lib/names";
 import { Duo, duo } from "@/lib/duo";
 import { useLang } from "@/lib/lang";
+import ProfileRail from "@/components/ProfileRail";
 
 type Row = Record<string, any>;
 
@@ -207,6 +208,7 @@ export default function ProfileView() {
                   {profile.phone_verified || profile.is_verified
                     ? <span className="rounded-full border border-emerald-300 bg-emerald-50 px-2 py-0.5 font-semibold text-emerald-800">✅ Phone verified</span>
                     : <span className="rounded-full border border-slate-300 bg-slate-50 px-2 py-0.5 text-slate-600">⏳ Verify pending</span>}
+                  {profile.id_verified ? <span className="rounded-full border border-blue-300 bg-blue-50 px-2 py-0.5 font-extrabold text-blue-800" title={te ? "Admin ప్రభుత్వ ID ని manual గా పరిశీలించారు" : "Government ID manually reviewed by admin"}>🪪 ID VERIFIED</span> : null}
                   {profile.selfie_verified ? <span className="rounded-full border border-emerald-300 bg-emerald-50 px-2 py-0.5 font-semibold text-emerald-800">🤳 Selfie Verified</span> : null}
                   {profile.boosted ? <span className="rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 font-semibold text-amber-800">⚡ Boosted</span> : null}
                   {profile.is_nri ? <span className="rounded-full border border-sky-300 bg-sky-50 px-2 py-0.5 font-semibold text-sky-800">✈️ NRI{profile.country && profile.country !== "India" ? ` • ${profile.country}` : ""}</span> : null}
@@ -412,6 +414,8 @@ export default function ProfileView() {
               ) : null}
             </section>
           ) : null}
+
+          <ProfileRail kind="similar" profileId={profile.tsap_id} />
 
           <p className="mt-4 text-center text-[11px] text-slate-500">
             🔐 {data.consent_note_telugu || (te ? "Numbers consent తోనే exchange అవుతాయి — ఇది ఎప్పుడూ safe గా ఉంటుంది" : "Numbers exchange with consent only — always kept safe")}

@@ -109,7 +109,7 @@ export default function SiteHeader() {
           <img src={SITE_CONFIG.logoImage} alt="మన వివాహ logo" width={40} height={40}
             className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl object-cover shadow-gold shrink-0" />
           <div className="min-w-0">
-            <div className="font-bold text-maroon leading-none truncate text-[15px] sm:text-[17px] telugu">
+            <div className="brand-wordmark font-bold leading-none truncate text-[16px] sm:text-[18px] telugu" aria-label="మన వివాహ">
               మన వివాహ
             </div>
             <div className="hidden sm:block text-[10px] text-gray-500 leading-tight truncate">

@@ -8,6 +8,7 @@ import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { apiGet } from "@/lib/api";
 import { useLang } from "@/lib/lang";
+import { SITE_CONFIG } from "@/lib/site-config";
 
 type Faq = { id: string; q: string; a: string };
 
@@ -78,6 +79,19 @@ export default function SupportWidget() {
           </div>
         </div>
       )}
+      {SITE_CONFIG.supportWhatsapp ? (
+        <a
+          href={`https://wa.me/${SITE_CONFIG.supportWhatsapp}?text=${encodeURIComponent("నమస్తే మన వివాహ టీమ్, నాకు సహాయం కావాలి.")}`}
+          target="_blank"
+          rel="noreferrer"
+          aria-label={te ? "WhatsApp సహాయం" : "WhatsApp support"}
+          title={te ? "WhatsApp లో సహాయం" : "Get help on WhatsApp"}
+          className="group flex h-12 items-center gap-2 rounded-full bg-[#128C7E] px-3 text-white shadow-xl transition hover:bg-[#0d7469] focus-brand"
+        >
+          <span className="text-xl" aria-hidden="true">◉</span>
+          <span className="hidden text-xs font-bold sm:block">WhatsApp</span>
+        </a>
+      ) : null}
       <button
         onClick={() => setOpen(!open)}
         aria-label={open ? (te ? "సహాయం close" : "Close help") : te ? "సహాయం open" : "Open help"}
