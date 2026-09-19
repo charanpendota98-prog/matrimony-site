@@ -167,6 +167,32 @@ def control_summary(request: Request):
     return result
 
 
+@app.get("/api/control/profile-queue")
+def control_profile_queue(request: Request, status: str = "pending", limit: int = 50):
+    """Safe operations queue. This endpoint deliberately has no phone/email/payment fields."""
+    item = CONTROL_AUTH.require(request)
+    if status not in {"pending", "approved", "rejected", "all"}:
+        raise HTTPException(400, "Invalid queue status")
+    limit = max(1, min(int(limit), 100))
+    rows = []
+    for user in DB_USERS:
+        current = str(user.get("status", "pending"))
+        if status != "all" and current != status:
+            continue
+        rows.append({"tsap_id": str(user.get("tsap_id", "")),
+                     "full_name": str(user.get("full_name", ""))[:120],
+                     "gender": str(user.get("gender", ""))[:20],
+                     "age": user.get("age"),
+                     "district": str(user.get("district", ""))[:80],
+                     "status": current,
+                     "photo_status": str(user.get("photo_status", "none")),
+                     "created_at": user.get("created_at", "")})
+        if len(rows) >= limit:
+            break
+    CONTROL_AUTH.audit("control_queue_view", item["username"], request, status=status, count=len(rows))
+    return {"success": True, "items": rows, "role": item["role"]}
+
+
 # 🌊 WAVE 26 — GLOBAL SAFETY NET: ekkada crash aina Telugu JSON (raw 500 never).
 #    User ki easy message + ref code (support ki chepthe admin log lo chusthadu).
 @app.exception_handler(Exception)
