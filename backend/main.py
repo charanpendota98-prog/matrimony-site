@@ -63,6 +63,7 @@ from publisher import (dead_letters, requeue_dead,
 from wa_antiban import ENGINE as WA_ENGINE
 # 🛡️ WAVE 9 — hardening layer (auth tokens, admin key, rate limit, validation, abuse ledger)
 import db_store as DBSTORE  # noqa: E402  # 🌊 WAVE 22 — core DB persistence
+import control_auth as CONTROL_AUTH  # private operations portal sessions
 import money_audit as MAUD  # noqa: E402  # 🌊 WAVE 26 — money audit trail
 import retention as RETENTION  # 🗑️ WAVE 40: 3-year profile auto-delete (archive first)
 from hardening import (
@@ -127,6 +128,45 @@ import advanced11 as A11
 app = FastAPI(title="TSAP Matrimony API — Ultra Advanced", version="2.0")
 
 
+# ---------------------------------------------------------------------------
+# PRIVATE CONTROL PORTAL — one login, server-side roles, no public admin key
+# ---------------------------------------------------------------------------
+@app.post("/api/control/login")
+def control_login(payload: dict, request: Request, response: Response):
+    result = CONTROL_AUTH.login((payload or {}).get("username", ""), (payload or {}).get("password", ""), request)
+    response.set_cookie(**CONTROL_AUTH.cookie_options(), value=result.pop("session"))
+    return {"success": True, **result, "message": "Authenticated"}
+
+
+@app.get("/api/control/me")
+def control_me(request: Request):
+    item = CONTROL_AUTH.require(request)
+    return {"success": True, "role": item["role"], "username": item["username"],
+            "expires_at": item["expires"], "csrf": item["csrf"]}
+
+
+@app.post("/api/control/logout")
+def control_logout(request: Request, response: Response):
+    item = CONTROL_AUTH.require(request)
+    if not CONTROL_AUTH.csrf_valid(request, item):
+        raise HTTPException(403, "CSRF validation failed")
+    CONTROL_AUTH.logout(request)
+    response.delete_cookie(CONTROL_AUTH.COOKIE_NAME, path="/")
+    return {"success": True}
+
+
+@app.get("/api/control/summary")
+def control_summary(request: Request):
+    item = CONTROL_AUTH.require(request)
+    # Workers receive counts only; no phone/email/payment values are serialized.
+    result = {"success": True, "role": item["role"], "profiles": len(DB_USERS),
+              "pending_profiles": sum(1 for u in DB_USERS if str(u.get("status", "pending")) == "pending"),
+              "open_reports": sum(1 for r in DB_REPORTS if str(r.get("status", "open")) == "open")}
+    if item["role"] == "owner":
+        result.update({"payments": len(DB_PAYMENTS), "audit": CONTROL_AUTH.audit_recent(50)})
+    return result
+
+
 # 🌊 WAVE 26 — GLOBAL SAFETY NET: ekkada crash aina Telugu JSON (raw 500 never).
 #    User ki easy message + ref code (support ki chepthe admin log lo chusthadu).
 @app.exception_handler(Exception)
@@ -160,6 +200,14 @@ except Exception as _e:
 
 @app.on_event("startup")
 async def _startup_publisher():
+    # Never bring an unconfigured operations plane online in production.
+    if str(os.getenv("APP_ENV", "")).lower() in {"production", "prod"}:
+        if not os.getenv("TSAP_AUTH_SECRET", "").strip() or len(os.getenv("TSAP_AUTH_SECRET", "")) < 32:
+            raise RuntimeError("TSAP_AUTH_SECRET (32+ random chars) is required in production")
+        if not os.getenv("ADMIN_KEY", "").strip() or len(os.getenv("ADMIN_KEY", "")) < 32:
+            raise RuntimeError("ADMIN_KEY (32+ random chars) is required in production")
+        if not CONTROL_AUTH._accounts():
+            raise RuntimeError("No CONTROL owner/worker account configured in production")
     ok = start_worker()
     st = publish_status()
     start_wa_worker()

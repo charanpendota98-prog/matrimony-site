@@ -9,7 +9,7 @@ export default function robots(): MetadataRoute.Robots {
         userAgent: "*",
         allow: "/",
         // Private/owner pages — index avvakudadu (privacy)
-        disallow: ["/admin", "/admin/photos", "/growth", "/api/", "/search/"],
+        disallow: ["/admin", "/admin/photos", "/control", "/growth", "/api/", "/search/"],
       },
     ],
     sitemap: `${SITE}/sitemap.xml`,
