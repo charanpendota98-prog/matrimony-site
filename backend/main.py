@@ -69,7 +69,7 @@ from hardening import (
     auth_enforced, require_owner, require_admin, rate_limit_hit, too_many,
     apply_security_headers, posture as security_posture, abuse_snapshot, abuse_log,
     sign_token, verify_token, token_from_request, is_admin, is_automation, clean, req_text,
-    require_vendor, vendor_token,
+    require_vendor, vendor_token, admin_role,
     req_phone, req_int, req_choice, req_bool, validation_error, seen as idem_seen, abuse_count, clamp_int,
     ADMIN_KEY as TSAP_ADMIN_KEY, NAME_RE, PHONE_RE, dev_mode,
 )
@@ -1572,7 +1572,7 @@ def daily_matches_public():
 @app.get("/api/admin/daily-matches/candidates")
 def daily_matches_candidates(request: Request, limit: int = 60):
     """Admin — candidates: ⚡ boost active (paid) users FIRST, then fresh registrations."""
-    require_admin(request)
+    require_admin(request, staff_ok=True)
     limit = clamp_int(limit, "limit", 1, 200, 60)
     now_iso = datetime.utcnow().isoformat()
     boosted = [u for u in DB_USERS if str(u.get("boost_until") or "") > now_iso and not u.get("is_banned")]
@@ -1591,7 +1591,7 @@ def daily_matches_candidates(request: Request, limit: int = 60):
 @app.post("/api/admin/daily-matches")
 async def daily_matches_set(payload: dict, request: Request):
     """Admin — ఈ రోజు 'Matches of the Day' select → profiles vari caste channels lo post (boost)."""
-    require_admin(request)
+    require_admin(request, staff_ok=True)
     ids = [str(x).strip().upper() for x in (payload or {}).get("profile_ids", []) if str(x).strip()]
     if not ids:
         raise HTTPException(400, "profile_ids list ఇవ్వండి (ex: [\"RED001\",\"KAM002\"])")
@@ -1622,6 +1622,134 @@ async def daily_matches_set(payload: dict, request: Request):
     return {"success": True, "date": today, "selected": ids,
             "posted": posted, "failed": failed,
             "message_telugu": f"🗓️ {len(ids)} profiles ఈ రోజు 'Matches of the Day' — {len(posted)} caste channels lo post ayyayi"}
+
+
+@app.get("/api/admin/whoami")
+def admin_whoami(request: Request):
+    """👤 WAVE 41 — current role: owner (full) | staff (limited tabs). Frontend tab gating."""
+    role = require_admin(request, staff_ok=True)  # owner | staff (lekapote 403)
+    return {"success": True, "role": role,
+            "staff_key_configured": bool(os.getenv("STAFF_KEY", "").strip()),
+            "message_telugu": "👤 Owner — అన్ని sections" if role == "owner" else "👤 Staff — limited sections (money/data లేదు)"}
+
+
+# ============================================================================
+# 🎊 WAVE 41 — WEEKLY CASTE SHOWCASE (వారానికి ఒక కులం — vivaha parichayam)
+# ============================================================================
+SHOWCASE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "weekly_showcase.json")
+SHOWCASE_MAX = 12  # okka week ki max profiles
+
+
+def _load_showcase() -> dict:
+    try:
+        with open(SHOWCASE_FILE, encoding="utf-8") as f:
+            d = json.load(f)
+            return d if isinstance(d, dict) else {}
+    except Exception:
+        return {}
+
+
+def _week_key() -> str:
+    return datetime.utcnow().strftime("%G-W%V")
+
+
+def _caste_rotation(all_castes, last_caste):
+    """Okko varam okko caste — list order lo rotation (next after last)."""
+    if not all_castes:
+        return ""
+    if last_caste in all_castes:
+        i = all_castes.index(last_caste)
+        return all_castes[(i + 1) % len(all_castes)]
+    return all_castes[0]
+
+
+@app.get("/api/showcase")
+def showcase_public():
+    """🎊 Public — ఈ వారం caste showcase (ఆ caste best profiles)."""
+    data = _load_showcase()
+    wk = _week_key()
+    cur = data.get(wk) or {}
+    ids = cur.get("ids", [])
+    rows = []
+    for tid in ids:
+        u = _find_user(tid)
+        if u and not u.get("is_banned"):
+            rows.append(_daily_row(u))
+    prev_wk = None
+    return {"success": True, "week": wk, "caste": cur.get("caste", ""), "count": len(rows),
+            "matches": rows, "next_rotation": cur.get("next_caste", ""),
+            "note_telugu": "🎊 ఈ వారం %s caste showcase — వారానికి ఒక కులం, ఆ caste best profiles ఇక్కడ" % (cur.get("caste") or "—")}
+
+
+@app.get("/api/admin/showcase/candidates")
+def showcase_candidates(request: Request, caste: str = "", limit: int = 40):
+    """Admin/Staff — okka caste candidates (score + photo first). Rotation suggestion kooda."""
+    require_admin(request, staff_ok=True)
+    limit = clamp_int(limit, "limit", 1, 100, 40)
+    caste = (caste or "").strip()
+    if not caste:
+        raise HTTPException(400, "caste param కావాలి (ex: ?caste=Reddy)")
+    rows = [u for u in DB_USERS if str(u.get("caste", "")).lower() == caste.lower()
+            and not u.get("is_banned") and u.get("is_approved", True)]
+    rows.sort(key=lambda u: (bool(u.get("photo_url") or u.get("photo_path")), int(u.get("score", 0) or 0)), reverse=True)
+    data = _load_showcase()
+    wk = _week_key()
+    last = None
+    for k in sorted(data.keys(), reverse=True):
+        if data[k].get("caste"):
+            last = data[k]["caste"]
+            break
+    all_castes = sorted({str(u.get("caste", "")).strip() for u in DB_USERS if u.get("caste")})
+    nxt = _caste_rotation(all_castes, caste)
+    return {"success": True, "week": wk, "caste": caste, "count": len(rows),
+            "current_week": data.get(wk, {}),
+            "next_caste_suggestion": nxt, "last_caste": last or "",
+            "candidates": [_daily_row(u) for u in rows[:limit]],
+            "note_telugu": "🎊 వారానికి ఒక caste — ఈ వారం %s. Photos + score first." % caste}
+
+
+@app.post("/api/admin/showcase")
+async def showcase_set(payload: dict, request: Request):
+    """Admin/Staff — ఈ వారం caste showcase set → ఆ caste channels lo post (bride + groom)."""
+    require_admin(request, staff_ok=True)
+    d = payload or {}
+    caste = str(d.get("caste", "")).strip()
+    if not caste:
+        raise HTTPException(400, "caste ఇవ్వండి (ex: Reddy)")
+    ids = [str(x).strip().upper() for x in d.get("profile_ids", []) if str(x).strip()]
+    if not ids:
+        raise HTTPException(400, "profile_ids list ఇవ్వండి")
+    ids = ids[:SHOWCASE_MAX]
+    users = []
+    for tid in ids:
+        u = _find_user(tid)
+        if not u:
+            raise HTTPException(404, f"ID {tid} దొరకలేదు")
+        if str(u.get("caste", "")).lower() != caste.lower():
+            raise HTTPException(400, f"ID {tid} caste {u.get('caste')} — showcase caste {caste} కాదు")
+        users.append(u)
+    do_post = bool(d.get("post_to_channels", True))
+    posted, failed = [], []
+    if do_post:
+        for u in users:
+            try:
+                await publish_profile(u, u["tsap_id"], int(u.get("score", 92)))
+                posted.append(u["tsap_id"])
+            except Exception as e:
+                failed.append({"id": u["tsap_id"], "error": str(e)[:80]})
+    all_castes = sorted({str(u.get("caste", "")).strip() for u in DB_USERS if u.get("caste")})
+    data = _load_showcase()
+    wk = _week_key()
+    data[wk] = {"caste": caste, "ids": ids, "set_at": datetime.utcnow().isoformat(),
+                "next_caste": _caste_rotation(all_castes, caste)}
+    try:
+        with open(SHOWCASE_FILE, "w", encoding="utf-8") as f:
+            json.dump(dict(sorted(data.items())[-104:]), f, ensure_ascii=False, default=str)
+    except Exception as e:
+        print("[SHOWCASE] save fail:", str(e)[:80])
+    return {"success": True, "week": wk, "caste": caste, "selected": ids,
+            "posted": posted, "failed": failed, "next_caste": data[wk]["next_caste"],
+            "message_telugu": f"🎊 ఈ వారం {caste} showcase — {len(ids)} profiles ({len(posted)} caste channels lo post)"}
 
 
 @app.get("/api/admin/retention/preview")
@@ -1810,7 +1938,7 @@ def referral_fraud_check(tsap_id: str, request: Request = None):
 @app.post("/api/admin/approve/{tsap_id}")
 def admin_approve(tsap_id: str, request: Request):
     """Admin approve → auto-post to channels"""
-    require_admin(request)  # 🛡️ WAVE 25: CRITICAL FIX — auth lekunda approve = fake trust badges!
+    require_admin(request, staff_ok=True)  # 🛡️ WAVE 25: CRITICAL FIX — auth lekunda approve = fake trust badges!
     user = next((u for u in DB_USERS if u["tsap_id"]==tsap_id), None)
     if not user: raise HTTPException(404, "⚠️ Dorakaledu — ID check చెయ్యండి")
     user["is_approved"] = True
@@ -1985,7 +2113,7 @@ def publish_log_endpoint(limit: int = 20, request: Request = None):
 @app.post("/api/publish/now/{tsap_id}")
 async def publish_now(tsap_id: str, score: int = 92, request: Request = None):
     """Manual re-post (admin) — already register అయిన profile ని మళ్లీ channels కి pampu."""
-    require_admin(request)   # 🛡️ WAVE 9: admin key lekunda 403 (PII/money/)
+    require_admin(request, staff_ok=True)   # 🛡️ WAVE 9: admin key lekunda 403 (PII/money/)
     user = next((u for u in DB_USERS if u["tsap_id"] == tsap_id), None)
     if not user:
         raise HTTPException(404, "Profile not found")
@@ -2857,7 +2985,7 @@ async def verify_selfie(file: UploadFile = File(...), tsap_id: str = Form(""), r
 @app.get("/api/admin/photos/pending")
 def admin_photos_pending(request: Request):
     """📸 ADMIN — photo + selfie moderation queue (Layer-2 human review)."""
-    require_admin(request)
+    require_admin(request, staff_ok=True)
     q = []
     for u in DB_USERS:
         _first = str(u.get("full_name", "")).split()[0] if str(u.get("full_name", "")).split() else ""
@@ -2874,7 +3002,7 @@ def admin_photos_pending(request: Request):
 @app.post("/api/admin/photos/review")
 def admin_photos_review(payload: dict, request: Request):
     """📸 ADMIN — approve/reject photo or selfie (wrong-person/group/celebrity → reject)."""
-    require_admin(request)
+    require_admin(request, staff_ok=True)
     d = payload or {}
     u = next((x for x in DB_USERS if x.get("tsap_id") == str(d.get("tsap_id", ""))), None)
     if not u:
@@ -4589,7 +4717,7 @@ def api_my_unlocks(viewer_id: str, request: Request = None):
 # --- ₹500 assisted orders (admin) --------------------------------------------
 @app.post("/api/admin/assist-orders")
 def api_assist_create(payload: dict, request: Request):
-    require_admin(request)
+    require_admin(request, staff_ok=True)
     d = payload or {}
     buyer = _find_user(str(d.get("buyer_id", "")).upper())
     if not buyer:
@@ -4602,14 +4730,14 @@ def api_assist_create(payload: dict, request: Request):
 
 @app.get("/api/admin/assist-orders")
 def api_assist_list(request: Request, status: str = ""):
-    require_admin(request)
+    require_admin(request, staff_ok=True)
     items = [o for o in S12.ORDERS if not status or o.get("status") == status]
     return {"success": True, "count": len(items), "orders": list(reversed(items))}
 
 
 @app.post("/api/admin/assist-orders/{order_id}/paid")
 def api_assist_paid(order_id: str, payload: dict, request: Request):
-    require_admin(request)
+    require_admin(request, staff_ok=True)
     res = S12.mark_order_paid(order_id, str((payload or {}).get("utr", "")))
     if not res.get("success"):
         raise HTTPException(400, res.get("message_telugu"))
@@ -4618,7 +4746,7 @@ def api_assist_paid(order_id: str, payload: dict, request: Request):
 
 @app.post("/api/admin/assist-orders/{order_id}/profiles")
 def api_assist_attach(order_id: str, payload: dict, request: Request):
-    require_admin(request)
+    require_admin(request, staff_ok=True)
     ids = [str(x).upper() for x in (payload or {}).get("profile_ids", [])]
     missing = [i for i in ids if not _find_user(i)]
     if missing:
@@ -4633,7 +4761,7 @@ def api_assist_attach(order_id: str, payload: dict, request: Request):
 @app.get("/api/admin/match-send/copy-list")
 def api_copy_list(request: Request, buyer: str = "", ids: str = "", order_id: str = ""):
     """📋 Admin 1-click copy — `NAME -- NUMBER` lines (manual paste కోసం). ADMIN-ONLY."""
-    require_admin(request)
+    require_admin(request, staff_ok=True)
     b = _find_user(buyer.upper())
     if not b:
         raise HTTPException(404, f"Buyer ID దొరకలేదు: {buyer}")
@@ -4657,7 +4785,7 @@ def api_match_send(buyer_id: str, request: Request, limit: int = 20, min_score: 
     ADMIN-ONLY (full phones untayi — copy-list/verify kosam).
     🌊 WAVE 19: advanced server filters — anni pass ayina suitable matches matrame.
     """
-    require_admin(request)
+    require_admin(request, staff_ok=True)
     me = _find_user(buyer_id.upper())
     if not me:
         raise HTTPException(404, f"Buyer ID దొరకలేదు: {buyer_id}")
@@ -4772,7 +4900,7 @@ async def api_match_deliver(payload: dict, request: Request):
     📩 1-click personal delivery — buyer Telegram DM + WhatsApp.
     Grant (STRICT: ee profiles mathrame) + send + copy-list — anni okesari.
     """
-    require_admin(request)
+    require_admin(request, staff_ok=True)
     d = payload or {}
     buyer = _find_user(str(d.get("buyer_id", "")).upper())
     if not buyer:
@@ -5214,7 +5342,7 @@ def api_admin_pay_refund(order_id: str, payload: dict, request: Request):
 @app.get("/api/admin/profiles")
 def api_admin_profiles(request: Request, status: str = "pending", q: str = "", limit: int = 30, offset: int = 0):
     """ADMIN-ONLY profile queue - pending approvals first (backend truth, phones included)."""
-    require_admin(request)
+    require_admin(request, staff_ok=True)
     status = (status or "pending").strip().lower()
     if status not in ("pending", "approved", "banned", "all"):
         raise HTTPException(400, "status: pending/approved/banned/all")
@@ -5252,7 +5380,7 @@ def api_admin_profiles(request: Request, status: str = "pending", q: str = "", l
 @app.post("/api/admin/profiles/{tsap_id}/ban")
 def api_admin_ban(tsap_id: str, payload: dict, request: Request):
     """ADMIN - profile ban (search/matches/channels నుంచి పోతుంది) + audit."""
-    require_admin(request)
+    require_admin(request, staff_ok=True)
     u = _find_user(tsap_id.upper())
     if not u:
         raise HTTPException(404, "Profile dorakaledu")
@@ -5268,7 +5396,7 @@ def api_admin_ban(tsap_id: str, payload: dict, request: Request):
 @app.post("/api/admin/profiles/{tsap_id}/unban")
 def api_admin_unban(tsap_id: str, request: Request):
     """ADMIN - unban + approve (malli live) + audit."""
-    require_admin(request)
+    require_admin(request, staff_ok=True)
     u = _find_user(tsap_id.upper())
     if not u:
         raise HTTPException(404, "Profile dorakaledu")

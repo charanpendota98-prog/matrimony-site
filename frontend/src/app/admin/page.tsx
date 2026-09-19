@@ -12,6 +12,7 @@ import AuthGate from "@/components/AuthGate";
 import MatchSend from "@/components/MatchSend";
 import DailyMatches from "@/components/DailyMatches";
 import DataTools from "@/components/DataTools";
+import Showcase from "@/components/Showcase";
 import AstroConsole from "@/components/AstroConsole";
 import AdsConsole from "@/components/AdsConsole";
 import PayConsole from "@/components/PayConsole";
@@ -33,6 +34,7 @@ export default function AdminPage() {
   const { lang } = useLang();
   const te = lang === "te";
   const [tab, setTab] = useState("payouts");
+  const [role, setRole] = useState<"owner" | "staff" | "">(""); // W41: staff = limited tabs
   const [profiles, setProfiles] = useState<any[]>([]);
   const [queue, setQueue] = useState<any>({ items: [], count: 0, total_amount: 0 });
   const [utr, setUtr] = useState<Record<string, string>>({});
@@ -82,6 +84,12 @@ export default function AdminPage() {
     } catch { setPFlash("Network problem"); }
   }, [profStatus, profQGo, profOffset]);
   useEffect(() => { if (tab === "profiles") void loadProfiles(); }, [tab, loadProfiles]);
+  // 👤 W41 — role detect: owner (full) | staff (limited — money/data tabs levu)
+  useEffect(() => {
+    fetch("/api/admin/whoami", { headers: authHeaders(true) }).then((r) => r.json())
+      .then((d) => { if (d?.role) { setRole(d.role); if (d.role === "staff") setTab("matchsend"); } })
+      .catch(() => { });
+  }, []);
 
   // 🔐 ADMIN_TOKEN env set unte ee token tho vellali (lekapote dev/demo mode lo open)
   const adminToken = () => {
@@ -226,16 +234,17 @@ export default function AdminPage() {
           <Link href="/" className="text-sm font-bold text-[#7A0C2E]">← Home</Link>
           <div className="font-bold text-[#7A0C2E]">🔐 Admin Panel</div>
           <div className="text-xs bg-[#7A0C2E] text-white px-3 py-1 rounded-full">Admin only</div>
+          {role === "staff" && <div className="telugu text-xs bg-[#B8860B] text-white px-3 py-1 rounded-full">👤 Staff — limited access</div>}
         </div>
 
         {/* W40 — neat grouped tabs (easy navigation) */}
         {[
           { g: te ? "💰 డబ్బు" : "💰 Money", items: [["payouts", duo("💰 Referral Payouts (live)", "💰 రెఫరల్ చెల్లింపులు")], ["pay", duo("💳 Payments", "💳 చెల్లింపులు")]] },
-          { g: te ? "🚀 గ్రోత్" : "🚀 Growth", items: [["matchsend", duo("🎯 Match & Send (₹500)", "🎯 మ్యాచ్ & సెండ్")], ["daily", duo("🗓️ Daily Matches", "🗓️ ఈ రోజు మ్యాచ్‌లు")], ["ads", duo("📢 Ads", "📢 ప్రకటనలు")], ["offers", duo("🎉 Offers", "🎉 ఆఫర్లు")]] },
-          { g: te ? "👥 యూజర్లు" : "👥 Users", items: [["profiles", duo("👥 Profiles", "👥 ప్రొఫైళ్లు")], ["photos", duo("📸 Photo Review", "📸 ఫోటో పరిశీలన")], ["safety", duo("🛡️ Safety", "🛡️ భద్రత")]] },
+          { g: te ? "🚀 గ్రోత్" : "🚀 Growth", staff: true, items: [["matchsend", duo("🎯 Match & Send (₹500)", "🎯 మ్యాచ్ & సెండ్")], ["daily", duo("🗓️ Daily Matches", "🗓️ ఈ రోజు మ్యాచ్‌లు")], ["showcase", duo("🎊 Caste Showcase", "🎊 కుల షోకేస్")]] },
+          { g: te ? "👥 యూజర్లు" : "👥 Users", staff: true, items: [["profiles", duo("👥 Profiles", "👥 ప్రొఫైళ్లు")], ["photos", duo("📸 Photo Review", "📸 ఫోటో పరిశీలన")], ["safety", duo("🛡️ Safety", "🛡️ భద్రత")]] },
           { g: te ? "📝 కంటెంట్" : "📝 Content", items: [["content", duo("📝 Content (CMS)", "📝 కంటెంట్")], ["astro", duo("🪐 Astro", "🪐 జ్యోతిషం")], ["channels", duo("📡 Channels + Poster", "📡 ఛానళ్లు")]] },
-          { g: te ? "⚙️ సిస్టమ్" : "⚙️ System", items: [["vendors", duo("🏪 Vendor Ads (live)", "🏪 వెండర్ ప్రకటనలు")], ["analytics", duo("📊 Analytics", "📊 విశ్లేషణ")], ["ops", duo("📮 Ops", "📮 ఆప్స్")], ["data", duo("📤 Excel + Retention", "📤 ఎక్సెల్ + రిటెన్షన్")]] },
-        ].map((grp) => (
+          { g: te ? "⚙️ సిస్టమ్" : "⚙️ System", items: [["ads", duo("📢 Ads", "📢 ప్రకటనలు")], ["offers", duo("🎉 Offers", "🎉 ఆఫర్లు")], ["vendors", duo("🏪 Vendor Ads (live)", "🏪 వెండర్ ప్రకటనలు")], ["analytics", duo("📊 Analytics", "📊 విశ్లేషణ")], ["ops", duo("📮 Ops", "📮 ఆప్స్")], ["data", duo("📤 Excel + Retention", "📤 ఎక్సెల్ + రిటెన్షన్")]] },
+        ].filter((grp) => role !== "staff" || grp.staff).map((grp) => (
           <div key={grp.g} className="mb-3">
             <div className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-gray-400">{grp.g}</div>
             <div className="flex flex-wrap gap-2">
@@ -284,6 +293,13 @@ export default function AdminPage() {
           </div>
 
           {/* ---------------- MATCH & SEND (₹500 assisted) ---------------- */}
+          {tab === "showcase" && (
+            <>
+              <h2 className="font-bold text-[#7A0C2E] mt-2">🎊 {te ? "వారానికి ఒక కులం — showcase" : "Weekly caste showcase"}</h2>
+              <Showcase />
+            </>
+          )}
+
           {tab === "daily" && (
             <>
               <h2 className="font-bold text-[#7A0C2E] mt-2">🗓️ Matches of the Day — {te ? "ఎంపిక → ఛానళ్లలో బూస్ట్ పోస్ట్" : "select → boost post in channels"}</h2>
