@@ -8,7 +8,7 @@
 #
 # Em chestundi:
 #   1. Data backup (backend/*.json + .env) — timestamp tar
-#   2. Kotha code: kotha repo (shubhalagnam) + branch (arena/01a0b4e9-shubhalagnam)
+#   2. Kotha code: production repo (shubhalagnam) + main branch
 #   3. Frontend image rebuild MATRAME (backend volume-mounted — rebuild avvadu, fast)
 #   4. Containers restart + health check
 #
@@ -18,7 +18,8 @@
 set -uo pipefail
 
 REPO_NEW="https://github.com/charanpendota98-prog/shubhalagnam.git"
-BRANCH="arena/01a0b4e9-shubhalagnam"
+# Production deploys must always follow the reviewed, merged main branch.
+BRANCH="main"
 TS=$(date +%Y%m%d-%H%M%S)
 BACKUP_DIR="vm-backups"
 STAMP="[$(date +%H:%M:%S)]"

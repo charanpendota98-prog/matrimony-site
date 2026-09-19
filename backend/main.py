@@ -1094,6 +1094,8 @@ def search_profile(tsap_id: str, viewer_id: Optional[str] = None):
     pub["photo_urls"] = user.get("photo_urls", [])
     pub["photo_status"] = user.get("photo_status", "none")      # 🌊 WAVE 17
     pub["selfie_verified"] = bool(user.get("selfie_verified", False))
+    pub["id_verified"] = bool(user.get("id_verified", False))
+    pub["id_verification_method"] = user.get("id_verification_method", "") if pub["id_verified"] else ""
     return {
         "profile": pub,
         "can_view_profile": True,
@@ -3359,6 +3361,7 @@ def advanced_search(
     for u in items:
         row = safe_user(u)
         row["phone_verified"] = bool(u.get("phone_verified") or u.get("is_verified"))
+        row["id_verified"] = bool(u.get("id_verified"))
         row["has_photo"] = bool(u.get("photo_urls"))
         row["boosted"] = bool(u.get("boost_until"))
         row["marital_status"] = u.get("marital_status", "—")
@@ -3417,6 +3420,90 @@ def advanced_search(
         "facets": search_facets(out, 10) if with_facets else {},
         "message_telugu": f"🔎 {len(out)} profiles dorikayi (filters: caste={caste or 'Any'}, district={district or 'Any'}, age={age_min}-{age_max})",
     }
+
+
+@app.get("/api/recently-viewed/{viewer_id}")
+def recently_viewed_profiles(viewer_id: str, request: Request, limit: int = 12):
+    """Profiles this member viewed recently — private, deduplicated, safe fields only."""
+    viewer_id = str(viewer_id or "").strip().upper()
+    require_owner(request, viewer_id)
+    if not _find_user(viewer_id):
+        raise HTTPException(404, "మీ profile దొరకలేదు")
+    limit = clamp_int(limit, "limit", 1, 24, 12)
+    seen, rows = set(), []
+    for event in reversed(DB_VIEWS):
+        target_id = str(event.get("tsap_id", "")).upper()
+        if event.get("viewer_id") != viewer_id or not target_id or target_id in seen:
+            continue
+        seen.add(target_id)
+        profile = _find_user(target_id)
+        if not profile or profile.get("is_banned") or safety.is_blocked(viewer_id, target_id, DB_BLOCKS):
+            continue
+        row = dict(safe_user(profile))
+        row.update({
+            "viewed_at": event.get("at", ""),
+            "id_verified": bool(profile.get("id_verified")),
+            "has_photo": bool(profile.get("photo_urls")),
+            "photo_url": "" if (profile.get("privacy_mode") == "private" or profile.get("photo_private")) else (profile.get("photo_urls") or [""])[0],
+        })
+        rows.append(row)
+        if len(rows) >= limit:
+            break
+    return {"success": True, "count": len(rows), "profiles": rows,
+            "message_telugu": "ఇటీవల మీరు చూసిన ప్రొఫైళ్లు"}
+
+
+@app.get("/api/profiles/{tsap_id}/similar")
+def similar_profiles(tsap_id: str, limit: int = 8):
+    """Privacy-safe alternatives ranked by caste, location, age, job and education."""
+    target = _find_user(str(tsap_id or "").strip().upper())
+    if not target or target.get("is_banned"):
+        raise HTTPException(404, "Profile దొరకలేదు")
+    limit = clamp_int(limit, "limit", 1, 12, 8)
+
+    def similarity(candidate: Dict) -> tuple:
+        score, reasons = 0, []
+        if candidate.get("gender") != target.get("gender"):
+            return (-1, [])
+        for key, points, label in (
+            ("caste", 35, "అదే కులం"), ("district", 20, "అదే జిల్లా"),
+            ("state", 10, "అదే రాష్ట్రం"), ("job", 12, "సమాన వృత్తి"),
+            ("education", 8, "సమాన చదువు"), ("marital_status", 8, "అదే వైవాహిక స్థితి"),
+        ):
+            if target.get(key) and candidate.get(key) == target.get(key):
+                score += points
+                reasons.append(label)
+        try:
+            gap = abs(int(candidate.get("age", 0)) - int(target.get("age", 0)))
+            score += max(0, 15 - gap * 3)
+            if gap <= 2:
+                reasons.append("దగ్గర వయస్సు")
+        except Exception:
+            pass
+        score += min(5, int(candidate.get("score_boost", 0) or 0))
+        return (score, reasons)
+
+    ranked = []
+    for candidate in DB_USERS:
+        if candidate.get("tsap_id") == target.get("tsap_id") or candidate.get("is_banned") or not candidate.get("is_approved"):
+            continue
+        score, reasons = similarity(candidate)
+        if score < 0:
+            continue
+        ranked.append((score, str(candidate.get("created_at", "")), candidate, reasons))
+    ranked.sort(key=lambda item: (item[0], item[1]), reverse=True)
+    rows = []
+    for score, _, candidate, reasons in ranked[:limit]:
+        row = dict(safe_user(candidate))
+        row.update({
+            "similarity_score": min(99, score), "similarity_reasons": reasons[:3],
+            "id_verified": bool(candidate.get("id_verified")),
+            "has_photo": bool(candidate.get("photo_urls")),
+            "photo_url": "" if (candidate.get("privacy_mode") == "private" or candidate.get("photo_private")) else (candidate.get("photo_urls") or [""])[0],
+        })
+        rows.append(row)
+    return {"success": True, "profile_id": target.get("tsap_id"), "count": len(rows), "profiles": rows,
+            "message_telugu": "ఇలాంటి మరిన్ని ప్రొఫైళ్లు"}
 
 
 @app.get("/api/digest/preview")
@@ -5367,7 +5454,9 @@ def api_admin_profiles(request: Request, status: str = "pending", q: str = "", l
         rows.append({"tsap_id": u.get("tsap_id"), "full_name": u.get("full_name"), "gender": u.get("gender"),
                      "age": u.get("age"), "caste": u.get("caste"), "district": u.get("district"), "state": u.get("state"),
                      "phone": u.get("phone", ""), "phone_verified": bool(u.get("phone_verified")),
-                     "is_verified": bool(u.get("is_verified")), "is_approved": bool(u.get("is_approved")),
+                     "is_verified": bool(u.get("is_verified")), "id_verified": bool(u.get("id_verified")),
+                     "id_verification_method": u.get("id_verification_method", ""),
+                     "id_verified_at": u.get("id_verified_at", ""), "is_approved": bool(u.get("is_approved")),
                      "is_banned": bool(u.get("is_banned")), "warnings": int(u.get("warnings", 0) or 0),
                      "credits": u.get("credits", 0), "plan": u.get("plan", "FREE"),
                      "has_photo": bool(u.get("photo_urls")), "photo_status": u.get("photo_status", "none"),
@@ -5375,6 +5464,35 @@ def api_admin_profiles(request: Request, status: str = "pending", q: str = "", l
     return {"success": True, "status": status, "total": total, "count": len(rows), "offset": offset, "limit": limit,
             "profiles": rows,
             "message_telugu": "\U0001F465 %d profiles (%s)" % (total, status)}
+
+
+@app.post("/api/admin/profiles/{tsap_id}/id-verification")
+def api_admin_id_verification(tsap_id: str, payload: dict, request: Request):
+    """Manual government-ID review. Stores only the decision metadata, never the ID number/image."""
+    require_admin(request, staff_ok=True)
+    user = _find_user(str(tsap_id or "").upper())
+    if not user:
+        raise HTTPException(404, "Profile dorakaledu")
+    data = payload or {}
+    verified = bool(data.get("verified", True))
+    method = str(data.get("method", "government_id") or "government_id").strip().lower()
+    if method not in ("government_id", "aadhaar_offline", "passport", "driving_licence", "voter_id", "manual_review"):
+        raise HTTPException(400, "Unsupported verification method")
+    note = clean(str(data.get("note", "") or ""), 160)
+    now = datetime.utcnow().isoformat()
+    user["id_verified"] = verified
+    user["id_verification_method"] = method if verified else ""
+    user["id_verified_at"] = now if verified else ""
+    user["id_verified_by"] = "admin" if verified else ""
+    # No document identifiers or images are persisted by this action.
+    MAUD.audit("id_verified" if verified else "id_verification_revoked", "admin",
+               {"tsap_id": user.get("tsap_id"), "method": method, "note": note})
+    DBSTORE.save(DBSTORE.snapshot(DB_USERS, DB_INTERESTS, DB_PAYMENTS, DB_OTPS,
+                                  VERIFIED_PHONES, DB_VIEWS, DB_SAVES, DB_DIGEST), force=True)
+    return {"success": True, "tsap_id": user.get("tsap_id"), "id_verified": verified,
+            "method": user.get("id_verification_method", ""), "verified_at": user.get("id_verified_at", ""),
+            "message_telugu": ("🪪 ID-Verified badge ON — manual review complete" if verified
+                                else "ID-Verified badge revoke అయ్యింది")}
 
 
 @app.post("/api/admin/profiles/{tsap_id}/ban")

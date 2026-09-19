@@ -176,6 +176,17 @@ export default function AdminPage() {
     void loadProfiles();
   };
 
+  const setIdVerified = async (id: string, verified: boolean) => {
+    const note = verified ? (window.prompt("Review note (ID number enter cheyyakandi)", "Original ID visually matched with profile") || "manual review") : "admin revoke";
+    const r = await fetch(`/api/admin/profiles/${id}/id-verification`, {
+      method: "POST", headers: { ...authHeaders(true), "Content-Type": "application/json" },
+      body: JSON.stringify({ verified, method: "government_id", note }),
+    });
+    const d = await r.json();
+    setPFlash(d.message_telugu || d.detail || "done");
+    void loadProfiles();
+  };
+
   const banProfile = async (id: string, ban: boolean) => {
     if (ban && !window.confirm(`${id} BAN? (search/matches/channels నుంచి పోతుంది)`)) return;
     const r = await fetch(`/api/admin/profiles/${id}/${ban ? "ban" : "unban"}`,
@@ -605,7 +616,7 @@ export default function AdminPage() {
                         </td>
                         <td className="p-2 text-xs">
                           {p.phone ? <a href={`https://wa.me/91${p.phone}`} target="_blank" rel="noreferrer" className="font-mono font-bold text-green-700 underline">📞 {p.phone}</a> : <span className="text-gray-400">—</span>}
-                          <div className="mt-1 text-[10px]">{p.phone_verified ? "✅ phone" : "⏳ phone"} • {p.is_verified ? "✅ badge" : "— badge"}</div>
+                          <div className="mt-1 text-[10px]">{p.phone_verified ? "✅ phone" : "⏳ phone"} • {p.id_verified ? "🪪 ID verified" : "— ID pending"}</div>
                         </td>
                         <td className="p-2 text-xs">
                           <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${p.is_banned ? "bg-red-100 text-red-700" : p.is_approved ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-700"}`}>
@@ -620,6 +631,11 @@ export default function AdminPage() {
                               <button onClick={() => void approveProfile(p.tsap_id)} className="rounded-full bg-green-600 px-3 py-1 text-xs text-white">✅ Approve</button>
                             )}
                             <button onClick={() => void giftPremium(p.tsap_id)} className="rounded-full bg-[#D4AF37] px-3 py-1 text-xs font-bold">💎 +10</button>
+                            {p.id_verified ? (
+                              <button onClick={() => void setIdVerified(p.tsap_id, false)} className="rounded-full bg-blue-100 px-3 py-1 text-xs font-bold text-blue-800">🪪 Revoke ID</button>
+                            ) : (
+                              <button onClick={() => void setIdVerified(p.tsap_id, true)} className="rounded-full bg-blue-600 px-3 py-1 text-xs font-bold text-white">🪪 Verify ID</button>
+                            )}
                             {p.is_banned ? (
                               <button onClick={() => void banProfile(p.tsap_id, false)} className="rounded-full bg-blue-600 px-3 py-1 text-xs text-white">♻️ Unban</button>
                             ) : (

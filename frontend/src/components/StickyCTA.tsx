@@ -2,74 +2,43 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { SITE_CONFIG } from "@/lib/site-config";
 import { useLang } from "@/lib/lang";
 
-/**
- * Mobile sticky bottom bar — Register + Channel.
- * /register page lo chupinchadu (form fill chesthunnappudu distraction oddu).
- * Logged-in user ki kuda chupinchadu — already register ayyaru, and
- * /matches "Requests" pill tho bottom corner lo overlap avutundi.
- */
+/** Mobile app navigation — always reachable, thumb-friendly, safe-area aware. */
+const ITEMS = [
+  { href: "/", icon: "⌂", te: "హోమ్", en: "Home" },
+  { href: "/matches", icon: "⌕", te: "వెతుకు", en: "Search" },
+  { href: "/matches?mode=daily", icon: "♡", te: "మ్యాచ్‌లు", en: "Matches" },
+  { href: "/requests", icon: "✉", te: "రిక్వెస్ట్‌లు", en: "Requests" },
+  { href: "/me", icon: "♙", te: "నేను", en: "Me" },
+] as const;
+
 export default function StickyCTA() {
   const pathname = usePathname();
-  const [show, setShow] = useState(false);
-  const [loggedIn, setLoggedIn] = useState(false);
-  const [pwaBar, setPwaBar] = useState(false);
+  const [dailyMode, setDailyMode] = useState(false);
   const { lang } = useLang();
-
-  useEffect(() => {
-    const onScroll = () => setShow(window.scrollY > 420);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
-  useEffect(() => {
-    try {
-      const check = () => setLoggedIn(!!(localStorage.getItem("tsap_token") && localStorage.getItem("tsap_id")));
-      check();
-      const t = setInterval(check, 4000);   // login/logout aware (OTP modal tarvata)
-      return () => clearInterval(t);
-    } catch { /* private mode */ }
-  }, []);
-
-  // 🛡️ R10 — PWA install prompt bar visible ayite ee CTA bar hide (rendu okate slot lo)
-  useEffect(() => {
-    const on = () => setPwaBar(true);
-    const off = () => setPwaBar(false);
-    window.addEventListener("tsap:pwa-bar-on", on);
-    window.addEventListener("tsap:pwa-bar-off", off);
-    return () => { window.removeEventListener("tsap:pwa-bar-on", on); window.removeEventListener("tsap:pwa-bar-off", off); };
-  }, []);
-
-  if (!SITE_CONFIG.features.showStickyCta) return null;
+  useEffect(() => setDailyMode(new URLSearchParams(window.location.search).get("mode") === "daily"), [pathname]);
   if (pathname?.startsWith("/register")) return null;
-  if (loggedIn) return null;
-  if (pwaBar) return null;   // PWA install prompt ki slot istamu
 
   return (
-    <div
-      className={`lg:hidden fixed bottom-3 left-3 right-3 z-40 no-print transition-all duration-300 ${
-        show ? "translate-y-0 opacity-100" : "translate-y-24 opacity-0 pointer-events-none"
-      }`}
-    >
-      <div className="glass border border-gold/40 rounded-2xl shadow-brandLg p-2 flex gap-2">
-        <Link
-          href="/register"
-          className="flex-1 text-center py-3 rounded-xl maroon-gradient text-white text-sm font-bold"
-        >
-          {lang === "te" ? "ఉచిత నమోదు" : "Register FREE"}
-        </Link>
-        <a
-          href={SITE_CONFIG.officialChannelUrl}
-          target="_blank"
-          rel="noreferrer"
-          className="flex-1 text-center py-3 rounded-xl gold-gradient text-maroon text-sm font-bold"
-        >
-          {lang === "te" ? "టెలిగ్రామ్ ఛానల్" : "Telegram Channel"}
-        </a>
+    <nav className="mobile-bottom-nav no-print lg:hidden" aria-label={lang === "te" ? "మొబైల్ నావిగేషన్" : "Mobile navigation"}>
+      <div className="mx-auto flex h-[64px] max-w-lg items-stretch px-1">
+        {ITEMS.map((item, index) => {
+          const active = item.href === "/"
+            ? pathname === "/"
+            : index === 1
+              ? pathname === "/matches" && !dailyMode
+              : index === 2
+                ? pathname === "/matches" && dailyMode
+                : pathname?.startsWith(item.href.split("?")[0]);
+          return (
+            <Link key={item.href} href={item.href} onClick={() => { if (index === 1) setDailyMode(false); if (index === 2) setDailyMode(true); }} className={`nav-tab focus-brand ${active ? "nav-tab-on" : ""}`} aria-current={active ? "page" : undefined}>
+              <span className={`nav-tab-icon ${active ? "nav-tab-icon-on" : ""}`} aria-hidden="true">{item.icon}</span>
+              <span className="telugu leading-none">{lang === "te" ? item.te : item.en}</span>
+            </Link>
+          );
+        })}
       </div>
-    </div>
+    </nav>
   );
 }

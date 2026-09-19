@@ -294,10 +294,47 @@ button:not(:disabled):active { transform: scale(0.97); }
 .safe-bottom { padding-bottom: max(env(safe-area-inset-bottom), 10px); }
 .safe-top { padding-top: env(safe-area-inset-top); }
 
-/* bottom nav active state */
+/* Animated gold brand wordmark — subtle sheen, motion-safe. */
+.brand-wordmark {
+  color: #7a0c2e;
+  background: linear-gradient(105deg, #7a0c2e 0%, #7a0c2e 38%, #d4af37 48%, #fff0a8 52%, #d4af37 56%, #7a0c2e 66%, #7a0c2e 100%);
+  background-size: 240% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: brandSheen 4.8s ease-in-out infinite;
+}
+.brand-wordmark-dark {
+  background-image: linear-gradient(105deg, #d4af37 0%, #f8d86a 38%, #fff8cf 49%, #ffffff 52%, #fff0a8 56%, #d4af37 70%, #d4af37 100%);
+}
+@keyframes brandSheen { 0%, 28% { background-position: 110% 0; } 68%, 100% { background-position: -110% 0; } }
+
+/* Bottom navigation: fixed app shell + iOS/Android safe-area. */
+.mobile-bottom-nav {
+  position: fixed;
+  z-index: 60;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding-bottom: env(safe-area-inset-bottom);
+  border-top: 1px solid rgba(212, 175, 55, .38);
+  background: rgba(255, 255, 255, .94);
+  box-shadow: 0 -8px 30px rgba(15, 31, 60, .10);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
 .nav-tab { min-height: 60px; flex: 1; display: flex; flex-direction: column; align-items: center;
-  justify-content: center; gap: 2px; font-size: 10px; font-weight: 700; color: #6b7280; }
+  justify-content: center; gap: 3px; font-size: 10px; font-weight: 700; color: #6b7280; border-radius: 12px; }
+.nav-tab-icon { display: grid; place-items: center; width: 29px; height: 27px; border-radius: 999px; font-size: 21px; line-height: 1; transition: .2s ease; }
 .nav-tab-on { color: #7A0C2E; }
+.nav-tab-icon-on { color: #fff; background: #7A0C2E; box-shadow: 0 4px 12px rgba(122,12,46,.25); font-size: 18px; }
+
+@media (max-width: 1023px) {
+  body { padding-bottom: calc(64px + env(safe-area-inset-bottom)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .brand-wordmark { animation: none !important; background-position: 0 0; }
+}
 
 /* strong helper text */
 .hint { font-size: 11.5px; color: #6b7280; margin-top: 4px; line-height: 1.45; }

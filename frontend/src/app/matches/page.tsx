@@ -25,6 +25,7 @@ import AdSlot from "@/components/AdSlot";
 import TopPicks from "@/components/TopPicks";
 import { Duo, duo } from "@/lib/duo";
 import { useLang } from "@/lib/lang";
+import ProfileRail from "@/components/ProfileRail";
 
 type Row = Record<string, any>;
 const SAVED_SEARCHES_KEY = "tsap_saved_searches_v1";
@@ -807,7 +808,8 @@ export default function MatchesAdvanced() {
         <TopPicks />
 
         {/* ---------- results ---------- */}
-        <section>
+        <section className="min-w-0">
+          <ProfileRail kind="recent" />
           {note && (
             <div className={`mb-3 rounded-2xl px-4 py-3 text-[13px] border ${note.ok ? "bg-emerald-50 border-emerald-200 text-emerald-900" : "bg-amber-50 border-amber-200 text-amber-900"}`}>
               {note.text}{!note.ok && <> <Link href="/requests" className="underline font-bold">Requests page →</Link></>}
@@ -947,7 +949,7 @@ export default function MatchesAdvanced() {
       ) : null}
 
       {myPhone ? (
-        <div className="fixed bottom-3 right-3 z-20 md:hidden">
+        <div className="fixed bottom-20 right-3 z-20 md:hidden">
           <Link href="/requests" className="bg-white border border-gold/40 rounded-full px-4 py-2.5 text-[11px] font-bold text-maroon card-shadow">
             💌 Requests
           </Link>

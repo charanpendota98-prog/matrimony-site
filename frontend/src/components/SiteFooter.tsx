@@ -17,6 +17,7 @@ export default function SiteFooter() {
         { href: "/matches", teL: "సంబంధాలు & Filters", enL: "Matches & Filters" },
         { href: "/castes", teL: "కులాల వారీగా", enL: "Caste-wise" },
         { href: "/stories", teL: "విజయ గాథలు", enL: "Success stories" },
+        { href: "/blog", teL: "తెలుగు వివాహ సలహాలు", enL: "Telugu marriage guides" },
         { href: "/porutham", teL: "జ్యోతిషం — పొరుతం (10)", enL: "Jyothishyam — Porutham (10)" },
         { href: "/safety", teL: "Trust & Safety Center", enL: "Trust & Safety Center" },
       ],
@@ -52,7 +53,7 @@ export default function SiteFooter() {
             <img src={SITE_CONFIG.logoImage} alt="మన వివాహ logo" width={40} height={40}
               className="w-10 h-10 rounded-xl object-cover" />
             <div>
-              <div className="font-bold text-gold leading-none telugu text-[16px]">మన వివాహ</div>
+              <div className="brand-wordmark brand-wordmark-dark font-bold leading-none telugu text-[17px]" aria-label="మన వివాహ">మన వివాహ</div>
               <div className="text-[10px] opacity-70">మన వివాహ • {te ? "తెలుగు మ్యాట్రిమోనీ" : "Telugu Matrimony"}</div>
             </div>
           </div>
