@@ -211,7 +211,7 @@ def perfect_description(key: str, ch: Dict | None = None) -> str:
     """Telegram description (≤255 chars) — Telugu + keywords + pricing + links."""
     ch = ch or {}
     tags = " ".join((ch.get("hashtags") or [])[:3])
-    tail = "Register FREE: manavivaha.in | Bot: %s" % BOT
+    tail = "Register FREE: manavivaha.in | Telegram: %s" % BOT
     if key == "official":
         body = ("మన వివాహ — TS/AP తెలుగు మ్యాట్రిమోని. రోజూ టాప్-3 సంబంధాలు, విజయ గాథలు, "
                 "మోసం హెచ్చరికలు. 3 requests FREE, ₹99లో 5.")

@@ -226,6 +226,24 @@ button:not(:disabled):active { transform: scale(0.97); }
   button:not(:disabled):active { transform: none; }
 }
 
+/* ============================================================
+   SKELETON SHIMMER (loading state — professional perceived speed)
+   ============================================================ */
+@keyframes shimmerSlide {
+  from { background-position: 200% 0; }
+  to   { background-position: -200% 0; }
+}
+.skeleton-bar {
+  background: linear-gradient(100deg, rgba(0,0,0,0.05) 40%, rgba(0,0,0,0.10) 50%, rgba(0,0,0,0.05) 60%);
+  background-size: 200% 100%;
+  animation: shimmerSlide 1.4s ease-in-out infinite;
+  border-radius: 6px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-bar { animation: none; }
+}
+
+
 @keyframes shakeX {
   0%, 100% { transform: translateX(0); }
   20% { transform: translateX(-6px); }

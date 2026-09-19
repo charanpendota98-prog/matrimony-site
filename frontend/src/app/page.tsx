@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ALL_CHANNELS, CHANNEL_STATS, Channel } from "@/lib/channels";
 import Reveal from "@/components/Reveal";
+import { useCountUp } from "@/components/Skeletons";
 import AdSlot from "@/components/AdSlot";
 import OffersBanner from "@/components/OffersBanner";
 import BannerSlot from "@/components/BannerSlot";
@@ -358,6 +359,14 @@ const TEXT = {
   },
 };
 
+/** 📊 stat value — number ayithe count-up animation (suspense/attention) */
+function StatValue({ value, countUp }: { value: string | number; countUp: boolean }) {
+  const n = typeof value === "number" ? value : parseInt(String(value).replace(/\D/g, ""), 10) || 0;
+  const animated = useCountUp(countUp ? n : 0, 900);
+  if (!countUp || !n) return <>{value}</>;
+  return <>{animated}</>;
+}
+
 export default function Home() {
   const { lang } = useLang();
   const L = TEXT[lang as Lang];
@@ -620,14 +629,14 @@ export default function Home() {
       <section className="max-w-7xl mx-auto px-4 py-8">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
-            { v: hs.channels_total, l: L.statChannels, s: L.statChannelsSub(hs.channels_by_tier) },
-            { v: hs.castes_covered, l: L.statCastes, s: L.statCastesSub },
-            { v: L.statChat, l: L.statChatT, s: L.statChatS },
-            { v: L.statPrice(p99), l: L.statPriceL(p199, p299), s: L.statPriceS(hs.free_first) },
+            { v: hs.channels_total, l: L.statChannels, s: L.statChannelsSub(hs.channels_by_tier), num: true },
+            { v: hs.castes_covered, l: L.statCastes, s: L.statCastesSub, num: true },
+            { v: L.statChat, l: L.statChatT, s: L.statChatS, num: false },
+            { v: L.statPrice(p99), l: L.statPriceL(p199, p299), s: L.statPriceS(hs.free_first), num: false },
           ].map((s, i) => (
             <Reveal key={s.l} delay={i * 80}>
               <div className="bg-white rounded-2xl p-4 card-shadow border border-gold/20 h-full">
-                <div className="text-2xl md:text-3xl font-bold text-maroon">{s.v}</div>
+                <div className="text-2xl md:text-3xl font-bold text-maroon"><StatValue value={s.v} countUp={s.num} /></div>
                 <div className="text-[13px] font-bold text-ink mt-1">{s.l}</div>
                 <div className="text-[11px] text-gray-500 mt-0.5">{s.s}</div>
               </div>

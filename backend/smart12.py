@@ -155,7 +155,7 @@ def build_masked_caption(profile: Dict, tsap_id: str = "TSAP-F-2025-XXXX",
         f"\n{r['hashtags']}\n"
         f"━━━━━━━━━━━━━━━\n"
         f"🔒 Number lock లో ఉంది — unlock చెయ్యండి:\n"
-        f"🤖 Bot: {BOT_USERNAME} → /unlock {tsap_id} (1 credit)\n"
+        f"📱 Unlock (Telegram): {BOT_USERNAME} → /unlock {tsap_id} (1 credit)\n"
         f"🔍 Full profile: {SITE}/search/{tsap_id}\n"
         f"📝 Register 3 min lo: {SITE}/register\n"
         f"⚠️ మోసం జాగ్రత్త — advance money ఎవరికీ ivvakandi!"
@@ -181,9 +181,9 @@ def build_masked_whatsapp(profile: Dict, tsap_id: str = "TSAP-F-2025-XXXX",
         f"*ఎందుకు best match:*\n{reasons}\n"
         f"━━━━━━━━━━━━━━━━\n"
         f"{r['hashtags']}\n"
-        f"🔒 Number lock — bot లో /unlock {tsap_id} (1 credit)\n"
+        f"🔒 Number lock — Telegram లో /unlock {tsap_id} (1 credit)\n"
         f"🔍 Profile: {SITE}/search/{tsap_id}\n"
-        f"🤖 Bot: {BOT_USERNAME}  •  ⚠️ Advance money అడిగితే report చెయ్యండి"
+        f"Telegram: {BOT_USERNAME}  •  ⚠️ Advance money అడిగితే report చెయ్యండి"
     )
 
 
