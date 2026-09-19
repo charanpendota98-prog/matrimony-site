@@ -8,6 +8,8 @@ Latest commit: `53b9806 ops: harden production deployment configuration`
 
 The branch contains the current professional pass. It has been pushed to the Arena branch and is ready for review before merge.
 
+The supplied VM log showed an earlier deployment on a different Arena branch (`arena/01a0b4e9-shubhalagnam`) at commit `4c5775c`. That VM initially had a frontend restart loop because the development `./frontend:/app` host volume hid the image's `.next` production build. Removing that host mount and restarting the frontend restored HTTP 200. The deployment script now supports an explicit `DEPLOY_BRANCH` so pre-merge staging cannot silently deploy an unrelated branch.
+
 ### Implemented
 
 - Cinematic wedding homepage section:

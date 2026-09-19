@@ -27,13 +27,29 @@ OTP_DEV_MODE=false
 
 Use a real SMS provider or WhatsApp bridge. Never use `OTP_DEV_MODE=true` in production.
 
-## 2. Start the production stack
+## 2. Pull and deploy the reviewed branch
+
+Before merge/staging, use the session branch explicitly so the VM does not deploy an unrelated branch:
+
+```bash
+DEPLOY_BRANCH=arena/01a0b9af-shubhalagnam bash update-vm.sh
+```
+
+After the pull request is merged, use:
+
+```bash
+DEPLOY_BRANCH=main bash update-vm.sh
+```
+
+The script creates a backup first and only replaces the running containers after the image build succeeds. For a direct stack start:
 
 ```bash
 docker compose --env-file .env.production \
   -f docker-compose.yml -f docker-compose.prod.yml \
   up -d --build
 ```
+
+The production override removes development host source mounts so `/app/.next` from the image cannot be hidden by a local frontend volume.
 
 Do not expose PostgreSQL or Redis publicly. They should be reachable only by the backend network.
 
