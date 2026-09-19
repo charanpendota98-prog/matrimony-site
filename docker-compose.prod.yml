@@ -4,7 +4,12 @@
 # All required secrets are deliberately mandatory; no dev fallback is allowed.
 # ============================================================
 services:
+  postgres:
+    ports: !reset []
+  redis:
+    ports: !reset []
   backend:
+    ports: !reset []
     command: uvicorn main:app --host 0.0.0.0 --port 8000 --workers 1
     restart: unless-stopped
     volumes: !override
@@ -61,6 +66,12 @@ services:
       - NEXT_PUBLIC_SUPPORT_WHATSAPP=${NEXT_PUBLIC_SUPPORT_WHATSAPP}
       - NEXT_PUBLIC_SUPPORT_EMAIL=${NEXT_PUBLIC_SUPPORT_EMAIL}
 
+  whatsapp-bridge:
+    ports: !reset []
+  whatsapp-bridge2:
+    ports: !reset []
+  whatsapp-bridge3:
+    ports: !reset []
   bot:
     restart: unless-stopped
     environment:
