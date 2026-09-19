@@ -60,6 +60,21 @@ import main
 client = TestClient(main.app, raise_server_exceptions=False)
 client.__enter__()
 
+# 🐞 FIX (R12): polluted/fresh DB lo opposite-gender pair lekapothe StopIteration —
+# DB ki SAFE demo pair ensure cheyi (iddaru genders untai anukunte udayam)
+if not main.DB_USERS or not any(u.get("gender") != main.DB_USERS[0].get("gender") for u in main.DB_USERS):
+    _demo_pair = [
+        {"tsap_id": "TSAP-F-2025-1042", "full_name": "Sita Reddy", "gender": "Bride", "phone": "9848022222",
+         "credits": 3, "plan": "FREE", "wallet": 0, "caste": "Reddy", "age": 24, "height": "5'4\"",
+         "education": "BTech", "job": "Software", "district": "Hyderabad", "state": "TS"},
+        {"tsap_id": "TSAP-M-2025-1042", "full_name": "Ravi Kumar", "gender": "Groom", "phone": "9848012345",
+         "credits": 3, "plan": "FREE", "wallet": 0, "caste": "Reddy", "age": 28, "height": "5'9\"",
+         "education": "BTech", "job": "Software", "district": "Hyderabad", "state": "TS"},
+    ]
+    for _du in _demo_pair:
+        if not any(u["tsap_id"] == _du["tsap_id"] for u in main.DB_USERS):
+            main.DB_USERS.append(_du)
+
 U1 = main.DB_USERS[0]["tsap_id"]
 U2 = next(u["tsap_id"] for u in main.DB_USERS if u["gender"] != main.DB_USERS[0]["gender"])
 PHONE1 = main.DB_USERS[0].get("phone", "9848011111")
@@ -163,15 +178,25 @@ check("D2 rate limit skipped in dev (harness safety)", H.rate_limit_hit(type("R"
 check("D3 abuse ledger rate_limited count perigindi", H.abuse_snapshot()["rate_limited"] >= 1, H.abuse_snapshot()["rate_limited"])
 H.RL_DISABLED = True
 set_env(WA_TEST_FAST="1")                 # migatha tests dev bypass lo
-r = client.post("/api/otp/send", json={"phone": "9848099999"})
+# 🐞 FIX (R12): fixed phone → OTP cooldown (60s) + no-account lo flaky re-runs; unique per run
+import time as _t
+_run_ts = int(_t.time())
+_otp_phone = "98%08d" % (_run_ts % 100000000)
+# D6 ki auth_token kavali → aa phone ki ACCOUNT undali → mundu register (unique phone, clean state)
+_reg_otp = client.post("/api/register", data={
+    "gender": "Bride", "age": "24", "height": "5'4\"", "marital_status": "Pelli Kaledu", "caste": "Reddy",
+    "education": "BTech", "job": "Software", "salary": "60k", "state": "TS", "district": "Nalgonda",
+    "phone": _otp_phone, "full_name": "OTP Login Bride"})
+r = client.post("/api/otp/send", json={"phone": _otp_phone})
 check("D4 valid OTP send 200", r.status_code == 200, r.text[:120])
 check("D5 dev_code response lo (OTP_DEV_MODE)", "dev_code" in r.json())
 _otp = r.json()["dev_code"]
-r2 = client.post("/api/otp/verify", json={"phone": "9848099999", "code": _otp})
+r2 = client.post("/api/otp/verify", json={"phone": _otp_phone, "code": _otp})
 check("D6 OTP verify → auth_token", bool(r2.json().get("auth_token")), r2.text[:120])
 check("D7 OTP verify → tsap_id/has_account", "has_account" in r2.json())
-r3 = client.post("/api/otp/send", json={"phone": "9848077777"})
-r3b = client.post("/api/otp/send", json={"phone": "9848077777"})
+_cool_phone = "97%08d" % ((_run_ts + 5) % 100000000)
+r3 = client.post("/api/otp/send", json={"phone": _cool_phone})
+r3b = client.post("/api/otp/send", json={"phone": _cool_phone})
 check("D8 OTP cooldown 60s → 429", r3.status_code == 200 and r3b.status_code == 429, (r3.status_code, r3b.status_code))
 r4 = client.post("/api/otp/send", json={"phone": "12345"})
 check("D9 OTP bad phone → 400", r4.status_code == 400)
@@ -239,7 +264,8 @@ check("F6 state junk → 400", reg(state="ZZ").status_code == 400)
 check("F7 empty name → 400", reg(full_name="").status_code == 400)
 check("F8 name lo digits → 400", reg(full_name="Ravi123").status_code == 400)
 check("F9 age junk → 400/422", reg(age="abc").status_code in (400, 422))
-ok = reg(phone="9848013333", full_name="Valid Bride")
+_f10_phone = "98%08d" % ((_run_ts + 11) % 100000000)
+ok = reg(phone=_f10_phone, full_name="Valid Bride")
 check("F10 valid register 200", ok.status_code == 200, ok.text[:150])
 j = ok.json() if ok.status_code == 200 else {}
 check("F11 register → auth_token", bool(j.get("auth_token")), list(j)[:8])
@@ -249,12 +275,14 @@ check("F14 register → plan clarity message", "🔒" in str(j.get("message_plan
 found_numbers = PHONE_RE.findall(json.dumps(j))
 check("F15 register response lo veru vaalla numbers ledu (sontha number matrame ok)",
       "phone_encrypted" not in json.dumps(j) and len(found_numbers) <= 2, found_numbers[:3])
-j2 = reg(phone="9848013333", full_name="Dup Phone Bride").json()
-check("F16 same phone 2nd account → duplicate_phone flag (policy: allowed)", j2.get("duplicate_phone") is True)
-xj = reg(phone="9848014444", full_name="Sita Devi", about_myself="<script>x</script>Hi " + "a" * 900).json()
+j2 = reg(phone=_f10_phone, full_name="Dup Phone Bride")
+# 🐞 FIX (R12): policy R10 nunchi CHANGE — same phone 2nd account REJECT (409 Conflict; OTP login ambiguity)
+check("F16 same phone 2nd account → reject 409 (R10 policy: OTP ambiguity block)",
+      j2.status_code == 409 and "already account" in j2.text, j2.status_code)
+xj = reg(phone="98%08d" % ((_run_ts + 12) % 100000000), full_name="Sita Devi", about_myself="<script>x</script>Hi " + "a" * 900).json()
 u_x = main._find_user(xj.get("tsap_id", "")) or {}
 check("F17 XSS about_myself sanitized", "<" not in str(u_x.get("about_myself")) and "script" not in str(u_x.get("about_myself")).lower())
-check("F17b XSS name lo tags → 400 (reject)", reg(phone="9848015555", full_name="<script>x</script>").status_code in (400, 422))
+check("F17b XSS name lo tags → 400 (reject)", reg(phone="98%08d" % ((_run_ts + 13) % 100000000), full_name="<script>x</script>").status_code in (400, 422))
 check("F18 about_myself length cap", len(str(u_x.get("about_myself", ""))) <= 600)
 check("F19 quality percentile sane", 0 <= int(xj.get("quality", {}).get("percent", -1)) <= 100)
 
@@ -344,6 +372,17 @@ check("J11 search save filters validation (salary)", client.post("/api/saved-sea
 # ═══════════════════════════════════════════════════════════════════════════
 section("K. CONSENT LEDGER (numbers exchange audit)")
 # ═══════════════════════════════════════════════════════════════════════════
+# 🐞 FIX (R12): U1/U2 modalu prior-run interests already persist ayyi untayi ("already request") —
+# fresh opposite-gender pair create chesi aa rendu mundu consent flow test
+_kg = client.post("/api/register", data={
+    "gender": "Groom", "age": "28", "height": "5'9\"", "marital_status": "Pelli Kaledu", "caste": "Reddy",
+    "education": "BTech", "job": "Software", "salary": "80k", "state": "TS", "district": "Hyderabad",
+    "phone": "98%08d" % ((_run_ts + 21) % 100000000), "full_name": "Consent Groom"}).json()
+_kb = client.post("/api/register", data={
+    "gender": "Bride", "age": "24", "height": "5'3\"", "marital_status": "Pelli Kaledu", "caste": "Reddy",
+    "education": "BTech", "job": "Teacher", "salary": "40k", "state": "TS", "district": "Warangal",
+    "phone": "98%08d" % ((_run_ts + 22) % 100000000), "full_name": "Consent Bride"}).json()
+U1, U2 = _kg.get("tsap_id") or U1, _kb.get("tsap_id") or U2
 sender = main._find_user(U1)
 target = main._find_user(U2)
 if sender and target and sender.get("gender") != target.get("gender"):

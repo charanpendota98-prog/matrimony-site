@@ -374,6 +374,12 @@ def test_pricing_pages_and_payments():
 
     # ---- webhook endpoint (neeDHA bug: legacy plan_map) ----
     with TestClient(main.app) as c:
+        # 🐞 FIX (R12): seed user TSAP-F-2025-1042 DB lo lekapothe (fresh DB / hygiene drops) — create
+        _web_u = next((x for x in main.DB_USERS if x["tsap_id"] == "TSAP-F-2025-1042"), None)
+        if _web_u is None:
+            _web_u = {"tsap_id": "TSAP-F-2025-1042", "full_name": "Sita Reddy", "gender": "Bride",
+                      "phone": "9848022222", "credits": 3, "plan": "FREE", "wallet": 0}
+            main.DB_USERS.append(_web_u)
         w = c.post("/api/payment/webhook?user_id=TSAP-F-2025-1042&amount=499&razorpay_payment_id=pay_T1").json()
         check("webhook ₹499 → S_499 + 50 profiles", w["success"] and w["plan"] == "S_499"
               and w["profiles_added"] == 50, w.get("plan"))

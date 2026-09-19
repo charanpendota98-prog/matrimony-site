@@ -244,7 +244,8 @@ check("N9.4 no ke Sambandham anywhere backend",
 section("N8 no-fake markers on illustrations")
 home_src = open(os.path.join(SRC, "app", "page.tsx"), encoding="utf-8").read()
 check("N8.1 hero card marked sample", "నమూనా" in home_src)
-check("N8.2 whatsapp mock marked sample", "Sample message" in home_src)
+# 🐞 FIX (R12): "Sample message" → bilingual "నమూనా/Sample" badge (R5 mockup rebuild)
+check("N8.2 whatsapp mock marked sample", "Sample" in home_src and "నమూనా" in home_src)
 check("N8.3 no No.1 claims", "No.1" not in home_src
       and "No.1" not in open(os.path.join(SRC, "app", "layout.tsx"), encoding="utf-8").read()
       and "No.1" not in footer_src)

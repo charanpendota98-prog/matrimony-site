@@ -1303,13 +1303,15 @@ async def payment_webhook(user_id: str = "", amount: int = 0, razorpay_payment_i
     }
 
 @app.get("/api/referral/leaderboard")
-def leaderboard(period: str = "all", limit: int = 10):
-    """🏆 Top referrers — period: all | week | month | today (telugu labels తో)."""
+def leaderboard(period: str = "all", limit: int = 10, me: str = ""):
+    """🏆 Top referrers — period: all | week | month | today (telugu labels తో).
+    💎 R12 — me=TSAP-ID iste 'you' lo mee rank kuda (board lo lekapoyna)."""
     # 🐞 FIX (B08): period='JUNK' accept ayye (empty board) + limit=-5/1e9 unvalidated
     period = req_choice(period or "all", "period", ("all", "today", "week", "month"), required=False, default="all")
     limit = clamp_int(limit, "limit", 1, 50, 10)
-    board = get_leaderboard(DB_USERS, limit=limit, period=period)
+    board, you = get_leaderboard(DB_USERS, limit=limit, period=period, me=(me or "").strip(), full=True)
     return {"success": True, "period": period, "leaderboard": board, "total_users": len(DB_USERS),
+            "you": you,
             "prize_telugu": "Weekly top-1 కి ₹1000 + Elite badge (మన team WhatsApp లో contact చేస్తుంది)"}
 
 
@@ -2480,7 +2482,13 @@ def record_view(payload: dict, request: Request = None):
         if v["tsap_id"] == tsap_id and v.get("viewer_id") == viewer_id:
             try:
                 if (now - datetime.fromisoformat(v["at"])).total_seconds() < 6 * 3600:
-                    return {"success": True, "counted": False, "note": "6h లో duplicate view skip"}
+                    # 🐞 FIX (R12): duplicate-skip response lo kuda stats keys —
+                    # client shape consistent (mundu keys levu → frontend 0/false confusion)
+                    _tot = len([x for x in DB_VIEWS if x["tsap_id"] == tsap_id])
+                    return {"success": True, "counted": False, "note": "6h లో duplicate view skip",
+                            "total_views": _tot, "views_total": _tot,
+                            "unique_viewers": len({x.get("viewer_id") for x in DB_VIEWS
+                                                   if x["tsap_id"] == tsap_id and x.get("viewer_id")})}
             except Exception:
                 pass
     if not _find_user(tsap_id):

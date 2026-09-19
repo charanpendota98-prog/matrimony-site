@@ -792,6 +792,10 @@ def referral_dashboard(user: Dict, all_users: List[Dict], limit_recent: int = 10
     regs = [u for u in all_users if str(u.get("referred_by", "")).upper() == _code_of(user)]
     paid_regs = [u for u in regs if any(l.get("type") == "commission" and l.get("from") == u.get("tsap_id")
                                         for l in st.get("ledger", []))]
+    # 💎 R12 — pending pipeline: register ayyi, inka pay cheyani friends (commission future lo vastundi)
+    pending_friends = len(regs) - len(paid_regs)
+    if pending_friends < 0:
+        pending_friends = 0
     tier = tier_of(st["paid_count"])
     nxt = next_milestone(st["paid_count"])
     cstats = click_stats(_code_of(user))
@@ -806,6 +810,8 @@ def referral_dashboard(user: Dict, all_users: List[Dict], limit_recent: int = 10
             "registrations": st["registrations"], "paid_count": st["paid_count"],
             "wallet": st["wallet"], "lifetime_earned": st["lifetime_earned"],
             "pending_payout": st["pending_payout"], "paid_out": st["paid_out"],
+            "pending_friends": pending_friends,
+            "pending_value": round(pending_friends * FIRST_PAY_COMMISSION, 2),
             "credits_earned": sum(int(h.get("change", 0)) for h in user.get("credit_history", [])
                                   if h.get("reason") == "referral_milestone"),
             "conversion_pct": conv, "per_paying_user": FIRST_PAY_COMMISSION,
@@ -886,9 +892,13 @@ def _urlenc(text: str) -> str:
 
 
 # ------------------------------------------------------------------ leaderboard
-def get_leaderboard(all_users: List[Dict], limit: int = 10, period: str = "all") -> List[Dict]:
+def get_leaderboard(all_users: List[Dict], limit: int = 10, period: str = "all",
+                    me: str = "", full: bool = False):
     """Top referrers — full_name use (pata bug fix), period: all | week | month.
-    WAVE 24 — partners kuda board lo (same rules)."""
+    WAVE 24 — partners kuda board lo (same rules).
+    💎 R12 — alive board: registrations unna vadu kuda kanipistadu (paid ledu ante rank
+    down, kani board empty ga undadu). me=TSAP-ID iste (full=True) 'you' dict kuda return.
+    Backward compat: me/full ivvakapothe LIST matrame (pata tests safe)."""
     cutoff = None
     if period == "week":
         cutoff = (datetime.utcnow() - timedelta(days=7)).isoformat()
@@ -897,7 +907,10 @@ def get_leaderboard(all_users: List[Dict], limit: int = 10, period: str = "all")
     rows = []
     for u in all_users:
         st = u.get("referral_stats") or {}
-        if not st.get("paid_count"):
+        refers = int(st.get("registrations", st.get("total", 0)) or 0)
+        paid = int(st.get("paid_count", 0) or 0)
+        # 💎 R12: paid OR register-chesina someone unte board lo (0-activity users skip)
+        if not paid and not refers:
             continue
         earned = float(st.get("lifetime_earned", u.get("wallet", 0)) or 0)
         if cutoff:
@@ -910,17 +923,19 @@ def get_leaderboard(all_users: List[Dict], limit: int = 10, period: str = "all")
             # WAVE 25 — public board: FIRST name matrame (surname hidden — W13 rule)
             "name": str(u.get("full_name") or u.get("name") or "Mana Vivaha member").split()[0],
             "code": _code_of(u), "tsap_id": u.get("tsap_id"),
-            "refers": int(st.get("registrations", st.get("total", 0)) or 0),
-            "paid": int(st.get("paid_count", 0)),
+            "refers": refers,
+            "paid": paid,
             "earned": round(earned, 2),
-            "tier": tier_of(int(st.get("paid_count", 0)))["key"],
-            "icon": tier_of(int(st.get("paid_count", 0)))["icon"],
+            "tier": tier_of(paid)["key"],
+            "icon": tier_of(paid)["icon"],
         })
     try:
         from refpartners import PARTNERS as _P19
         for u in _P19:
             st = u.get("referral_stats") or {}
-            if not st.get("paid_count"):
+            refers = int(st.get("registrations", 0) or 0)
+            paid = int(st.get("paid_count", 0) or 0)
+            if not paid and not refers:
                 continue
             earned = float(st.get("lifetime_earned", 0) or 0)
             if cutoff:
@@ -933,17 +948,28 @@ def get_leaderboard(all_users: List[Dict], limit: int = 10, period: str = "all")
                 "name": str(u.get("name") or "Partner").split()[0],
                 "code": u.get("partner_id", ""), "tsap_id": "",
                 "partner_id": u.get("partner_id", ""),
-                "refers": int(st.get("registrations", 0) or 0),
-                "paid": int(st.get("paid_count", 0)),
+                "refers": refers,
+                "paid": paid,
                 "earned": round(earned, 2),
-                "tier": tier_of(int(st.get("paid_count", 0)))["key"],
-                "icon": tier_of(int(st.get("paid_count", 0)))["icon"],
+                "tier": tier_of(paid)["key"],
+                "icon": tier_of(paid)["icon"],
             })
     except Exception:
         pass
     rows.sort(key=lambda r: (r["paid"], r["earned"], r["refers"]), reverse=True)
-    for i, r in enumerate(rows[:limit], 1):
+    for i, r in enumerate(rows, 1):
         r["rank"] = i
+    # 💎 R12 — "me" rank: user board lo top-N lo lekka, lopala unna rank ichhestam
+    if full:
+        you = None
+        if me:
+            me_key = str(me).strip().upper()
+            for r in rows:
+                if str(r.get("tsap_id", "")).upper() == me_key or str(r.get("code", "")).upper() == me_key:
+                    r["is_me"] = True
+                    you = r
+                    break
+        return rows[:limit], you
     return rows[:limit]
 
 

@@ -29,6 +29,8 @@ export default function ReferralPage() {
   const [payRes, setPayRes] = useState<any>(null);
   const [copied, setCopied] = useState("");
   const [needsLogin, setNeedsLogin] = useState(false);   // 🐞 FIX: referral dashboard owner-only — token lekapote 401
+  const [lbPeriod, setLbPeriod] = useState("all");        // 💎 R12 — leaderboard period tab
+  const [you, setYou] = useState<any>(null);              // 💎 R12 — మీ rank (board lo lekapoyina)
 
   /* ---------- load ---------- */
   useEffect(() => {
@@ -54,9 +56,23 @@ export default function ReferralPage() {
 
   useEffect(() => { if (tsapId) load(tsapId); }, [tsapId, load]);
   useEffect(() => {
-    fetch("/api/referral/leaderboard?period=all&limit=10").then((r) => r.json()).then((d) => setBoard(d.leaderboard || [])).catch(() => { });
     fetch("/api/referral/terms").then((r) => r.json()).then(setTerms).catch(() => { });
   }, []);
+  /* 💎 R12 — LIVE leaderboard: period tabs + 30s auto-refresh + మీ rank */
+  const loadBoard = useCallback((period: string) => {
+    const meQ = tsapId ? `&me=${encodeURIComponent(tsapId)}` : "";
+    fetch(`/api/referral/leaderboard?period=${period}&limit=10${meQ}`)
+      .then((r) => r.json())
+      .then((d) => { setBoard(d.leaderboard || []); setYou(d.you || null); })
+      .catch(() => { });
+  }, [tsapId]);
+  useEffect(() => { loadBoard(lbPeriod); }, [lbPeriod, loadBoard]);
+  useEffect(() => {
+    const t = setInterval(() => loadBoard(lbPeriod), 30000);          // live refresh — 30s
+    const onVis = () => { if (document.visibilityState === "visible") loadBoard(lbPeriod); };
+    document.addEventListener("visibilitychange", onVis);
+    return () => { clearInterval(t); document.removeEventListener("visibilitychange", onVis); };
+  }, [lbPeriod, loadBoard]);
 
   const s = dash?.stats || {};
   const tier = dash?.tier || { key: "BRONZE", icon: "🥉", perks: [] };
@@ -228,6 +244,16 @@ export default function ReferralPage() {
             <div className="text-[11px] text-gray-500 mt-1">
               Pending payout ₹{s.pending_payout ?? 0} · paid out ₹{s.paid_out ?? 0} · min payout ₹{dash?.commission_rules?.min_payout ?? 100}
             </div>
+            {(s.pending_friends ?? 0) > 0 && (
+              <div className="mt-3 rounded-xl border border-[#D4AF37]/50 bg-[#FFF8E7] p-3 text-[11px] text-[#7A0C2E] telugu">
+                <div className="font-bold">⏳ {te ? "వస్తున్న డబ్బు (pipeline): ₹" + (s.pending_value ?? 0) : "Pipeline: ₹" + (s.pending_value ?? 0)}</div>
+                <div className="mt-0.5 text-gray-600">
+                  {te
+                    ? `${s.pending_friends} friend${s.pending_friends > 1 ? "s" : ""} register అయ్యారు, ఇంకా pay చేలేదు — ఎప్పుడైనా (రేపు లేదా వారం తర్వాత) pay చేస్తే కూడా మీకు ₹50 × ${s.pending_friends} wallet లో వస్తుంది ✅`
+                    : `${s.pending_friends} friend${s.pending_friends > 1 ? "s" : ""} registered but not paid yet — whenever they pay (even weeks later), ₹50 × ${s.pending_friends} still lands in your wallet ✅`}
+                </div>
+              </div>
+            )}
             <button
               onClick={() => setPay({ ...pay, open: !pay.open, amount: String(Math.floor(s.wallet || 0)) })}
               disabled={!dash?.wallet_can_withdraw}
@@ -399,22 +425,50 @@ export default function ReferralPage() {
           </div>
         </section>
 
-        {/* LEADERBOARD */}
+        {/* LEADERBOARD — LIVE */}
         <section className="mt-6 bg-white rounded-3xl p-5 border border-gray-200 shadow-sm">
-          <h2 className="font-bold text-[#7A0C2E] telugu">🏅 Top referrers — leaderboard</h2>
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <h2 className="font-bold text-[#7A0C2E] telugu flex items-center gap-2">
+              🏅 Top referrers
+              <span className="flex items-center gap-1 text-[10px] font-bold text-green-700 bg-green-50 border border-green-200 rounded-full px-2 py-0.5">
+                <span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span><span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span></span>
+                LIVE
+              </span>
+            </h2>
+            <div className="flex gap-1 text-[11px]">
+              {([["week", "ఈ వారం"], ["month", "ఈ నెల"], ["all", "All-time"]] as const).map(([k, label]) => (
+                <button key={k} onClick={() => setLbPeriod(k)}
+                  className={`px-2.5 py-1 rounded-full font-bold ${lbPeriod === k ? "bg-[#7A0C2E] text-white" : "bg-gray-100 text-gray-600"}`}>
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
           <div className="text-[11px] text-gray-500">{te ? "Weekly top-1 కి ₹1000 + Elite badge" : "Weekly top-1 gets ₹1000 + Elite badge"}</div>
+
+          {you && (
+            <div className="mt-3 flex items-center gap-2 rounded-xl bg-[#FFF8E7] border border-[#D4AF37]/50 px-3 py-2 text-xs font-bold text-[#7A0C2E]">
+              🎯 {te ? "మీ rank" : "Your rank"}: #{you.rank}
+              <span className="font-normal text-gray-600">· {you.refers} {te ? "refers" : "refers"} · ₹{you.earned} {te ? "సంపాదించారు" : "earned"}</span>
+              {you.rank > 10 && <span className="font-normal text-gray-500">({te ? "top-10 లో లేరు — ఇంకొంచెం push చెయ్యండి! 💪" : "not in top-10 yet — keep pushing! 💪"})</span>}
+            </div>
+          )}
+
           <div className="mt-3 space-y-2 text-xs">
-            {board.length === 0 && <div className="text-gray-500">{te ? "ఇంకా ఎవరూ — మొదటి place మీదే అవ్వచ్చు! 🥇" : "Nobody yet — first place could be yours! 🥇"}</div>}
+            {board.length === 0 && <div className="text-gray-500">{te ? "ఈ period లో ఇంకా ఎవరూ లేరు — మొదటి place మీదే అవ్వచ్చు! 🥇" : "Nobody yet this period — first place could be yours! 🥇"}</div>}
             {board.map((b: any) => (
               <div key={b.code} className={`flex items-center gap-3 rounded-xl p-3 ${b.code === dash?.code ? "bg-[#D4AF37]/20 border border-[#D4AF37]" : "bg-gray-50"}`}>
-                <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center font-bold">{b.rank}</div>
-                <div className="flex-1">
-                  <div className="font-bold">{b.name} {b.code === dash?.code && <span className="text-[10px] bg-[#7A0C2E] text-white px-2 py-0.5 rounded-full ml-1">YOU</span>}</div>
-                  <div className="text-[11px] text-gray-500">{b.icon} {b.tier} • {b.refers} refers • {b.paid} paid</div>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${b.rank <= 3 ? "gold-gradient" : "bg-white"}`}>{b.rank === 1 ? "🥇" : b.rank === 2 ? "🥈" : b.rank === 3 ? "🥉" : b.rank}</div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-bold truncate">{b.name} {b.code === dash?.code && <span className="text-[10px] bg-[#7A0C2E] text-white px-2 py-0.5 rounded-full ml-1">YOU</span>}</div>
+                  <div className="text-[11px] text-gray-500">{b.icon} {b.tier} • {b.refers} {te ? "refers" : "refers"} • {b.paid} paid</div>
                 </div>
-                <div className="font-bold text-green-600">₹{b.earned}</div>
+                <div className="font-extrabold text-green-600 text-sm">₹{b.earned}</div>
               </div>
             ))}
+          </div>
+          <div className="mt-3 text-[10px] text-gray-400 telugu">
+            {te ? "₹ మొత్తం సంపాదనలు (payouts తో సహా) — 30 సెకన్లకోసారి auto-update అవుతుంది" : "₹ = total earnings — auto-refreshes every 30s"}
           </div>
         </section>
 

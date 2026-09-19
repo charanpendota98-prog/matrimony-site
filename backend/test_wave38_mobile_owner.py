@@ -66,7 +66,7 @@ check("M1 manifest shortcuts+maskable", '"shortcuts"' in mf and '"maskable"' in 
 sw = open(os.path.join(ROOT, "frontend", "public", "sw.js"), encoding="utf-8").read()
 check("M1 sw push+click handlers", 'addEventListener("push"' in sw
       and 'addEventListener("notificationclick"' in sw, sw[:80])
-check("M1 sw version bumped v6", "mv-v6" in sw)
+check("M1 sw version bumped (v7 — R9)", "mv-v7" in sw)
 pb = open(os.path.join(ROOT, "frontend", "src", "components", "PushBell.tsx"), encoding="utf-8").read()
 check("M1 PushBell wires 3 APIs", "/api/push/subscribe" in pb and "/api/push/unsubscribe" in pb
       and "/api/push/notify/" in pb and "pushManager" in pb)
