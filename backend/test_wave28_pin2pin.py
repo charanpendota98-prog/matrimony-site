@@ -98,8 +98,8 @@ try:
                  "marital_status": "Pelli Kaledu", "caste": "Reddy", "education": "BTech",
                  "job": "Software", "salary": "10L", "state": "TS", "district": "Hyd",
                  "phone": user_of(GROOM)["phone"], "full_name": "Dup Pin"})
-    check("1.6 dup phone → 200 + flag (v2.1 policy)", rd.status_code == 200
-          and rd.json().get("duplicate_phone") is True, (rd.status_code, rd.text[:150]))
+    check("1.6 dup phone → 409 reject (R9 policy — same number tho 2 accounts vaddhu)",
+          rd.status_code == 409, (rd.status_code, rd.text[:150]))
     ri = c.post("/api/register", data={"gender": "x", "age": 5, "phone": "1", "full_name": "z"})
     check("1.7 invalid → telugu 4xx", ri.status_code in (400, 422), ri.status_code)
 

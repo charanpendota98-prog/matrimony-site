@@ -4,7 +4,7 @@ All endpoints: Register, ID Search, Matches, Credits, Referral, Bureau, Admin, P
 """
 from fastapi import FastAPI, HTTPException, Request, UploadFile, File, Form, Body
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, Response
 from typing import Any, Dict, Optional
 import os, random, json, re
 import threading
@@ -17,7 +17,7 @@ from matching_engine import (
     calculate_match_score, generate_personalized_reasons, find_top_matches,
     generate_profile_highlights,
 )
-from card_generator import generate_id, create_profile_card
+from card_generator import generate_id, caste_code, generate_profile_id
 from credits import PLANS, can_view_number, deduct_credit, add_credits, can_search_id
 from referral import (
     generate_referral_code, process_referral_payment, get_leaderboard, parse_referral_type,
@@ -64,11 +64,12 @@ from wa_antiban import ENGINE as WA_ENGINE
 # 🛡️ WAVE 9 — hardening layer (auth tokens, admin key, rate limit, validation, abuse ledger)
 import db_store as DBSTORE  # noqa: E402  # 🌊 WAVE 22 — core DB persistence
 import money_audit as MAUD  # noqa: E402  # 🌊 WAVE 26 — money audit trail
+import retention as RETENTION  # 🗑️ WAVE 40: 3-year profile auto-delete (archive first)
 from hardening import (
     auth_enforced, require_owner, require_admin, rate_limit_hit, too_many,
     apply_security_headers, posture as security_posture, abuse_snapshot, abuse_log,
     sign_token, verify_token, token_from_request, is_admin, is_automation, clean, req_text,
-    require_vendor, vendor_token,
+    require_vendor, vendor_token, admin_role,
     req_phone, req_int, req_choice, req_bool, validation_error, seen as idem_seen, abuse_count, clamp_int,
     ADMIN_KEY as TSAP_ADMIN_KEY, NAME_RE, PHONE_RE, dev_mode,
 )
@@ -173,7 +174,30 @@ async def _startup_publisher():
     try:
         _snap = DBSTORE.load()
         if _snap.get("users"):
-            DB_USERS.extend(_snap["users"])
+            _u = _snap["users"]
+            # 🛡️ R10 — restore-time hygiene: duplicate tsap_ids (repeat-import junk) +
+            #    duplicate REAL phones (same number 2 accounts = OTP login ambiguity) +
+            #    seed inventory cap 600 (unbounded bloat block — mundu 59MB ayindi!)
+            _by_id, _seen_ph, _clean = {}, set(), []
+            for _x in _u:
+                _tid = str(_x.get("tsap_id") or "")
+                if not _tid or _tid in _by_id:
+                    continue
+                _ph = str(_x.get("phone") or "").strip()
+                if _ph and not _x.get("seed_source"):
+                    if _ph in _seen_ph:
+                        continue
+                    _seen_ph.add(_ph)
+                _by_id[_tid] = _x
+                _clean.append(_x)
+            _seeds = [x for x in _clean if x.get("seed_source")]
+            if len(_seeds) > 600:
+                _keep = {id(x) for x in _seeds[-600:]}
+                _clean = [x for x in _clean if not x.get("seed_source") or id(x) in _keep]
+            _dropped = len(_u) - len(_clean)
+            if _dropped:
+                print("[DB] hygiene: %d duplicate/junk rows dropped (restore dedup + seed cap)" % _dropped)
+            DB_USERS.extend(_clean)
             DB_INTERESTS.extend(_snap.get("interests", []))
             DB_PAYMENTS.extend(_snap.get("payments", []))
             DB_OTPS.update(_snap.get("otps", {}))
@@ -186,6 +210,16 @@ async def _startup_publisher():
                 len(DB_USERS), len(DB_INTERESTS), len(DB_PAYMENTS)))
     except Exception as e:
         print("[DB] restore skip:", str(e)[:80])
+    # 🗑️ WAVE 40 — 3-year retention: restore tarvata ventane okasari + roju oosari
+    # (money-safe: wallet/plan/boost active unna profiles skip; archive mundu — data poyedam ledu)
+    try:
+        _ret = RETENTION.run(DB_USERS, DB_INTERESTS, DB_VIEWS, DB_SAVES)
+        if _ret.get("deleted"):
+            print(f"[RETENTION] {_ret['deleted']} profiles (3+ years) archived+deleted → {_ret.get('archive','')}")
+        _retention_save()
+        RETENTION.start_daily(lambda: (RETENTION.run(DB_USERS, DB_INTERESTS, DB_VIEWS, DB_SAVES), _retention_save()))
+    except Exception as e:
+        print("[RETENTION] startup skip:", str(e)[:80])
     # demo/launch inventory: empty DB aithe (dev/preview lo) ventane profiles — site khali ga kanipinchadu
     if str(os.getenv("DEMO_SEED_ENABLED", "true")).lower() in ("1", "true", "yes", "on") and not DB_USERS:
         try:
@@ -380,16 +414,30 @@ VERIFIED_PHONES = set()  # OTP verify ayyina numbers
 DB_REPORTS = safety.DB_REPORTS      # safety reports (moderation queue)
 DB_BLOCKS = safety.DB_BLOCKS        # block list (search/interest lo respect avutundi)
 DB_PAYMENTS = []
+
+
+def _retention_save():
+    """🗑️ WAVE 40 — retention delete ayyaka force save (debounce ledu)."""
+    try:
+        DBSTORE.save(DBSTORE.snapshot(DB_USERS, DB_INTERESTS, DB_PAYMENTS, DB_OTPS,
+                                      VERIFIED_PHONES, DB_VIEWS, DB_SAVES, DB_DIGEST), force=True)
+    except Exception as e:
+        print("[RETENTION] save fail:", str(e)[:80])
 DB_POSTS = []
 DB_REFERRALS = []
 
-# Helper — unique TSAP ID (same number rendu sarlu raakudadu)
-def unique_tsap_id(gender: str, year: int = 2025) -> str:
-    for _ in range(50):
-        tid = generate_id(gender, year, random.randint(1000, 9999))
-        if not any(u.get("tsap_id") == tid for u in DB_USERS):
+# Helper — unique caste-wise Profile ID (same number rendu sarlu raakudadu)
+def unique_tsap_id(caste: str) -> str:
+    """Caste-wise Profile ID: Reddy → RED001, Viswabrahmin → VIS001 (per-caste sequence)."""
+    code = caste_code(caste)
+    existing = {str(u.get("tsap_id") or "") for u in DB_USERS}
+    n = sum(1 for t in existing if t.startswith(code)) + 1
+    for _ in range(500):
+        tid = f"{code}{n:03d}" if n < 1000 else f"{code}{n}"
+        if tid not in existing:
             return tid
-    return generate_id(gender, year, random.randint(10000, 99999))
+        n += 1
+    return f"{code}{random.randint(10000, 99999)}"
 
 
 def verify_webhook_signature(header_sig: str, secret: str, payload: str = "") -> bool:
@@ -617,18 +665,35 @@ async def register(
     email = req_text(email, "email", 0, 80, required=False)
     country = req_text(country, "country", 0, 60, required=False) or "India"
     if age < 18: raise HTTPException(400, "⚠️ Vayasu 18+ (bride) / 21+ (groom) ఉండాలి 🙂")
+    # 🛡️ R9 — DOB checks: future date ledu + age-dob mismatch ledu (junk/fraud rows block)
+    dob = (dob or "").strip()
+    if dob:
+        try:
+            _dob_d = datetime.strptime(dob[:10], "%Y-%m-%d")
+            _now = datetime.utcnow()
+            if _dob_d > _now:
+                raise HTTPException(400, "🎂 పుట్టిన తేదీ (DOB) future లో ఉండకూడదు — సరిచేసి మళ్లీ try చెయ్యండి.")
+            _age_from_dob = _now.year - _dob_d.year - ((_now.month, _now.day) < (_dob_d.month, _dob_d.day))
+            if _age_from_dob < 18:
+                raise HTTPException(400, "⚠️ DOB ప్రకారం వయసు 18+ ఉండాలి — మీరు ఇచ్చిన DOB లో వయసు %d వస్తోంది." % _age_from_dob)
+            if abs(_age_from_dob - age) > 2:
+                raise HTTPException(400, "🎂 DOB మరియు age సరిపోవటం లేదు (DOB ప్రకారం %d) — సరిచేసి మళ్లీ try చెయ్యండి." % _age_from_dob)
+        except ValueError:
+            pass  # unparseable dob — legacy clients lo empty/junk; frontend always sends YYYY-MM-DD
 
     # 2. ID Gen
     # WAVE 27 — ID-gen + append atomic (double-submit → rendu veru IDs, duplicate ID never)
     with _REGISTER_LOCK:
-        tsap_id = unique_tsap_id(gender, 2025)
-        # referral code — TSAP ID nunchi derive (unique, deterministic) [FIX: mundu undefined `seq` tho crash avutundi]
-        _dup_phone = any(u.get("phone") == phone for u in DB_USERS)
+        # 🛡️ R9 — duplicate phone REJECT (mundu log matrame — rendu accounts same number tho login ambiguity)
+        #    seed/inventory profiles (seed_source) fake phones — real user ni block cheyyakudadu
+        _dup_phone = any(u.get("phone") == phone and not u.get("seed_source") for u in DB_USERS)
         if _dup_phone:
-            abuse_log("duplicate_phone_register", tsap_id)
+            abuse_log("duplicate_phone_register", phone[:3] + "****")
             abuse_count("duplicate_phone_registers")
-        _ref_seq = "".join(ch for ch in tsap_id if ch.isdigit())[-5:] or str(random.randint(10000, 99999))
-        my_ref_code = f"TSAP-REF-{_ref_seq}"
+            raise HTTPException(409, "📱 ఈ phone number తో already account ఉంది — same number tho రెండు accounts ఉండవు. Login (OTP) చెయ్యండి లేదా వేరే number ఇవ్వండి.")
+        tsap_id = unique_tsap_id(caste)
+        # referral code — TSAP ID nunchi derive (unique, deterministic) [FIX: mundu undefined `seq` tho crash avutundi]
+        my_ref_code = ""   # ensure_referrer_profile() — name nunchi short code (CHA0001 style)
 
         # 3. Save DB - Advanced Full
         user = {
@@ -900,7 +965,7 @@ async def register(
                              "అయితే మాత్రమే numbers exchange (consent) · Paid: ₹99→5 profiles"),
         card_url=user.get("card_url", card_url),
         credits=user.get("credits", 3),
-        message_telugu=("🎉 Congratulations! Me ID: %s. Me profile admin approve లో ఉంది (2 min). Top 3 FREE matches ready!%s"
+        message_telugu=("🎉 Congratulations! మీ ID: %s. మీ profile త్వరలో live అవుతుంది — Top 3 FREE matches ready!%s"
                         % (tsap_id, (" మీ friend code తో +%d FREE credit వచ్చింది 🎁" % _ref_bonus) if _ref_bonus else "")),
         next_steps=["Admin approve (2 min)", "Top 3 FREE with reason",
                     "₹99 pay → 5 profiles + boost (మొదటి 3 FREE)",
@@ -926,9 +991,9 @@ async def register(
             "poster_url": "/api/referral/%s/poster.png" % tsap_id,
             "poster_status_url": "/api/referral/%s/poster.png?style=status" % tsap_id,
             "share_message": (
-                "🙏 నమస్తే! నేను %s — Mana Vivaha (TSAP) matrimony లో profile pettanu.\n"
+                "🙏 నమస్తే! నేను %s — మన వివాహ (TSAP) matrimony లో profile pettanu.\n"
                 "మీ family/relatives/business circle లో పెళ్లి చూసుకునే వాళ్లకి ఈ link పంపండి 👇\n%s\n"
-                "Free registration + 3 matches FREE. నా code: %s\n— Mana Vivaha · manavivaha.in"
+                "Free registration + 3 matches FREE. నా code: %s\n— మన వివాహ · manavivaha.in"
                 % (user.get("full_name") or tsap_id, user.get("referral_link", ""), user.get("referral_code", ""))),
             "dashboard": "/referral",
         },
@@ -1258,13 +1323,15 @@ async def payment_webhook(user_id: str = "", amount: int = 0, razorpay_payment_i
     }
 
 @app.get("/api/referral/leaderboard")
-def leaderboard(period: str = "all", limit: int = 10):
-    """🏆 Top referrers — period: all | week | month | today (telugu labels తో)."""
+def leaderboard(period: str = "all", limit: int = 10, me: str = ""):
+    """🏆 Top referrers — period: all | week | month | today (telugu labels తో).
+    💎 R12 — me=TSAP-ID iste 'you' lo mee rank kuda (board lo lekapoyna)."""
     # 🐞 FIX (B08): period='JUNK' accept ayye (empty board) + limit=-5/1e9 unvalidated
     period = req_choice(period or "all", "period", ("all", "today", "week", "month"), required=False, default="all")
     limit = clamp_int(limit, "limit", 1, 50, 10)
-    board = get_leaderboard(DB_USERS, limit=limit, period=period)
+    board, you = get_leaderboard(DB_USERS, limit=limit, period=period, me=(me or "").strip(), full=True)
     return {"success": True, "period": period, "leaderboard": board, "total_users": len(DB_USERS),
+            "you": you,
             "prize_telugu": "Weekly top-1 కి ₹1000 + Elite badge (మన team WhatsApp లో contact చేస్తుంది)"}
 
 
@@ -1460,6 +1527,300 @@ def admin_referrals_csv(request: Request):
     return FileResponse(RP19.CSV_FILE, media_type="text/csv", filename="referral_partners.csv")
 
 
+# ============================================================================
+# 🗓️ WAVE 40 — MATCHES OF THE DAY + RETENTION + EXCEL EXPORTS (admin power)
+# ============================================================================
+DAILY_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "daily_matches.json")
+
+
+def _load_daily() -> dict:
+    try:
+        with open(DAILY_FILE, encoding="utf-8") as f:
+            d = json.load(f)
+            return d if isinstance(d, dict) else {}
+    except Exception:
+        return {}
+
+
+def _daily_row(u: dict) -> dict:
+    """Public card row — phone/PII lekunda (matches list shape)."""
+    return {"tsap_id": u.get("tsap_id"), "full_name": u.get("full_name", ""),
+            "gender": u.get("gender"), "age": u.get("age"), "caste": u.get("caste", ""),
+            "district": u.get("district", ""), "state": u.get("state", ""),
+            "education": u.get("education", ""), "job": u.get("job", ""),
+            "salary": u.get("salary", ""), "marital_status": u.get("marital_status", ""),
+            "star": u.get("star", ""), "has_photo": bool(u.get("photo_url") or u.get("photo_path")),
+            "photo_url": u.get("photo_url", "") if u.get("privacy_mode") != "private" else "",
+            "card_url": u.get("card_url", ""), "score": u.get("score", 0),
+            "verification": u.get("verification", ""), "boosted": bool(u.get("boost_until"))}
+
+
+@app.get("/api/daily-matches")
+def daily_matches_public():
+    """🗓️ Public — ఈ రోజు featured profiles (admin select chesina 'Matches of the Day')."""
+    today = datetime.utcnow().strftime("%Y-%m-%d")
+    ids = _load_daily().get(today, [])
+    rows = []
+    for tid in ids:
+        u = _find_user(tid)
+        if u and not u.get("is_banned"):
+            rows.append(_daily_row(u))
+    return {"success": True, "date": today, "count": len(rows), "matches": rows,
+            "note_telugu": "🗓️ ఈ రోజు ఎంపిక profiles — ⚡ Boost తో మీ profile కూడా ఇక్కడ రావచ్చు"}
+
+
+@app.get("/api/admin/daily-matches/candidates")
+def daily_matches_candidates(request: Request, limit: int = 60):
+    """Admin — candidates: ⚡ boost active (paid) users FIRST, then fresh registrations."""
+    require_admin(request, staff_ok=True)
+    limit = clamp_int(limit, "limit", 1, 200, 60)
+    now_iso = datetime.utcnow().isoformat()
+    boosted = [u for u in DB_USERS if str(u.get("boost_until") or "") > now_iso and not u.get("is_banned")]
+    boosted_ids = {id(u) for u in boosted}
+    others = [u for u in DB_USERS if id(u) not in boosted_ids and not u.get("is_banned")]
+    others.sort(key=lambda u: str(u.get("created_at", "")), reverse=True)
+    rows = []
+    for u in (boosted + others)[:limit]:
+        rows.append({**_daily_row(u), "boost_active": id(u) in boosted_ids, "phone": u.get("phone", "")})
+    today = datetime.utcnow().strftime("%Y-%m-%d")
+    return {"success": True, "today": _load_daily().get(today, []), "boosted_count": len(boosted),
+            "count": len(rows), "candidates": rows,
+            "note_telugu": "⚡ Boost active (paid) users mundu — vari caste channels lo TOP post"}
+
+
+@app.post("/api/admin/daily-matches")
+async def daily_matches_set(payload: dict, request: Request):
+    """Admin — ఈ రోజు 'Matches of the Day' select → profiles vari caste channels lo post (boost)."""
+    require_admin(request, staff_ok=True)
+    ids = [str(x).strip().upper() for x in (payload or {}).get("profile_ids", []) if str(x).strip()]
+    if not ids:
+        raise HTTPException(400, "profile_ids list ఇవ్వండి (ex: [\"RED001\",\"KAM002\"])")
+    ids = ids[:30]
+    users = []
+    for tid in ids:
+        u = _find_user(tid)
+        if not u:
+            raise HTTPException(404, f"ID {tid} దొరకలేదు")
+        users.append(u)
+    do_post = bool((payload or {}).get("post_to_channels", True))
+    posted, failed = [], []
+    if do_post:
+        for u in users:
+            try:
+                await publish_profile(u, u["tsap_id"], int(u.get("score", 92)))
+                posted.append(u["tsap_id"])
+            except Exception as e:
+                failed.append({"id": u["tsap_id"], "error": str(e)[:80]})
+    today = datetime.utcnow().strftime("%Y-%m-%d")
+    data = _load_daily()
+    data[today] = ids
+    try:
+        with open(DAILY_FILE, "w", encoding="utf-8") as f:
+            json.dump({k: v for k, v in sorted(data.items())[-60:]}, f, ensure_ascii=False, default=str)
+    except Exception as e:
+        print("[DAILY] save fail:", str(e)[:80])
+    return {"success": True, "date": today, "selected": ids,
+            "posted": posted, "failed": failed,
+            "message_telugu": f"🗓️ {len(ids)} profiles ఈ రోజు 'Matches of the Day' — {len(posted)} caste channels lo post ayyayi"}
+
+
+@app.get("/api/admin/whoami")
+def admin_whoami(request: Request):
+    """👤 WAVE 41 — current role: owner (full) | staff (limited tabs). Frontend tab gating."""
+    role = require_admin(request, staff_ok=True)  # owner | staff (lekapote 403)
+    return {"success": True, "role": role,
+            "staff_key_configured": bool(os.getenv("STAFF_KEY", "").strip()),
+            "message_telugu": "👤 Owner — అన్ని sections" if role == "owner" else "👤 Staff — limited sections (money/data లేదు)"}
+
+
+# ============================================================================
+# 🎊 WAVE 41 — WEEKLY CASTE SHOWCASE (వారానికి ఒక కులం — vivaha parichayam)
+# ============================================================================
+SHOWCASE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "weekly_showcase.json")
+SHOWCASE_MAX = 12  # okka week ki max profiles
+
+
+def _load_showcase() -> dict:
+    try:
+        with open(SHOWCASE_FILE, encoding="utf-8") as f:
+            d = json.load(f)
+            return d if isinstance(d, dict) else {}
+    except Exception:
+        return {}
+
+
+def _week_key() -> str:
+    return datetime.utcnow().strftime("%G-W%V")
+
+
+def _caste_rotation(all_castes, last_caste):
+    """Okko varam okko caste — list order lo rotation (next after last)."""
+    if not all_castes:
+        return ""
+    if last_caste in all_castes:
+        i = all_castes.index(last_caste)
+        return all_castes[(i + 1) % len(all_castes)]
+    return all_castes[0]
+
+
+@app.get("/api/showcase")
+def showcase_public():
+    """🎊 Public — ఈ వారం caste showcase (ఆ caste best profiles)."""
+    data = _load_showcase()
+    wk = _week_key()
+    cur = data.get(wk) or {}
+    ids = cur.get("ids", [])
+    rows = []
+    for tid in ids:
+        u = _find_user(tid)
+        if u and not u.get("is_banned"):
+            rows.append(_daily_row(u))
+    prev_wk = None
+    return {"success": True, "week": wk, "caste": cur.get("caste", ""), "count": len(rows),
+            "matches": rows, "next_rotation": cur.get("next_caste", ""),
+            "note_telugu": "🎊 ఈ వారం %s caste showcase — వారానికి ఒక కులం, ఆ caste best profiles ఇక్కడ" % (cur.get("caste") or "—")}
+
+
+@app.get("/api/admin/showcase/candidates")
+def showcase_candidates(request: Request, caste: str = "", limit: int = 40):
+    """Admin/Staff — okka caste candidates (score + photo first). Rotation suggestion kooda."""
+    require_admin(request, staff_ok=True)
+    limit = clamp_int(limit, "limit", 1, 100, 40)
+    caste = (caste or "").strip()
+    if not caste:
+        raise HTTPException(400, "caste param కావాలి (ex: ?caste=Reddy)")
+    rows = [u for u in DB_USERS if str(u.get("caste", "")).lower() == caste.lower()
+            and not u.get("is_banned") and u.get("is_approved", True)]
+    rows.sort(key=lambda u: (bool(u.get("photo_url") or u.get("photo_path")), int(u.get("score", 0) or 0)), reverse=True)
+    data = _load_showcase()
+    wk = _week_key()
+    last = None
+    for k in sorted(data.keys(), reverse=True):
+        if data[k].get("caste"):
+            last = data[k]["caste"]
+            break
+    all_castes = sorted({str(u.get("caste", "")).strip() for u in DB_USERS if u.get("caste")})
+    nxt = _caste_rotation(all_castes, caste)
+    return {"success": True, "week": wk, "caste": caste, "count": len(rows),
+            "current_week": data.get(wk, {}),
+            "next_caste_suggestion": nxt, "last_caste": last or "",
+            "candidates": [_daily_row(u) for u in rows[:limit]],
+            "note_telugu": "🎊 వారానికి ఒక caste — ఈ వారం %s. Photos + score first." % caste}
+
+
+@app.post("/api/admin/showcase")
+async def showcase_set(payload: dict, request: Request):
+    """Admin/Staff — ఈ వారం caste showcase set → ఆ caste channels lo post (bride + groom)."""
+    require_admin(request, staff_ok=True)
+    d = payload or {}
+    caste = str(d.get("caste", "")).strip()
+    if not caste:
+        raise HTTPException(400, "caste ఇవ్వండి (ex: Reddy)")
+    ids = [str(x).strip().upper() for x in d.get("profile_ids", []) if str(x).strip()]
+    if not ids:
+        raise HTTPException(400, "profile_ids list ఇవ్వండి")
+    ids = ids[:SHOWCASE_MAX]
+    users = []
+    for tid in ids:
+        u = _find_user(tid)
+        if not u:
+            raise HTTPException(404, f"ID {tid} దొరకలేదు")
+        if str(u.get("caste", "")).lower() != caste.lower():
+            raise HTTPException(400, f"ID {tid} caste {u.get('caste')} — showcase caste {caste} కాదు")
+        users.append(u)
+    do_post = bool(d.get("post_to_channels", True))
+    posted, failed = [], []
+    if do_post:
+        for u in users:
+            try:
+                await publish_profile(u, u["tsap_id"], int(u.get("score", 92)))
+                posted.append(u["tsap_id"])
+            except Exception as e:
+                failed.append({"id": u["tsap_id"], "error": str(e)[:80]})
+    all_castes = sorted({str(u.get("caste", "")).strip() for u in DB_USERS if u.get("caste")})
+    data = _load_showcase()
+    wk = _week_key()
+    data[wk] = {"caste": caste, "ids": ids, "set_at": datetime.utcnow().isoformat(),
+                "next_caste": _caste_rotation(all_castes, caste)}
+    try:
+        with open(SHOWCASE_FILE, "w", encoding="utf-8") as f:
+            json.dump(dict(sorted(data.items())[-104:]), f, ensure_ascii=False, default=str)
+    except Exception as e:
+        print("[SHOWCASE] save fail:", str(e)[:80])
+    return {"success": True, "week": wk, "caste": caste, "selected": ids,
+            "posted": posted, "failed": failed, "next_caste": data[wk]["next_caste"],
+            "message_telugu": f"🎊 ఈ వారం {caste} showcase — {len(ids)} profiles ({len(posted)} caste channels lo post)"}
+
+
+@app.get("/api/admin/retention/preview")
+def admin_retention_preview(request: Request, years: int = 0):
+    """🗑️ Admin — 3-year policy: ye profiles delete avtayi (dry preview)."""
+    require_admin(request)
+    p = RETENTION.preview(DB_USERS, years or None)
+    return {"success": True, **p, "policy_years": RETENTION.RETENTION_YEARS,
+            "note_telugu": "Money/plan active ఉన్న profiles skip — archive ముందే జరుగుతుంది, డేటా పోదు"}
+
+
+@app.post("/api/admin/retention/run")
+def admin_retention_run(payload: dict, request: Request):
+    """🗑️ Admin — retention run NOW (archive → delete → save)."""
+    require_admin(request)
+    years = int((payload or {}).get("years", 0) or 0) or None
+    res = RETENTION.run(DB_USERS, DB_INTERESTS, DB_VIEWS, DB_SAVES, years=years)
+    if res.get("deleted"):
+        _retention_save()
+    return {"success": True, **res}
+
+
+def _csv_response(header, rows, filename):
+    import csv
+    import io as _io
+    buf = _io.StringIO()
+    w = csv.writer(buf)
+    w.writerow(header)
+    for r in rows:
+        w.writerow([("" if v is None else str(v)) for v in r])
+    return Response("\ufeff" + buf.getvalue(), media_type="text/csv; charset=utf-8",
+                    headers={"Content-Disposition": f'attachment; filename="{filename}"'})
+
+
+@app.get("/api/admin/export/users.csv")
+def admin_export_users(request: Request):
+    """📤 ADMIN — FULL profiles sheet (Excel-ready CSV, Telugu BOM tho)."""
+    require_admin(request)
+    hdr = ["profile_id", "name", "gender", "age", "phone", "caste", "religion", "district", "state",
+           "education", "job", "salary", "marital_status", "height", "star", "raasi", "created_at",
+           "credits", "plan", "wallet", "lifetime_earned", "phone_verified", "has_photo", "boost_until", "banned"]
+    rows = [[u.get("tsap_id"), u.get("full_name"), u.get("gender"), u.get("age"), u.get("phone"),
+             u.get("caste"), u.get("religion"), u.get("district"), u.get("state"),
+             u.get("education"), u.get("job"), u.get("salary"), u.get("marital_status"), u.get("height"),
+             u.get("star"), u.get("raasi"), u.get("created_at"), u.get("credits"), u.get("plan"),
+             u.get("wallet", 0), u.get("lifetime_earned", 0), bool(u.get("phone_verified")),
+             bool(u.get("photo_url") or u.get("photo_path")), u.get("boost_until", ""), bool(u.get("is_banned"))]
+            for u in DB_USERS]
+    return _csv_response(hdr, rows, "manavivaha_profiles.csv")
+
+
+@app.get("/api/admin/export/payments.csv")
+def admin_export_payments(request: Request):
+    """📤 ADMIN — payments sheet (orders + status + UTR)."""
+    require_admin(request)
+    hdr = ["order_id", "profile_id", "plan", "amount", "status", "utr", "at"]
+    rows = [[p.get("order_id"), p.get("tsap_id"), p.get("plan") or p.get("kind"), p.get("amount"),
+             p.get("status"), p.get("utr", ""), p.get("at")] for p in DB_PAYMENTS]
+    return _csv_response(hdr, rows, "manavivaha_payments.csv")
+
+
+@app.get("/api/admin/export/leads.csv")
+def admin_export_leads(request: Request):
+    """📤 ADMIN — leads sheet (name/phone/source/status)."""
+    require_admin(request)
+    hdr = ["name", "phone", "source", "status", "touches", "at", "note"]
+    rows = [[l.get("name", ""), l.get("phone", ""), l.get("source", ""), l.get("status", ""),
+             l.get("touches", 1), l.get("at", ""), l.get("note", "")] for l in growth.DB_LEADS]
+    return _csv_response(hdr, rows, "manavivaha_leads.csv")
+
+
 @app.get("/api/referral/{tsap_id}/payouts")
 def referral_payouts(tsap_id: str, request: Request = None):
     """మీ payout history — request → paid/rejected + UTR."""
@@ -1577,7 +1938,7 @@ def referral_fraud_check(tsap_id: str, request: Request = None):
 @app.post("/api/admin/approve/{tsap_id}")
 def admin_approve(tsap_id: str, request: Request):
     """Admin approve → auto-post to channels"""
-    require_admin(request)  # 🛡️ WAVE 25: CRITICAL FIX — auth lekunda approve = fake trust badges!
+    require_admin(request, staff_ok=True)  # 🛡️ WAVE 25: CRITICAL FIX — auth lekunda approve = fake trust badges!
     user = next((u for u in DB_USERS if u["tsap_id"]==tsap_id), None)
     if not user: raise HTTPException(404, "⚠️ Dorakaledu — ID check చెయ్యండి")
     user["is_approved"] = True
@@ -1689,7 +2050,7 @@ def channels(tier: Optional[str] = None):
         items = out_tiers.get(tier, [])
         return {"tier": tier, "channels": items, "count": len(items), "stats": channel_stats()}
     return {
-        "brand": "Mana Vivaha | TSAP Matrimony",
+        "brand": "మన వివాహ | TSAP Matrimony",
         "site": "https://manavivaha.in",
         "bot": "@telugumatrimony1_bot",
         "stats": channel_stats(),
@@ -1752,7 +2113,7 @@ def publish_log_endpoint(limit: int = 20, request: Request = None):
 @app.post("/api/publish/now/{tsap_id}")
 async def publish_now(tsap_id: str, score: int = 92, request: Request = None):
     """Manual re-post (admin) — already register అయిన profile ని మళ్లీ channels కి pampu."""
-    require_admin(request)   # 🛡️ WAVE 9: admin key lekunda 403 (PII/money/)
+    require_admin(request, staff_ok=True)   # 🛡️ WAVE 9: admin key lekunda 403 (PII/money/)
     user = next((u for u in DB_USERS if u["tsap_id"] == tsap_id), None)
     if not user:
         raise HTTPException(404, "Profile not found")
@@ -2359,7 +2720,7 @@ def demo_seed(request: Request = None):
                             "role": sd["gender"], "existing": True})
             continue
         prefer = sd.pop("prefer_id", None)
-        tsap_id = prefer if (prefer and not any(u.get("tsap_id") == prefer for u in DB_USERS)) else unique_tsap_id(sd["gender"])
+        tsap_id = prefer if (prefer and not any(u.get("tsap_id") == prefer for u in DB_USERS)) else unique_tsap_id(sd.get("caste", ""))
         user = {**sd, "tsap_id": tsap_id, "credits": 3, "plan": "FREE", "wallet": 0,
                 "marital_status": sd.get("marital_status", "Pelli Kaledu"),
                 "mandal": sd.get("district", ""), "religion": sd.get("religion", "Hindu"),
@@ -2435,7 +2796,13 @@ def record_view(payload: dict, request: Request = None):
         if v["tsap_id"] == tsap_id and v.get("viewer_id") == viewer_id:
             try:
                 if (now - datetime.fromisoformat(v["at"])).total_seconds() < 6 * 3600:
-                    return {"success": True, "counted": False, "note": "6h లో duplicate view skip"}
+                    # 🐞 FIX (R12): duplicate-skip response lo kuda stats keys —
+                    # client shape consistent (mundu keys levu → frontend 0/false confusion)
+                    _tot = len([x for x in DB_VIEWS if x["tsap_id"] == tsap_id])
+                    return {"success": True, "counted": False, "note": "6h లో duplicate view skip",
+                            "total_views": _tot, "views_total": _tot,
+                            "unique_viewers": len({x.get("viewer_id") for x in DB_VIEWS
+                                                   if x["tsap_id"] == tsap_id and x.get("viewer_id")})}
             except Exception:
                 pass
     if not _find_user(tsap_id):
@@ -2612,13 +2979,13 @@ async def verify_selfie(file: UploadFile = File(...), tsap_id: str = Form(""), r
     u["selfie_status"] = "pending"
     u["selfie_checks"] = verdict["checks"]
     return {"success": True, "url": u["selfie_url"], "status": "pending", "checks": verdict["checks"],
-            "message_telugu": "🤳 Selfie clear గా ఉంది — verification కి వెళ్లింది ✅ (admin approve చెయ్యగానే badge వస్తుంది)"}
+            "message_telugu": "🤳 Selfie clear గా ఉంది — verification అయ్యాక ✅ verified badge వస్తుంది"}
 
 
 @app.get("/api/admin/photos/pending")
 def admin_photos_pending(request: Request):
     """📸 ADMIN — photo + selfie moderation queue (Layer-2 human review)."""
-    require_admin(request)
+    require_admin(request, staff_ok=True)
     q = []
     for u in DB_USERS:
         _first = str(u.get("full_name", "")).split()[0] if str(u.get("full_name", "")).split() else ""
@@ -2635,7 +3002,7 @@ def admin_photos_pending(request: Request):
 @app.post("/api/admin/photos/review")
 def admin_photos_review(payload: dict, request: Request):
     """📸 ADMIN — approve/reject photo or selfie (wrong-person/group/celebrity → reject)."""
-    require_admin(request)
+    require_admin(request, staff_ok=True)
     d = payload or {}
     u = next((x for x in DB_USERS if x.get("tsap_id") == str(d.get("tsap_id", ""))), None)
     if not u:
@@ -2814,11 +3181,12 @@ def otp_send(payload: dict):
     dev = str(os.getenv("OTP_DEV_MODE", "true")).lower() in ("1", "true", "yes", "on")
     out = {"success": True, "phone": f"XXXXXX{phone[-4:]}", "expires_in_min": 10,
            "channel": ch.get("channel", "dev"), "purpose": purpose,
-           "message_telugu": f"{CHANNEL_TELUGU.get(ch.get('channel', 'dev'), '')} (+91 XXXXXX{phone[-4:]}). 10 నిమిషాల్లో enter చెయ్యండి."}
+           "message_telugu": f"📱 OTP వచ్చింది (+91 XXXXXX{phone[-4:]}). 10 నిమిషాల్లో enter చెయ్యండి."}
     if dev:
+        # dev/SMS-provider-lekapothi — code ni dev_code field lo istham (frontend "మీ OTP" ani chupistundi).
+        # message_telugu lo DEV wording raakudadu — user ki telisi poreddi.
         out["dev_code"] = code
-        out["message_telugu"] += f" [DEV — code: {code}]"
-        out["note"] = "Production: WHATSAPP_MODE=bridge (FREE) leda MSG91_KEY పెట్టండి — appudu code response లో raadu."
+        out["ops_note"] = "SMS provider ledu — code dev_code field lo (production lo WHATSAPP_MODE=bridge leda MSG91_KEY pettandi)"
     return out
 
 
@@ -3249,7 +3617,7 @@ def api_bulk_profiles(payload: dict, request: Request = None):
             continue
         u = dict(sd)
         u["demo"] = True                       # 🎬 seed/inventory profile — demo login allowed (real users ki OTP)
-        u.setdefault("tsap_id", unique_tsap_id(sd.get("gender", "Bride"), 2025))
+        u.setdefault("tsap_id", unique_tsap_id(sd.get("caste", "")))
         u.setdefault("religion", "Hindu")
         u.setdefault("mother_tongue", "Telugu")
         u.setdefault("gothram", "-")
@@ -3532,7 +3900,7 @@ def api_og_porutham(bride: str, groom: str):
 
 
 @app.get("/api/og/site.png")
-def api_og_site(title: str = "Mana Vivaha — Telugu Matrimony", subtitle: str = "52 channels • 43 castes • TS + AP"):
+def api_og_site(title: str = "మన వివాహ — Telugu Matrimony", subtitle: str = "52 channels • 43 castes • TS + AP"):
     path = preview.og_generic_png(title, subtitle, name="site")
     if not path or not os.path.exists(path):
         raise HTTPException(500, "Preview generate avvaledu")
@@ -4176,7 +4544,7 @@ def push_notify(tsap_id: str, payload: dict, request: Request = None):
         raise HTTPException(404, "Profile dorakaledu")
     d = payload or {}
     return {"tsap_id": tsap_id, **A11.push_notify(
-        tsap_id, str(d.get("title", "💍 Mana Vivaha — కొత్త matches!")),
+        tsap_id, str(d.get("title", "💍 మన వివాహ — కొత్త matches!")),
         str(d.get("body", "మీకు 2 కొత్త matches vachayi — చూడండి!")),
         str(d.get("url", "/matches")))}
 
@@ -4349,7 +4717,7 @@ def api_my_unlocks(viewer_id: str, request: Request = None):
 # --- ₹500 assisted orders (admin) --------------------------------------------
 @app.post("/api/admin/assist-orders")
 def api_assist_create(payload: dict, request: Request):
-    require_admin(request)
+    require_admin(request, staff_ok=True)
     d = payload or {}
     buyer = _find_user(str(d.get("buyer_id", "")).upper())
     if not buyer:
@@ -4362,14 +4730,14 @@ def api_assist_create(payload: dict, request: Request):
 
 @app.get("/api/admin/assist-orders")
 def api_assist_list(request: Request, status: str = ""):
-    require_admin(request)
+    require_admin(request, staff_ok=True)
     items = [o for o in S12.ORDERS if not status or o.get("status") == status]
     return {"success": True, "count": len(items), "orders": list(reversed(items))}
 
 
 @app.post("/api/admin/assist-orders/{order_id}/paid")
 def api_assist_paid(order_id: str, payload: dict, request: Request):
-    require_admin(request)
+    require_admin(request, staff_ok=True)
     res = S12.mark_order_paid(order_id, str((payload or {}).get("utr", "")))
     if not res.get("success"):
         raise HTTPException(400, res.get("message_telugu"))
@@ -4378,7 +4746,7 @@ def api_assist_paid(order_id: str, payload: dict, request: Request):
 
 @app.post("/api/admin/assist-orders/{order_id}/profiles")
 def api_assist_attach(order_id: str, payload: dict, request: Request):
-    require_admin(request)
+    require_admin(request, staff_ok=True)
     ids = [str(x).upper() for x in (payload or {}).get("profile_ids", [])]
     missing = [i for i in ids if not _find_user(i)]
     if missing:
@@ -4393,7 +4761,7 @@ def api_assist_attach(order_id: str, payload: dict, request: Request):
 @app.get("/api/admin/match-send/copy-list")
 def api_copy_list(request: Request, buyer: str = "", ids: str = "", order_id: str = ""):
     """📋 Admin 1-click copy — `NAME -- NUMBER` lines (manual paste కోసం). ADMIN-ONLY."""
-    require_admin(request)
+    require_admin(request, staff_ok=True)
     b = _find_user(buyer.upper())
     if not b:
         raise HTTPException(404, f"Buyer ID దొరకలేదు: {buyer}")
@@ -4417,7 +4785,7 @@ def api_match_send(buyer_id: str, request: Request, limit: int = 20, min_score: 
     ADMIN-ONLY (full phones untayi — copy-list/verify kosam).
     🌊 WAVE 19: advanced server filters — anni pass ayina suitable matches matrame.
     """
-    require_admin(request)
+    require_admin(request, staff_ok=True)
     me = _find_user(buyer_id.upper())
     if not me:
         raise HTTPException(404, f"Buyer ID దొరకలేదు: {buyer_id}")
@@ -4532,7 +4900,7 @@ async def api_match_deliver(payload: dict, request: Request):
     📩 1-click personal delivery — buyer Telegram DM + WhatsApp.
     Grant (STRICT: ee profiles mathrame) + send + copy-list — anni okesari.
     """
-    require_admin(request)
+    require_admin(request, staff_ok=True)
     d = payload or {}
     buyer = _find_user(str(d.get("buyer_id", "")).upper())
     if not buyer:
@@ -4974,7 +5342,7 @@ def api_admin_pay_refund(order_id: str, payload: dict, request: Request):
 @app.get("/api/admin/profiles")
 def api_admin_profiles(request: Request, status: str = "pending", q: str = "", limit: int = 30, offset: int = 0):
     """ADMIN-ONLY profile queue - pending approvals first (backend truth, phones included)."""
-    require_admin(request)
+    require_admin(request, staff_ok=True)
     status = (status or "pending").strip().lower()
     if status not in ("pending", "approved", "banned", "all"):
         raise HTTPException(400, "status: pending/approved/banned/all")
@@ -5012,7 +5380,7 @@ def api_admin_profiles(request: Request, status: str = "pending", q: str = "", l
 @app.post("/api/admin/profiles/{tsap_id}/ban")
 def api_admin_ban(tsap_id: str, payload: dict, request: Request):
     """ADMIN - profile ban (search/matches/channels నుంచి పోతుంది) + audit."""
-    require_admin(request)
+    require_admin(request, staff_ok=True)
     u = _find_user(tsap_id.upper())
     if not u:
         raise HTTPException(404, "Profile dorakaledu")
@@ -5028,7 +5396,7 @@ def api_admin_ban(tsap_id: str, payload: dict, request: Request):
 @app.post("/api/admin/profiles/{tsap_id}/unban")
 def api_admin_unban(tsap_id: str, request: Request):
     """ADMIN - unban + approve (malli live) + audit."""
-    require_admin(request)
+    require_admin(request, staff_ok=True)
     u = _find_user(tsap_id.upper())
     if not u:
         raise HTTPException(404, "Profile dorakaledu")
@@ -5192,6 +5560,18 @@ async def api_admin_backup_import(request: Request):
     res["note"] = ("core reload ayindi; wa/push satellites kosam restart best"
                    if core else "files restore ayayi — backend restart cheyandi")
     return {"success": True, **res}
+
+
+@app.on_event("shutdown")
+async def _shutdown_flush_db():
+    """🛡️ R9 — docker restart / SIGTERM mundu DB force-flush (5s debounce window lo unna
+    registrations/payments silent ga povatam block — matrimony data ante life data)."""
+    try:
+        ok = DBSTORE.save(DBSTORE.snapshot(DB_USERS, DB_INTERESTS, DB_PAYMENTS, DB_OTPS,
+                                           VERIFIED_PHONES, DB_VIEWS, DB_SAVES, DB_DIGEST), force=True)
+        print("[DB] shutdown flush:", "saved" if ok else "skip")
+    except Exception as e:
+        print("[DB] shutdown flush fail:", str(e)[:120])
 
 
 @app.on_event("startup")

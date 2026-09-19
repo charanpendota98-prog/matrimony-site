@@ -91,12 +91,14 @@ check("A8 skipped_ids lo X1", f["skipped_ids"] == ["X1"])
 section("B. INTEREST BLOCK + SCORE + TOP-MATCHES + CHECK API")
 # ═══════════════════════════════════════════════════════════════════════════
 client.post("/api/demo/seed")
+import random as _r11
+_PH = lambda: "9911%06d" % _r11.randint(0, 999999)  # R10: unique per run (demo seed fixed phones tho dup vaddhu)
 BB = {"gender": "Bride", "age": "25", "height": "5'4\"", "marital_status": "Pelli Kaledu", "caste": "Reddy",
       "education": "BTech", "job": "Software", "salary": "60k", "state": "TS", "district": "Hyderabad",
-      "phone": "9848011111", "full_name": "Wave Eleven Bride", "gothram": "Bharadwaj", "star": "Rohini", "religion": "Hindu"}
-BG_SAME = dict(BB, gender="Groom", age="29", phone="9848022222", full_name="Wave Eleven Groom Same",
+      "phone": _PH(), "full_name": "Wave Eleven Bride", "gothram": "Bharadwaj", "star": "Rohini", "religion": "Hindu"}
+BG_SAME = dict(BB, gender="Groom", age="29", phone=_PH(), full_name="Wave Eleven Groom Same",
                gothram="bharadwaj", height="5'9\"")
-BG_DIFF = dict(BB, gender="Groom", age="30", phone="9848033333", full_name="Wave Eleven Groom Diff",
+BG_DIFF = dict(BB, gender="Groom", age="30", phone=_PH(), full_name="Wave Eleven Groom Diff",
                gothram="Koundinya", height="5'10\"")
 bride = client.post("/api/register", data=BB).json()
 g_same = client.post("/api/register", data=BG_SAME).json()

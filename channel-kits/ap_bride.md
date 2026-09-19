@@ -4,7 +4,7 @@
 - **Username:** `@APBRIDE` (already taken? → @manavivaha_ap_bride, @apbride1, @manavivaha_apbride)
 - **Link:** https://t.me/APBRIDE
 - **Hashtags:** #APBride #AndhraPradesh
-- **DP image:** `/home/user/matrimony-site/backend/channel_assets/ap_bride.png`
+- **DP image:** `/home/user/shubhalagnam/backend/channel_assets/ap_bride.png`
 
 ## 1) Channel create (phone → New Channel)
 
@@ -15,7 +15,7 @@ Username: `APBRIDE`
 Description:
 
 ```
-👰 AP Brides — ఆంధ్రా వధువులు. అన్ని కులాలు, అన్ని జిల్లాలు, రోజూ కొత్త profiles + పొరుత్తం వివరాలు. 3 FREE requests, ₹99లో 5. Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
+👰 AP Brides — ఆంధ్రా వధువులు. అన్ని కులాలు, అన్ని జిల్లాలు, రోజూ కొత్త profiles + పొరుత్తం వివరాలు. 3 FREE requests, ₹99లో 5. Register FREE: manavivaha.in | Telegram: @telugumatrimony1_bot
 ```
 
 ## 2) Bot ni admin cheyyi
@@ -58,7 +58,7 @@ Telugu Matrimony — TS + AP
 ```
 📜 *CHANNEL RULES — 👰 AP Brides | ఆంధ్రా వధువులు*
 ━━━━━━━━━━━━━━━━━━
-1️⃣ Only Mana Vivaha admin posts — members message చెయ్యకుండా చూడగలరు
+1️⃣ Only మన వివాహ admin posts — members message చెయ్యకుండా చూడగలరు
 2️⃣ Profile details upload చెయ్యాలి అంటే *@telugumatrimony1_bot* కి phone/photo పంపండి
 3️⃣ ఎవరికీ *advance money* పంపొద్దు — డబ్బు అడిగితే వెంటనే screenshot → report
 4️⃣ Caste/religion గురించి discriminative comments, personal abuses → instant ban

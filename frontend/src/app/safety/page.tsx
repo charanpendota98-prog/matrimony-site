@@ -64,7 +64,7 @@ export default function SafetyPage() {
   useEffect(() => { if (myId) loadMine(myId); }, [myId, loadMine]);
 
   const submitReport = async () => {
-    if (!report.target_id.trim()) { setMsg({ ok: false, text: te ? "ఎవరిని report చెయ్యాలి — TSAP ID ఇవ్వండి" : "Whom to report — enter TSAP ID" }); return; }
+    if (!report.target_id.trim()) { setMsg({ ok: false, text: te ? "ఎవరిని report చెయ్యాలి — Profile ID ఇవ్వండి" : "Whom to report — enter Profile ID" }); return; }
     setBusy(true);
     try {
       const d = await fetch("/api/report", {
@@ -117,7 +117,7 @@ export default function SafetyPage() {
       <section className="maroon-gradient text-white">
         <div className="max-w-5xl mx-auto px-4 py-9">
           <div className="text-[11px] font-bold bg-white/10 border border-white/20 rounded-full px-3 py-1 inline-block">
-            🛡️ Trust & Safety • Mana Vivaha
+            🛡️ Trust & Safety • మన వివాహ
           </div>
           <h1 className="mt-3 text-2xl md:text-4xl font-bold"><Duo en="Your safety is our responsibility" te="మీ భద్రత మా బాధ్యత" /></h1>
           <p className="mt-2 text-[13px] md:text-sm opacity-90 telugu max-w-3xl">
@@ -163,14 +163,14 @@ export default function SafetyPage() {
           </div>
           <div className="mt-4 grid md:grid-cols-3 gap-3">
             <div className="md:col-span-1">
-              <label className="text-[12px] font-bold">{te ? "ఎవరిని report? (TSAP ID)" : "Whom to report? (TSAP ID)"}</label>
+              <label className="text-[12px] font-bold">{te ? "ఎవరిని report? (Profile ID)" : "Whom to report? (Profile ID)"}</label>
               <input value={report.target_id} onChange={(e) => setReport({ ...report, target_id: e.target.value.toUpperCase() })}
-                placeholder="TSAP-M-2025-1042" className="input-mobile font-mono" aria-label="TSAP-M-2025-1042" />
+                placeholder="RED001" className="input-mobile font-mono" aria-label="KAM001" />
             </div>
             <div className="md:col-span-1">
-              <label className="text-[12px] font-bold">{te ? "మీ TSAP ID (optional)" : "Your TSAP ID (optional)"}</label>
+              <label className="text-[12px] font-bold">{te ? "మీ Profile ID (optional)" : "Your Profile ID (optional)"}</label>
               <input value={myId} onChange={(e) => { setMyId(e.target.value.toUpperCase()); localStorage.setItem("tsap_id", e.target.value.toUpperCase()); }}
-                placeholder="TSAP-F-2025-1042" className="input-mobile font-mono" aria-label="TSAP-F-2025-1042" />
+                placeholder="RED001" className="input-mobile font-mono" aria-label="RED001" />
             </div>
             <div className="md:col-span-1">
               <label className="text-[12px] font-bold">Category</label>
@@ -219,7 +219,7 @@ export default function SafetyPage() {
                   <div className="h-2 gold-gradient" style={{ width: `${verify.trust_score}%` }} />
                 </div>
               </>
-            ) : <div className="text-[12px] text-gray-500 mt-2">{te ? "TSAP ID ఇవ్వండి — verification level చూడటానికి" : "Enter TSAP ID — to see verification level"}</div>}
+            ) : <div className="text-[12px] text-gray-500 mt-2">{te ? "Profile ID ఇవ్వండి — verification level చూడటానికి" : "Enter Profile ID — to see verification level"}</div>}
             <div className="mt-3 flex flex-wrap gap-2">
               {levels.filter((l) => l.level !== "none").map((l) => (
                 <button key={l.level} onClick={() => requestVerify(l.level)} disabled={!myId}
@@ -248,11 +248,11 @@ export default function SafetyPage() {
           </div>
         </div>
 
-        {/* ---- moderation queue (admin view) ---- */}
-        {queue && (
+        {/* ---- moderation queue (admin view only) ---- */}
+        {queue && Array.isArray(queue.items) && (
           <div className="bg-white rounded-[1.5rem] border border-gold/25 p-5">
             <div className="flex items-center justify-between">
-              <div className="font-bold text-maroon text-[15px]">{te ? <>👮 Moderation queue (admin) — {queue.open} open</> : <>👮 Moderation queue (admin) — {queue.open} open</>}</div>
+              <div className="font-bold text-maroon text-[15px]">{te ? <>👮 రిపోర్ట్‌ల నిర్వహణ — {queue.open} pending</> : <>👮 Report management — {queue.open} pending</>}</div>
               <div className="text-[11px] text-gray-500">{te ? <>high severity ముందు: {queue.items?.filter((i: any) => i.severity === "high").length || 0}</> : <>high severity first: {queue.items?.filter((i: any) => i.severity === "high").length || 0}</>}</div>
             </div>
             <div className="text-[11px] text-gray-600 mt-1 telugu">{queue.message_telugu}</div>
@@ -269,7 +269,7 @@ export default function SafetyPage() {
                   {it.detail && <div className="text-[11px] text-gray-700 mt-1 telugu">{it.detail}</div>}
                 </div>
               ))}
-              {!(queue.items || []).length && <div className="text-[12px] text-gray-500">{te ? "Queue ఖాళీ — reports లేవు 👍" : "Queue empty — no reports 👍"}</div>}
+              {!(queue.items || []).length && <div className="text-[12px] text-gray-500">{te ? "Reports ఏమీ లేవు 👍" : "No reports 👍"}</div>}
             </div>
           </div>
         )}

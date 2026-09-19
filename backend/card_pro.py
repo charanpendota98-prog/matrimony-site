@@ -1,5 +1,5 @@
 """
-Mana Vivaha — PRO PROFILE CARD GENERATOR (Pillow)
+మన వివాహ — PRO PROFILE CARD GENERATOR (Pillow)
 =================================================
 Full-detail, neat, section-wise professional card — Telegram/WhatsApp lo post avvadaniki.
 
@@ -170,10 +170,21 @@ class CardBuilder:
         d.rectangle([0, 0, W, 118], fill=self.accent)
         d.rectangle([0, 112, W, 118], fill=GOLD)
 
-        # brand block
-        d.rounded_rectangle([24, 20, 84, 80], 14, fill=GOLD)
-        d.text((38, 32), "MV", fill=self.accent, font=F(28, True))
-        d.text((100, 22), f"{BRAND}  •  {LEGAL}", fill=WHITE, font=F(22, True))
+        # 💍 R13: brand block — kotha marriage logo (rings+lotus) paste; MV text kaadu
+        _logo_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                  "brand", "logo-square-256.png")
+        if os.path.exists(_logo_path):
+            try:
+                _lg = Image.open(_logo_path).convert("RGBA").resize((58, 58), Image.LANCZOS)
+                _m = _lg.split()[3] if _lg.mode == "RGBA" else None
+                self.img.paste(_lg, (26, 21), _m)
+            except Exception:
+                d.rounded_rectangle([24, 20, 84, 80], 14, fill=GOLD)
+                d.text((38, 32), "మన", fill=self.accent, font=F(24, True))
+        else:
+            d.rounded_rectangle([24, 20, 84, 80], 14, fill=GOLD)
+            d.text((38, 32), "మన", fill=self.accent, font=F(24, True))
+        d.text((100, 22), f"మన వివాహ  •  {BRAND}", fill=WHITE, font=F(22, True))
         d.text((100, 52), "TS-AP Telugu Matrimony  •  \u20b999 సంబంధం",
                fill=GOLD_LIGHT, font=F(14))
 
@@ -259,7 +270,7 @@ class CardBuilder:
         # verified tick block
         d.rounded_rectangle([x, self.y + 192, W - 30, self.y + 236], 12, fill=(238, 246, 238))
         d.text((x + 12, self.y + 200),
-               f"{ICON['check']} Mana Vivaha verified profile  {ICON['dot']}  Photo watermark  {ICON['dot']}  మోసం జాగ్రత్త",
+               f"{ICON['check']} మన వివాహ verified profile  {ICON['dot']}  Photo watermark  {ICON['dot']}  మోసం జాగ్రత్త",
                fill=GREEN, font=F(13, True))
         self.y += 316
 
@@ -334,7 +345,7 @@ class CardBuilder:
         d.rectangle([0, y0, W, y0 + 4], fill=GOLD)
         rid = _s(u.get("tsap_id"), "TSAP-F-2025-XXXX")
 
-        d.text((24, y0 + 16), f"Number: Pay tarvata lock  {ICON['dot']}  (1 Credit)   {ICON['dot']}   Bot: {BOT}",
+        d.text((24, y0 + 16), f"Number: Interest Accept అయ్యాకే  {ICON['dot']}  🔒 Safe  {ICON['dot']}   Telegram: మన వివాహ",
                fill=GOLD_LIGHT, font=F(15, True))
         d.text((24, y0 + 44), f"ID Search: {SITE}/search/{rid}   {ICON['dot']}   Register FREE: {SITE}/register",
                fill=WHITE, font=F(13))
@@ -347,7 +358,7 @@ class CardBuilder:
                fill=GOLD_LIGHT, font=F(12))
         d.text((24, y0 + 114), "! Direct గా money అడిగితే వెంటనే report చెయ్యండి - మోసం జాగ్రత్త!",
                fill=(255, 190, 190), font=F(12, True))
-        d.text((24, y0 + 142), f"Watermark: {rid}  {ICON['dot']}  (c) Mana Vivaha {os.getenv('YEAR','2025')}",
+        d.text((24, y0 + 142), f"{rid}  {ICON['dot']}  (c) మన వివాహ {os.getenv('YEAR','2025')}",
                fill=(200, 200, 200), font=F(11))
 
         # QR → ID search

@@ -67,7 +67,7 @@ def poster_card(user: Dict, code: str = "", link: str = "", out_path: Optional[s
 
     code = (code or user.get("referral_code") or "MV100").upper()
     link = link or user.get("referral_link") or ("https://%s/r/%s" % (site, code))
-    name = (user.get("full_name") or user.get("name") or "Mana Vivaha Member").strip()[:28]
+    name = (user.get("full_name") or user.get("name") or "మన వివాహ Member").strip()[:28]
     W, H = (1080, 1080) if style != "status" else (1080, 1920)
     out_path = out_path or os.path.join(POSTER_DIR, "%s_%s.png" % (_safe(code.lower()), style))
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
@@ -75,10 +75,20 @@ def poster_card(user: Dict, code: str = "", link: str = "", out_path: Optional[s
     img = Image.new("RGB", (W, H), BRAND_CREAM)
     d = ImageDraw.Draw(img)
 
-    # top bar
+    # top bar — 💍 R13: kotha marriage logo + మన వివాహ
     d.rectangle([0, 0, W, 150], fill=BRAND_MAROON)
-    d.text((48, 44), "MANA VIVAHA", font=_font(56), fill=BRAND_GOLD)
-    d.text((48, 108), "TS - AP TELUGU MATRIMONY  |  " + site, font=_font(26, False), fill=BRAND_CREAM)
+    _tx = 48
+    try:
+        from PIL import Image as _PILImage
+        _lp = os.path.join(os.path.dirname(os.path.abspath(__file__)), "brand", "logo-square-256.png")
+        if os.path.exists(_lp):
+            _lg = _PILImage.open(_lp).convert("RGBA").resize((104, 104), _PILImage.LANCZOS)
+            img.paste(_lg, (48, 23), _lg.split()[3])
+            _tx = 180
+    except Exception:
+        _tx = 48
+    d.text((_tx, 36), "మన వివాహ", font=_font(56), fill=BRAND_GOLD)
+    d.text((_tx, 106), "TS - AP TELUGU MATRIMONY  |  " + site, font=_font(26, False), fill=BRAND_CREAM)
 
     y = 200
     d.text((48, y), "REFERRAL BONUS  -  Rs.50", font=_font(66), fill=BRAND_MAROON)

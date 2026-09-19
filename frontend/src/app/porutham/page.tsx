@@ -54,11 +54,11 @@ function PoruthamInner() {
   }, [sp]);
 
   const calcById = useCallback(async (b: string, g: string) => {
-    if (!b || !g) { setErr(te ? "రెండు TSAP IDs ఇవ్వండి (bride + groom)" : "Enter both TSAP IDs (bride + groom)"); return; }
+    if (!b || !g) { setErr(te ? "రెండు Profile IDs ఇవ్వండి (bride + groom)" : "Enter both Profile IDs (bride + groom)"); return; }
     setBusy(true); setErr(""); setChartB(null); setChartG(null);
     try {
       const d = await fetch(`/api/porutham?bride=${encodeURIComponent(b)}&groom=${encodeURIComponent(g)}`).then((r) => r.json());
-      if (d.detail) { setErr(d.detail); setRes(null); } else {
+      if (d.detail) { setErr(typeof d.detail === "string" ? d.detail : (d.detail.te || d.detail.message_telugu || d.detail.en || "Porutham calculate అవ్వలేదు")); setRes(null); } else {
         setRes({ ...d, _bride: b, _groom: g }); setImgOk(true);
         try {
           const [cb, cg] = await Promise.all([
@@ -74,7 +74,7 @@ function PoruthamInner() {
   }, []);
 
   const checkGothram = async () => {
-    if (!gA.trim() || !gB.trim()) { setGRes({ verdict_telugu: te ? "రెండు TSAP IDs ఇవ్వండి" : "Enter both TSAP IDs" }); return; }
+    if (!gA.trim() || !gB.trim()) { setGRes({ verdict_telugu: te ? "రెండు Profile IDs ఇవ్వండి" : "Enter both Profile IDs" }); return; }
     setGBusy(true);
     try {
       const d = await fetch(`/api/gothram/check?a=${encodeURIComponent(gA.trim().toUpperCase())}&b=${encodeURIComponent(gB.trim().toUpperCase())}`).then((r) => r.json());
@@ -98,7 +98,7 @@ function PoruthamInner() {
 
   const shareWa = () => {
     if (!res) return;
-    const txt = `💍 10-Porutham Report — Mana Vivaha\n${res.bride?.full_name || res._bride} ❤️ ${res.groom?.full_name || res._groom}\n`
+    const txt = `💍 10-Porutham Report — మన వివాహ\n${res.bride?.full_name || res._bride} ❤️ ${res.groom?.full_name || res._groom}\n`
       + `Score: ${res.score}/${res.max_score} (${res.stars}★)\n${res.verdict}\n`
       + `Details: https://manavivaha.in/porutham`;
     window.open(`https://wa.me/?text=${encodeURIComponent(txt)}`, "_blank");
@@ -117,9 +117,9 @@ function PoruthamInner() {
       <section className="maroon-gradient text-white print:!bg-white print:!text-maroon">
         <div className="max-w-4xl mx-auto px-4 py-8">
           <div className="text-[11px] font-bold bg-white/10 border border-white/20 rounded-full px-3 py-1 inline-block">
-            💍 10-Porutham • Traditional Telugu kundli match
+            💍 <Duo en="Jyothishyam (Astrology) • 10-Porutham match" te="జ్యోతిషం • 10-పొరుతాల సరిపోత" />
           </div>
-          <h1 className="mt-3 text-2xl md:text-3xl font-bold"><Duo en="Marriage porutham full report" te="పెళ్లి పొరుతం పూర్తి రిపోర్ట్" /></h1>
+          <h1 className="mt-3 text-2xl md:text-3xl font-bold"><Duo en="Jyothishyam — Marriage porutham full report" te="జ్యోతిషం — పెళ్లి పొరుతం పూర్తి రిపోర్ట్" /></h1>
           <p className="mt-2 text-[13px] md:text-sm opacity-90 telugu max-w-3xl">
 {te ? <>Rasi • Nakshatra • Gana • Yoni • Rajju • Vedha • Mahendra • Stree Deergha • Vashya • Rasi Adhipathi —
             10 పొరుతాలు ఒకేచోట, Telugu explanation తో. Rajju/Vedha dosha ఉంటే మనం ముందే warning ఇస్తాం.</> : <>Rasi • Nakshatra • Gana • Yoni • Rajju • Vedha • Mahendra • Stree Deergha • Vashya • Rasi Adhipathi —
@@ -137,7 +137,7 @@ function PoruthamInner() {
         {/* ---------- input card ---------- */}
         <div className="bg-white rounded-[1.5rem] border border-gold/25 p-4 print:hidden">
           <div className="flex gap-2">
-            {([["id", te ? "🎫 TSAP ID తో" : "🎫 With TSAP ID"], ["star", te ? "⭐ Star తో (register అవ్వకుండా)" : "⭐ By star (no register)"]] as const).map(([v, l]) => (
+            {([["id", te ? "🎫 Profile ID తో" : "🎫 With Profile ID"], ["star", te ? "⭐ Star తో (register అవ్వకుండా)" : "⭐ By star (no register)"]] as const).map(([v, l]) => (
               <button key={v} onClick={() => setMode(v)} className={`chip ${mode === v ? "chip-on" : ""}`}>{l}</button>
             ))}
           </div>
@@ -145,12 +145,12 @@ function PoruthamInner() {
           {mode === "id" ? (
             <div className="mt-3 grid md:grid-cols-3 gap-3">
               <div>
-                <label className="text-[12px] font-bold">👰 Bride TSAP ID</label>
-                <input value={bride} onChange={(e) => setBride(e.target.value.toUpperCase())} placeholder="TSAP-F-2025-1042" className="input-mobile font-mono" />
+                <label className="text-[12px] font-bold">👰 Bride Profile ID</label>
+                <input value={bride} onChange={(e) => setBride(e.target.value.toUpperCase())} placeholder="RED001" className="input-mobile font-mono" />
               </div>
               <div>
-                <label className="text-[12px] font-bold">🤵 Groom TSAP ID</label>
-                <input value={groom} onChange={(e) => setGroom(e.target.value.toUpperCase())} placeholder="TSAP-M-2025-1042" className="input-mobile font-mono" />
+                <label className="text-[12px] font-bold">🤵 Groom Profile ID</label>
+                <input value={groom} onChange={(e) => setGroom(e.target.value.toUpperCase())} placeholder="RED001" className="input-mobile font-mono" />
               </div>
               <div className="flex items-end">
                 <button onClick={() => calcById(bride, groom)} disabled={busy}
@@ -215,8 +215,8 @@ function PoruthamInner() {
         <div className="bg-white rounded-[1.5rem] border border-gold/25 p-4 print:hidden">
           <div className="font-bold text-maroon text-[14px]">{te ? "🛡️ గోత్రం check — same గోత్రం అయితే పెళ్లి కూడదు" : "🛡️ Gothram check — same gothram blocks marriage"}</div>
           <div className="mt-2 grid md:grid-cols-3 gap-2">
-            <input value={gA} onChange={(e) => setGA(e.target.value.toUpperCase())} placeholder="TSAP ID - A" className="input-mobile font-mono" aria-label="TSAP ID A" />
-            <input value={gB} onChange={(e) => setGB(e.target.value.toUpperCase())} placeholder="TSAP ID - B" className="input-mobile font-mono" aria-label="TSAP ID B" />
+            <input value={gA} onChange={(e) => setGA(e.target.value.toUpperCase())} placeholder="Profile ID - A" className="input-mobile font-mono" aria-label="Profile ID A" />
+            <input value={gB} onChange={(e) => setGB(e.target.value.toUpperCase())} placeholder="Profile ID - B" className="input-mobile font-mono" aria-label="Profile ID B" />
             <button onClick={() => void checkGothram()} disabled={gBusy}
               className="py-3 rounded-2xl maroon-gradient text-white font-bold text-[13px] disabled:opacity-60">
               {gBusy ? "…" : te ? "🛡️ Check" : "🛡️ Check"}

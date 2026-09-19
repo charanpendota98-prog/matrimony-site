@@ -120,7 +120,7 @@ export function ReligionsStrip() {
         <SectionHeading
           eyebrow={duo("All faiths welcome", "అన్ని మతాలకు స్వాగతం")}
           title={duo("Hindu • Muslim • Christian", "హిందూ • ముస్లిం • క్రిస్టియన్")}
-          subtitle={duo("Select a religion — all its castes A–Z, auto-posted to your caste channel.", "Religion select చెయ్యగానే ఆ మతం castes అన్నీ A–Z — మీ caste channel లో auto-post.")}
+          subtitle={duo("Select a religion — all its castes A–Z, posted to your caste channel.", "Religion select చెయ్యగానే ఆ మతం castes అన్నీ A–Z — మీ caste channel లో post.")}
           telugu
         />
       </Reveal>
@@ -149,8 +149,8 @@ export function FinalCta() {
           <Duo en="Your life partner is already here." te="మీ జీవిత భాగస్వామి ఇక్కడే ఉన్నారు." />
         </h2>
         <p className="mt-2 text-[13px] md:text-sm opacity-90 telugu">
-          {duo("Register FREE in 3 minutes → 3 profiles → ₹99 Sambandham → number via Telegram bot (1 credit).",
-               "3 నిమిషాల్లో ఉచిత నమోదు → 3 ప్రొఫైళ్లు → ₹99 కే సంబంధం → టెలిగ్రామ్ బాట్ ద్వారా నంబర్ (1 క్రెడిట్).")}
+          {duo("Register FREE in 3 minutes → 3 profiles → ₹99 Sambandham → number via Telegram (1 credit).",
+               "3 నిమిషాల్లో ఉచిత నమోదు → 3 ప్రొఫైళ్లు → ₹99 కే సంబంధం → టెలిగ్రామ్ ద్వారా నంబర్ (1 క్రెడిట్).")}
         </p>
         <div className="mt-5 flex flex-wrap justify-center gap-3">
           <Link href="/register" className="px-7 py-3.5 rounded-full gold-gradient text-maroon text-sm font-bold shadow-soft">

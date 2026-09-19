@@ -99,8 +99,11 @@ try:
     layout_src = open(os.path.join(src, "app", "layout.tsx"), encoding="utf-8").read()
     check("P3.4 provider in layout", "LangProvider" in layout_src)
     # home TEXT dict: te/en key parity (function-name scan)
+    # 🐞 FIX (R12): TEXT dict tarvata helper functions (StatValue — R11) vachay kabatti
+    # "};\n\nexport default" split marker fail — column-0 "};" tho split (robust)
     te_keys = set(re.findall(r"    (\w+):", home_src.split("  en: {")[0].split("const TEXT = {")[1]))
-    en_keys = set(re.findall(r"    (\w+):", home_src.split("  en: {")[1].split("};\n\nexport default")[0]))
+    _en_block = home_src.split("  en: {")[1]
+    en_keys = set(re.findall(r"    (\w+):", re.split(r"\n\};", _en_block)[0]))
     check("P3.5 home te/en key parity", te_keys == en_keys,
           (te_keys ^ en_keys) if te_keys != en_keys else f"{len(te_keys)} keys")
     for pg in ("pricing/page.tsx", "login/page.tsx", "register/page.tsx"):

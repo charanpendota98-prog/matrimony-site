@@ -367,7 +367,7 @@ def public_vendor(v: Dict, full_contact: bool = True) -> Dict:
     wa = _digits(v.get("whatsapp")) or _digits(v.get("phone"))
     if full_contact and wa:
         out["whatsapp_link"] = "https://wa.me/91%s?text=%s" % (
-            wa, "నమస్తే! Mana Vivaha (manavivaha.in) లో మీ %s listing చూశాను — details చెప్పండి"
+            wa, "నమస్తే! మన వివాహ (manavivaha.in) లో మీ %s listing చూశాను — details చెప్పండి"
                 % (v.get("business_name", "")))
         out["call_link"] = "tel:+91%s" % wa
     return out
@@ -463,13 +463,13 @@ def vendor_lead(vendor_id: str, form: Dict) -> Dict:
 
 
 def lead_to_vendor_text(vendor: Dict, lead: Dict) -> str:
-    return ("🔔 *NEW ENQUIRY* — Mana Vivaha\n"
+    return ("🔔 *NEW ENQUIRY* — మన వివాహ\n"
             "Business: %s (%s)\n"
             "Customer: %s\n📞 %s\n"
             "📍 %s | 📅 Event: %s | 💰 Budget: %s\n"
             "📝 %s\n\n"
             "Ventane call/WhatsApp చెయ్యండి — fast reply = ఎక్కువ bookings ✅\n"
-            "— Mana Vivaha (manavivaha.in)"
+            "— మన వివాహ (manavivaha.in)"
             % (vendor.get("business_name"), vendor.get("category_te") or vendor.get("category"),
                lead.get("name"), lead.get("phone"), lead.get("district") or "-",
                lead.get("event_date") or "-", lead.get("budget") or "-", lead.get("message") or "-"))
@@ -495,31 +495,31 @@ def promo_post(vendor: Dict, variant: int = 0, channel: str = "") -> Dict:
     verified = "✅ Verified" if vendor.get("verified") else ""
     tg = [
         ("%s *%s* — %s\n\n%s\n\n📍 %s%s%s%s\n%s\n💰 %s\n📞 %s\n\n"
-         "Mana Vivaha లో %s — పెళ్లి సంబంధం చూసుకునే వాళ్లకి recommend చేస్తున్నాం 🙏"
+         "మన వివాహ లో %s — పెళ్లి సంబంధం చూసుకునే వాళ్లకి recommend చేస్తున్నాం 🙏"
          % (icon, name.upper(), cat,
-            (about[:220] + ("..." if len(about) > 220 else "")) if about else "Mana Vivaha partner vendor.",
+            (about[:220] + ("..." if len(about) > 220 else "")) if about else "మన వివాహ partner vendor.",
             city, (" | " + areas) if areas and areas != city else "",
             (" | " + exp + " yrs experience") if exp else "",
             (" | " + verified) if verified else "",
             "🔗 Listing: manavivaha.in/vendors", price or "Best rates — direct గా అడగండి", phone,
             cat)),
         ("🎊 %s %s — %s\n\nMee పెళ్లి కి కావాల్సిన %s ikkade!\n%s\n📍 %s\n📞 %s (WhatsApp)\n\n"
-         "Mana Vivaha members కి *special rate* — ee post chupinchandi 😊\n#ManaVivaha #%s #%s"
+         "మన వివాహ members కి *special rate* — ee post chupinchandi 😊\n#ManaVivaha #%s #%s"
          % (icon, cat, name, cat,
             ("⭐ " + about[:160]) if about else "Trusted local vendor",
             areas or city, phone,
             name.replace(" ", ""), city.replace(" ", "") or "Telugu")),
         ("💍 *పెళ్లి season special* 💍\n\n%s *%s*\n%s\n\n%s\n📍 %s\n💰 %s\n📞 %s\n\n"
-         "Booking fast గా avutunnayi — mundhe confirm చేసుకోండి ✅\nMana Vivaha partner (verified) 🏪"
+         "Booking fast గా avutunnayi — mundhe confirm చేసుకోండి ✅\nమన వివాహ partner (verified) 🏪"
          % (icon, name, cat, about[:200] or "Quality service, మంచి rates.",
             areas or city, price or "Rates call లో cheptam", phone)),
     ]
     wa = [
-        ("🙏 నమస్తే! *%s* — %s (Mana Vivaha partner)\n\n%s\n📍 %s\n💰 %s\n📞 %s\n\n"
+        ("🙏 నమస్తే! *%s* — %s (మన వివాహ partner)\n\n%s\n📍 %s\n💰 %s\n📞 %s\n\n"
          "పెళ్లి సంబంధం చూసుకుంటున్నారా? ఈ vendor ని మనం verify చేశాం ✅ — direct గా contact చెయ్యండి."
          % (name, cat, about[:200] or "మంచి service + reasonable rates",
             areas or city, price or "Call చేసి అడగండి", phone)),
-        ("%s %s — %s\n%s\n📍 %s | 📞 %s\nMana Vivaha verified partner 🏪 (manavivaha.in/vendors)"
+        ("%s %s — %s\n%s\n📍 %s | 📞 %s\nమన వివాహ verified partner 🏪 (manavivaha.in/vendors)"
          % (icon, cat, city, ("⭐ " + about[:150]) if about else "Trusted vendor", areas or city, phone)),
     ]
     return {
@@ -528,7 +528,7 @@ def promo_post(vendor: Dict, variant: int = 0, channel: str = "") -> Dict:
         "whatsapp_messages": wa,
         "poster_text": "%s %s\n%s | %s\n📞 %s\nmanavivaha.in/vendors" % (icon, name, cat, city, phone),
         "channel_hint": channel or "మీ city/caste channel + 4 main channels",
-        "share_me": "https://wa.me/91%s?text=%s" % (phone, "నమస్తే! Mana Vivaha listing చూశాను — rates చెప్పండి"),
+        "share_me": "https://wa.me/91%s?text=%s" % (phone, "నమస్తే! మన వివాహ listing చూశాను — rates చెప్పండి"),
     }
 
 
@@ -623,7 +623,7 @@ def _days_left(v: Dict) -> int:
 def packages_public() -> Dict:
     return {
         "currency": "INR",
-        "headline": "మీ business ని Mana Vivaha లో promote చెయ్యండి — ₹149 నుంచి",
+        "headline": "మీ business ని మన వివాహ లో promote చెయ్యండి — ₹149 నుంచి",
         "packages": PACKAGES, "addons": ADDONS_VENDOR, "slots": SLOTS, "categories": CATEGORIES,
         "how_it_works_telugu": [
             "1️⃣ Package select చేసి register చెయ్యండి (2 నిమిషాలు)",

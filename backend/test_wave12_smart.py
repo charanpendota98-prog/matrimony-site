@@ -148,12 +148,14 @@ check("D8 personal pack header+card", len(pack) == 2 and "9848012345" in pack[1]
 section("E. API (link/unlock/unlocks/match-send/copy/deliver)")
 # ═══════════════════════════════════════════════════════════════════════════
 client.post("/api/demo/seed")
+import random as _r12
+_PH = lambda: "9922%06d" % _r12.randint(0, 999999)  # R10: unique per run (demo fixed phones tho dup vaddhu)
 BB = {"gender": "Bride", "age": "25", "height": "5'4\"", "marital_status": "Pelli Kaledu", "caste": "Reddy",
       "education": "BTech", "job": "Software", "salary": "60k", "state": "TS", "district": "Hyderabad",
-      "phone": "9848011111", "full_name": "Wave Twelve Bride One", "gothram": "Bharadwaj",
+      "phone": _PH(), "full_name": "Wave Twelve Bride One", "gothram": "Bharadwaj",
       "star": "Rohini", "religion": "Hindu"}
-BB2 = dict(BB, phone="9848012222", full_name="Wave Twelve Bride Two", gothram="Kasyapa", star="Ashwini")
-BG = dict(BB, gender="Groom", age="29", phone="9848022222", full_name="Wave Twelve Buyer Groom",
+BB2 = dict(BB, phone=_PH(), full_name="Wave Twelve Bride Two", gothram="Kasyapa", star="Ashwini")
+BG = dict(BB, gender="Groom", age="29", phone=_PH(), full_name="Wave Twelve Buyer Groom",
           gothram="Koundinya", height="5'9\"")
 b1 = client.post("/api/register", data=BB).json()
 b2 = client.post("/api/register", data=BB2).json()
@@ -172,7 +174,8 @@ check("E2 link tappu ID → 404", lk_bad.status_code == 404, lk_bad.status_code)
 
 cr0 = next(u for u in main.DB_USERS if u["tsap_id"] == BUY).get("credits", 0)
 un = client.post("/api/unlock", json={"viewer_id": BUY, "target_id": B1}).json()
-check("E3 unlock: number + 1 cut", un.get("success") and un.get("phone") == "9848011111"
+_B1PH = next(u["phone"] for u in main.DB_USERS if u.get("tsap_id") == B1)  # R10: random phone aware
+check("E3 unlock: number + 1 cut", un.get("success") and un.get("phone") == _B1PH
       and un.get("credits_left") == cr0 - 1, un)
 un2 = client.post("/api/unlock", json={"viewer_id": BUY, "target_id": B1}).json()
 check("E4 malli unlock FREE", un2.get("success") and un2.get("charged") == 0, un2)
@@ -207,14 +210,15 @@ check("E14 STRICT API: B1,B2 entitled, inkokati kadu",
 
 cp = client.get(f"/api/admin/match-send/copy-list?buyer={BUY}&ids={B1},{B2}&order_id={OID}",
                 headers=HDR_ADMIN).json()
+_B2PH = next(u["phone"] for u in main.DB_USERS if u.get("tsap_id") == B2)  # R10: random phone aware
 check("E15 copy-list format (admin: numbers untayi)",
-      cp.get("success") and "-- 9848011111" in cp.get("text", "") and "-- 9848012222" in cp.get("text", ""),
+      cp.get("success") and ("-- " + _B1PH) in cp.get("text", "") and ("-- " + _B2PH) in cp.get("text", ""),
       cp.get("text", "")[:250])
 
 dl = client.post("/api/admin/match-send/deliver",
                  json={"buyer_id": BUY, "profile_ids": [B1, B2], "via": "both", "order_id": OID},
                  headers=HDR_ADMIN).json()
-check("E16 deliver success + copy_list", dl.get("success") and "-- 9848011111" in dl.get("copy_list", ""), str(dl)[:250])
+check("E16 deliver success + copy_list", dl.get("success") and ("-- " + _B1PH) in dl.get("copy_list", ""), str(dl)[:250])
 check("E17 deliver dry-run honest (tokens ledu)",
       dl.get("telegram", {}).get("failed") != "" or dl.get("telegram", {}).get("sent", 0) >= 0, dl.get("telegram"))
 check("E18 order delivered ayyindi leda preview", S12.get_order(OID)["status"] in ("paid", "delivered"),
@@ -269,7 +273,7 @@ check("G5 /api/channels lo numbers ledu", not PHONE_RE.findall(r.text))
 r = client.get(f"/api/unlocks/{BUY}")
 check("G6 /api/unlocks list lo numbers ledu", not PHONE_RE.findall(r.text), PHONE_RE.findall(r.text)[:3])
 r = client.get(f"/api/admin/match-send/copy-list?buyer={BUY}&ids={B1}", headers=HDR_ADMIN)
-check("G7 admin copy-list lo number UNDI (correct)", "9848011111" in r.text, r.text[:150])
+check("G7 admin copy-list lo number UNDI (correct)", _B1PH in r.text, r.text[:150])  # R10: random phone aware
 r = client.get(f"/api/publish/preview?tsap_id={B1}" if False else "/api/publish/status")
 check("G8 publish status reachable", r.status_code == 200, r.status_code)
 

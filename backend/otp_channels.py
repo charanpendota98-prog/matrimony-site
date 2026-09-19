@@ -17,7 +17,7 @@ from __future__ import annotations
 import os
 from typing import Any, Dict, List, Optional
 
-OTP_TEXT = "Mana Vivaha OTP: {code} (10 min valid). Evariki cheppakandi 🙏"
+OTP_TEXT = "మన వివాహ OTP: {code} (10 min valid). Evariki cheppakandi 🙏"
 
 
 def _wa_send(phone: str, text: str) -> Dict[str, Any]:
@@ -125,6 +125,6 @@ CHANNEL_TELUGU = {
     "wa": "📲 WhatsApp లో OTP పంపించాం (FREE)",
     "telegram": "✈️ Telegram lo OTP pampinchaam (FREE)",
     "sms": "📩 SMS lo OTP pampinchaam",
-    "dev": "🧪 DEV MODE — OTP response లో ఉంది",
+    "dev": "📱 OTP ready అయ్యింది",
     "none": "⚠️ OTP channel configure కాలేదు — support కి చెప్పండి",
 }

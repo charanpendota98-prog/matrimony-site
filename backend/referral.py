@@ -170,21 +170,30 @@ def check_bonus_eligibility(referrer_stats: Dict) -> Dict:
 
 
 def generate_short_code(name: str, existing_codes: Optional[list] = None) -> str:
-    """Short code — 3 letters + 2 digits = 5 chars — LAK42 — phone లో easy type."""
+    """Referral code — name first 3 letters (CAPITAL) + 4 digits — CHA0001, CHA0002…
+    Per-name sequence (perugutundi), unique gaane untundi — phone lo easy type."""
     existing = {str(c).upper() for c in (existing_codes or [])}
     clean = "".join(c for c in str(name or "") if c.isalpha()).upper()
-    base = (clean[:3] or "MV").ljust(3, "X")
-    for _ in range(200):
-        code = "%s%02d" % (base, random.randint(10, 99))
+    base = (clean[:3] or "MVX").ljust(3, "X")
+    # aa base tho unna existing codes lo max number → +1 (mistake avvakunda unique)
+    nums = []
+    for c in existing:
+        m = re.fullmatch(r"([A-Z]{3})(\d{2,6})", c)
+        if m and m.group(1) == base:
+            nums.append(int(m.group(2)))
+    n = (max(nums) + 1) if nums else 1
+    for _ in range(300):
+        code = "%s%04d" % (base, n)
         if code not in existing:
             return code
-    return "%s%03d" % (base, random.randint(100, 999))
+        n += 1
+    return "%s%04d" % (base, random.randint(1000, 9999))
 
 
 def generate_referral_code(tsap_id: str, existing_codes: Optional[list] = None) -> str:
-    """TSAP-M-2025-1042 → LAK42 (deterministic-ish + unique check)."""
+    """Legacy wrapper — ippudu name-based short code (CHA0001 style) via ensure_referrer_profile."""
     if existing_codes:
-        return generate_short_code("LAK", existing_codes)
+        return generate_short_code("MVX", existing_codes)
     try:
         seq = str(tsap_id).split("-")[-1]
         return "%s%s" % (random.choice(["LAK", "RAJ", "SAI", "SRI", "POO", "KAR"]), seq[-2:])
@@ -307,7 +316,7 @@ def validate_referral(code: str, all_users: List[Dict]) -> Dict:
         return {"ok": False, "valid_code": False, "reason": "not_found", "code": code,
                 "message_telugu": "⚠️ ఈ code దొరకలేదు — code సరిగా చూసుకోండి (లేదా code లేకుండా register అవ్వొచ్చు)"}
     st = stats_of(ref)
-    name = ref.get("full_name") or ref.get("name") or "Mana Vivaha member"
+    name = ref.get("full_name") or ref.get("name") or "మన వివాహ member"
     return {"ok": True, "valid_code": True, "code": _code_of(ref), "alias": ref.get("referral_alias", ""),
             "referrer_name": name, "referrer_id": ref.get("tsap_id"),
             "tier": tier_of(st["paid_count"])["key"], "paid_count": st["paid_count"],
@@ -783,6 +792,10 @@ def referral_dashboard(user: Dict, all_users: List[Dict], limit_recent: int = 10
     regs = [u for u in all_users if str(u.get("referred_by", "")).upper() == _code_of(user)]
     paid_regs = [u for u in regs if any(l.get("type") == "commission" and l.get("from") == u.get("tsap_id")
                                         for l in st.get("ledger", []))]
+    # 💎 R12 — pending pipeline: register ayyi, inka pay cheyani friends (commission future lo vastundi)
+    pending_friends = len(regs) - len(paid_regs)
+    if pending_friends < 0:
+        pending_friends = 0
     tier = tier_of(st["paid_count"])
     nxt = next_milestone(st["paid_count"])
     cstats = click_stats(_code_of(user))
@@ -797,6 +810,8 @@ def referral_dashboard(user: Dict, all_users: List[Dict], limit_recent: int = 10
             "registrations": st["registrations"], "paid_count": st["paid_count"],
             "wallet": st["wallet"], "lifetime_earned": st["lifetime_earned"],
             "pending_payout": st["pending_payout"], "paid_out": st["paid_out"],
+            "pending_friends": pending_friends,
+            "pending_value": round(pending_friends * FIRST_PAY_COMMISSION, 2),
             "credits_earned": sum(int(h.get("change", 0)) for h in user.get("credit_history", [])
                                   if h.get("reason") == "referral_milestone"),
             "conversion_pct": conv, "per_paying_user": FIRST_PAY_COMMISSION,
@@ -833,37 +848,54 @@ def share_kit(user: Dict) -> Dict:
     ensure_referrer_profile(user, [])
     code = _code_of(user)
     link = user.get("referral_link") or ("https://manavivaha.in/r/%s" % code)
-    name = user.get("full_name") or user.get("name") or "Mana Vivaha"
+    name = user.get("full_name") or user.get("name") or "మన వివాహ"
     wa = ("🙏 నమస్తే! నేను %s.\n\n"
-          "Mana Vivaha (TS-AP Telugu Matrimony) — ₹99 సంబంధం, మొదటి 3 requests FREE.\n"
+          "మన వివాహ (TS-AP Telugu Matrimony) — ₹99 సంబంధం, మొదటి 3 requests FREE.\n"
           "✅ నిజమైన profiles • ఫోటో గోప్యం • 52 Telegram channels\n"
           "✅ మీ సొంత code %s తో register చేస్తే +1 credit EXTRA FREE!\n\n"
           "👉 %s\n"
           "🔗 ఛానెల్: https://t.me/TSAP_MATRIMONY") % (name, code, link)
     variants = [
         wa,
-        ("💍 పెళ్లి చూసుకుంటున్నారా? Mana Vivaha — TS/AP Telugu matrimony.\n"
+        ("💍 పెళ్లి చూసుకుంటున్నారా? మన వివాహ — TS/AP Telugu matrimony.\n"
          "₹99 → 5 profiles • మొదటి 3 FREE • numbers రెండు వైపులా ok అయ్యాకే.\n"
          "నా code *%s* తో register చేస్తే మీకు +1 credit FREE 🎁\n%s") % (code, link),
-        ("👰🤵 Mana Vivaha లో రోజూ కొత్త profiles (Reddy, Kamma, Kapu, Mala, Madiga... caste-wise channels).\n"
+        ("👰🤵 మన వివాహ లో రోజూ కొత్త profiles (Reddy, Kamma, Kapu, Mala, Madiga... caste-wise channels).\n"
          "నా code: %s → %s\n+1 credit FREE (నా referral)!") % (code, link),
         ("🔔 నమస్తే! మీ ఇంట్లో/relative circle లో పెళ్లి చూసుకుంటున్న వాళ్లకి ఈ link పంపండి:\n%s\n"
-         "Mana Vivaha — 3 requests FREE, ₹99 కి 5 profiles. నా code *%s* (bonus credit ఉంది).") % (link, code),
-        ("🙏 %s గారు, Mana Vivaha లో register చెయ్యండి — photo private, fraud జాగ్రత్త, Telugu support.\n"
+         "మన వివాహ — 3 requests FREE, ₹99 కి 5 profiles. నా code *%s* (bonus credit ఉంది).") % (link, code),
+        ("🙏 %s గారు, మన వివాహ లో register చెయ్యండి — photo private, fraud జాగ్రత్త, Telugu support.\n"
          "%s\nCode: *%s* (+1 credit FREE)") % (name, link, code),
     ]
-    tg = "💍 Mana Vivaha — TS/AP Telugu Matrimony\n₹99 సంబంధం • మొదటి 3 FREE\nనా code: %s\n%s" % (code, link)
+    tg = "💍 మన వివాహ — TS/AP Telugu Matrimony\n₹99 సంబంధం • మొదటి 3 FREE\nనా code: %s\n%s" % (code, link)
+    # 🎬 WAVE 40 — VIDEO KIT: promoters వీడియో చేసుకుని promote చేయడానికి ready scripts
+    video_kit = [
+        {"style": "15-sec reel (Instagram/YouTube Shorts)",
+         "script": ("[0-3s] క్లోజ్-అప్: 'పెళ్లి సంబంధాలు వెతుకుతున్నారా?'\n"
+                    "[3-8s] స్క్రీన్ రికార్డింగ్: మన వివాహ site — profiles, ₹99 plan\n"
+                    "[8-12s] 'మొదటి 3 సంబంధాలు FREE! నా code %s తో register చెయ్యండి'\n"
+                    "[12-15s] లింక్ చూపించండి: %s + 'లైక్ షేర్ చెయ్యండి!'") % (code, link)},
+        {"style": "30-sec talking video (WhatsApp Status)",
+         "script": ("'నమస్తే! మీ ఇంట్లో, ఫ్రెండ్స్ లో పెళ్లి సంబంధాలు వెతుకుతున్న వాళ్లు ఉన్నారా? "
+                    "మన వివాహ అనే Telugu matrimony site చూడండి — నిజమైన profiles, ఫోటో ప్రైవసీ, "
+                    "కులం వారీగా ఛానళ్లు. మొదటి 3 సంబంధాలు FREE. నా code %s తో register చేస్తే bonus కూడా ఉంది. "
+                    "లింక్ బయోలో ఉంది — షేర్ చేయండి!'") % code},
+        {"style": "Testimonial (ఎవరైనా match అయ్యాక)",
+         "script": ("'మా ఫ్రెండ్ కి మన వివాహ ద్వారా సంబంధం కుదిరింది — నేను refer చేసి ₹%d సంపాదించాను! "
+                    "మీకు కూడా పరిచయాలు ఉంటే ఇది చూడండి — %s'") % (FIRST_PAY_COMMISSION, link)},
+    ]
     return {
         "code": code, "link": link, "alias": user.get("referral_alias"),
         "whatsapp_messages": variants, "whatsapp_share": "https://wa.me/?text=" + _urlenc(variants[0]),
         "whatsapp_share_variants": ["https://wa.me/?text=" + _urlenc(v) for v in variants],
-        "telegram_share": "https://t.me/share/url?url=%s&text=%s" % (_urlenc(link), _urlenc("Mana Vivaha — నా code %s" % code)),
-        "sms_text": "Mana Vivaha Telugu Matrimony — నా code %s తో register చెయ్యండి (+1 credit FREE): %s" % (code, link),
+        "telegram_share": "https://t.me/share/url?url=%s&text=%s" % (_urlenc(link), _urlenc("మన వివాహ — నా code %s" % code)),
+        "sms_text": "మన వివాహ Telugu Matrimony — నా code %s తో register చెయ్యండి (+1 credit FREE): %s" % (code, link),
         "poster_text": "💰 ₹50 per paying referral\nCode: %s\n%s" % (code, link),
         "poster_card": "/api/referral/%s/poster.png" % _tsap_or_code(user),
         "qr_target": link,
         "status_text": "Manavivaha.in/r/%s — నా code తో register చేస్తే +1 credit free 🎁" % code,
-        "message_telugu": "📲 Share చెయ్యడానికి 5 ready messages (WhatsApp), Telegram link, poster — అన్నీ ఇక్కడే!",
+        "video_kit": video_kit,
+        "message_telugu": "📲 Share చెయ్యడానికి 5 ready messages (WhatsApp), Telegram link, poster, వీడియో scripts — అన్నీ ఇక్కడే!",
     }
 
 
@@ -877,9 +909,13 @@ def _urlenc(text: str) -> str:
 
 
 # ------------------------------------------------------------------ leaderboard
-def get_leaderboard(all_users: List[Dict], limit: int = 10, period: str = "all") -> List[Dict]:
+def get_leaderboard(all_users: List[Dict], limit: int = 10, period: str = "all",
+                    me: str = "", full: bool = False):
     """Top referrers — full_name use (pata bug fix), period: all | week | month.
-    WAVE 24 — partners kuda board lo (same rules)."""
+    WAVE 24 — partners kuda board lo (same rules).
+    💎 R12 — alive board: registrations unna vadu kuda kanipistadu (paid ledu ante rank
+    down, kani board empty ga undadu). me=TSAP-ID iste (full=True) 'you' dict kuda return.
+    Backward compat: me/full ivvakapothe LIST matrame (pata tests safe)."""
     cutoff = None
     if period == "week":
         cutoff = (datetime.utcnow() - timedelta(days=7)).isoformat()
@@ -888,7 +924,10 @@ def get_leaderboard(all_users: List[Dict], limit: int = 10, period: str = "all")
     rows = []
     for u in all_users:
         st = u.get("referral_stats") or {}
-        if not st.get("paid_count"):
+        refers = int(st.get("registrations", st.get("total", 0)) or 0)
+        paid = int(st.get("paid_count", 0) or 0)
+        # 💎 R12: paid OR register-chesina someone unte board lo (0-activity users skip)
+        if not paid and not refers:
             continue
         earned = float(st.get("lifetime_earned", u.get("wallet", 0)) or 0)
         if cutoff:
@@ -899,19 +938,21 @@ def get_leaderboard(all_users: List[Dict], limit: int = 10, period: str = "all")
             earned = sum(float(l.get("amount", 0)) for l in entries)
         rows.append({
             # WAVE 25 — public board: FIRST name matrame (surname hidden — W13 rule)
-            "name": str(u.get("full_name") or u.get("name") or "Mana Vivaha member").split()[0],
+            "name": str(u.get("full_name") or u.get("name") or "మన వివాహ member").split()[0],
             "code": _code_of(u), "tsap_id": u.get("tsap_id"),
-            "refers": int(st.get("registrations", st.get("total", 0)) or 0),
-            "paid": int(st.get("paid_count", 0)),
+            "refers": refers,
+            "paid": paid,
             "earned": round(earned, 2),
-            "tier": tier_of(int(st.get("paid_count", 0)))["key"],
-            "icon": tier_of(int(st.get("paid_count", 0)))["icon"],
+            "tier": tier_of(paid)["key"],
+            "icon": tier_of(paid)["icon"],
         })
     try:
         from refpartners import PARTNERS as _P19
         for u in _P19:
             st = u.get("referral_stats") or {}
-            if not st.get("paid_count"):
+            refers = int(st.get("registrations", 0) or 0)
+            paid = int(st.get("paid_count", 0) or 0)
+            if not paid and not refers:
                 continue
             earned = float(st.get("lifetime_earned", 0) or 0)
             if cutoff:
@@ -924,17 +965,28 @@ def get_leaderboard(all_users: List[Dict], limit: int = 10, period: str = "all")
                 "name": str(u.get("name") or "Partner").split()[0],
                 "code": u.get("partner_id", ""), "tsap_id": "",
                 "partner_id": u.get("partner_id", ""),
-                "refers": int(st.get("registrations", 0) or 0),
-                "paid": int(st.get("paid_count", 0)),
+                "refers": refers,
+                "paid": paid,
                 "earned": round(earned, 2),
-                "tier": tier_of(int(st.get("paid_count", 0)))["key"],
-                "icon": tier_of(int(st.get("paid_count", 0)))["icon"],
+                "tier": tier_of(paid)["key"],
+                "icon": tier_of(paid)["icon"],
             })
     except Exception:
         pass
     rows.sort(key=lambda r: (r["paid"], r["earned"], r["refers"]), reverse=True)
-    for i, r in enumerate(rows[:limit], 1):
+    for i, r in enumerate(rows, 1):
         r["rank"] = i
+    # 💎 R12 — "me" rank: user board lo top-N lo lekka, lopala unna rank ichhestam
+    if full:
+        you = None
+        if me:
+            me_key = str(me).strip().upper()
+            for r in rows:
+                if str(r.get("tsap_id", "")).upper() == me_key or str(r.get("code", "")).upper() == me_key:
+                    r["is_me"] = True
+                    you = r
+                    break
+        return rows[:limit], you
     return rows[:limit]
 
 
@@ -993,7 +1045,7 @@ def referrer_join_text(referrer, referee):
         "వాళ్లు మొదటి payment (₹99/₹199...) చెయ్యగానే మీకు *₹50* మీ wallet లో వెళ్తుంది.\n"
         "మీ code: %s | మీ link: %s\n\n"
         "ఇంకా మందికి పంపండి — ప్రతి paying friend కి ₹50 (limit లేదు) 💰\n"
-        "— Mana Vivaha · /referral లో మీ dashboard"
+        "— మన వివాహ · /referral లో మీ dashboard"
         % (_name_of(referrer, "Garu"), _name_of(referee), _code_of(referrer),
            referrer.get("referral_link") or "https://manavivaha.in/r/%s" % _code_of(referrer)))
 
@@ -1024,7 +1076,7 @@ def referrer_commission_text(referrer, referee, result):
         lines.append("➡️ ఇంకా %d paying referrals → %s" % (nxt["need"], nxt["title"]))
     lines.append("")
     lines.append("Payout ₹100 నుంచి (3 days లో) — /referral లో request పెట్టండి 🏦")
-    lines.append("— Mana Vivaha")
+    lines.append("— మన వివాహ")
     return "\n".join(lines)
 
 

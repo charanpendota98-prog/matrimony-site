@@ -21,6 +21,8 @@ import tempfile
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+import os as _os
+_os.environ.setdefault("TSAP_AUTH_MODE", "test")  # 🛡️ R10: WAVE-9 hardened endpoints — tests lo admin key skip
 import bot_pool  # noqa: E402
 import wa_pool  # noqa: E402
 import publisher  # noqa: E402

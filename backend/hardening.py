@@ -69,6 +69,10 @@ if not ADMIN_KEY:
 else:
     ADMIN_KEY_IS_DERIVED = False
 
+# 👤 WAVE 41 — STAFF ROLE: owner mathrame full admin; staff ki limited access
+# (matchsend + daily matches + showcase + profiles + photos). Money/data/exports → owner only.
+STAFF_KEY = os.getenv("STAFF_KEY", "").strip()
+
 # automation key (bots / bridge / cron) — optional; set TSAP_API_KEY in prod
 API_KEY = os.getenv("TSAP_API_KEY", "").strip()
 TOKEN_TTL_SECONDS = int(os.getenv("TSAP_TOKEN_TTL_HOURS", "720") or 720) * 3600
@@ -136,6 +140,23 @@ def is_admin(request: Request) -> bool:
     if API_KEY and api_key and hmac.compare_digest(api_key, API_KEY):
         return True
     return False
+
+
+def is_staff(request: Request) -> bool:
+    """👤 WAVE 41 — staff key (limited role). Owner key kaakunda staff key iste True."""
+    if request is None or not STAFF_KEY:
+        return False
+    key = (request.headers.get("x-admin-key") or "").strip()
+    return bool(key) and not is_admin(request) and hmac.compare_digest(key, STAFF_KEY)
+
+
+def admin_role(request: Request) -> str:
+    """'owner' | 'staff' | '' — frontend tab gating + endpoint permissions ki."""
+    if is_admin(request):
+        return "owner"
+    if is_staff(request):
+        return "staff"
+    return ""
 
 
 def is_automation(request: Request) -> bool:
@@ -373,12 +394,19 @@ def require_owner(request: Request, tsap_id: str) -> None:
     raise HTTPException(401, "🔒 మీ account కి login చెయ్యండి (OTP) — token lekapote ee data chudaleru")
 
 
-def require_admin(request: Request) -> None:
-    """Admin/leads/moderation — key lekapote 403. PII leak fix."""
-    if dev_mode() or is_admin(request):
-        return
+def require_admin(request: Request, staff_ok: bool = False) -> str:
+    """Admin/leads/moderation — key lekapote 403. PII leak fix.
+    👤 WAVE 41: staff_ok=True aite staff key kooda chali (profiles/matchsend/daily/showcase).
+    Returns role: 'owner' | 'staff' (dev bypass → owner)."""
+    if dev_mode():
+        return "owner"
+    role = admin_role(request)
+    if role == "owner" or (staff_ok and role == "staff"):
+        return role
     ABUSE["admin_denied"] += 1
     abuse_log("admin_denied", request.url.path if request else "?")
+    if role == "staff":
+        raise HTTPException(403, "🔒 ఇది owner-only section — staff కి money/data permissions లేవు")
     raise HTTPException(403, "🔒 Admin access — X-Admin-Key కావాలి (lekapote మీ team కి చెప్పండి)")
 
 

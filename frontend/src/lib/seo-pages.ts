@@ -160,18 +160,11 @@ export function parseSlug(slug: string): { caste: CasteInfo; role: Role; distric
 }
 
 /** Sitemap / generateStaticParams ki — anni combos (top castes × districts tho) */
-export function allSeoSlugs(limitDistrictsForTopCastes = 8): string[] {
+export function allSeoSlugs(limitDistrictsForTopCastes = 0): string[] {
   const out: string[] = [];
-  const topCastes = CASTES.slice(0, 12);
   for (const c of CASTES) {
     out.push(buildSlug(c.key, "bride"));
     out.push(buildSlug(c.key, "groom"));
-    if (topCastes.includes(c)) {
-      for (const d of DISTRICTS.slice(0, limitDistrictsForTopCastes)) {
-        out.push(buildSlug(c.key, "bride", d.slug));
-        out.push(buildSlug(c.key, "groom", d.slug));
-      }
-    }
   }
   return out;
 }

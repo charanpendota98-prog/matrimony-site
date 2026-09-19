@@ -4,7 +4,7 @@
 - **Username:** `@manavivaha_muslim_ap_groom` (already taken? → @apmuslimgroom, @mv_muslim_ap_grm, @manavivaha_muslim_ap_grm)
 - **Link:** https://t.me/manavivaha_muslim_ap_groom
 - **Hashtags:** #Muslim #Groom #AndhraPradesh #Nikah
-- **DP image:** `/home/user/matrimony-site/backend/channel_assets/muslim_ap_groom.png`
+- **DP image:** `/home/user/shubhalagnam/backend/channel_assets/muslim_ap_groom.png`
 
 ## 1) Channel create (phone → New Channel)
 
@@ -15,7 +15,7 @@ Username: `manavivaha_muslim_ap_groom`
 Description:
 
 ```
-ఆంధ్రా ముస్లిం వరులు — AP. ఫోటో గోప్యం, నిజమైన profiles, 3 requests FREE, ₹99లో 5. #Muslim #Groom #AndhraPradesh Register FREE: manavivaha.in | Bot: @telugumatrimony1_bot
+ఆంధ్రా ముస్లిం వరులు — AP. ఫోటో గోప్యం, నిజమైన profiles, 3 requests FREE, ₹99లో 5. #Muslim #Groom #AndhraPradesh Register FREE: manavivaha.in | Telegram: @telugumatrimony1_bot
 ```
 
 ## 2) Bot ni admin cheyyi
@@ -60,7 +60,7 @@ Telugu Matrimony — TS + AP
 ```
 📜 *CHANNEL RULES — 🤵 Muslim Ap Grooms | Muslim_Ap వరులు*
 ━━━━━━━━━━━━━━━━━━
-1️⃣ Only Mana Vivaha admin posts — members message చెయ్యకుండా చూడగలరు
+1️⃣ Only మన వివాహ admin posts — members message చెయ్యకుండా చూడగలరు
 2️⃣ Profile details upload చెయ్యాలి అంటే *@telugumatrimony1_bot* కి phone/photo పంపండి
 3️⃣ ఎవరికీ *advance money* పంపొద్దు — డబ్బు అడిగితే వెంటనే screenshot → report
 4️⃣ Caste/religion గురించి discriminative comments, personal abuses → instant ban

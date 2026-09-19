@@ -1,5 +1,5 @@
 """
-Mana Vivaha — WHATSAPP ANTI-BAN ENGINE  🛡️
+మన వివాహ — WHATSAPP ANTI-BAN ENGINE  🛡️
 ==========================================
 WhatsApp lo bulk posting chesthe ban avvakunda, *manishi la* behave cheyyadam ee module pani.
 

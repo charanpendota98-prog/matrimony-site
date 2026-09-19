@@ -13,6 +13,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import TrustBadge from "@/components/TrustBadge";
+import { ProfileSkeleton } from "@/components/Skeletons";
 import AuthGate from "@/components/AuthGate";
 import RasiChart from "@/components/RasiChart";
 import { apiGet, apiPost, authHeaders, getToken } from "@/lib/api";
@@ -86,7 +87,7 @@ export default function ProfileView() {
     setLoading(false);
     if (!ok || !d) {
       setData(null);
-      setErr(status === 404 ? (te ? `🔍 TSAP ID దొరకలేదు: ${id} — ID correct గా ఉందా check చెయ్యండి (register అయ్యారా?)` : `🔍 TSAP ID not found: ${id} — check the ID is correct (registered?)`) : errorTelugu);
+      setErr(status === 404 ? (te ? `🔍 Profile ID దొరకలేదు: ${id} — ID correct గా ఉందా check చెయ్యండి (register అయ్యారా?)` : `🔍 Profile ID not found: ${id} — check the ID is correct (registered?)`) : errorTelugu);
       return;
     }
     setData(d);
@@ -116,7 +117,7 @@ export default function ProfileView() {
     if (nl) { setNeedsLogin(true); return; }
     if (ok) setMsg({ ok: true, text: String(d?.message_telugu || (te ? "Interest పంపించారు ✅ — accept అయితే numbers exchange" : "Interest sent ✅ — numbers exchange on accept")) });
     else if (status === 402) setMsg({ ok: false, text: te ? "⚠️ Credits అయిపోయాయి — ₹99 → 5 profiles. Numbers కూడా accept తోనే (consent)." : "⚠️ Credits over — ₹99 → 5 profiles. Numbers also only with accept (consent)." });
-    else if (status === 404) setMsg({ ok: false, text: te ? "మీ TSAP ID register చెయ్యలేదు — ముందు FREE register చెయ్యండి." : "Your TSAP ID is not registered — FREE register first." });
+    else if (status === 404) setMsg({ ok: false, text: te ? "మీ Profile ID register చెయ్యలేదు — ముందు FREE register చెయ్యండి." : "Your Profile ID is not registered — FREE register first." });
     else setMsg({ ok: false, text: eTel });
   };
 
@@ -159,7 +160,7 @@ export default function ProfileView() {
 
   const shareWhatsApp = () => {
     if (!profile) return;
-    const text = `🙏 Mana Vivaha profile — ${firstName(profile.full_name)} (${profile.tsap_id})\n` +
+    const text = `🙏 మన వివాహ profile — ${firstName(profile.full_name)} (${profile.tsap_id})\n` +
       `${profile.age}y • ${profile.height || "—"} • ${profile.caste} • ${profile.education} • ${profile.job}\n` +
       `📍 ${profile.district}, ${profile.state} • 💰 ${profile.salary}\n` +
       `🔒 Number locked — ${te ? "interest accept అయితే exchange" : "exchange on interest accept"}\n` +
@@ -175,13 +176,13 @@ export default function ProfileView() {
           <span>🔍</span>
           <input value={searchId} onChange={(e) => setSearchId(e.target.value.toUpperCase())}
             onKeyDown={(e) => { if (e.key === "Enter") void load(searchId.trim()); }}
-            placeholder="TSAP ID (ex: TSAP-F-2025-1042)" aria-label="TSAP ID search"
+            placeholder="Profile ID (ex: RED001)" aria-label="Profile ID search"
             className="flex-1 bg-transparent text-sm outline-none" />
           <button onClick={() => void load(searchId.trim())} className="rounded-xl bg-[#7A0C2E] px-3 py-1.5 text-[12px] font-bold text-white">{te ? "చూడు" : "View"}</button>
         </div>
       </div>
 
-      {loading ? <p className="mt-6 text-center text-slate-500">⏳ {duo("Loading profile…", "ప్రొఫైల్ లోడ్ అవుతోంది…")}</p> : null}
+      {loading ? <ProfileSkeleton /> : null}
       {!loading && err ? (
         <div className="mt-6 rounded-2xl border-2 border-amber-300 bg-amber-50 p-5 text-center">
           <p className="font-bold text-amber-900">{err}</p>
@@ -349,9 +350,9 @@ export default function ProfileView() {
                   {unlocking ? "Unlocking…" : "📞 Number Unlock (1 credit)"}
                 </button>
                 <a href={SITE_CONFIG.unlockBot(profile.tsap_id)} target="_blank" rel="noreferrer"
-                  title={te ? "Bot opens — 1 credit తో number వస్తుంది" : "Bot opens — number for 1 credit"}
+                  title={te ? "Telegram లో ఓపెన్ అవుతుంది — 1 క్రెడిట్‌తో number వస్తుంది" : "Opens on Telegram — number for 1 credit"}
                   className="rounded-xl gold-gradient px-4 py-2.5 text-sm font-bold text-maroon">
-                  📞 Full details + Number (Bot)
+                  📞 {te ? "పూర్తి వివరాలు + నంబర్" : "Full details + Number"}
                 </a>
                 </>
               )}
@@ -413,7 +414,7 @@ export default function ProfileView() {
           ) : null}
 
           <p className="mt-4 text-center text-[11px] text-slate-500">
-            🔐 {data.consent_note_telugu || (te ? "Numbers consent తోనే exchange — మన consent ledger లో record ఉంటుంది" : "Numbers exchange with consent only — recorded in our consent ledger")}
+            🔐 {data.consent_note_telugu || (te ? "Numbers consent తోనే exchange అవుతాయి — ఇది ఎప్పుడూ safe గా ఉంటుంది" : "Numbers exchange with consent only — always kept safe")}
           </p>
         </>
       ) : null}

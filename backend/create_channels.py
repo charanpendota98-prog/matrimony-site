@@ -1,5 +1,5 @@
 """
-Mana Vivaha — Channel Creation Helper
+మన వివాహ — Channel Creation Helper
 =====================================
 Usage:
   python create_channels.py            # full creation plan (waves + copy-paste info)
@@ -69,7 +69,7 @@ def plan(wave=None, key=None):
     print("\n" + "=" * 70)
     print("  PINNED WELCOME POST (prathi channel ki idi paste chey):")
     print("=" * 70)
-    print(f"""  🙏 Mana Vivaha — TS-AP Telugu Matrimony ki swagatham!
+    print(f"""  🙏 మన వివాహ — TS-AP Telugu Matrimony ki swagatham!
   🆔 Profile ID search: {SITE}/search
   📝 3 min lo FREE register: {SITE}/register
   💰 ₹99 ke Sambandham — modati 3 numbers FREE

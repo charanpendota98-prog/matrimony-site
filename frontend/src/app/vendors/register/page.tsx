@@ -1,6 +1,6 @@
 "use client";
 /**
- * 🏪 VENDOR REGISTER — mee business ni Mana Vivaha lo promote cheyyandi
+ * 🏪 VENDOR REGISTER — mee business ni మన వివాహ lo promote cheyyandi
  * ==================================================================
  * 18 categories (catering, photography, decorations, hall, pandit...) + ad packages ₹149 → ₹3999.
  * Register → payment (UPI/PhonePe) → admin verify (2 గంటల్లో) → listing ACTIVE + promo post + poster.
@@ -151,7 +151,7 @@ export default function VendorRegisterPage() {
           <div className="text-[12px] opacity-90 mb-1">
             <Link href="/vendors" className="underline">← Vendors</Link>
           </div>
-          <h1 className="text-2xl font-extrabold">{te ? "🏪 మీ business ని Mana Vivaha లో add చెయ్యండి" : "🏪 Add your business to Mana Vivaha"}</h1>
+          <h1 className="text-2xl font-extrabold">{te ? "🏪 మీ business ని మన వివాహ లో add చెయ్యండి" : "🏪 Add your business to మన వివాహ"}</h1>
           <p className="text-[13px] opacity-90 mt-2 telugu">
             Catering, photography, decorations, hall, tent, pandit, jewellery, makeup, DJ, invitations, cars, planner —
             {te ? <>2 నిమిషాల్లో register. <b>Enquiries direct మీ WhatsApp కి.</b> ₹149 నుంచి.</> : <>Register in 2 minutes. <b>Enquiries direct to your WhatsApp.</b> From ₹149.</>}
@@ -196,13 +196,13 @@ export default function VendorRegisterPage() {
             value={f.business_name} onChange={(e) => set("business_name", e.target.value)} aria-label="Business name" />
           <div className="grid sm:grid-cols-2 gap-3">
             <input className="input-mobile" placeholder={te ? "Owner పేరు" : "Owner name"} value={f.owner_name} onChange={(e) => set("owner_name", e.target.value)} aria-label={te ? "Owner పేరు" : "Owner name"} />
-            <input className="input-mobile" placeholder="Experience (years)" value={f.experience_years} onChange={(e) => set("experience_years", e.target.value)} inputMode="numeric" aria-label="Experience (years)" />
+            <input className="input-mobile" placeholder="Experience (years)" value={f.experience_years} onChange={(e) => set("experience_years", e.target.value.replace(/\D/g, "").slice(0, 2))} inputMode="numeric" aria-label="Experience (years)" />
           </div>
           <div className="grid sm:grid-cols-2 gap-3">
             <input className="input-mobile" placeholder="Mobile number * (10 digits)" value={f.phone}
-              onChange={(e) => set("phone", e.target.value)} inputMode="tel" aria-label="Mobile number * (10 digits)" />
+              onChange={(e) => set("phone", e.target.value.replace(/\D/g, "").slice(0, 10))} inputMode="numeric" aria-label="Mobile number * (10 digits)" />
             <input className="input-mobile" placeholder={te ? "WhatsApp number (వేరు ఉంటే)" : "WhatsApp number (if different)"} value={f.whatsapp}
-              onChange={(e) => set("whatsapp", e.target.value)} inputMode="tel" aria-label="WhatsApp number" />
+              onChange={(e) => set("whatsapp", e.target.value.replace(/\D/g, "").slice(0, 10))} inputMode="numeric" aria-label="WhatsApp number" />
           </div>
           <div className="grid sm:grid-cols-3 gap-3">
             <input className="input-mobile" placeholder="City / town *" value={f.city} onChange={(e) => set("city", e.target.value)} aria-label="City / town *" />

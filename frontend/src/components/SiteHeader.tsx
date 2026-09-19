@@ -2,7 +2,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { CHANNEL_STATS } from "@/lib/channels";
 import { SITE_CONFIG } from "@/lib/site-config";
 import { useSession, logout } from "@/lib/auth";
 import { apiGet } from "@/lib/api";
@@ -11,32 +10,29 @@ import { LangToggle, useLang } from "@/lib/lang";
 
 type NavItem = { href: string; en: string; te: string; icon: string; xl?: boolean };
 
-/* Desktop pills — trimmed to the 10 most-used (rest live in the menu card) */
+/* Desktop pills — neat 7 (menu card lo migatha anni) */
 const NAV_MAIN: NavItem[] = [
   { href: "/", en: "Home", te: "హోమ్", icon: "🏠" },
   { href: "/matches", en: "Matches", te: "సంబంధాలు", icon: "💘" },
   { href: "/requests", en: "Requests", te: "రిక్వెస్టులు", icon: "💌" },
-  { href: "/me", en: "My Account", te: "నా అకౌంట్", icon: "🙋" },
   { href: "/channels", en: "Channels", te: "ఛానళ్లు", icon: "📢" },
   { href: "/castes", en: "Castes", te: "కులాలు", icon: "🪔" },
   { href: "/pricing", en: "Pricing", te: "ధరలు", icon: "💰" },
   { href: "/referral", en: "Referral", te: "రెఫరల్", icon: "🤝" },
-  { href: "/stories", en: "Stories", te: "కథలు", icon: "💑", xl: true },
-  { href: "/vendors", en: "Vendors", te: "వెండర్లు", icon: "🏪", xl: true },
-  { href: "/safety", en: "Safety", te: "భద్రత", icon: "🛡️", xl: true },
 ];
 
 const NAV_EARN: NavItem[] = [
   { href: "/referral", en: "Referral dashboard", te: "రెఫరల్ డాష్‌బోర్డ్", icon: "🤝" },
   { href: "/referral/register", en: "Become a referrer", te: "రెఫరర్‌గా చేరండి", icon: "🎁" },
   { href: "/bureau", en: "Bureau (B2B)", te: "బ్యూరో (B2B)", icon: "🏛️" },
-  { href: "/vendors", en: "Vendors", te: "వెండర్లు", icon: "🏪" },
   { href: "/vendors/register", en: "List your business", te: "మీ business చేర్చండి", icon: "📝" },
 ];
 
 const NAV_MORE: NavItem[] = [
-  { href: "/porutham", en: "Porutham", te: "పొరుతం", icon: "💍" },
+  { href: "/me", en: "My Account", te: "నా అకౌంట్", icon: "🙋" },
+  { href: "/porutham", en: "Jyothishyam", te: "జ్యోతిషం", icon: "💍" },
   { href: "/stories", en: "Stories", te: "కథలు", icon: "💑" },
+  { href: "/vendors", en: "Vendors", te: "వెండర్లు", icon: "🏪" },
   { href: "/safety", en: "Safety", te: "భద్రత", icon: "🛡️" },
   { href: "/verify", en: "Verify profile", te: "Profile verify", icon: "✅" },
 ];
@@ -106,16 +102,18 @@ export default function SiteHeader() {
         scrolled ? "glass border-gold/30 shadow-soft" : "bg-cream border-transparent"
       }`}
     >
-      <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
-        {/* Brand */}
-        <Link href="/" className="flex items-center gap-2.5 min-w-0 focus-brand rounded-xl">
-          <div className="w-10 h-10 maroon-gradient rounded-xl flex items-center justify-center text-gold font-bold text-lg shadow-gold shrink-0">
-            {SITE_CONFIG.logoText}
-          </div>
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 h-16 flex items-center justify-between gap-2">
+        {/* Brand — 💍 R13: kotha marriage logo + peru Telugu lo */}
+        <Link href="/" className="flex items-center gap-2 min-w-0 flex-1 focus-brand rounded-xl">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={SITE_CONFIG.logoImage} alt="మన వివాహ logo" width={40} height={40}
+            className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl object-cover shadow-gold shrink-0" />
           <div className="min-w-0">
-            <div className="font-bold text-maroon leading-none truncate">{SITE_CONFIG.brandName}</div>
-            <div className="text-[10px] text-gray-500 telugu leading-tight truncate">
-              {SITE_CONFIG.legalName} • {SITE_CONFIG.taglineTelugu}
+            <div className="font-bold text-maroon leading-none truncate text-[15px] sm:text-[17px] telugu">
+              మన వివాహ
+            </div>
+            <div className="hidden sm:block text-[10px] text-gray-500 leading-tight truncate">
+              మన వివాహ • {te ? "తెలుగు మ్యాట్రిమోనీ" : "Telugu Matrimony"}
             </div>
           </div>
         </Link>
@@ -139,15 +137,16 @@ export default function SiteHeader() {
         </nav>
 
         {/* Right actions */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           <LangToggle compact />
           <Link
             href="/porutham"
             className="hidden md:inline-flex px-3.5 py-2 text-[13px] font-semibold border border-maroon/30 text-maroon rounded-full hover:bg-maroon-soft transition"
           >
-            💍 <Duo en="Porutham" te="పొరుతం" />
+            💍 <Duo en="Jyothishyam" te="జ్యోతిషం" />
           </Link>
           {ready && tsapId && sessionOk ? (
+
             <span className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 text-[13px] font-semibold border border-emerald-300 bg-emerald-50 text-emerald-800 rounded-full">
               <Link href="/me" className="hover:underline">👤 {tsapId.length > 14 ? `${tsapId.slice(0, 9)}…${tsapId.slice(-4)}` : tsapId}</Link>
               <button
@@ -168,9 +167,10 @@ export default function SiteHeader() {
           )}
           <Link
             href="/register"
-            className="px-4 py-2.5 rounded-full text-[13px] font-bold maroon-gradient text-white shadow-soft hover:shadow-brand transition"
+            className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-full text-[12px] sm:text-[13px] font-bold maroon-gradient text-white shadow-soft hover:shadow-brand transition whitespace-nowrap"
           >
-            <Duo en="Register FREE" te="ఉచిత నమోదు" />
+            <span className="hidden sm:inline"><Duo en="Register FREE" te="ఉచిత నమోదు" /></span>
+            <span className="sm:hidden"><Duo en="Register" te="నమోదు" /></span>
           </Link>
           <button
             aria-label={te ? "మెనూ" : "Menu"}
@@ -228,19 +228,16 @@ export default function SiteHeader() {
               <Duo en="🔍 Search matches" te="🔍 సంబంధాలు వెతకండి" />
             </Link>
             <a
-              href={SITE_CONFIG.botUrl}
+              href={SITE_CONFIG.officialChannelUrl}
               target="_blank"
               rel="noreferrer"
               className="flex-1 text-center px-4 py-3 rounded-xl gold-gradient text-maroon text-sm font-bold"
             >
-              Telegram Bot
+              <Duo en="Telegram Channel" te="టెలిగ్రామ్ ఛానల్" />
             </a>
           </div>
           <div className="flex justify-center pt-3">
             <LangToggle />
-          </div>
-          <div className="text-[11px] text-center text-gray-500 pt-1">
-            {CHANNEL_STATS.total} channels • {CHANNEL_STATS.by_tier.L3_CASTE} castes • {SITE_CONFIG.botUsername}
           </div>
         </div>
       </div>

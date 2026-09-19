@@ -234,7 +234,7 @@ function VoicePanel({ myId }: { myId: string }) {
       fd.append("file", f);
       fd.append("tsap_id", myId);
       const d = await fetch("/api/voice/upload", { method: "POST", headers: authHeaders(), body: fd }).then((r) => r.json());
-      setMsg(d.success ? { ok: true, text: String(d.message_telugu || "Uploaded") } : { ok: false, text: String(d.detail || "Upload fail") });
+      setMsg(d.success ? { ok: true, text: String(d.message_telugu || "Uploaded") } : { ok: false, text: String((d.detail && (d.detail.te || d.detail.message_telugu || d.detail.en || d.detail.reason)) || d.error_telugu || "Upload fail") });
       if (d.success) void load();
     } catch { setMsg({ ok: false, text: te ? "Network problem" : "Network problem" }); }
     setBusy(false);
@@ -289,7 +289,7 @@ function JathakamPanel({ myId }: { myId: string }) {
       fd.append("file", f);
       fd.append("tsap_id", myId);
       const d = await fetch("/api/astro/jathakam/upload", { method: "POST", headers: authHeaders(), body: fd }).then((r) => r.json());
-      setMsg(d.success ? { ok: true, text: String(d.message_telugu || "Uploaded") } : { ok: false, text: String(d.detail || "Upload fail") });
+      setMsg(d.success ? { ok: true, text: String(d.message_telugu || "Uploaded") } : { ok: false, text: String((d.detail && (d.detail.te || d.detail.message_telugu || d.detail.en || d.detail.reason)) || d.error_telugu || "Upload fail") });
     } catch { setMsg({ ok: false, text: te ? "Network problem" : "Network problem" }); }
     setBusy(false);
   };
@@ -312,7 +312,7 @@ function JathakamPanel({ myId }: { myId: string }) {
       </section>
       <RasiChart houses={chart?.houses} moonHouse={chart?.moon_house} star={chart?.star} rasi={chart?.rasi} note={chart?.note_telugu} title={te ? "🗺️ మీ రాశి చార్ట్" : "🗺️ Your rasi chart"} />
       <section className="rounded-3xl border border-rose-200 bg-white p-5">
-        <p className="text-sm font-bold text-[#7A0C2E]">{te ? "📜 Jathakam upload (photo/PDF, max 8MB) → pandit queue" : "📜 Jathakam upload (photo/PDF, max 8MB) → pandit queue"}</p>
+        <p className="text-sm font-bold text-[#7A0C2E]">{te ? "📜 జాతకం అప్‌లోడ్ చెయ్యండి (photo/PDF, max 8MB) — మా పండితులు check చేస్తారు" : "📜 Upload your jathakam (photo/PDF, max 8MB) — our pandits will review it"}</p>
         <div className="mt-3 flex flex-wrap gap-2">
           <input ref={fileRef} type="file" accept=".jpg,.jpeg,.png,.webp,.pdf" className="text-[12px]" aria-label="Jathakam file" />
           <button onClick={() => void upload()} disabled={busy}

@@ -1,5 +1,5 @@
 """
-🎯 WAVE 14 — PERFECT MATCH ENGINE (Mana Vivaha)
+🎯 WAVE 14 — PERFECT MATCH ENGINE (మన వివాహ)
 ================================================
 1. AGE RULE (sampradayam, DOB-date accurate):
    ammayi (bride) abbayi (groom) kanna thakkuva-vayasu (younger) or SAME DATE ayi undali.

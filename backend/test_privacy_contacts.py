@@ -22,6 +22,8 @@ import re
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# 🐞 FIX (R12): standalone run lo auth ENFORCED → interest send 401. Suite convention: dev mode.
+os.environ.setdefault("WA_TEST_FAST", "1")
 
 PASS, FAIL = [], []
 
@@ -56,8 +58,52 @@ from fastapi.testclient import TestClient  # noqa: E402
 import main  # noqa: E402
 
 with TestClient(main.app) as c:
+    # 🐞 FIX (R12): seed users UPSERT — purathana minimal stubs (age/caste ledu) match engine
+    #    break chestayi. Create if missing + missing fields fill (setdefault style)
+    _seed_specs = (
+        {"tsap_id": "TSAP-F-2025-1042", "full_name": "Sita Reddy", "gender": "Bride",
+         "phone": "9848022222", "credits": 3, "plan": "FREE", "wallet": 0, "caste": "Reddy",
+         "age": 24, "height": "5'4\"", "education": "BTech", "job": "Software", "district": "Hyderabad",
+         "state": "TS", "marital_status": "Pelli Kaledu"},
+        {"tsap_id": "TSAP-M-2025-1042", "full_name": "Ravi Kumar", "gender": "Groom",
+         "phone": "9848012345", "credits": 3, "plan": "FREE", "wallet": 0, "caste": "Reddy",
+         "age": 28, "height": "5'9\"", "education": "BTech", "job": "Software", "district": "Hyderabad",
+         "state": "TS", "marital_status": "Pelli Kaledu"},
+    )
+    for _spec in _seed_specs:
+        _found = next((u for u in main.DB_USERS if u["tsap_id"] == _spec["tsap_id"]), None)
+        if _found is None:
+            _found = dict(_spec)
+            main.DB_USERS.append(_found)
+        for _k, _v in _spec.items():
+            _found.setdefault(_k, _v)
+        _found["age"] = _found.get("age") or _spec["age"]
+        _found["caste"] = _found.get("caste") or _spec["caste"]
+        _found["district"] = _found.get("district") or _spec["district"]
+        _found["state"] = _found.get("state") or _spec["state"]
+    # 💎 R12: matches ki opposite-gender pool kavali — polluted/small DB lo empty vastundi.
+    #    launch seed inventory load chesi (phone dup skip tho) pool guarantee
+    try:
+        import seed_launch_db as _SLD
+        for _sd in _SLD.build_profiles(40):
+            _ph = str(_sd.get("phone", ""))
+            if _ph and any(u.get("phone") == _ph for u in main.DB_USERS):
+                continue
+            _u = dict(_sd)
+            _u.setdefault("is_approved", True)
+            _u.setdefault("photo_urls", [])
+            _u.setdefault("credit_history", [])
+            main.DB_USERS.append(_u)
+    except Exception as _e:
+        print("[R12-seed] skip:", str(_e)[:80])
     me = next(u for u in main.DB_USERS if u["tsap_id"] == "TSAP-F-2025-1042")
     other = next(u for u in main.DB_USERS if u["tsap_id"] == "TSAP-M-2025-1042")
+    # 💎 R12: interest flow fresh ga test cheyali — purathana interests (prior runs, vere
+    #    users nunchi kuda) other inbox lo unte leak-scan false positives. me/other ki
+    #    sambandinchina ANNI interests clear (rendu directions + other ki vachina anni)
+    main.DB_INTERESTS[:] = [x for x in main.DB_INTERESTS
+                            if me["tsap_id"] not in (x.get("from_id"), x.get("to_id"))
+                            and other["tsap_id"] not in (x.get("from_id"), x.get("to_id"))]
     my_phone = str(me.get("phone", ""))
 
     def leaks(payload, allow=()):
@@ -143,7 +189,10 @@ with TestClient(main.app) as c:
     inbox = c.get("/api/interest/inbox/%s" % other["tsap_id"]).json()
     pend = [x for x in inbox.get("received", []) if x.get("status") == "pending"]
     check("inbox pending lo number 🔒 ('accept cheyyandi')",
-          bool(pend) and "🔒" in str(pend[0].get("requester_phone")))
+          bool(pend) and "🔒" in str(pend[0].get("requester_phone")),
+          {"send": send.get("reason") or send.get("status") or "ok", "pend": len(pend),
+           "rph": pend[0].get("requester_phone") if pend else None,
+           "req_id": req_id})
     check("inbox lo requester contact keys levu (leak ledu)", not leaks(inbox, allow=()),
           leaks(inbox)[:3])
     if req_id:
@@ -205,14 +254,14 @@ search_pg = read("frontend/src/app/search/[id]/page.tsx")
 
 check("register page lo FREE-vs-PAID clarity box (/api/free-plan)", "/api/free-plan" in reg_pg and "clarity" in reg_pg)
 check("register clarity: 'FREE లో ఇవ్వనిది' + numbers ivvamu",
-      "FREE లో ఇచ్చేది" in reg_pg and "Phone numbers — ఇవ్వము" in reg_pg)
+      "FREE లో ఇచ్చేది" in reg_pg and "ఎవరికీ ఇవ్వము" in reg_pg)
 check("register success lo 'enti vachindi' card (credits + lock + CTA)",
       "requests</b> ready" in reg_pg and "numbers 🔒 locked" in reg_pg)
 check("matches page lo 🔒 number locked chip + phone_masked", "phone_masked" in match_pg and "Number:" in match_pg)
 check("matches page lo clarity banner + pricing CTA",
       "Numbers ivvamu" in match_pg and "₹99 → 5 profiles" in match_pg)
-check("pricing page lo FREE vs PAID boxes + numbers ivvamu",
-      "FREE లో (₹0)" in pricing_pg and "🔒 phone numbers ఇవ్వము" in pricing_pg)
+check("pricing page lo numbers policy clarity (R13 minimal — okka line)",
+      "రెండు వైపులా accept అయ్యాకే" in pricing_pg)
 check("search page lo leak ki avakasam ledu (safe fields matrame)",
       "p.full_name" in search_pg or "profile" in search_pg)
 

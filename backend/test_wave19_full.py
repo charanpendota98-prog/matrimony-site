@@ -117,7 +117,7 @@ try:
                                       address="Test village", state="TS", district="Hyderabad")
     pid = r.get("partner_id", "")
     check("B1 register ok + link", r.get("success") and r.get("link", "").endswith(f"/r/{pid}"), pid)
-    check("B2 ID shape firstname+3digit", bool(re.match(r"^[a-z]+\d{3}$", pid or "")), pid)
+    check("B2 ID shape firstname+4digit (CHA0001 style)", bool(re.match(r"^[A-Za-z]+\d{4}$", pid or "")), pid)  # R10: user-specified 3-letter+4-digit format
     r2 = refpartners.register_partner(name="Wave TestCharan", phone="9000000019", state="TS", district="Hyderabad")
     check("B3 dup phone → same ID", r2.get("partner_id") == pid)
     r3 = refpartners.register_partner(name="X", phone="abc")

@@ -3,7 +3,7 @@
    • /api/* — NEVER cache (matrimony data fresh ga undali, privacy)
    • Offline aithe /offline page chupistham
 */
-const VERSION = "mv-v6-2026-09-push";
+const VERSION = "mv-v7-2026-09-round9";
 const SHELL = ["/", "/matches", "/register", "/porutham", "/safety", "/offline", "/manifest.webmanifest", "/icons/icon-192.png"];
 
 self.addEventListener("install", (e) => {
@@ -54,7 +54,7 @@ self.addEventListener("message", (e) => { if (e.data === "skipWaiting") self.ski
 self.addEventListener("push", (event) => {
   let d = {};
   try { d = event.data ? event.data.json() : {}; } catch { d = {}; }
-  const title = d.title || "💍 Mana Vivaha";
+  const title = d.title || "💍 మన వివాహ";
   const body = d.body || "కొత్త matches వచ్చాయి — చూడండి!";
   const url = d.url || "/matches";
   event.waitUntil(

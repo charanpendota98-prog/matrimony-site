@@ -24,19 +24,19 @@ export default function TermsPage() {
         <ul>
           {te ? (
             <>
-              <li>Mana Vivaha (TSAP Matrimony) ఒక <b>Telugu matrimony platform</b> — Telangana, Andhra Pradesh &amp;
+              <li>మన వివాహ (Manavivaha) ఒక <b>Telugu matrimony platform</b> — Telangana, Andhra Pradesh &amp;
                 other-state/NRI Telugu families కి <b>profiles + channels + WhatsApp sharing</b> service.</li>
               <li>మనం <b>broker కాదు, marriage guarantee ఇవ్వము</b> — మన పని: correct profiles ని correct families కి చేర్చడం,
                 safe &amp; respect తో.</li>
-              <li>Website: {SITE_CONFIG.domain} • Telegram channels ({CHANNEL_STATS.total}) • WhatsApp sharing • Bot: {SITE_CONFIG.botUsername}</li>
+              <li>Website: {SITE_CONFIG.domain} • Telegram channels ({CHANNEL_STATS.total}) • WhatsApp sharing • Telegram: {SITE_CONFIG.officialChannel}</li>
             </>
           ) : (
             <>
-              <li>Mana Vivaha (TSAP Matrimony) is a <b>Telugu matrimony platform</b> — a <b>profiles + channels + WhatsApp sharing</b> service
+              <li>మన వివాహ (Manavivaha) is a <b>Telugu matrimony platform</b> — a <b>profiles + channels + WhatsApp sharing</b> service
                 for Telangana, Andhra Pradesh &amp; other-state/NRI Telugu families.</li>
               <li>We are <b>not brokers and give no marriage guarantee</b> — our job: bringing the right profiles to the right families,
                 safely &amp; respectfully.</li>
-              <li>Website: {SITE_CONFIG.domain} • Telegram channels ({CHANNEL_STATS.total}) • WhatsApp sharing • Bot: {SITE_CONFIG.botUsername}</li>
+              <li>Website: {SITE_CONFIG.domain} • Telegram channels ({CHANNEL_STATS.total}) • WhatsApp sharing • Telegram: {SITE_CONFIG.officialChannel}</li>
             </>
           )}
         </ul>

@@ -24,27 +24,50 @@ import { authHeaders } from "@/lib/api";
 import { Duo, duo } from "@/lib/duo";
 import { useLang } from "@/lib/lang";
 import PhotoFlow from "@/components/PhotoFlow";
+import { TelegramIcon, WhatsAppIcon } from "@/components/BrandIcons";
+import { waLink } from "@/lib/wa";
 import {
-  BLOOD_GROUPS, BODY_TYPES, CASTES, CHILDREN_OPTIONS, COMPLEXIONS, DISTRICTS_BY_STATE, EDUCATIONS, FAMILY_STATUSES,
+  BLOOD_GROUPS, BODY_TYPES, CASTES, CASTE_SUBCASTES, CHILDREN_OPTIONS, COMPLEXIONS, DISTRICTS_BY_STATE, EDUCATIONS, FAMILY_STATUSES,
   FAMILY_TYPES, FAMILY_VALUES, HEIGHTS, JOBS, MARITAL_STATUSES, MOTHER_TONGUES, NAKSHATRAS, NAK_TO_RASI,
-  OCCUPATIONS, PHYSICAL_STATUS, RASIS, RELIGIONS, SALARIES, WEIGHTS, WORK_TYPES,
+  OCCUPATIONS, PHYSICAL_STATUS, RASIS, RELIGIONS, SALARIES, WORK_TYPES,
   ageFromDob, compressImage, heightLabel, maxDobFor18,
 } from "@/lib/telugu-data";
 
 const DRAFT_KEY = "tsap_reg_draft_v3";
 const STEPS = [
-  { n: 1, label: "Basic", labelTe: "ప్రాథమిక", icon: "🙋", hint: "మీ basic details — 30 seconds", hintEn: "Your basic details — 30 seconds" },
-  { n: 2, label: "Community", labelTe: "సామాజిక", icon: "💍", hint: "Caste + star details — card కి కావాలి", hintEn: "Caste + star details — needed for card" },
+  { n: 1, label: "Basic", labelTe: "ప్రాథమిక", icon: "🙋", hint: "మీ basic details", hintEn: "Your basic details" },
+  { n: 2, label: "Caste + Astrology", labelTe: "కులం + జ్యోతిషం", icon: "💍", hint: "Caste + జ్యోతిషం (star, rasi) — card కి కావాలి", hintEn: "Caste + astrology details — needed for card" },
   { n: 3, label: "Education", labelTe: "విద్య", icon: "🎓", hint: "చదువు + ఉద్యోగం", hintEn: "Education + job" },
   { n: 4, label: "Family", labelTe: "కుటుంబం", icon: "👨‍👩‍👧", hint: "Family + contact", hintEn: "Family + contact" },
   { n: 5, label: "Photo", labelTe: "ఫోటో", icon: "📸", hint: "Photo + finish (చివరి details)", hintEn: "Photo + finish (settlement details)" },
 ];
 
+/* raw channel handle (@manavivaha_kamma_bride) → neat name (Kamma Brides) — user ki clarify avvadam */
+function prettyChannel(raw: string): string {
+  let s = String(raw || "").replace(/^@/, "")
+    .replace(/^(manavivaha|tsap)_/i, "").replace(/_/g, " ")
+    .replace(/\d+$/, "").trim().toLowerCase();
+  const special: Record<string, string> = {
+    tsbride: "TS Brides (Telangana)", tsgroom: "TS Grooms (Telangana)",
+    apbride: "AP Brides", apgroom: "AP Grooms",
+    matrimony: "Main Channel", hindu: "Hindu Community",
+    nri: "NRI / Abroad", second: "Second Marriage", able: "Differently Abled",
+    govt: "Govt Jobs", software: "Software / IT", professionals: "Doctors & Teachers",
+    success: "Success Stories", alerts: "Safety Alerts", "35plus": "Age 35+",
+    interfaith: "Interfaith", "other religions": "Other Religions",
+    "others sc": "SC Community", "others bc": "BC Community", "others st": "ST Community",
+  };
+  if (special[s]) return special[s];
+  s = s.replace(/\bts\b/g, "TS").replace(/\bap\b/g, "AP")
+    .replace(/\bbride\b/g, "Brides").replace(/\bgroom\b/g, "Grooms");
+  return s.replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
 const DEFAULT_FORM: Record<string, any> = {
-  gender: "", full_name: "", dob: "", birth_time: "", age: "", height: "", weight: "",
+  gender: "", full_name: "", dob: "", birth_time: "", age: "", height: "",
   marital_status: "Pelli Kaledu", children: "", religion: "Hindu", mother_tongue: "Telugu",
   caste: "", sub_caste: "", gothram: "", star: "", rasi: "", moola_nakshatram: "No", dosham: "No",
-  education: "", education_detail: "", college: "", job: "", company: "", salary: "",
+  education: "", education_detail: "", job: "", company: "", salary: "",
   experience: "", work_type: "", work_location: "",
   father_name: "", father_occupation: "", mother_name: "", mother_occupation: "",
   brothers: "0", brothers_married: "0", sisters: "0", sisters_married: "0",
@@ -106,6 +129,76 @@ function ChipGroup({
   );
 }
 
+/* 🔎 SearchSelect — pro searchable dropdown (replaces chip-soup for long lists: caste/education/job/district) */
+function SearchSelect({
+  label, options, value, onChange, required, hint, placeholder, teMap,
+}: {
+  label: string; options: string[]; value: string; onChange: (v: string) => void;
+  required?: boolean; hint?: string; placeholder?: string; teMap?: Record<string, string>;
+}) {
+  const [open, setOpen] = useState(false);
+  const [q, setQ] = useState("");
+  const boxRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const onDoc = (e: MouseEvent) => {
+      if (boxRef.current && !boxRef.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, []);
+
+  const list = useMemo(() => {
+    const needle = q.trim().toLowerCase();
+    if (!needle) return options;
+    return options.filter((o) => o.toLowerCase().includes(needle) || (teMap?.[o] || "").includes(q.trim()));
+  }, [q, options, teMap]);
+
+  return (
+    <div ref={boxRef} className="relative">
+      <label className="text-[13px] font-bold text-ink">
+        {label} {required ? <span className="req-star">*</span> : <span className="text-[10px] text-gray-400">(optional)</span>}
+      </label>
+      {hint && <div className="hint">{hint}</div>}
+      <button type="button" onClick={() => setOpen((v) => !v)}
+        className={`input-mobile mt-1 flex items-center justify-between text-left ${value ? "text-ink font-semibold" : "text-gray-400"}`}>
+        <span className="truncate">
+          {value ? (teMap?.[value] ? <span>{value} <span className="telugu text-gray-500">({teMap[value]})</span></span> : value) : (placeholder || "Select…")}
+        </span>
+        <span className="text-maroon text-lg shrink-0 ml-2">{open ? "▲" : "⌄"}</span>
+      </button>
+      {open && (
+        <div className="absolute z-20 mt-1 w-full bg-white border border-gold/40 rounded-2xl shadow-lg overflow-hidden">
+          <input
+            autoFocus value={q} onChange={(e) => setQ(e.target.value)}
+            placeholder="🔍 Type చేసి వెతకండి…"
+            className="w-full px-4 py-3 border-b border-gold/20 outline-none text-[14px]"
+          />
+          <div className="max-h-64 overflow-y-auto">
+            {value && (
+              <button type="button" onClick={() => { onChange(""); setOpen(false); setQ(""); }}
+                className="w-full text-left px-4 py-2.5 text-[13px] text-rose-600 hover:bg-rose-50 border-b border-gray-100">
+                ✕ Clear selection
+              </button>
+            )}
+            {list.slice(0, 200).map((o) => (
+              <button key={o} type="button" onClick={() => { onChange(o); setOpen(false); setQ(""); }}
+                className={`w-full text-left px-4 py-2.5 text-[14px] hover:bg-cream ${value === o ? "bg-maroon-soft font-bold text-maroon" : "text-ink"}`}>
+                {o} {teMap?.[o] ? <span className="telugu text-gray-500 text-[12px]">({teMap[o]})</span> : null}
+              </button>
+            ))}
+            {list.length === 0 && (
+              <div className="px-4 py-3 text-[12px] text-gray-500">
+                Dorakaledu — <button type="button" onClick={() => { onChange(q.trim()); setOpen(false); }} className="text-maroon font-bold underline">“{q}” ni alane pettu</button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function TextField({
   label, value, onChange, placeholder, required, hint, type = "text", inputMode, max, optional, telugu,
 }: {
@@ -139,7 +232,7 @@ function PillGroup({
 }) {
   return (
     <div>
-      <div className="text-[15px] font-extrabold text-ink">
+      <div className="text-[13px] font-extrabold text-ink">
         {label} {required ? <span className="req-star">*</span> : null}
       </div>
       {hint && <div className="hint">{hint}</div>}
@@ -169,7 +262,7 @@ function SelectField({
 }) {
   return (
     <div>
-      <div className="text-[15px] font-extrabold text-ink">
+      <div className="text-[13px] font-extrabold text-ink">
         {label} {required ? <span className="req-star">*</span> : null}
       </div>
       {hint && <div className="hint">{hint}</div>}
@@ -188,14 +281,14 @@ function SelectField({
 function Stepper({ label, value, onChange, max = 10 }: { label: string; value: string; onChange: (v: string) => void; max?: number }) {
   const n = parseInt(value || "0", 10) || 0;
   return (
-    <div className="flex items-center justify-between bg-white rounded-2xl border border-gold/30 px-3 py-2">
-      <span className="text-[13px] font-bold text-ink">{label}</span>
-      <div className="flex items-center gap-3">
+    <div className="flex items-center justify-between gap-2 bg-white rounded-2xl border border-gold/30 px-3 py-2">
+      <span className="text-[13px] font-bold text-ink min-w-0 truncate">{label}</span>
+      <div className="flex items-center gap-2 shrink-0">
         <button type="button" onClick={() => onChange(String(Math.max(0, n - 1)))}
-          className="w-11 h-11 rounded-full maroon-gradient text-white text-xl font-bold leading-none">−</button>
-        <span className="w-7 text-center font-bold text-maroon">{n}</span>
+          className="w-10 h-10 rounded-full maroon-gradient text-white text-xl font-bold leading-none shrink-0">−</button>
+        <span className="w-6 text-center font-bold text-maroon shrink-0">{n}</span>
         <button type="button" onClick={() => onChange(String(Math.min(max, n + 1)))}
-          className="w-11 h-11 rounded-full gold-gradient text-maroon text-xl font-bold leading-none">+</button>
+          className="w-10 h-10 rounded-full gold-gradient text-maroon text-xl font-bold leading-none shrink-0">+</button>
       </div>
     </div>
   );
@@ -428,8 +521,8 @@ const set = (k: string, v: any) => {
 
   /* ---------- profile strength ---------- */
   const strength = useMemo(() => {
-    const keys = ["full_name", "gender", "dob", "height", "weight", "marital_status", "caste", "sub_caste",
-      "gothram", "star", "rasi", "education", "education_detail", "college", "job", "company", "salary",
+    const keys = ["full_name", "gender", "dob", "height", "marital_status", "caste", "sub_caste",
+      "gothram", "star", "rasi", "education", "education_detail", "job", "company", "salary",
       "experience", "work_type", "work_location", "father_name", "father_occupation", "mother_name",
       "native_place", "state", "district", "mandal", "current_city", "pincode", "phone", "about_myself",
       "body_type", "complexion", "blood_group"];
@@ -456,8 +549,11 @@ const set = (k: string, v: any) => {
         setPhotoUrl(d.url);
         setPhotoInfo(`${d.kb} KB ✅ uploaded — card lo mee photo vasthundi`);
       } else {
+        const det: any = d?.detail;
         setPhotoInfo("");
-        setErrs([d.detail || T("Photo upload అవ్వలేదు", "Photo upload failed")]);
+        setErrs([det?.message_telugu || det?.te || det?.en ||
+                 (typeof d?.detail === "string" ? d.detail : "") ||
+                 T("Photo upload అవ్వలేదు — clear photo తీసి మళ్లీ try చెయ్యండి", "Photo upload failed — take a clear photo and retry")]);
       }
     } catch {
       setErrs([T("Network problem — photo మళ్లీ try చెయ్యండి", "Network problem — retry photo upload")]);
@@ -524,6 +620,25 @@ const set = (k: string, v: any) => {
   };
 
   /* ---------- submit ---------- */
+  /** backend error → human-readable Telugu/English (FastAPI 422 arrays, {detail:{te}}, string — anni) */
+  const readableError = (d: any, te: boolean): string => {
+    const fallback = te ? "Register అవ్వలేదు — fields అన్నీ fill చేసి మళ్లీ try చెయ్యండి" : "Registration failed — please fill all fields and retry";
+    const det = d?.detail;
+    if (!det) return d?.message_telugu || d?.te || fallback;
+    if (typeof det === "string") return det;
+    if (Array.isArray(det)) {
+      const fields = det.map((x: any) => x?.loc?.[x.loc.length - 1]).filter(Boolean);
+      if (fields.length) {
+        return te
+          ? `ఈ fields సరిగ్గా ఇవ్వండి: ${fields.join(", ")}`
+          : `Please check these fields: ${fields.join(", ")}`;
+      }
+      return det.map((x: any) => x?.msg).filter(Boolean).join(", ") || fallback;
+    }
+    if (typeof det === "object") return det.te || det.message_telugu || det.en || det.reason || fallback;
+    return fallback;
+  };
+
   const submit = async () => {
     const all = [1, 2, 3, 4, 5].flatMap(validate);
     if (all.length) {
@@ -556,7 +671,7 @@ const set = (k: string, v: any) => {
 
       const r = await fetch("/api/register", { method: "POST", body: fd });
       const d = await r.json();
-      if (!r.ok) throw new Error(d.detail || T("Register అవ్వలేదు", "Registration failed"));
+      if (!r.ok) throw new Error(readableError(d, te));
       setResult(d);
       localStorage.removeItem(DRAFT_KEY);
       // 🔐 WAVE 9 — auth token save (private API: inbox/credits/views/saved ki) + demo login ready
@@ -590,8 +705,8 @@ const set = (k: string, v: any) => {
 
   /* ================= SUCCESS SCREEN ================= */
   if (result) {
-    const tsap = result.tsap_id || result.user_id || "TSAP-XXXX";
-    const cardUrl = result.card_url || `/cards/${tsap}.png`;
+    const tsap = result.tsap_id || result.user_id || "";
+    const cardUrl = tsap ? (result.card_url || `/cards/${tsap}.png`) : "";
     const share = result.share_text || `${SITE_CONFIG.brandName} profile ${tsap}`;
     return (
       <main className="min-h-screen">
@@ -600,11 +715,15 @@ const set = (k: string, v: any) => {
             <div className="text-5xl">🎉</div>
             <h1 className="mt-2 text-2xl font-bold">{T("Profile ready అయ్యింది!", "Profile ready!")}</h1>
             <p className="text-[13px] opacity-90 mt-1 telugu">{T("మీ ID + card కింద ఉంది — WhatsApp status లో share చెయ్యండి, reach double అవుతుంది.", "Your ID + card are below — share on WhatsApp status, reach doubles.")}</p>
-            <div className="mt-4 inline-flex items-center gap-2 bg-white/10 border border-white/25 rounded-2xl px-4 py-3">
-              <span className="font-mono text-lg font-bold">{tsap}</span>
-              <button onClick={() => copy(tsap, "id")} className="text-[11px] font-bold gold-gradient text-maroon px-3 py-1.5 rounded-full">
-                {copied === "id" ? "copied ✓" : "copy"}
-              </button>
+            <div className="mt-4 inline-flex max-w-full flex-col items-center gap-1.5 bg-white/10 border border-gold/40 rounded-2xl px-4 sm:px-6 py-4 shadow-brandLg">
+              <span className="text-[10px] font-bold uppercase tracking-widest opacity-70">{T("మీ ప్రొఫైల్ ID", "Your Profile ID")}</span>
+              <div className="flex flex-wrap items-center justify-center gap-2">
+                <span className="font-mono text-lg sm:text-2xl font-extrabold tracking-wide text-gold break-all">{tsap}</span>
+                <button onClick={() => copy(tsap, "id")} className="shrink-0 text-[11px] font-bold gold-gradient text-maroon px-3 py-1.5 rounded-full">
+                  {copied === "id" ? "✓" : "📋"}
+                </button>
+              </div>
+              <span className="text-[10px] opacity-70 text-center">{T("ఈ ID తో మీ ప్రొఫైల్ ఎప్పుడైనా వెతకవచ్చు", "Search your profile anytime with this ID")}</span>
             </div>
           </div>
         </section>
@@ -612,9 +731,28 @@ const set = (k: string, v: any) => {
         <div className="max-w-3xl mx-auto px-4 py-6 space-y-4">
           {result.publish_targets?.length ? (
             <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4">
-              <div className="font-bold text-emerald-900">{T("📢 Auto-post queue అయ్యింది", "📢 Auto-post queued")}</div>
-              <div className="text-[12px] text-emerald-800 mt-1">
-                {result.publish_targets.join(" • ")} {T("+ WhatsApp (anti-ban random gap తో)", "+ WhatsApp (with anti-ban random gap)")}
+              <div className="font-bold text-emerald-900 text-[15px]">📢 {T("మీ ప్రొఫైల్ ఇక్కడ post అవుతుంది", "Your profile is posted here")}</div>
+              <div className="text-[12px] text-emerald-800 mt-1 telugu">
+                {T("మీ కులం/ప్రాంతం బట్టి ఈ ఛానళ్లలో + WhatsApp లో మీ ప్రొఫైల్ కనిపిస్తుంది — రోజూ కొత్త సంబంధాలు చూడాలంటే join అవ్వండి:", "Based on your caste/region your profile shows in these channels + WhatsApp — join them to see new matches every day:")}
+              </div>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {result.publish_targets.map((t: string) => (
+                  <span key={t} className="inline-flex items-center rounded-full bg-white border border-emerald-300 text-emerald-900 font-bold text-[11px] px-2.5 py-1">📢 {prettyChannel(t)}</span>
+                ))}
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <a href={SITE_CONFIG.officialChannelUrl} target="_blank" rel="noreferrer"
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-[#229ED9] text-white font-bold text-[12px] px-4 py-2.5 shadow-soft hover:brightness-110 active:scale-[0.97] transition">
+                  <TelegramIcon className="w-4 h-4" mono />
+                  {T("Telegram లో join అవ్వండి", "Join on Telegram")}
+                </a>
+                {waLink("official") ? (
+                  <a href={waLink("official")} target="_blank" rel="noreferrer"
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-[#25D366] text-white font-bold text-[12px] px-4 py-2.5 shadow-soft hover:brightness-110 active:scale-[0.97] transition">
+                    <WhatsAppIcon className="w-4 h-4" mono />
+                    {T("WhatsApp లో join అవ్వండి", "Join on WhatsApp")}
+                  </a>
+                ) : null}
               </div>
             </div>
           ) : null}
@@ -646,14 +784,14 @@ const set = (k: string, v: any) => {
             </div>
             {result.quality ? (
               <div className="mt-2 rounded-xl border border-gold/40 bg-white p-3 text-[12px]">
-                <div className="font-bold text-maroon">📝 Mee profile completeness: {result.quality.percent}%</div>
+                <div className="font-bold text-maroon">📝 {T("మీ profile — quality check", "Your profile — quality check")}</div>
                 <div className="mt-1 text-gray-600">
                   {result.quality.verdict_telugu}
                   {Array.isArray(result.quality.important_telugu) && result.quality.important_telugu.length
                     ? ` · ${result.quality.important_telugu.slice(0, 2).join(" · ")}` : ""}
                 </div>
                 <div className="mt-1 text-[11px] text-emerald-700">
-                  {T("✅ Login token save అయ్యింది — మీ inbox/credits/shortlist ఇప్పుడు మీ browser లో secure", "✅ Login token saved — your inbox/credits/shortlist now secure in your browser")} ({result.phone_masked ? `number: ${result.phone_masked}` : "number masked"})
+                  {T("✅ మీరు ఇప్పుడు login అయ్యారు — మీ inbox/credits/shortlist ఇప్పుడు safe గా ఉన్నాయి", "✅ You're now logged in — your inbox/credits/shortlist are safe and ready")} ({result.phone_masked ? `number: ${result.phone_masked}` : "number masked"})
                 </div>
               </div>
             ) : null}
@@ -664,8 +802,8 @@ const set = (k: string, v: any) => {
                 </div>
                 <div className="mt-1 text-[11px] text-emerald-800">
                   {result.welcome_pack.queue?.queued
-                    ? (te ? `✅ WhatsApp లో వెళ్లింది (${result.welcome_pack.queue?.kind || "welcome_pack"}) — మీ number ${result.phone_masked || ""} కి` : `✅ Sent on WhatsApp (${result.welcome_pack.queue?.kind || "welcome_pack"}) — to your number ${result.phone_masked || ""}`)
-                    : T("🕒 WhatsApp bridge connect అయ్యే వరకు queue లో ఉంది — కానీ ఈ 3 profiles ఇక్కడే చూడండి:", "🕒 Queued till WhatsApp bridge connects — but see these 3 profiles here:")}
+                    ? (te ? `✅ WhatsApp లో వెళ్లింది — మీ number ${result.phone_masked || ""} కి` : `✅ Sent on WhatsApp — to your number ${result.phone_masked || ""}`)
+                    : T("🕒 WhatsApp కి కొద్ది సేపట్లో వెళ్తుంది — కానీ ఈ 3 profiles ఇక్కడే చూడండి:", "🕒 On its way to your WhatsApp shortly — but see these 3 profiles here:")}
                 </div>
                 <div className="mt-2 grid gap-2 sm:grid-cols-3">
                   {(result.welcome_pack.profiles || []).map((pf: any, i: number) => (
@@ -679,15 +817,17 @@ const set = (k: string, v: any) => {
                   ))}
                 </div>
                 {(result.welcome_pack.channels || []).length > 0 && (
-                  <div className="mt-2">
-                    <div className="text-[12px] font-bold text-maroon">📢 Mee caste channels — daily matches ikkada</div>
-                    <div className="mt-1 flex flex-wrap gap-1.5">
+                  <div className="mt-3 bg-white rounded-xl border border-gold/40 p-3">
+                    <div className="text-[13px] font-bold text-maroon">📢 {T("మీ కులం/ప్రాంతానికి సంబంధించిన సంబంధాలు ఇక్కడ వస్తాయి — Join అవ్వండి", "New matches for your caste/region come here — Join now")}</div>
+                    <div className="mt-2 space-y-1.5">
                       {(result.welcome_pack.channels || []).map((ch: any) => (
-                        <span key={ch.key} className="inline-flex items-center gap-1 rounded-full border border-maroon/20 bg-white px-2 py-1 text-[10px]">
-                          <b className="text-maroon">{ch.name}</b>
-                          {ch.telegram && <a className="text-sky-700 underline" href={ch.telegram} target="_blank" rel="noopener noreferrer">✈️ Telegram</a>}
-                          {ch.whatsapp && <a className="text-emerald-700 underline" href={ch.whatsapp} target="_blank" rel="noopener noreferrer">🟢 WhatsApp</a>}
-                        </span>
+                        <div key={ch.key} className="flex items-center justify-between gap-2 rounded-xl bg-cream/70 border border-gold/25 px-3 py-2">
+                          <span className="text-[12px] font-bold text-maroon truncate">{ch.name}</span>
+                          <div className="flex gap-1.5 shrink-0">
+                            {ch.telegram && <a className="rounded-full bg-sky-600 text-white text-[10px] font-bold px-2.5 py-1" href={ch.telegram} target="_blank" rel="noopener noreferrer">✈️ Telegram</a>}
+                            {ch.whatsapp && <a className="rounded-full bg-emerald-600 text-white text-[10px] font-bold px-2.5 py-1" href={ch.whatsapp} target="_blank" rel="noopener noreferrer">🟢 WhatsApp</a>}
+                          </div>
+                        </div>
                       ))}
                     </div>
                   </div>
@@ -751,14 +891,14 @@ const set = (k: string, v: any) => {
                   ℹ️ {result.referral.joined_with.message_telugu || "Referral code lock అవ్వలేదు"} {T("— పర్వాలేదు, మీ సొంత code తో ఇప్పుడు start చెయ్యండి.", "— no problem, start now with your own code.")}
                 </div>
               ) : null}
-              <div className="mt-3 bg-white/10 border border-white/20 rounded-xl px-3 py-2 flex items-center gap-2">
-                <span className="font-mono text-base font-bold">{result.referral.my_code}</span>
+              <div className="mt-3 bg-white/10 border border-white/20 rounded-xl px-3 py-2 flex flex-wrap items-center gap-2">
+                <span className="font-mono text-base font-bold break-all">{result.referral.my_code}</span>
                 <button onClick={() => copy(String(result.referral.my_code), "refcode")}
-                  className="text-[11px] font-bold gold-gradient text-maroon px-2.5 py-1 rounded-full">
+                  className="shrink-0 text-[11px] font-bold gold-gradient text-maroon px-2.5 py-1 rounded-full">
                   {copied === "refcode" ? "copied ✓" : "code copy"}
                 </button>
                 <button onClick={() => copy(String(result.referral.my_link), "reflink")}
-                  className="text-[11px] font-bold bg-white/15 border border-white/25 px-2.5 py-1 rounded-full">
+                  className="shrink-0 text-[11px] font-bold bg-white/15 border border-white/25 px-2.5 py-1 rounded-full">
                   {copied === "reflink" ? "copied ✓" : "link copy"}
                 </button>
               </div>
@@ -794,7 +934,7 @@ const set = (k: string, v: any) => {
               <div className="font-bold text-maroon text-[14px]">🙏 Namaste message mee WhatsApp ki pampam</div>
               <div className="text-[12px] text-gray-700 mt-1 telugu">
                 {T("మన side నుంచి మీ profile card + full details + next steps మీ number కి వెళ్తాయి (chatting లేదు — spam ఉండదు).", "Your profile card + full details + next steps come to your number from us (no chatting — no spam).")}
-                {result.welcome_status?.manual_text ? T(" Bridge connect అయ్యాక automatic గా పోతుంది; ఇప్పుడు support team manual గా పంపిస్తుంది.", " Goes automatically after bridge connects; our support team sends it manually now.") : ""}
+                {result.welcome_status?.manual_text ? T(" ఇది కొద్ది సేపట్లో మీకు వెళ్తుంది; అవసరమైతే మా support team కూడా పంపిస్తుంది.", " This reaches you shortly; our support team can also send it if needed.") : ""}
               </div>
               {result.welcome_status?.manual_text ? (
                 <button onClick={() => copy(String(result.welcome_status.manual_text), "namaste")}
@@ -855,7 +995,7 @@ const set = (k: string, v: any) => {
           <div className="bg-navy text-white rounded-2xl p-4">
             <div className="font-bold text-[14px]">{T("ఇప్పుడు ఏం చెయ్యాలి? (2 steps)", "What to do now? (2 steps)")}</div>
             <ol className="mt-2 text-[12px] space-y-1 opacity-90 list-decimal list-inside">
-              <li>{T(`మీ profile ${CHANNEL_STATS.total} channels లో post అవుతుంది (4 main + caste-wise) — 30 నిమిషాల్లో live`, `Your profile will post to ${CHANNEL_STATS.total} channels (4 main + caste-wise) — live in 30 minutes`)}</li>
+              <li>{T(`మీ profile మీ caste channel కి వెళ్తుంది (4 main + caste-wise)`, `Your profile goes to your caste channel (4 main + caste-wise)`)}</li>
               <li>{T(<>Matches చూసి <b>💌 Interest పంపు</b> — మొదటి 3 FREE, వాళ్లకి WhatsApp లో మీ profile వెళ్తుంది</>, <>See matches, <b>💌 send Interest</b> — first 3 FREE, they get your profile on WhatsApp</>)}</li>
             </ol>
             <div className="mt-3 flex flex-wrap gap-2">
@@ -880,69 +1020,84 @@ const set = (k: string, v: any) => {
   return (
     <main className="min-h-screen pb-32" ref={topRef}>
       {/* ---------- sticky progress ---------- */}
-      <div className="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-gold/25 safe-top">
+      <div className="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-gold/25 safe-top shadow-sm">
         <div className="max-w-3xl mx-auto px-4 py-3">
           <div className="flex items-center gap-3">
-            <Link href="/" className="text-[12px] font-bold text-maroon">← Home</Link>
+            <Link href="/" className="text-[12px] font-bold text-maroon shrink-0">← Home</Link>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <span className="text-lg">{stepMeta.icon}</span>
+                <span className="grid place-items-center w-8 h-8 rounded-full maroon-gradient text-white text-sm shrink-0 shadow-soft">{stepMeta.icon}</span>
                 <div className="min-w-0">
                   <div className="text-[13px] font-bold text-ink truncate">
-                    Step {step} of 5 — <Duo en={stepMeta.label} te={stepMeta.labelTe || ""} />
+                    Step {step} <span className="opacity-40">/ 5</span> — <Duo en={stepMeta.label} te={stepMeta.labelTe || ""} />
                   </div>
                   <div className="text-[10px] text-gray-500 telugu truncate">{te ? stepMeta.hint : (stepMeta.hintEn || stepMeta.hint)}</div>
                 </div>
               </div>
             </div>
-            <div className="text-right shrink-0">
-              <div className="text-[11px] font-bold text-maroon">{strength}%</div>
-              <div className="text-[9px] text-gray-500">profile strength</div>
+            <div className="relative w-11 h-11 shrink-0" aria-label="step progress">
+              <svg viewBox="0 0 40 40" className="w-11 h-11 -rotate-90">
+                <circle cx="20" cy="20" r="16.5" fill="none" stroke="#f1e6cf" strokeWidth="4" />
+                <circle cx="20" cy="20" r="16.5" fill="none" stroke="#7A0C2E" strokeWidth="4" strokeLinecap="round"
+                  strokeDasharray={2 * Math.PI * 16.5} strokeDashoffset={2 * Math.PI * 16.5 * (1 - strength / 100)}
+                  style={{ transition: "stroke-dashoffset 0.4s ease" }} />
+              </svg>
+              <span className="absolute inset-0 grid place-items-center text-[10px] font-extrabold text-maroon">{step}/5</span>
             </div>
           </div>
-          <div className="mt-2 flex items-center gap-1.5">
-            {STEPS.map((s) => (
+          <div className="mt-2.5 flex items-center gap-1">
+            {STEPS.map((s, i) => (
               <button key={s.n} onClick={() => { if (s.n < step) setStep(s.n); }}
-                className={`h-1.5 flex-1 rounded-full ${s.n <= step ? "maroon-gradient" : "bg-gray-200"}`} aria-label={`Step ${s.n}`} />
+                aria-label={`Step ${s.n}`}
+                className={`group relative flex-1 flex items-center ${i === 0 ? "" : ""}`}>
+                <span className={`grid place-items-center w-5 h-5 rounded-full text-[9px] font-extrabold shrink-0 transition-all ${
+                  s.n < step ? "maroon-gradient text-white" : s.n === step ? "bg-white border-2 border-maroon text-maroon shadow-soft scale-110" : "bg-gray-200 text-gray-400"
+                }`}>
+                  {s.n < step ? "✓" : s.n}
+                </span>
+                {i < STEPS.length - 1 && (
+                  <span className={`h-[3px] flex-1 rounded-full mx-0.5 ${s.n < step ? "maroon-gradient" : "bg-gray-200"}`} />
+                )}
+              </button>
             ))}
           </div>
-          <div className="mt-1.5 flex items-center justify-between text-[10px] text-gray-500">
-            <span>{T(`≈ ${Math.max(1, 5 - step)} నిమిషాలు మిగిలింది`, `≈ ${Math.max(1, 5 - step)} min left`)}</span>
+          <div className="mt-1.5 flex items-center justify-end text-[10px] text-gray-500">
             <span>{savedAt ? T(`💾 draft save ${savedAt}`, `💾 draft saved ${savedAt}`) : "💾 auto-save ON"}</span>
           </div>
         </div>
       </div>
 
       <div className="max-w-3xl mx-auto px-4 py-5">
-        {/* 🆓 FREE vs PAID — SCREEN 1 lo ne clear ga (numbers rule kooda) */}
-        <div className="mb-4 bg-white rounded-2xl border border-gold/40 card-shadow p-4">
-          <div className="font-bold text-maroon text-[14px]">{T("🆓 Register 100% FREE — ఏంటి వస్తుంది, ఏంటి రాదు (clear గా)", "🆓 Register 100% FREE — what you get, what you don\u2019t (clearly)")}</div>
-          <div className="mt-2 grid sm:grid-cols-2 gap-3 text-[12px]">
-            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3">
-              <div className="font-bold text-emerald-900">{T("FREE లో ఇచ్చేది", "What FREE gives")}</div>
-              <ul className="mt-1 space-y-0.5 text-emerald-900">
-                <li>✅ <b>{(clarity?.free?.profiles ?? 3)} profiles</b> {T("చూడొచ్చు (full details: caste, education, job, family, porutham)", "you can see (full details: caste, education, job, family, porutham)")}</li>
-                <li>✅ <b>{(clarity?.free?.requests ?? 3)} interests</b> {T("పంపొచ్చు — వాళ్లకి మన WhatsApp నుంచి మీ profile వెళ్తుంది", "you can send — they get your profile from our WhatsApp")}</li>
-                <li>✅ {T("మీ profile card FREE (Telugu, neat) + channels లో auto-post", "Your profile card FREE + auto-post to channels")}</li>
-                <li>✅ {T(<>వాళ్లు <b>accept చేస్తే → numbers exchange</b> (WhatsApp లో, consent తో)</>, <>If they <b>accept → numbers exchange</b> (on WhatsApp, with consent)</>)}</li>
-              </ul>
+        {/* 🆓 FREE vs PAID — step 1 lo matrame, collapsible (clutter తగ్గించడానికి) */}
+        {step === 1 && (
+          <details className="mb-4 bg-white rounded-2xl border border-gold/40 card-shadow p-4 group">
+            <summary className="font-bold text-maroon text-[14px] cursor-pointer list-none flex items-center justify-between">
+              <span>{T("🆓 Register 100% FREE — ఏంటి వస్తుంది, ఏంటి రాదు", "🆓 Register 100% FREE — what you get / don\u2019t")}</span>
+              <span className="text-[11px] font-normal text-gray-400 group-open:hidden">{T("చూడండి →", "View →")}</span>
+            </summary>
+            <div className="mt-2 grid sm:grid-cols-2 gap-3 text-[12px]">
+              <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3">
+                <div className="font-bold text-emerald-900">{T("FREE లో ఇచ్చేది", "What FREE gives")}</div>
+                <ul className="mt-1 space-y-0.5 text-emerald-900">
+                  <li>✅ <b>{(clarity?.free?.profiles ?? 3)} profiles</b> {T("చూడొచ్చు (full details)", "you can see (full details)")}</li>
+                  <li>✅ <b>{(clarity?.free?.requests ?? 3)} interests</b> {T("పంపొచ్చు", "you can send")}</li>
+                  <li>✅ {T("Profile card FREE + channel post", "Profile card FREE + channel post")}</li>
+                </ul>
+              </div>
+              <div className="bg-rose-50 border border-rose-200 rounded-xl p-3">
+                <div className="font-bold text-rose-900">{T("FREE లో ఇవ్వనిది (🔒)", "What FREE doesn\u2019t give (🔒)")}</div>
+                <ul className="mt-1 space-y-0.5 text-rose-900">
+                  <li>🔒 {T("Phone number — accept అయ్యాకే", "Phone number — only after accept")}</li>
+                  <li>🚫 {T("Chatting లేదు", "No chatting")}</li>
+                </ul>
+                <div className="mt-1 text-[11px]">{T(<>3 FREE తర్వాత: <b>₹99 → 5 profiles</b> · ₹499 → 50</>, <>After 3 FREE: <b>₹99 → 5 profiles</b> · ₹499 → 50</>)}</div>
+              </div>
             </div>
-            <div className="bg-rose-50 border border-rose-200 rounded-xl p-3">
-              <div className="font-bold text-rose-900">{T("FREE లో ఇవ్వనిది (🔒)", "What FREE doesn\u2019t give (🔒)")}</div>
-              <ul className="mt-1 space-y-0.5 text-rose-900">
-                <li>🔒 <b>{T("Phone numbers — ఇవ్వము", "Phone numbers — we don\u2019t give")}</b> {T("(98••••••45 అని మాత్రమే కనిపిస్తుంది)", "(only shown as 98••••••45)")}</li>
-                <li>{T("🔒 Photo (privacy mode ఉన్న profiles కి blur)", "🔒 Photo (blurred for privacy-mode profiles)")}</li>
-                <li>{T("🚫 Chatting లేదు (మనం chat platform కాదు — spam తగ్గడానికి)", "🚫 No chatting (we are not a chat platform — keeps spam low)")}</li>
-              </ul>
-              <div className="mt-1 text-[11px]">{T(<>3 FREE తర్వాత: <b>₹99 → 5 profiles + boost</b> · ₹199 → 12 · ₹299 → 25 · ₹499 → 50</>, <>After 3 FREE: <b>₹99 → 5 profiles + boost</b> · ₹199 → 12 · ₹299 → 25 · ₹499 → 50</>)}</div>
+            <div className="mt-2 text-[11px] text-gray-600">
+              <a href="/pricing" className="underline font-bold text-maroon">Pricing</a> · <a href="/safety" className="underline font-bold text-maroon">Safety</a>
             </div>
-          </div>
-          <div className="mt-2 text-[11px] text-gray-600">
-            {T("🔐 మీ number DB లో encrypt గా ఉంటుంది. Consent (accept) తోనే ఎవరికీ కనిపిస్తుంది.", "🔐 Your number stays encrypted in DB. Visible to others only with consent (accept).")}
-            {" "}<a href="/pricing" className="underline font-bold text-maroon">Pricing</a> ·
-            {" "}<a href="/safety" className="underline font-bold text-maroon">Safety</a>
-          </div>
-        </div>
+          </details>
+        )}
 
         {/* draft banner */}
         {draftFound && (
@@ -980,7 +1135,7 @@ const set = (k: string, v: any) => {
           </div>
         )}
 
-        <div key={step} className="step-slide space-y-5">
+        <div key={step} className="step-slide bg-white rounded-3xl border border-gold/25 card-shadow p-4 sm:p-6 space-y-5">
           {/* ---------------- STEP 1 ---------------- */}
           {step === 1 && (
             <>
@@ -989,7 +1144,7 @@ const set = (k: string, v: any) => {
                 <div className="mt-2 grid grid-cols-2 gap-3">
                   {[{ v: "Bride", l: "👰 పెళ్లి కూతురు", s: "Bride" }, { v: "Groom", l: "🤵 పెళ్లి కొడుకు", s: "Groom" }].map((g) => (
                     <button key={g.v} type="button" onClick={() => set("gender", g.v)}
-                      className={`rounded-2xl border-2 p-4 text-center ${f.gender === g.v ? "border-maroon bg-maroon-soft" : "border-gold/30 bg-white"}`}>
+                      className={`rounded-2xl border-2 p-4 text-center transition-all active:scale-[0.98] ${f.gender === g.v ? "border-maroon bg-maroon-soft shadow-soft" : "border-gold/30 bg-white hover:border-maroon/40"}`}>
                       <div className="text-2xl">{g.v === "Bride" ? "👰" : "🤵"}</div>
                       <div className="font-bold text-[14px] text-maroon mt-1 telugu">{g.l}</div>
                       <div className="text-[11px] text-gray-500">{g.s}</div>
@@ -1017,8 +1172,6 @@ const set = (k: string, v: any) => {
                 onChange={(v) => set("height", v)} placeholder={duo("Select your height", "మీ ఎత్తు ఎంచుకోండి")}>
                 {HEIGHTS.map((h) => (<option key={h} value={h}>{heightLabel(h)}</option>))}
               </SelectField>
-              <ChipGroup label="Weight" options={WEIGHTS.map((w) => ({ v: w }))} value={f.weight}
-                onChange={(v) => set("weight", v)} />
               <PillGroup label={<Duo en="Your marital status" te="మీ వైవాహిక స్థితి" />} required
                 value={f.marital_status}
                 onChange={(v) => { set("marital_status", v); if (v === "Pelli Kaledu") set("children", ""); }}
@@ -1050,21 +1203,39 @@ const set = (k: string, v: any) => {
           {/* ---------------- STEP 2 ---------------- */}
           {step === 2 && (
             <>
-              <ChipGroup label={`Caste — ${f.religion || "Hindu"} (${casteOpts.length})`} required searchable
-                options={casteOpts.map((c) => ({ v: c }))} value={f.caste} onChange={(v) => set("caste", v)}
+              <SearchSelect label={`Caste — ${f.religion || "Hindu"}`} required
+                options={casteOpts} value={f.caste}
+                onChange={(v) => { set("caste", v); set("sub_caste", ""); }}
+                placeholder={T("Caste ఎంచుకోండి — search చెయ్యండి", "Select caste — type to search")}
                 hint={T(`${f.religion || "Hindu"} కులాలు A–Z — మీ caste channel లో profile post అవుతుంది`, `${f.religion || "Hindu"} castes A–Z — profile posts to your caste channel`)} />
-              <TextField label="Sub caste" optional value={f.sub_caste} onChange={(v) => set("sub_caste", v)}
-                placeholder="Pakanati / Deshathi / Telaga…" />
+              {f.caste && (CASTE_SUBCASTES[f.caste]?.length ? (
+                <SearchSelect label="Sub caste"
+                  options={CASTE_SUBCASTES[f.caste]} value={f.sub_caste}
+                  onChange={(v) => set("sub_caste", v)}
+                  placeholder={T("Sub caste ఎంచుకోండి (ఉంటే)", "Select sub caste (if any)")}
+                  hint={T("ఉంటే select చెయ్యండి — లేకపోతే వదిలేయండి", "Select if applicable — otherwise skip")} />
+              ) : (
+                <TextField label="Sub caste" optional value={f.sub_caste} onChange={(v) => set("sub_caste", v)}
+                  placeholder="Pakanati / Deshathi / Telaga…" />
+              ))}
+              <div className="pt-1 pb-0.5 flex items-center gap-2">
+                <span className="text-[12px] font-extrabold text-maroon">🕉️ {T("జ్యోతిషం (Astrology)", "Astrology (Jyothishyam)")}</span>
+                <span className="h-px flex-1 bg-gold/40" />
+                <span className="text-[10px] text-gray-500">{T("పొరుతం కి కావాలి", "needed for porutham")}</span>
+              </div>
               <TextField label="Gothram" optional value={f.gothram} onChange={(v) => set("gothram", v)}
                 placeholder="Bharadwaj" hint={T("Porutham report కి కావాలి", "Needed for porutham report")} />
-              <ChipGroup label="Star / Nakshatram" searchable te
-                options={NAKSHATRAS.map((n) => ({ v: n.en, te: n.te }))} value={f.star}
-                onChange={(v) => set("star", v)} hint={T("Star select చేస్తే rasi automatic వస్తుంది (porutham 10/10)", "Select star — rasi auto-suggests (porutham 10/10)")} />
-              <ChipGroup label="Rasi" te options={RASIS.map((r) => ({ v: r.en, te: r.te }))} value={f.rasi}
-                onChange={(v) => set("rasi", v)} />
-              <ChipGroup label={T("మూలా నక్షత్రమా?", "Moola nakshatram?")} options={[{ v: "No" }, { v: "Yes" }]} value={f.moola_nakshatram}
+              <SearchSelect label="Star / Nakshatram" options={NAKSHATRAS.map((n) => n.en)} value={f.star}
+                teMap={Object.fromEntries(NAKSHATRAS.map((n) => [n.en, n.te]))}
+                onChange={(v) => set("star", v)}
+                placeholder={T("Star ఎంచుకోండి", "Select star")}
+                hint={T("Star select చేస్తే rasi automatic వస్తుంది (porutham 10/10)", "Select star — rasi auto-suggests (porutham 10/10)")} />
+              <SearchSelect label="Rasi" options={RASIS.map((r) => r.en)} value={f.rasi}
+                teMap={Object.fromEntries(RASIS.map((r) => [r.en, r.te]))}
+                onChange={(v) => set("rasi", v)} placeholder={T("Rasi ఎంచుకోండి", "Select rasi")} />
+              <PillGroup label={T("మూలా నక్షత్రమా?", "Moola nakshatram?")} options={[{ v: "No", en: "No", te: "లేదు" }, { v: "Yes", en: "Yes", te: "ఉంది" }]} value={f.moola_nakshatram}
                 onChange={(v) => set("moola_nakshatram", v)} />
-              <ChipGroup label={T("దోషం ఉందా?", "Any dosham?")} options={[{ v: "No" }, { v: "Yes" }, { v: "Not Sure" }]} value={f.dosham}
+              <PillGroup label={T("దోషం ఉందా?", "Any dosham?")} options={[{ v: "No", en: "No", te: "లేదు" }, { v: "Yes", en: "Yes", te: "ఉంది" }, { v: "Not Sure", en: "Not sure", te: "తెలియదు" }]} value={f.dosham}
                 onChange={(v) => set("dosham", v)} />
             </>
           )}
@@ -1072,14 +1243,14 @@ const set = (k: string, v: any) => {
           {/* ---------------- STEP 3 ---------------- */}
           {step === 3 && (
             <>
-              <ChipGroup label="Education" required searchable options={EDUCATIONS.map((x) => ({ v: x }))}
-                value={f.education} onChange={(v) => set("education", v)} />
+              <SearchSelect label="Education" required options={EDUCATIONS}
+                value={f.education} onChange={(v) => set("education", v)}
+                placeholder={T("Education ఎంచుకోండి", "Select education")} />
               <TextField label="Education detail" optional value={f.education_detail} onChange={(v) => set("education_detail", v)}
                 placeholder="CSE / Finance / Nursing…" />
-              <TextField label="College / University" optional value={f.college} onChange={(v) => set("college", v)}
-                placeholder="JNTU Hyderabad" />
-              <ChipGroup label="Job / Udyogam" required searchable options={JOBS.map((j) => ({ v: j }))}
-                value={f.job} onChange={(v) => set("job", v)} />
+              <SearchSelect label="Job / Udyogam" required options={JOBS}
+                value={f.job} onChange={(v) => set("job", v)}
+                placeholder={T("Job ఎంచుకోండి", "Select job / occupation")} />
               <TextField label="Company" optional value={f.company} onChange={(v) => set("company", v)} placeholder="TCS / Govt / Own business" />
               <TextField label="Experience" optional value={f.experience} onChange={(v) => set("experience", v)}
                 inputMode="numeric" placeholder="3 years" />
@@ -1101,8 +1272,9 @@ const set = (k: string, v: any) => {
                 <ChipGroup label="State" required options={[{ v: "TS" }, { v: "AP" }, { v: "Other" }]} value={f.state}
                   onChange={(v) => { set("state", v); set("district", ""); }} />
               </div>
-              <ChipGroup label="District" required searchable options={distList.map((d) => ({ v: d }))}
+              <SearchSelect label="District" required options={distList}
                 value={f.district} onChange={(v) => set("district", v)}
+                placeholder={T("District ఎంచుకోండి", "Select district")}
                 hint={T("District channel + local matches కి కావాలి", "Needed for district channel + local matches")} />
               <div className="grid grid-cols-1 gap-3">
                 <TextField label="Mandal / Area" optional value={f.mandal} onChange={(v) => set("mandal", v)} placeholder="Miryalaguda" />
@@ -1261,7 +1433,7 @@ const set = (k: string, v: any) => {
                 <label className="text-[13px] font-bold text-emerald-900">🤝 Referral code (friend/partner ichara?)</label>
                 <input value={f.referral_code}
                   onChange={(e) => set("referral_code", e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, "").slice(0, 20))}
-                  placeholder="Ex: charan519 / LAK42 (optional)"
+                  placeholder="Ex: CHA0001 (optional)"
                   aria-label="Referral code"
                   className="input-mobile mt-2 font-mono tracking-wide" />
                 <div className="hint mt-1">
@@ -1275,8 +1447,8 @@ const set = (k: string, v: any) => {
                 <input type="checkbox" checked={!!f.consent} onChange={(e) => set("consent", e.target.checked)}
                   className="mt-1 w-5 h-5 accent-[#7A0C2E]" />
                 <span className="text-[12px] text-gray-700">
-{T(<>నా details <b>నిజం</b> అని confirm చేస్తున్నాను. <b>Mana Vivaha</b> terms + privacy policy accept చేస్తున్నాను —
-                  details channels లో post అవుతాయి, number accept అయ్యాకే share అవుతుంది.</>, <>I confirm my details are <b>true</b>. I accept <b>Mana Vivaha</b> terms + privacy policy —
+{T(<>నా details <b>నిజం</b> అని confirm చేస్తున్నాను. <b>మన వివాహ</b> terms + privacy policy accept చేస్తున్నాను —
+                  details channels లో post అవుతాయి, number accept అయ్యాకే share అవుతుంది.</>, <>I confirm my details are <b>true</b>. I accept <b>మన వివాహ</b> terms + privacy policy —
                   details post in channels, number shared only after accept.</>)}
                 </span>
               </label>

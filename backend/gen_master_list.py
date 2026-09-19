@@ -115,7 +115,7 @@ def main():
     A("4. Pinned welcome post paste chey:")
     A("")
     A("```")
-    A("🙏 Mana Vivaha — TS-AP Telugu Matrimony ki swagatham!")
+    A("🙏 మన వివాహ — TS-AP Telugu Matrimony ki swagatham!")
     A("🆔 Profile ID search: https://manavivaha.in/search")
     A("📝 3 min lo FREE register: https://manavivaha.in/register")
     A("💰 ₹99 ke Sambandham — modati 3 numbers FREE")
@@ -138,7 +138,7 @@ def main():
     A("")
     A("---")
     A("")
-    A("**Mana Vivaha — 52 channels, okka platform, okka bot, okka approve = viral everywhere.** 🔥")
+    A("**మన వివాహ — 52 channels, okka platform, okka bot, okka approve = viral everywhere.** 🔥")
     A("")
 
     with open(OUT, "w", encoding="utf-8") as f:

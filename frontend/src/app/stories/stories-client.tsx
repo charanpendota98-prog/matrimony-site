@@ -70,8 +70,8 @@ export default function StoriesClient() {
       <div className="mt-4"><FeaturedStories limit={6} /></div>
       <h2 className="mt-8 text-xl font-extrabold text-rose-900">💬 <Duo en="Community stories" te="మీ కథలు" /></h2>
       <p className="mt-1 text-gray-600">
-{te ? <>Mana Vivaha ద్వారా కలిసిన జంటలు 🎉 — మీకు కూడా ఇలాంటి సంబంధం కావాలంటే{" "}
-        <Link href="/register" className="font-semibold text-rose-700 underline">3 min లో register</Link> (మొదటి 3 FREE).</> : <>Couples united through Mana Vivaha 🎉 — if you want such a match too{" "}
+{te ? <>మన వివాహ ద్వారా కలిసిన జంటలు 🎉 — మీకు కూడా ఇలాంటి సంబంధం కావాలంటే{" "}
+        <Link href="/register" className="font-semibold text-rose-700 underline">3 min లో register</Link> (మొదటి 3 FREE).</> : <>Couples united through మన వివాహ 🎉 — if you want such a match too{" "}
         <Link href="/register" className="font-semibold text-rose-700 underline">register in 3 min</Link> (first 3 FREE).</>}
       </p>
 
@@ -85,7 +85,7 @@ export default function StoriesClient() {
       <div className="mt-6 space-y-4">
         {stories.map((s) => (
           <article key={s.story_id} className="rounded-2xl border border-rose-100 bg-white p-5 shadow-sm">
-            <p className="font-bold text-rose-900">💑 {s.couple_names || "Mana Vivaha జంట"}{s.district ? ` · ${s.district}` : ""}</p>
+            <p className="font-bold text-rose-900">💑 {s.couple_names || "మన వివాహ జంట"}{s.district ? ` · ${s.district}` : ""}</p>
             <p className="mt-2 whitespace-pre-wrap text-gray-700">“{s.text}”</p>
             <div className="mt-3 flex items-center justify-between">
               <button
@@ -117,7 +117,7 @@ export default function StoriesClient() {
           placeholder={te ? "మీ story (20+ letters) — ఎలా కలిశారు, ఎప్పుడు పెళ్లి…" : "Your story (20+ letters) — how you met, when married…"} aria-label={te ? "మీ story" : "Your story"}
           rows={3} className="mt-2 w-full rounded-xl border px-3 py-2 text-sm outline-none focus:border-emerald-500" />
         <input value={form.partner_id} onChange={(e) => setForm({ ...form, partner_id: e.target.value })}
-          placeholder="Partner TSAP ID (optional)" aria-label="Partner TSAP ID"
+          placeholder="Partner Profile ID (optional)" aria-label="Partner Profile ID"
           className="mt-2 w-full rounded-xl border px-3 py-2 text-sm outline-none focus:border-emerald-500" />
         <button onClick={submit} disabled={sending}
           className="mt-3 rounded-xl bg-emerald-700 px-5 py-2 font-bold text-white hover:bg-emerald-800 disabled:opacity-60">

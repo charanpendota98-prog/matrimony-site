@@ -110,8 +110,21 @@ def test_interest():
         groom = next(x["tsap_id"] for x in seed["created"] if x.get("role") == "Groom")
         brides = [x["tsap_id"] for x in seed["created"] if x.get("role") == "Bride"]
         bride = brides[0]
+        # 🐞 FIX (R13): prior-run payments/perks persist (credits≠3, whoviewed active) — reset demo pair
+        for _id in (groom, bride):
+            _u = next((x for x in M.DB_USERS if x["tsap_id"] == _id), None)
+            if _u is not None:
+                _u["credits"] = 3; _u["plan"] = "FREE"
+                _u["whoviewed_until"] = ""; _u["boost_until"] = ""
 
         r = c.post("/api/interest/send", json={"from_id": groom, "to_id": bride, "note": "test"}).json()
+        # 🐞 FIX (R12/R13): purathana run lo interest persist ayyi unte "already request" 400 —
+        # whatsapp key missing → KeyError. Clear the pair interest first, retry once.
+        if not r.get("success") or "whatsapp" not in r:
+            M.DB_INTERESTS[:] = [x for x in M.DB_INTERESTS
+                                 if groom not in (x.get("from_id"), x.get("to_id"))
+                                 and bride not in (x.get("from_id"), x.get("to_id"))]
+            r = c.post("/api/interest/send", json={"from_id": groom, "to_id": bride, "note": "test"}).json()
         check("Interest send success", r.get("success") is True)
         check("Credit deduct ayyindi (3→2)", r.get("credits_left") == 2, str(r.get("credits_left")))
         check("Match score vasthundi (0 kadu)", r.get("score", 0) > 0, str(r.get("score")))
@@ -202,7 +215,14 @@ def test_porutham_views_addons():
         check("Porutham API (IDs tho) 10 items", len(pr["items"]) == 10, str(len(pr.get("items", []))))
         check("Porutham verdict Telugu lo", "పొరుత్తం" in pr["verdict"] or "పొరుత్తాలు" in pr["verdict"])
 
-        # views
+        # views — 🐞 FIX (R13): pair views clear (6h dedup + perks from prior runs)
+        for _id in (g, b):
+            _u = next((x for x in M.DB_USERS if x["tsap_id"] == _id), None)
+            if _u is not None:
+                _u["whoviewed_until"] = ""; _u["plan"] = "FREE"
+        M.DB_VIEWS[:] = [x for x in M.DB_VIEWS
+                         if g not in (x.get("tsap_id"), x.get("viewer_id"))
+                         and b not in (x.get("tsap_id"), x.get("viewer_id"))]
         c.post("/api/view", json={"tsap_id": b, "viewer_id": g})
         v1 = c.get(f"/api/views/{b}").json()
         check("View record + count", v1["total_views"] >= 1, str(v1["total_views"]))

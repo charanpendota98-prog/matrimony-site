@@ -64,9 +64,9 @@ export default function VerifyPage() {
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-8">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-extrabold text-maroon">🤳 <Duo en="Verify Profile" te="ప్రొఫైల్ ధృవీకరణ" /></h1>
-        <Link href="/matches" className="text-[13px] font-bold text-maroon"><Duo en="Skip for now ›" te="ప్రస్తుతానికి దాటవేయి ›" /></Link>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h1 className="text-xl sm:text-2xl font-extrabold text-maroon min-w-0">🤳 <Duo en="Verify Profile" te="ప్రొఫైల్ ధృవీకరణ" /></h1>
+        <Link href="/matches" className="text-[13px] font-bold text-maroon shrink-0"><Duo en="Skip for now ›" te="ప్రస్తుతానికి దాటవేయి ›" /></Link>
       </div>
 
       <section className="mt-4 rounded-2xl border border-gold/30 card-shadow bg-gradient-to-br from-emerald-50 to-white p-6">

@@ -1,6 +1,6 @@
 "use client";
 /**
- * 🏪 VENDOR ADS & DIRECTORY — Mana Vivaha
+ * 🏪 VENDOR ADS & DIRECTORY — మన వివాహ
  * ======================================
  * "Pelli sambandham related vaallaki promotions kooda cheyyali bestga"
  *  • 18 categories (catering, photography, decorations, hall, pandit, makeup...)
@@ -129,11 +129,11 @@ export default function VendorsPage() {
 
         {/* DIRECTORY */}
         <section className="mt-6">
-          <div className="flex items-center justify-between">
-            <h2 className="font-bold text-maroon text-lg">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="font-bold text-maroon text-lg min-w-0">
               {cat ? `${cats.find((c) => c.key === cat)?.icon || ""} ${cats.find((c) => c.key === cat)?.en || cat}` : te ? "అన్ని vendors" : "All vendors"} — {vendors.length}
             </h2>
-            {loading && <span className="text-[11px] text-gray-500">⏳ {duo("loading…", "లోడ్ అవుతోంది…")}</span>}
+            {loading && <span className="text-[11px] text-gray-500 shrink-0">⏳ {duo("loading…", "లోడ్ అవుతోంది…")}</span>}
           </div>
 
           {!loading && vendors.length === 0 && (
@@ -192,7 +192,7 @@ export default function VendorsPage() {
         <section id="packages" className="mt-10">
           <h2 className="font-bold text-maroon text-xl">💰 <Duo en="Ad Packages — publicity for your business" te="మీ వ్యాపారానికి ప్రచారం" /></h2>
           <p className="text-[12px] text-gray-600 mt-1 telugu">
-            {pkgs?.headline || (te ? "మీ business ని Mana Vivaha లో promote చెయ్యండి — ₹149 నుంచి" : "Promote your business in Mana Vivaha — from ₹149")}
+            {pkgs?.headline || (te ? "మీ business ని మన వివాహ లో promote చెయ్యండి — ₹149 నుంచి" : "Promote your business on మన వివాహ — from ₹149")}
           </p>
           <div className="mt-4 grid md:grid-cols-2 lg:grid-cols-3 gap-4">
             {(pkgs?.packages || []).map((p: any) => (
@@ -242,7 +242,7 @@ export default function VendorsPage() {
         {/* WHY */}
         <section className="mt-8 grid md:grid-cols-2 gap-4">
           <div className="bg-white rounded-3xl border border-gold/30 p-5">
-            <h3 className="font-bold text-maroon">{te ? "🎯 ఎందుకు Mana Vivaha?" : "🎯 Why Mana Vivaha?"}</h3>
+            <h3 className="font-bold text-maroon">{te ? "🎯 ఎందుకు మన వివాహ?" : "🎯 Why మన వివాహ?"}</h3>
             <ul className="mt-2 space-y-1 text-[12px] text-gray-700">
               {(pkgs?.why_telugu || []).map((w: string) => <li key={w}>{w}</li>)}
             </ul>
@@ -251,7 +251,7 @@ export default function VendorsPage() {
             <h3 className="font-bold">{te ? "📢 మన channels లో మీ promo ఎలా వెళ్తుంది" : "📢 How your promo travels our channels"}</h3>
             <ul className="mt-2 space-y-1 text-[12px] opacity-90">
               <li>{te ? "• Telegram: మీ city/caste channel + 4 main channels (bride/groom TS/AP)" : "• Telegram: your city/caste channel + 4 main channels (bride/groom TS/AP)"}</li>
-              <li>{te ? "• WhatsApp: anti-ban safe order లో (random gaps, daily caps) — status + groups" : "• WhatsApp: in anti-ban safe order (random gaps, daily caps) — status + groups"}</li>
+              <li>{te ? "• WhatsApp: status + groups లో కూడా" : "• WhatsApp: status + groups too"}</li>
               <li>{te ? "• Website: home top banner, /vendors page లో top slot, matches sidebar" : "• Website: home top banner, top slot on /vendors, matches sidebar"}</li>
               <li>{te ? "• Poster with QR — మీ customers direct గా WhatsApp చెయ్యొచ్చు" : "• Poster with QR — your customers can WhatsApp directly"}</li>
             </ul>

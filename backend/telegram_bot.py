@@ -81,7 +81,7 @@ def parse_start_ref(text: str) -> dict:
 
 def help_text() -> str:
     return (
-        "🙏 Mana Vivaha Bot — HELP\n\n"
+        "🙏 మన వివాహ Bot — HELP\n\n"
         "• /start — kottha register (3 min)\n"
         "• /search TSAP-F-1042 — ID తో profile చూడండి\n"
         "• /unlock TSAP-F-1042 — number unlock (1 credit)\n"

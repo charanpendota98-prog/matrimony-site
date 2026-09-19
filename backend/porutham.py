@@ -1,5 +1,5 @@
 """
-Mana Vivaha — 10-PORUTHAM (KUNDLI MATCH) ENGINE 🔮
+మన వివాహ — 10-PORUTHAM (KUNDLI MATCH) ENGINE 🔮
 ==================================================
 Top matrimony sites (Bharat Matrimony, Shaadi) ee feature ni PAID ga ammutunnayi.
 Manam free ga compute chesi, cards/requests lo chupistham — ee trust factor valla conversions perugutayi.

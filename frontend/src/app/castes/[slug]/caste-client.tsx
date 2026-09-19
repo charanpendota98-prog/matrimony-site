@@ -2,8 +2,10 @@
 
 /** /castes/[slug] body — neat Telugu / clean English via toggle (SEO shell stays server). */
 import Link from "next/link";
-import { CASTES, DISTRICTS, buildSlug } from "@/lib/seo-pages";
+import { CASTES, buildSlug } from "@/lib/seo-pages";
 import { CHANNEL_STATS } from "@/lib/channels";
+import { waLink } from "@/lib/wa";
+import { TelegramIcon, WhatsAppIcon } from "@/components/BrandIcons";
 import { useLang } from "@/lib/lang";
 
 type Caste = {
@@ -14,7 +16,7 @@ type Caste = {
 };
 type District = { slug: string; name: string; state: string };
 type Chan = {
-  name?: string; username?: string; link?: string; deepLink?: string;
+  key?: string; name?: string; username?: string; link?: string; deepLink?: string;
   desc?: string; live?: boolean; wave?: number; hashtags?: string[];
 };
 
@@ -26,6 +28,8 @@ export default function CasteClient({ caste, role, district, chan, otherChan }: 
   const te = lang === "te";
   const otherRole = role === "bride" ? "groom" : "bride";
   const roleTelugu = role === "bride" ? "పెళ్లి కూతురు (Bride)" : "పెళ్లి కొడుకు (Groom)";
+  const myChanLabel = `${caste.name} ${role === "bride" ? "Brides" : "Grooms"}`;
+  const otherChanLabel = `${caste.name} ${role === "bride" ? "Grooms" : "Brides"}`;
   const roleEn = role === "bride" ? "Bride" : "Groom";
   const where = district ? `${district.name}, ${district.state}` : te ? "Telangana + Andhra Pradesh" : "Telangana + Andhra Pradesh";
   const sameCasteOtherRole = buildSlug(caste.key, role === "bride" ? "groom" : "bride", district?.slug);
@@ -45,18 +49,18 @@ export default function CasteClient({ caste, role, district, chan, otherChan }: 
           <p className="mt-2 text-[13px] md:text-sm opacity-90 telugu max-w-3xl">
             {te ? (
               <>{caste.name} {roleTelugu} సంబంధాలు — {where}. 100% verified Telugu profiles, caste-wise Telegram channel
-                (<b>{chan?.username}</b>) + WhatsApp లో interest పంపండి. 🚫 Chatting లేదు — accept అయితే direct number exchange.</>
+                (<b>{myChanLabel}</b>) + WhatsApp లో interest పంపండి. 🚫 Chatting లేదు — accept అయితే direct number exchange.</>
             ) : (
               <>{caste.name} {roleEn} matches — {where}. 100% verified Telugu profiles, caste-wise Telegram channel
-                (<b>{chan?.username}</b>) + send interest on WhatsApp. 🚫 No chatting — direct number exchange on accept.</>
+                (<b>{myChanLabel}</b>) + send interest on WhatsApp. 🚫 No chatting — direct number exchange on accept.</>
             )}
           </p>
           <div className="mt-5 flex flex-wrap gap-2">
             <Link href="/register" className="gold-gradient text-maroon font-bold text-sm px-5 py-3 rounded-xl hover-lift">
-              {te ? "📝 FREE register — 3 నిమిషాలు" : "📝 Register FREE — 3 minutes"}
+              {te ? "📝 FREE గా register చెయ్యండి" : "📝 Register FREE"}
             </Link>
             <a href={chan?.link} target="_blank" rel="noreferrer" className="bg-white/10 border border-white/25 font-bold text-sm px-5 py-3 rounded-xl">
-              📢 {chan?.username} {te ? "channel" : "channel"}
+              📢 {myChanLabel}
             </a>
             <Link href="/requests" className="bg-white/10 border border-white/25 font-bold text-sm px-5 py-3 rounded-xl">
               {te ? "💌 Requests dashboard" : "💌 Requests dashboard"}
@@ -83,15 +87,15 @@ export default function CasteClient({ caste, role, district, chan, otherChan }: 
             <ol className="mt-3 space-y-2 text-[13px] text-gray-700 list-decimal list-inside">
               {te ? (
                 <>
-                  <li><b>FREE register</b> (3 నిమిషాలు) — personal, family, caste/astro, education, location + photo.</li>
-                  <li><b>Auto-post:</b> మీ profile card {chan?.username} channel లో + WhatsApp group లో (anti-ban safe).</li>
+                  <li><b>FREE register</b> — personal, family, caste/astro, education, location + photo.</li>
+                  <li><b>Profile post:</b> మీ profile card <b>{myChanLabel}</b> channel లో + WhatsApp group లో పోస్ట్ అవుతుంది.</li>
                   <li><b>💌 Interest పంపండి:</b> నచ్చిన profile కి — వాళ్లకి మన WhatsApp నుంచి మీ profile card వెళ్తుంది.</li>
                   <li><b>✅ Accept అయితే:</b> రెండు numbers automatic గా exchange ({role === "bride" ? "groom" : "bride"} side consent తో).</li>
                 </>
               ) : (
                 <>
-                  <li><b>Register FREE</b> (3 minutes) — personal, family, caste/astro, education, location + photo.</li>
-                  <li><b>Auto-post:</b> your profile card goes to the {chan?.username} channel + WhatsApp group (anti-ban safe).</li>
+                  <li><b>Register FREE</b> — personal, family, caste/astro, education, location + photo.</li>
+                  <li><b>Profile post:</b> your profile card goes to the <b>{myChanLabel}</b> channel + WhatsApp group.</li>
                   <li><b>💌 Send interest:</b> to profiles you like — they get your profile card from our WhatsApp.</li>
                   <li><b>✅ On accept:</b> both numbers exchange automatically (with the {role === "bride" ? "groom" : "bride"} side&apos;s consent).</li>
                 </>
@@ -116,15 +120,15 @@ export default function CasteClient({ caste, role, district, chan, otherChan }: 
               <div className="mt-2 bg-white border border-gold/30 rounded-2xl p-3 text-[12px] text-gray-700">
                 {te ? (
                   <>⭐ <b>{caste.name} కి bride + groom channels separate గా ఉన్నాయి</b> (caste ప్రకారం) —{" "}
-                    {role === "bride" ? "మీరు ఇప్పుడు చూస్తున్నది" : "bride page"} <b>{chan?.username}</b>,{" "}
-                    {role === "bride" ? "groom" : "మీ"} page <b>{otherChan?.username}</b>.{" "}
+                    {role === "bride" ? "మీరు ఇప్పుడు చూస్తున్నది" : "bride page"} <b>{myChanLabel}</b>,{" "}
+                    {role === "bride" ? "groom" : "మీ"} page <b>{otherChanLabel}</b>.{" "}
                     <Link className="underline font-bold text-maroon" href={`/castes/${buildSlug(caste.key, otherRole, district?.slug)}`}>
                       {otherRole === "bride" ? "Brides" : "Grooms"} page చూడండి →
                     </Link></>
                 ) : (
                   <>⭐ <b>{caste.name} has separate bride + groom channels</b> (caste-wise) —{" "}
-                    {role === "bride" ? "you are viewing" : "the bride page"} <b>{chan?.username}</b>,{" "}
-                    {role === "bride" ? "the groom" : "your"} page is <b>{otherChan?.username}</b>.{" "}
+                    {role === "bride" ? "you are viewing" : "the bride page"} <b>{myChanLabel}</b>,{" "}
+                    {role === "bride" ? "the groom" : "your"} page is <b>{otherChanLabel}</b>.{" "}
                     <Link className="underline font-bold text-maroon" href={`/castes/${buildSlug(caste.key, otherRole, district?.slug)}`}>
                       See {otherRole === "bride" ? "Brides" : "Grooms"} page →
                     </Link></>
@@ -150,24 +154,41 @@ export default function CasteClient({ caste, role, district, chan, otherChan }: 
               ))}
             </div>
           </section>
-
-          <RelatedDistricts
-            te={te} casteKey={caste.key} casteName={caste.name} role={role}
-            districtSlug={district?.slug} districtName={district?.name} />
         </div>
 
         <aside className="space-y-4">
-          <div className="bg-navy text-white rounded-2xl p-5">
-            <div className="font-bold">{chan?.name}</div>
-            <div className="text-[12px] opacity-85 mt-1">{chan?.username}</div>
-            <div className="text-[11px] opacity-70 mt-1">
-              {chan?.live ? "🟢 Live" : te ? `🟡 Wave-${chan?.wave || 1} లో open అవుతుంది` : `🟡 Opens in Wave-${chan?.wave || 1}`} • {(chan?.hashtags || []).length} hashtags
+          <div className="bg-navy text-white rounded-2xl p-5 card-shadow">
+            <div className="flex items-center justify-between gap-2">
+              <div className="font-bold leading-tight">{myChanLabel}</div>
+              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap ${chan?.live ? "bg-emerald-400/20 text-emerald-300" : "bg-amber-400/20 text-amber-300"}`}>
+                {chan?.live ? "● LIVE" : te ? "త్వరలో" : "Soon"}
+              </span>
             </div>
-            <a href={chan?.deepLink} target="_blank" rel="noreferrer"
-              className="mt-3 block text-center gold-gradient text-maroon font-bold text-[12px] py-2.5 rounded-xl">
-              {te ? "🤖 Bot తో join అవ్వండి" : "🤖 Join via bot"}
-            </a>
-            <Link href="/channels" className="mt-2 block text-center border border-white/25 text-white font-bold text-[12px] py-2.5 rounded-xl">
+            <div className="text-[11px] opacity-70 mt-0.5">
+              {te ? "కొత్త సంబంధాలు రోజూ ఇక్కడే" : "New matches posted here daily"}
+            </div>
+            <div className="mt-3 space-y-2">
+              <a href={chan?.link} target="_blank" rel="noreferrer"
+                className="flex items-center justify-center gap-2 w-full bg-[#229ED9] text-white font-bold text-[13px] py-2.5 rounded-xl shadow-soft hover:brightness-110 active:scale-[0.97] transition">
+                <TelegramIcon className="w-4 h-4" mono />
+                {te ? "Telegram లో join అవ్వండి" : "Join on Telegram"}
+              </a>
+              {waLink(chan?.key) ? (
+                <a href={waLink(chan?.key)} target="_blank" rel="noreferrer"
+                  className="flex items-center justify-center gap-2 w-full bg-[#25D366] text-white font-bold text-[13px] py-2.5 rounded-xl shadow-soft hover:brightness-110 active:scale-[0.97] transition">
+                  <WhatsAppIcon className="w-4 h-4" mono />
+                  {te ? "WhatsApp లో join అవ్వండి" : "Join on WhatsApp"}
+                </a>
+              ) : null}
+              {otherChan ? (
+                <a href={otherChan.link} target="_blank" rel="noreferrer"
+                  className="flex items-center justify-center gap-2 w-full border border-white/25 text-white font-bold text-[12px] py-2 rounded-xl hover:bg-white/10 transition">
+                  <TelegramIcon className="w-3.5 h-3.5" mono />
+                  {otherChanLabel} — Telegram
+                </a>
+              ) : null}
+            </div>
+            <Link href="/channels" className="mt-3 block text-center text-[11px] underline underline-offset-2 opacity-80 hover:opacity-100">
               {te ? <>అన్ని {CHANNEL_STATS.total} channels →</> : <>All {CHANNEL_STATS.total} channels →</>}
             </Link>
           </div>
@@ -213,8 +234,8 @@ export default function CasteClient({ caste, role, district, chan, otherChan }: 
             <div>
               <div className="font-bold text-ink">{te ? "నా profile ఎక్కడ post అవుతుంది?" : "Where does my profile get posted?"}</div>
               <div className="text-gray-600">
-                {te ? <>{chan?.username} + మీ district/region channel + job/education special channel (max 5 channels) — Telegram + WhatsApp రెండు చోట్లా.</>
-                    : <>{chan?.username} + your district/region channel + job/education special channel (max 5 channels) — on both Telegram + WhatsApp.</>}
+                {te ? <>{myChanLabel} + మీ region (TS/AP) channel + job/education special channel (max 5 channels) — Telegram + WhatsApp రెండు చోట్లా.</>
+                    : <>{myChanLabel} + your region (TS/AP) channel + job/education special channel (max 5 channels) — on both Telegram + WhatsApp.</>}
               </div>
             </div>
             <div>
@@ -230,28 +251,6 @@ export default function CasteClient({ caste, role, district, chan, otherChan }: 
         </div>
       </section>
     </main>
-  );
-}
-
-function RelatedDistricts({ te, casteKey, casteName, role, districtSlug, districtName }: {
-  te: boolean; casteKey: string; casteName: string; role: "bride" | "groom";
-  districtSlug?: string; districtName?: string;
-}) {
-  const related = DISTRICTS.filter((d) => d.slug !== districtSlug).slice(0, 10);
-  return (
-    <section className="bg-cream rounded-2xl p-5 border border-gold/30">
-      <h2 className="text-lg font-bold text-maroon">
-        {districtName || "TS/AP"} {te ? "districts" : "districts"} — {casteName} {te ? "సంబంధాలు" : "matches"}
-      </h2>
-      <div className="mt-3 flex flex-wrap gap-2">
-        {related.map((d) => (
-          <Link key={d.slug} href={`/castes/${buildSlug(casteKey, role, d.slug)}`}
-            className="text-[12px] bg-white border border-gold/30 rounded-full px-3 py-1.5 hover-lift">
-            {casteName} {role} {d.name}
-          </Link>
-        ))}
-      </div>
-    </section>
   );
 }
 

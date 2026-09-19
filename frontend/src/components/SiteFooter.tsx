@@ -17,7 +17,7 @@ export default function SiteFooter() {
         { href: "/matches", teL: "సంబంధాలు & Filters", enL: "Matches & Filters" },
         { href: "/castes", teL: "కులాల వారీగా", enL: "Caste-wise" },
         { href: "/stories", teL: "విజయ గాథలు", enL: "Success stories" },
-        { href: "/porutham", teL: "పొరుతం Report (10)", enL: "Porutham Report (10)" },
+        { href: "/porutham", teL: "జ్యోతిషం — పొరుతం (10)", enL: "Jyothishyam — Porutham (10)" },
         { href: "/safety", teL: "Trust & Safety Center", enL: "Trust & Safety Center" },
       ],
     },
@@ -45,15 +45,15 @@ export default function SiteFooter() {
   return (
     <footer className="mt-10 navy-gradient text-white no-print">
       <div className="max-w-7xl mx-auto px-4 py-10 grid md:grid-cols-4 gap-8 text-sm">
-        {/* Brand */}
+        {/* Brand — 💍 R13: kotha marriage logo + peru Telugu lo */}
         <div>
           <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 gold-gradient rounded-xl flex items-center justify-center text-maroon font-bold text-lg">
-              MV
-            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={SITE_CONFIG.logoImage} alt="మన వివాహ logo" width={40} height={40}
+              className="w-10 h-10 rounded-xl object-cover" />
             <div>
-              <div className="font-bold text-gold leading-none">Mana Vivaha</div>
-              <div className="text-[10px] opacity-70">TSAP Matrimony</div>
+              <div className="font-bold text-gold leading-none telugu text-[16px]">మన వివాహ</div>
+              <div className="text-[10px] opacity-70">మన వివాహ • {te ? "తెలుగు మ్యాట్రిమోనీ" : "Telugu Matrimony"}</div>
             </div>
           </div>
           <div className="text-xs opacity-75 mt-3 telugu leading-relaxed">
@@ -95,7 +95,7 @@ export default function SiteFooter() {
             <div>{te ? "✓ 3 reports → auto hide" : "✓ 3 reports → auto hide"}</div>
           </div>
           <div className="mt-4 text-xs opacity-75">
-            <div>Bot: {SITE_CONFIG.botUsername}</div>
+            <div>Telegram: {SITE_CONFIG.officialChannel}</div>
             <div>Site: {SITE_CONFIG.domain}</div>
             <div>Care: {SITE_CONFIG.supportEmail}</div>
           </div>
@@ -103,7 +103,8 @@ export default function SiteFooter() {
       </div>
 
       <div className="border-t border-white/10">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row items-center justify-between gap-2 text-[11px] opacity-70">
+        {/* pb-28 → mobile sticky CTA bar ee lines moopu koorchukuni undadu (overlap fix) */}
+        <div className="max-w-7xl mx-auto px-4 pt-4 pb-28 lg:pb-4 flex flex-col md:flex-row items-center justify-between gap-2 text-[11px] opacity-70">
           <div>© {year} {SITE_CONFIG.brandName} ({SITE_CONFIG.legalName}) • Made for TS/AP with ❤️</div>
           <div className="text-center md:text-right">
             {te ? "⚠️ Advance money అడిగితే వెంటనే report చెయ్యండి — మోసం జాగ్రత్త!" : "⚠️ Report advance-money demands immediately — beware of fraud!"}

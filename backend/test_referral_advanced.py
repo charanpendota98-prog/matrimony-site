@@ -20,6 +20,7 @@ import os
 import shutil
 import sys
 import tempfile
+import time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
@@ -45,7 +46,9 @@ print("=== 1. CODE ENGINE ===")
 R.save_state()
 u = fresh_users()[0]
 prof = R.ensure_referrer_profile(u, [u])
-check("Short code 5 chars (LAK42 style)", len(prof["code"]) in (4, 5) and prof["code"][:3].isalpha(), prof["code"])
+check("Code: first-3-name-letters + 4 digits (CHA0001 style — R7 rule)",
+      len(prof["code"]) == 7 and prof["code"][:3].isalpha() and prof["code"][3:].isdigit()
+      and prof["code"].startswith("RAV"), prof["code"])
 check("Alias TSAP-REF-xxxxx kooda undi", prof["alias"].startswith("TSAP-REF-"), prof["alias"])
 check("Link manavivaha.in/r/<code>", prof["link"] == "https://manavivaha.in/r/%s" % prof["code"], prof["link"])
 check("Start tier BRONZE", prof["tier"] == "BRONZE")
@@ -254,11 +257,19 @@ ld = R.load_state()
 check("State file save/load (server restart safe)", sv.get("ok") and ld.get("ok"), sv.get("path"))
 
 print("=== 10. API ENDPOINTS (TestClient) ===")
+# 🐞 FIX (R12): standalone run lo auth/admin enforcement ON ayyi admin+payout calls 401/403 —
+# suite convention: dev-mode env BEFORE import main (owner-token headers already added above)
+os.environ.setdefault("TSAP_AUTH_MODE", "test")
 from fastapi.testclient import TestClient  # noqa: E402
 import main  # noqa: E402
 
 with TestClient(main.app) as c:
-    me_api = next(u for u in main.DB_USERS if u["tsap_id"] == "TSAP-M-2025-1042")
+    # 🐞 FIX (R12): seed data TSAP-M-2025-1042 DB lo lekapothe (fresh DB / server flush) — create chesuko
+    me_api = next((u for u in main.DB_USERS if u["tsap_id"] == "TSAP-M-2025-1042"), None)
+    if me_api is None:
+        me_api = {"tsap_id": "TSAP-M-2025-1042", "full_name": "Ravi Kumar", "gender": "Groom",
+                  "phone": "9848012345", "credits": 3, "plan": "FREE", "wallet": 0}
+        main.DB_USERS.append(me_api)
     R.ensure_referrer_profile(me_api, main.DB_USERS)
     mcode = me_api["referral_code"]
 
@@ -267,9 +278,15 @@ with TestClient(main.app) as c:
           and t["headline"].startswith("₹50"))
     check("Terms lo not_allowed list", len(t["not_allowed"]) >= 4)
 
-    dash_api = c.get("/api/referral/TSAP-M-2025-1042").json()
+    # 🐞 FIX (R12): auth-enforced mode lo require_owner 401 istundi (IDOR guard) —
+    # owner token tho call cheyali (dev mode lo header ignore ayyi inka kuda work avutundi)
+    import hardening as H  # noqa: E402
+    _own_headers = {"X-Tsap-Token": H.sign_token("TSAP-M-2025-1042")}
+    dash_api = c.get("/api/referral/TSAP-M-2025-1042", headers=_own_headers).json()
     check("GET /api/referral/{id} dashboard", dash_api["ok"] and dash_api["code"] == mcode)
     check("Dashboard lo share_kit kooda vastundi", "whatsapp_messages" in dash_api.get("share_kit", {}))
+    check("💎 R12 dashboard lo pending pipeline stats",
+          "pending_friends" in dash_api.get("stats", {}) and "pending_value" in dash_api.get("stats", {}))
 
     kit_api = c.get("/api/referral/TSAP-M-2025-1042/share-kit").json()
     check("GET share-kit — 5 messages", kit_api["success"] and len(kit_api["whatsapp_messages"]) == 5)
@@ -282,7 +299,7 @@ with TestClient(main.app) as c:
     click = c.post("/api/referral/click/%s?source=test" % mcode).json()
     check("POST click/{code} — funnel track", click["success"] and click["clicks_total"] >= 1, click["clicks_total"])
     check("click nunchi dashboard lo clicks perigindi",
-          c.get("/api/referral/TSAP-M-2025-1042").json()["stats"]["clicks"] >= 1)
+          c.get("/api/referral/TSAP-M-2025-1042", headers=_own_headers).json()["stats"]["clicks"] >= 1)
 
     poster = c.get("/api/referral/TSAP-M-2025-1042/poster.png?style=square")
     check("GET poster.png 200 + PNG", poster.status_code == 200 and poster.content[:8] == b"\x89PNG\r\n\x1a\n",
@@ -291,10 +308,12 @@ with TestClient(main.app) as c:
     check("GET poster.png?style=status 200", poster_st.status_code == 200)
 
     # 🧪 E2E: register with ref → pay → referrer wallet
+    # 🐞 FIX (R12): fixed phone → duplicate-register fail in re-runs; unique per run
+    _run_phone = "98%08d" % (int(time.time()) % 100000000)
     reg = c.post("/api/register", data={
         "gender": "Bride", "age": 26, "height": "5'3\"", "marital_status": "Pelli Kaledu",
         "caste": "Reddy", "district": "Nalgonda", "state": "TS", "full_name": "Referral Test Bride",
-        "phone": "9848077777", "job": "Teacher", "education": "BEd", "salary": "40k",
+        "phone": _run_phone, "job": "Teacher", "education": "BEd", "salary": "40k",
         "referral_code": mcode})
     rj = reg.json()
     check("Register + referral lock (my_code + joined bonus)", reg.status_code == 200
@@ -331,16 +350,16 @@ with TestClient(main.app) as c:
 
     # payout API
     R.stats_of(me_api)["wallet"] = 300.0
-    po = c.post("/api/referral/payout?tsap_id=TSAP-M-2025-1042&amount=200&method=upi&upi_id=ravi@okhdfcbank").json()
+    po = c.post("/api/referral/payout?tsap_id=TSAP-M-2025-1042&amount=200&method=upi&upi_id=ravi@okhdfcbank", headers=_own_headers).json()
     check("POST /api/referral/payout — request create", po["success"] and po["request"]["amount"] == 200)
     rid = po["request"]["id"]
     check("GET /api/admin/payouts — queue lo kanipisthundi",
           any(p["id"] == rid for p in c.get("/api/admin/payouts").json()["items"]))
     appr = c.post("/api/admin/payouts/%s/action?action=approve&utr=UTRAPI1" % rid).json()
     check("POST admin approve (UTR) — paid", appr["success"] and appr["request"]["status"] == "paid")
-    bad_amt = c.post("/api/referral/payout?tsap_id=TSAP-M-2025-1042&amount=5000&method=upi&upi_id=ravi@okhdfcbank")
+    bad_amt = c.post("/api/referral/payout?tsap_id=TSAP-M-2025-1042&amount=5000&method=upi&upi_id=ravi@okhdfcbank", headers=_own_headers)
     check("API payout wrong amount → 400", bad_amt.status_code == 400)
-    po2 = c.post("/api/referral/payout?tsap_id=TSAP-M-2025-1042&amount=100&method=upi&upi_id=ravi@okhdfcbank").json()
+    po2 = c.post("/api/referral/payout?tsap_id=TSAP-M-2025-1042&amount=100&method=upi&upi_id=ravi@okhdfcbank", headers=_own_headers).json()
     rej2 = c.post("/api/admin/payouts/%s/action?action=reject&reason=test" % po2["request"]["id"]).json()
     check("API admin reject → wallet malli", rej2["success"] and rej2["request"]["status"] == "rejected")
 
@@ -352,7 +371,7 @@ with TestClient(main.app) as c:
     R.PAYOUTS.append({"id": "PRMASK1", "tsap_id": "TSAP-M-2025-1042", "amount": 150, "method": "upi",
                       "upi_id": "ravikumar@okhdfcbank", "status": "paid", "utr": "UTRMASK",
                       "bank": {}, "created_at": "2026-01-01T00:00:00"})
-    dash2 = c.get("/api/referral/TSAP-M-2025-1042").json()
+    dash2 = c.get("/api/referral/TSAP-M-2025-1042", headers=_own_headers).json()
     _masked = [p for p in dash2["payouts"] if p["id"] == "PRMASK1"]
     check("Public dashboard lo UPI id MASKED (privacy)", _masked and "***" in _masked[0]["upi_id"]
           and "okhdfcbank" not in _masked[0]["upi_id"], _masked[0]["upi_id"] if _masked else None)

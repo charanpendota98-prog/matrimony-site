@@ -1,5 +1,5 @@
 """
-Mana Vivaha — AUTO-PUBLISHER (Telegram + WhatsApp)
+మన వివాహ — AUTO-PUBLISHER (Telegram + WhatsApp)
 ===================================================
 Profile register avvagane / admin approve avvagane → related channels anni
 chotaki automatic ga vellali. Idi aa engine.
@@ -144,37 +144,10 @@ def build_whatsapp_text(profile: Dict, tsap_id: str, score: int = 92) -> str:
     return build_masked_whatsapp(profile or {}, tsap_id, score)
 
 
-def _build_whatsapp_text_legacy(profile: Dict, tsap_id: str, score: int = 92) -> str:
-    """Legacy full-detail builder (unused — reference కోసం)."""
-    r = route_profile(profile)
-    reasons = "\n".join(f"✅ {x['telugu']}" for x in r["reasons"][:3])
-    return (
-        f"💍 *MANA VIVAHA* — TS-AP Telugu Matrimony\n"
-        f"🆔 *{tsap_id}*  |  ⭐ *{score}% BEST MATCH*\n"
-        f"━━━━━━━━━━━━━━━━\n"
-        f"👤 *{profile.get('full_name','—')}*  ({profile.get('age','—')} yrs)\n"
-        f"📍 {profile.get('district','—')}, {profile.get('state','TS')}\n"
-        f"💍 Caste: {profile.get('caste','—')}  |  గోత్రం: {profile.get('gothram','—')}\n"
-        f"📏 Height: {profile.get('height','—')}  |  🩸 {profile.get('blood_group','—')}\n"
-        f"🎓 {profile.get('education','—')} {profile.get('education_detail','')}\n"
-        f"💼 {profile.get('job','—')} {profile.get('company','')}\n"
-        f"💰 {profile.get('salary','—')}  |  📍 {profile.get('work_location','—')}\n"
-        f"🌟 Star: {profile.get('star','—')}  |  రాశి: {profile.get('rasi','—')}\n"
-        f"👨‍👩‍👧 {profile.get('father_name','—')} • {profile.get('family_type','—')} • {profile.get('native_place','—')}\n"
-        f"━━━━━━━━━━━━━━━━\n"
-        f"*ఎందుకు best match:*\n{reasons}\n"
-        f"━━━━━━━━━━━━━━━━\n"
-        f"{r['hashtags']}\n"
-        f"🔍 Profile చూడండి: {SITE}/search/{tsap_id}\n"
-        f"📝 FREE register (3 min): {SITE}/register\n"
-        f"🤖 Bot: {BOT_USERNAME}  •  ⚠️ Advance money అడిగితే report చెయ్యండి"
-    )
-
-
 def build_share_text(profile: Dict, tsap_id: str) -> str:
     """Profile owner WhatsApp/status లో share చెయ్యడానికి short text."""
     return (
-        f"💍 Mana Vivaha — {profile.get('full_name','—')} ({profile.get('age','—')}y, "
+        f"💍 మన వివాహ — {profile.get('full_name','—')} ({profile.get('age','—')}y, "
         f"{profile.get('caste','—')}, {profile.get('district','—')})\n"
         f"🆔 {tsap_id} | {profile.get('education','')} {profile.get('job','')}\n"
         f"🔍 Chudandi: {SITE}/search/{tsap_id}\n"

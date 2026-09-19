@@ -9,10 +9,12 @@
 
 export const SITE_CONFIG = {
   // ---------- Brand ----------
-  brandName: "Mana Vivaha",
-  legalName: "TSAP Matrimony",
+  brandName: "మన వివాహ",
+  brandNameTe: "మన వివాహ",           // 💍 R13: brand peru neat ga Telugu lo
+  legalName: "Manavivaha",
   logoText: "MV",
-  tagline: "TS-AP No.1 Telugu Matrimony",
+  logoImage: "/logo.png",             // 💍 R13: kotha marriage logo (rings + lotus) — MV text kaadu
+  tagline: "Telugu Matrimony",
   taglineTelugu: "₹99 ke Sambandham • Modati 3 FREE • Chatting ledu",
   domain: "manavivaha.in",
   siteUrl: process.env.SITE_URL || "https://manavivaha.in",
@@ -26,6 +28,9 @@ export const SITE_CONFIG = {
   botUsername: "@telugumatrimony1_bot",
   botUrl: "https://t.me/telugumatrimony1_bot",
   unlockBot: (tsapId: string) => `https://t.me/telugumatrimony1_bot?start=unlock_${encodeURIComponent(tsapId)}`,
+  // public-facing "Telegram" link — official CHANNEL (bot wording eppudu chupinchamu)
+  officialChannel: "@TSAP_MATRIMONY",
+  officialChannelUrl: "https://t.me/TSAP_MATRIMONY",
   supportWhatsapp: (process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP || "").trim(),
   supportPhone: (process.env.NEXT_PUBLIC_SUPPORT_PHONE || "").trim(),
   supportEmail: (process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "care@manavivaha.in").trim(),
@@ -57,7 +62,7 @@ export const SITE_CONFIG = {
       { price: 99, profiles: 5, label: "Sambandham" },
       { price: 199, profiles: 12, label: "Family" },
       { price: 299, profiles: 25, label: "Premium" },
-      { price: 499, profiles: 50, label: "Vivaha VIP" },
+      { price: 499, profiles: 50, label: "VIP" },
     ],
     addons: [
       { price: 49, label: "Profile Boost (7 days)" },

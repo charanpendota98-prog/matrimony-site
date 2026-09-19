@@ -101,13 +101,15 @@ check("B5 bot card first-name + hidden rest",
 section("C. SURNAME BACKEND BLOCK (API)")
 # ═══════════════════════════════════════════════════════════════════════════
 client.post("/api/demo/seed")
+import random as _r13
+_PH = lambda: "9933%06d" % _r13.randint(0, 999999)  # R10: unique per run (demo fixed phones tho dup vaddhu)
 BB = {"gender": "Bride", "age": "25", "height": "5'4\"", "marital_status": "Pelli Kaledu", "caste": "Reddy",
       "education": "BTech", "job": "Software", "salary": "60k", "state": "TS", "district": "Hyderabad",
-      "phone": "9848011111", "full_name": "Wave Thirteen Reddy", "gothram": "Bharadwaj",
+      "phone": _PH(), "full_name": "Wave Thirteen Reddy", "gothram": "Bharadwaj",
       "star": "Rohini", "rasi": "Vrishabha", "religion": "Hindu"}
-BG_SAME = dict(BB, gender="Groom", age="29", phone="9848022222", full_name="Wave Groom REDDY",
+BG_SAME = dict(BB, gender="Groom", age="29", phone=_PH(), full_name="Wave Groom REDDY",
                gothram="Koundinya", height="5'9\"", star="Mrigasira", rasi="Vrishabha")
-BG_DIFF = dict(BB, gender="Groom", age="30", phone="9848033333", full_name="Wave Groom Kumar",
+BG_DIFF = dict(BB, gender="Groom", age="30", phone=_PH(), full_name="Wave Groom Kumar",
                gothram="Koundinya", height="5'10\"", star="Ardra", rasi="Mithuna")
 b = client.post("/api/register", data=BB).json()
 g1 = client.post("/api/register", data=BG_SAME).json()

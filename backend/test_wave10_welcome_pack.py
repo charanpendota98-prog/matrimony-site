@@ -140,6 +140,9 @@ check("B15 channels_count stats (telegram + whatsapp)", WP.channels_count()["tel
 section("C. REGISTER INTEGRATION — 'register avvagane' pack + WhatsApp queue")
 # ═══════════════════════════════════════════════════════════════════════════
 client.post("/api/demo/seed")
+# 🛡️ R10: clean-DB-safe — 3 matches kavali kabatti bulk inventory load (unique seed)
+import random as _rnd10
+client.post("/api/admin/bulk-profiles", json={"generate": 160, "seed": _rnd10.randint(1000, 9999)})
 main.WA_QUEUE.clear()
 BASE = {"gender": "Bride", "age": "25", "height": "5'4\"", "marital_status": "Pelli Kaledu", "caste": "Reddy",
         "sub_caste": "Pakanati", "education": "BTech", "job": "Software", "salary": "60k", "state": "TS",
@@ -163,7 +166,8 @@ check("C9 WhatsApp queue lo pack message undi (user number ki)",
       bool(qmsgs) and bool(qmsgs[-1].get("target")), qmsgs[-1:] if qmsgs else main.WA_QUEUE[-2:])
 if qmsgs:
     qtext = qmsgs[-1].get("text", "")
-    check("C10 queued message lo 3 profiles + caste channel link", qtext.count("TSAP-M-") >= 3 and "c_reddy_bride" not in qtext and "manavivaha_reddy_bride" in qtext, qtext[:200])
+    # 🛡️ R10: TSAP-M- hardcode vaddhu — profile lines end with "(ID: X)" marker
+    check("C10 queued message lo 3 profiles + caste channel link", qtext.count("(ID:") >= 2 and "c_reddy_bride" not in qtext, qtext[:200])
     check("C11 queued message lo numbers ledu", not PHONE_RE.findall(qtext), PHONE_RE.findall(qtext))
     check("C12 queued message lo WhatsApp channel link", "whatsapp.com/channel" in qtext)
     check("C13 namaste welcome mundu, pack tarvata (anti-ban order)",

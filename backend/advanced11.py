@@ -198,10 +198,10 @@ def like_story(story_id: str) -> Dict[str, Any]:
 
 def story_share_text(story: Dict[str, Any]) -> str:
     """Channel/WhatsApp forward text (numbers లేదు — privacy safe)."""
-    names = story.get("couple_names") or "Mana Vivaha janta"
+    names = story.get("couple_names") or "మన వివాహ జంట"
     dist = f" ({story['district']})" if story.get("district") else ""
     return (
-        f"💑 SUCCESS STORY{dist} 💑\n{names} — Mana Vivaha ద్వారా కలిశారు! 🎉\n"
+        f"💑 SUCCESS STORY{dist} 💑\n{names} — మన వివాహ ద్వారా కలిశారు! 🎉\n"
         f"\"{story.get('text','')[:220]}\"\n\n"
         f"మీకు కూడా ఇలాంటి సంబంధం కావాలి అంటే → manavivaha.in (₹99 కే సంబంధం, మొదటి 3 FREE) 🙏")
 
@@ -271,7 +271,7 @@ def search_faq(query: str, limit: int = 5) -> List[Dict[str, Any]]:
 STREAK_BONUS = {1: 1, 2: 1, 3: 2, 4: 2, 5: 3, 6: 3, 7: 5}   # day → bonus credits
 STREAK_MILESTONES = {7: "🔥 7 days streak! +5 credits — super consistency!",
                      14: "⚡ 14 days! +8 credits — మీ profile top priority లో ఉంటుంది",
-                     30: "👑 30 days! +15 credits + VIP badge — Mana Vivaha star!"}
+                     30: "👑 30 days! +15 credits + VIP badge — మన వివాహ star!"}
 STREAK_MAX_DAY_BONUS = 5
 
 

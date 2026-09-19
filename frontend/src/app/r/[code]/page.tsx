@@ -61,7 +61,7 @@ export default function ReferralLandingPage() {
             <div className="mt-4 rounded-2xl bg-[#FFF8E7] border border-[#D4AF37]/40 p-3 text-left text-[11px] text-[#7A0C2E] space-y-1">
               <div>{te ? <>✅ మొదటి <b>3 requests FREE</b> (+1 bonus credit మీ friend నుంచి)</> : <>✅ First <b>3 requests FREE</b> (+1 bonus credit from your friend)</>}</div>
               <div>✅ ₹99 → 5 profiles, ₹199 → 12, ₹299 → 25, ₹499 → 50</div>
-              <div>{te ? "✅ 52 Telegram channels లో మీ profile auto-post" : "✅ Your profile auto-posts to 52 Telegram channels"}</div>
+              <div>{te ? "✅ 52 Telegram channels లో మీ profile post" : "✅ Your profile posted to 52 Telegram channels"}</div>
               <div>{te ? "✅ ఫోటో గోప్యం · numbers రెండు వైపులా ok అయ్యాకే" : "✅ Photo privacy · numbers only after both sides agree"}</div>
             </div>
             <a href={`/register?ref=${code}`}
@@ -87,7 +87,7 @@ export default function ReferralLandingPage() {
         )}
 
         <div className="mt-4 text-[11px] text-gray-400">
-          {te ? "Mana Vivaha · manavivaha.in · ₹99 సంబంధం" : "Mana Vivaha · manavivaha.in · ₹99 Sambandham"}
+          {te ? "మన వివాహ · manavivaha.in · ₹99 సంబంధం" : "మన వివాహ · manavivaha.in · ₹99 Sambandham"}
         </div>
       </div>
     </main>

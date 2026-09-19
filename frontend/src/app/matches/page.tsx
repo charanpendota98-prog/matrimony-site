@@ -361,7 +361,7 @@ export default function MatchesAdvanced() {
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(true);
   const [sheet, setSheet] = useState(false);
-  const [myTsapId, setMyTsapId] = useState("TSAP-M-2025-1042");
+  const [myTsapId, setMyTsapId] = useState("KAM001");
   const [credits, setCredits] = useState(3);
   const [savedIds, setSavedIds] = useState<string[]>([]);
   const [sending, setSending] = useState("");
@@ -441,7 +441,7 @@ export default function MatchesAdvanced() {
     } else {
       setRows([]);
       setTotal(0);
-      setMsg(`⚠️ ${eTel || (te ? "Server నుంచి results రాలేదు — filters మార్చి మళ్లీ try చెయ్యండి" : "No results from server — change filters and retry")}`);
+      setMsg(`⚠️ ${eTel || (te ? "Results రాలేదు — filters మార్చి మళ్లీ try చెయ్యండి" : "No results found — change filters and retry")}`);
     }
     setLoading(false);
   }, [filters, sort, myTsapId, te]);
@@ -537,7 +537,7 @@ export default function MatchesAdvanced() {
   const sendAlerts = async () => {
     if (!getToken()) { setNeedsLogin(true); return; }
     const { ok, data, errorTelugu: eTel } = await apiPost<Row>(`/api/saved-searches/${myTsapId}/alerts`, {});
-    setNote(ok ? { ok: true, text: String(data?.message_telugu || (te ? "Alerts queue లో పెట్టాం" : "Alerts queued")) }
+    setNote(ok ? { ok: true, text: String(data?.message_telugu || (te ? "Alerts ఆన్ చేసాం" : "Alerts turned on")) }
                : { ok: false, text: eTel });
     if (ok) void loadServerSearches();
   };
@@ -688,7 +688,7 @@ export default function MatchesAdvanced() {
             {sending === row.tsap_id ? duo("Sending…", "పంపిస్తున్నాం…") : `💌 ${duo("Interest (1 credit)", "ఇంట్రెస్ట్ (1 క్రెడిట్)")}`}
           </button>
           <a href={SITE_CONFIG.unlockBot(row.tsap_id)} target="_blank" rel="noreferrer"
-            title={duo("Bot opens — number for 1 credit", "బాట్ ఓపెన్ అవుతుంది — 1 క్రెడిట్‌తో నంబర్ వస్తుంది")}
+            title={duo("Opens on Telegram — number for 1 credit", "టెలిగ్రామ్‌లో ఓపెన్ అవుతుంది — 1 క్రెడిట్‌తో నంబర్ వస్తుంది")}
             className="flex-1 min-w-[140px] py-2.5 rounded-xl gold-gradient text-maroon text-[12px] font-bold text-center">
             📞 {duo("Full details + Number", "పూర్తి వివరాలు + నంబర్")}
           </a>
@@ -722,7 +722,7 @@ export default function MatchesAdvanced() {
             </button>
             <div className="hidden md:flex items-center gap-2 shrink-0">
               <input value={myTsapId} onChange={(e) => { const v = e.target.value.toUpperCase(); setMyTsapId(v); localStorage.setItem("tsap_id", v); }}
-                className="text-[11px] font-mono bg-white border border-gold/40 rounded-full px-3 py-2 w-44" title={te ? "మీ TSAP ID" : "Your TSAP ID"} aria-label="Text input" />
+                className="text-[11px] font-mono bg-white border border-gold/40 rounded-full px-3 py-2 w-44" title={te ? "మీ Profile ID" : "Your Profile ID"} aria-label="Text input" />
               <span className="text-[11px] bg-white border border-gold/40 rounded-full px-3 py-2">credits <b>{credits}</b></span>
             </div>
           </div>
@@ -866,14 +866,14 @@ export default function MatchesAdvanced() {
           {loading ? (
             <div className="mt-3 grid md:grid-cols-2 gap-4">
               {[0, 1, 2, 3].map((i) => (
-                <div key={i} className="bg-white rounded-[1.5rem] border border-gold/20 p-4 animate-pulse">
+                <div key={i} className="bg-white rounded-[1.5rem] border border-gold/20 p-4" aria-hidden>
                   <div className="flex gap-3">
-                    <div className="w-[84px] h-[104px] rounded-2xl bg-gray-200" />
+                    <div className="w-[84px] h-[104px] rounded-2xl skeleton-bar" />
                     <div className="flex-1 space-y-2">
-                      <div className="h-4 bg-gray-200 rounded w-2/3" />
-                      <div className="h-3 bg-gray-200 rounded w-1/3" />
-                      <div className="h-3 bg-gray-200 rounded w-5/6" />
-                      <div className="h-3 bg-gray-200 rounded w-3/4" />
+                      <div className="h-4 skeleton-bar w-2/3" />
+                      <div className="h-3 skeleton-bar w-1/3" />
+                      <div className="h-3 skeleton-bar w-5/6" />
+                      <div className="h-3 skeleton-bar w-3/4" />
                     </div>
                   </div>
                 </div>

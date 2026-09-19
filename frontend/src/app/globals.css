@@ -193,6 +193,57 @@ input[type="file"]::file-selector-button { cursor: pointer; }
 }
 .step-slide { animation: stepIn 0.28s cubic-bezier(0.22, 1, 0.36, 1) both; }
 
+/* ============================================================
+   PROFESSIONAL MOTION (subtle — app-like, gaadi ga kaadu)
+   ============================================================ */
+/* hero elements — staggered entrance on load */
+@keyframes fadeUpIn {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.anim-hero { animation: fadeUpIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.anim-hero-1 { animation: fadeUpIn 0.6s 0.08s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.anim-hero-2 { animation: fadeUpIn 0.6s 0.16s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.anim-hero-3 { animation: fadeUpIn 0.6s 0.24s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+/* button press feedback (native-app feel) */
+button:not(:disabled):active { transform: scale(0.97); }
+
+/* LIVE badge — gentle pulse (2.4s, subtle) */
+@keyframes livePulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+.pulse-live { animation: livePulse 2.4s ease-in-out infinite; }
+
+/* gold border shine — card lo chinna sparkle (hover matrame) */
+.card-gold-hover { transition: box-shadow 0.3s ease, transform 0.3s ease, border-color 0.3s ease; }
+.card-gold-hover:hover { transform: translateY(-3px); border-color: rgba(212, 175, 55, 0.6);
+  box-shadow: 0 14px 40px rgba(122, 12, 46, 0.14); }
+
+@media (prefers-reduced-motion: reduce) {
+  .anim-hero, .anim-hero-1, .anim-hero-2, .anim-hero-3, .pulse-live { animation: none !important; }
+  button:not(:disabled):active { transform: none; }
+}
+
+/* ============================================================
+   SKELETON SHIMMER (loading state — professional perceived speed)
+   ============================================================ */
+@keyframes shimmerSlide {
+  from { background-position: 200% 0; }
+  to   { background-position: -200% 0; }
+}
+.skeleton-bar {
+  background: linear-gradient(100deg, rgba(0,0,0,0.05) 40%, rgba(0,0,0,0.10) 50%, rgba(0,0,0,0.05) 60%);
+  background-size: 200% 100%;
+  animation: shimmerSlide 1.4s ease-in-out infinite;
+  border-radius: 6px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-bar { animation: none; }
+}
+
+
 @keyframes shakeX {
   0%, 100% { transform: translateX(0); }
   20% { transform: translateX(-6px); }
@@ -202,12 +253,12 @@ input[type="file"]::file-selector-button { cursor: pointer; }
 }
 .shake { animation: shakeX 0.35s ease; }
 
-/* phone lo input font 16px — iOS auto-zoom aagutundi */
+/* phone lo input font 16px — iOS auto-zoom aagutundi (compact gaane — 44px+ tap target) */
 .input-mobile {
   font-size: 16px;
-  min-height: 52px;
-  border-radius: 14px;
-  padding: 12px 14px;
+  min-height: 46px;
+  border-radius: 12px;
+  padding: 9px 12px;
   width: 100%;
   border: 1.5px solid rgba(212, 175, 55, 0.45);
   background: #fff;

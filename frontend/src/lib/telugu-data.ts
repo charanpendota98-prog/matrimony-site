@@ -44,6 +44,43 @@ export const CASTES: string[] = [
   "Mala", "Madiga", "Adi Andhra", "SC Others", "Lambada", "Koya", "Gond", "ST Others",
 ];
 
+// caste → sub-castes (Viswabrahmana ki 5 sub-castes la — select chesthe dropdown lo kanipisthayi)
+export const CASTE_SUBCASTES: Record<string, string[]> = {
+  Reddy: ["Pakanati Reddy", "Motati Reddy", "Gudati Reddy", "Deshathi Reddy"],
+  Kamma: ["Chowdary", "Choudary"],
+  Kapu: ["Ontari", "Turupu Kapu", "Palli Kapu"],
+  Balija: ["Gajula Balija", "Setti Balija", "Surya Balija", "Sadhu Balija"],
+  Velama: ["Padma Velama", "Koppula Velama"],
+  Brahmin: ["Vaidiki Brahmin", "Niyogi Brahmin", "Sistla", "Dravida Brahmin", "Iyer", "Iyengar", "Smartha"],
+  Vysya: ["Arya Vysya", "Komati", "Komti", "Vaishya", "Sadhu Chetty"],
+  Goud: ["Ediga", "Gamalla", "Idiga", "Settibalija", "Gouda"],
+  Yadav: ["Golla", "Kuruma"],
+  Kuruba: ["Kuruva", "Gorrela"],
+  Mala: ["Mala Ayawaru", "Mala Dasari"],
+  Madiga: ["Madiga Dasu", "Mashteen", "Madiga Dasari"],
+  Viswakarma: ["Viswabrahmin", "Viswabrahmana", "Kamsali", "Kammari", "Kanchari", "Vadla", "Ausula", "Silpi", "Vadrangi", "Achari"],
+  "Munnuru Kapu": ["Munnuru"],
+  Raju: ["Rajulu", "Kshatriya", "Vanniyar"],
+  Padmashali: ["Padmasali", "Sali", "Pattusali", "Thogata"],
+  Devanga: ["Devanga Chettiar"],
+  Mudiraj: ["Mudiraju", "Mutrasi", "Tenugollu"],
+  Lambada: ["Lambadi", "Banjara", "Lambani", "Sugali"],
+  Kummara: ["Kulala", "Salivahana"],
+  Gandla: ["Telikula"],
+  Uppara: ["Sagara"],
+  Vaddera: ["Odde"],
+  Rajaka: ["Chakali"],
+  Mangali: ["Nayi-Brahmin"],
+  Boya: ["Valmiki"],
+  Srisayana: ["Segidi"],
+  Bestha: ["Gangaputra"],
+  "Adi Andhra": ["Adi Dravida", "Arundhatiya", "Relli", "Arwa Mala"],
+  "SC Others": ["Samban", "Dandasi"],
+  Koya: ["Koitur"],
+  Gond: ["Rajgond", "Naikpod"],
+  "ST Others": ["Chenchu", "Bagata", "Konda Reddi", "Savara", "Andh"],
+};
+
 export const RELIGIONS = ["Hindu", "Muslim", "Christian", "Sikh", "Jain", "Buddhist", "Other"];
 
 export const MOTHER_TONGUES = ["Telugu", "Urdu", "Hindi", "Tamil", "Kannada", "English", "Other"];

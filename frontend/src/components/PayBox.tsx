@@ -53,7 +53,7 @@ export default function PayBox({ planCode, price, label }: { planCode: string; p
 
   const createOrder = async () => {
     const id = myId();
-    if (!id) { setMsg(te ? "⚠️ ముందు login/register చెయ్యండి (మీ TSAP ID కావాలి)" : "⚠️ Login/register first (your TSAP ID is needed)"); return; }
+    if (!id) { setMsg(te ? "⚠️ ముందు login/register చెయ్యండి (మీ Profile ID కావాలి)" : "⚠️ Login/register first (your Profile ID is needed)"); return; }
     setBusy(true); setMsg("");
     try {
       const r = await fetch("/api/pay/order", {
@@ -100,7 +100,7 @@ export default function PayBox({ planCode, price, label }: { planCode: string; p
       order_id: order.rzp_order_id,
       amount: order.checkout_amount_paise,
       currency: "INR",
-      name: "Mana Vivaha",
+      name: "మన వివాహ",
       description: order.label || label,
       handler: async (resp: any) => {
         setBusy(true);

@@ -1,5 +1,5 @@
 """
-🔍 LIVE SMOKE — Mana Vivaha (referral 2.0)
+🔍 LIVE SMOKE — మన వివాహ (referral 2.0)
 ==========================================
 Run (servers already running):
     /tmp/venv/bin/python verify_live_flow.py                 # pages + read-only APIs

@@ -37,7 +37,7 @@ def namaste_text(user: Dict, tsap_id: str) -> str:
     u = user or {}
     return (
         f"🙏 *నమస్తే {u.get('full_name', 'గారు')} గారు!* 🙏\n"
-        f"*Mana Vivaha* కుటుంబంలోకి మీకు స్వాగతం 💐\n"
+        f"*మన వివాహ* కుటుంబంలోకి మీకు స్వాగతం 💐\n"
         f"━━━━━━━━━━━━━━━━\n"
         f"✅ మీ profile ready: *{tsap_id}*\n"
         f"━━━━━━━━━━━━━━━━\n"
@@ -85,7 +85,7 @@ def lead_followup_text(lead: Dict) -> str:
     l = lead or {}
     return (
         f"🙏 నమస్తే {l.get('name', 'గారు')} గారు!\n"
-        f"Mana Vivaha నుంచి మాట్లాడుతున్నాం 💐\n"
+        f"మన వివాహ నుంచి మాట్లాడుతున్నాం 💐\n"
         f"మీరు {l.get('district', 'మీ ఊర్లో')} నుంచి — {l.get('gender', '')} profile కి interest చూపించారు.\n"
         f"━━━━━━━━━━━━━━━━\n"
         f"మీ profile *FREE* గా complete చెయ్యడానికి 3 నిమిషాలు చాలు:\n"

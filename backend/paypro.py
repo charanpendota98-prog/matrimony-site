@@ -1,5 +1,5 @@
 """
-💳 WAVE 14 — SAFE PAYMENTS + FESTIVAL OFFERS (Mana Vivaha)
+💳 WAVE 14 — SAFE PAYMENTS + FESTIVAL OFFERS (మన వివాహ)
 ==========================================================
 SAFETY FIRST (user demand — mistakes/errors vaddu):
   1. Amount SERVER compute chesthundi (client amount nammamu — tamper proof).

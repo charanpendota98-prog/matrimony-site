@@ -289,7 +289,7 @@ def build_profiles(count: int = 360, seed: int = 42, gender: str = "") -> List[D
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser(description="Mana Vivaha launch inventory generator")
+    ap = argparse.ArgumentParser(description="మన వివాహ launch inventory generator")
     ap.add_argument("--count", type=int, default=360)
     ap.add_argument("--gender", type=str, default="", help="Bride / Groom / (empty = both)")
     ap.add_argument("--seed", type=int, default=42)

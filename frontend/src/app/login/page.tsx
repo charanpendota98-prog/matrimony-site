@@ -97,7 +97,7 @@ export default function LoginPage() {
     <main className="mx-auto max-w-md px-4 py-10">
       <h1 className="text-2xl font-extrabold text-[#7A0C2E]">🔑 <Duo en="Member Login" te="సభ్యుల లాగిన్" /></h1>
       <p className="mt-1 text-sm text-slate-600">
-        {te ? "🔒 మీ inbox, credits, shortlist — ఈ data మీరు మాత్రమే చూడగలరు (token తో protect చేశాం)." : "🔒 Your inbox, credits, shortlist — only you can see this data (protected with token)."}
+        {te ? "🔒 మీ inbox, credits, shortlist — ఈ data మీరు మాత్రమే చూడగలరు, safe గా ఉంటుంది." : "🔒 Your inbox, credits, shortlist — only you can see this data, kept safe."}
       </p>
 
       <section className="mt-6 rounded-2xl border-2 border-rose-200 bg-rose-50/60 p-4">
@@ -111,8 +111,8 @@ export default function LoginPage() {
         </div>
 
         <label htmlFor="phone" className="mt-4 block text-sm font-semibold text-slate-700">{te ? "📞 మొబైల్ నంబర్ (10 digits)" : "📞 Mobile number (10 digits)"}</label>
-        <input id="phone" inputMode="numeric" autoComplete="tel" value={phone} maxLength={13}
-          onChange={(e) => setPhone(e.target.value)}
+        <input id="phone" inputMode="numeric" autoComplete="tel" value={phone} maxLength={10}
+          onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
           onKeyDown={(e) => { if (e.key === "Enter") void (tab === "password" && !forgot ? onPasswordLogin() : tab === "otp" && stage === "phone" ? onSend() : onVerify()); }}
           placeholder="98480 12345"
           className="mt-1 w-full rounded-xl border border-rose-300 px-3 py-2 text-lg tracking-wide focus:border-[#7A0C2E] focus:outline-none" />
@@ -153,7 +153,7 @@ export default function LoginPage() {
                   className="mt-1 w-full rounded-xl border border-rose-300 px-3 py-2 text-lg focus:border-[#7A0C2E] focus:outline-none" />
               </>
             ) : null}
-            {devCode && fStage === "reset" ? <p className="mt-1 text-xs text-emerald-700">DEV MODE OTP: <b>{devCode}</b></p> : null}
+            {devCode && fStage === "reset" ? <p className="mt-1 text-xs text-emerald-700">{te ? <>మీ OTP: <b>{devCode}</b></> : <>Your OTP: <b>{devCode}</b></>}</p> : null}
           </>
         ) : tab === "otp" && stage === "otp" ? (
           <>
@@ -163,7 +163,7 @@ export default function LoginPage() {
               onKeyDown={(e) => { if (e.key === "Enter") void onVerify(); }}
               placeholder="1234"
               className="mt-1 w-full rounded-xl border border-rose-300 px-3 py-2 text-center text-2xl tracking-[0.4em] focus:border-[#7A0C2E] focus:outline-none" />
-            {devCode && <p className="mt-1 text-xs text-emerald-700">DEV MODE OTP: <b>{devCode}</b> {te ? "(SMS provider configure చెయ్యక)" : "(SMS provider not configured)"}</p>}
+            {devCode && <p className="mt-1 text-xs text-emerald-700">{te ? <>మీ OTP: <b>{devCode}</b></> : <>Your OTP: <b>{devCode}</b></>}</p>}
           </>
         ) : null}
 

@@ -63,10 +63,37 @@ export default function PartnerRegisterPage() {
   return (
     <main className="mx-auto max-w-2xl px-4 py-8">
       <h1 className="text-2xl font-extrabold text-maroon">🤝 <Duo en="Become a Referral Partner" te="రిఫరల్ భాగస్వామి అవండి" /></h1>
-      <p className="mt-1 text-sm text-slate-600 telugu">
-        {duo("Enter details — you get your ID + link. Friends join + pay, you get ₹50/payment (wallet → UPI).",
-             "వివరాలు ఇవ్వండి — మీ ID + లింక్ వస్తుంది. ఫ్రెండ్స్ జాయిన్ + పే చేస్తే మీకు ₹50/పేమెంట్.")}
+      <p className="mt-1 text-sm text-emerald-800 font-bold telugu">
+        {duo("You don't need to be looking for a match — anyone can become a partner and earn.",
+             "మీకు పెళ్లి సంబంధం వెతకాల్సిన అవసరం లేదు — ఎవరైనా భాగస్వామిగా చేరి సంపాదించుకోవచ్చు.")}
       </p>
+      <p className="mt-1 text-sm text-slate-600 telugu">
+        {duo("Enter details below — you get your ID + link. Whoever joins + pays through it, you get ₹50/payment (wallet → UPI).",
+             "కింద వివరాలు ఇవ్వండి — మీ ID + లింక్ వస్తుంది. ఈ లింక్ ద్వారా ఎవరు జాయిన్ అయ్యి పే చేసినా మీకు ₹50/పేమెంట్ వస్తుంది.")}
+      </p>
+
+      <section className="mt-4 rounded-2xl border border-gold/40 bg-gradient-to-br from-cream to-white p-4 card-shadow">
+        <div className="text-[13px] font-bold text-maroon">
+          {duo("👥 Who can join?", "👥 ఎవరు చేరవచ్చు?")}
+        </div>
+        <div className="mt-2 grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-[11px]">
+          {[
+            { i: "🎓", en: "Students", te: "విద్యార్థులు" },
+            { i: "🏠", en: "Homemakers", te: "గృహిణులు" },
+            { i: "💼", en: "Working pros", te: "ఉద్యోగస్తులు" },
+            { i: "🧑‍🌾", en: "Anyone with a phone", te: "ఫోన్ ఉన్న ఎవరైనా" },
+          ].map((c) => (
+            <div key={c.en} className="rounded-xl bg-white border border-gold/25 p-2.5">
+              <div className="text-lg">{c.i}</div>
+              <div className="mt-1 font-semibold text-ink telugu">{duo(c.en, c.te)}</div>
+            </div>
+          ))}
+        </div>
+        <div className="mt-3 text-[12px] text-emerald-800 font-bold telugu text-center">
+          {duo("No investment, no target, no risk — just share your link and earn.",
+               "పెట్టుబడి అక్కర్లేదు, టార్గెట్ అక్కర్లేదు, రిస్క్ లేదు — మీ లింక్ షేర్ చేసి సంపాదించండి.")}
+        </div>
+      </section>
 
       {!done ? (
         <section className="mt-4 rounded-2xl border border-gold/30 bg-white p-4 card-shadow space-y-3">
@@ -144,7 +171,7 @@ export default function PartnerRegisterPage() {
       <section className="mt-5 rounded-2xl border border-slate-200 bg-white p-4">
         <h2 className="text-sm font-bold">📊 <Duo en="My partner dashboard" te="నా భాగస్వామి డాష్‌బోర్డ్" /></h2>
         <div className="mt-2 flex gap-2">
-          <input value={lookup} onChange={(e) => setLookup(e.target.value)} placeholder="charan108"
+          <input value={lookup} onChange={(e) => setLookup(e.target.value.toUpperCase())} placeholder="CHA0001"
             className="flex-1 rounded-xl border border-slate-300 px-3 py-2 text-sm" />
           <button onClick={loadDash} className="rounded-xl border border-[#7A0C2E] px-4 py-2 text-sm font-bold text-maroon">
             {te ? "చూడు" : "View"}
@@ -163,7 +190,7 @@ export default function PartnerRegisterPage() {
                   className="rounded-full bg-[#7A0C2E] text-white px-4 py-2 text-[12px] font-bold">
                   {copied ? "copied ✓" : (te ? "🔗 Link copy" : "🔗 Copy link")}
                 </button>
-                <a href={`https://wa.me/?text=${encodeURIComponent(te ? `Mana Vivaha లో register అవ్వండి — నా link తో join అయితే మీకు +1 credit FREE 🎁 ${dash.link}` : `Register in Mana Vivaha — join with my link, get +1 credit FREE 🎁 ${dash.link}`)}`}
+                <a href={`https://wa.me/?text=${encodeURIComponent(te ? `మన వివాహ లో register అవ్వండి — నా link తో join అయితే మీకు +1 credit FREE 🎁 ${dash.link}` : `Register on మన వివాహ — join with my link, get +1 credit FREE 🎁 ${dash.link}`)}`}
                   target="_blank" rel="noreferrer"
                   className="rounded-full bg-[#25D366] text-white px-4 py-2 text-[12px] font-bold">
                   📲 WhatsApp share

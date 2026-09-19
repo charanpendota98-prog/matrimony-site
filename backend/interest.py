@@ -1,5 +1,5 @@
 """
-Mana Vivaha — INTEREST / REQUEST ENGINE  💌  (CHATTING LEDU — anthe fix)
+మన వివాహ — INTEREST / REQUEST ENGINE  💌  (CHATTING LEDU — anthe fix)
 =======================================================================
 Model (top matrimony sites la advanced, kani chatting tho కాదు):
   1. User profile chusi  →  "💌 Interest Pampu" press chesthadu  (1 credit)
@@ -76,7 +76,7 @@ PLANS: Dict[str, Dict] = {
     },
     "S_499": {
         "code": "S_499", "price": 499, "profiles": 50, "validity_days": 90,
-        "label": "Vivaha VIP", "telugu": "₹499 → 50 profiles", "badge": "VIP • ₹10/profile",
+        "label": "VIP", "telugu": "₹499 → 50 profiles", "badge": "VIP",
         "per_profile": 10, "perks": ["50 interest requests", "🎯 Matchmaker assist (మన team call చేసి matches చూపిస్తుంది)",
                                    "⚡ 90-day boost", "💍 Wedding vendor discounts", "Priority WhatsApp support"],
     },
@@ -391,7 +391,7 @@ def interest_to_owner_text(requester: Dict, owner: Dict, rec: Dict) -> str:
         f"🚫 Chatting లేదు — *direct contact exchange మాత్రమే* (safe, no time waste)\n"
         f"💻 Accept/Decline ఇక్కడ: {SITE}/requests?id={owner.get('tsap_id','')}\n"
         f"🆔 Request ID: {rec['request_id']}  •  ⏳ {EXPIRY_DAYS} days valid\n"
-        f"⚠️ Mana Vivaha ఎప్పుడు advance money adagadu • Report: {SUPPORT}"
+        f"⚠️ మన వివాహ ఎప్పుడు advance money adagadu • Report: {SUPPORT}"
     )
 
 
@@ -407,7 +407,7 @@ def interest_accepted_text(requester: Dict, owner: Dict, rec: Dict) -> str:
         f"📍 {o['district']}, {o['state']}  |  💍 {o['caste']}\n"
         f"🎓 {o['education']}  |  💼 {o['job']}\n\n"
         f"✅ మీ number కూడా వాళ్లకి share అయ్యింది — ఇప్పుడు direct matladukovachu\n"
-        f"💐 All the best! Mana Vivaha parivaaram నుంచి శుభాకాంక్షలు\n"
+        f"💐 All the best! మన వివాహ parivaaram నుంచి శుభాకాంక్షలు\n"
         f"❓ ఏమైనా help కావాలి అంటే: {SUPPORT}\n"
         f"⚠️ Advance money / gold అడిగితే వెంటనే report చెయ్యండి — safety first"
     )
