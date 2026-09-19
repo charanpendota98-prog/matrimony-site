@@ -60,11 +60,24 @@ def effective() -> List[Dict]:
     for key, c in _channels().items():
         o = OVERRIDES.get(key, {})
         tg = (o.get("telegram_link") or "").strip()
-        if not tg and c.get("username"):
+        # A planned username is not a production link until the channel is
+        # actually created and the bot has been made admin. Explicitly mapped
+        # links can still be previewed in the private console.
+        if not tg and c.get("live") and c.get("username"):
             tg = f"https://t.me/{c['username']}"
+        route = c.get("route", {}) or {}
+        # Normalised audience metadata keeps the admin UI neat and avoids
+        # guessing bride/groom from display names.
+        gender = route.get("gender", "") if isinstance(route, dict) else ""
+        state = route.get("state", "") if isinstance(route, dict) else ""
+        cluster = c.get("cluster", "") or (route.get("cluster", "") if isinstance(route, dict) else "")
+        audience = "both" if not gender else ("bride" if str(gender).lower() == "bride" else "groom")
         out.append({"key": key, "tier": c.get("tier", ""), "name": c.get("name", key),
                     "username": c.get("username", ""), "live": bool(c.get("live", False)),
-                    "route": c.get("route", ""), "desc": (c.get("desc", "") or "")[:200],
+                    "route": route, "gender": gender, "state": state, "cluster": cluster,
+                    "category": c.get("category", ""), "members": list(c.get("members", []))[:40],
+                    "audience": audience, "split_by_gender": bool(gender),
+                    "desc": (c.get("desc", "") or "")[:200],
                     "telegram": tg, "whatsapp": (o.get("whatsapp_link") or "").strip(),
                     "active": o.get("active", True), "note": o.get("note", ""),
                     "customized": key in OVERRIDES})

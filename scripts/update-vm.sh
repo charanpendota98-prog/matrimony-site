@@ -8,8 +8,13 @@
 #
 # Em chestundi:
 #   1. Data backup (backend/*.json + .env) — timestamp tar
-#   2. Kotha code: production repo (shubhalagnam) + main branch
-#   3. Frontend image rebuild MATRAME (backend volume-mounted — rebuild avvadu, fast)
+#   2. Kotha code: production repo (shubhalagnam) + DEPLOY_BRANCH
+#   3. Frontend production image rebuild (no host source volume in prod override)
+#
+# Pre-merge staging:
+#   DEPLOY_BRANCH=arena/01a0b9af-shubhalagnam bash update-vm.sh
+# After merge:
+#   DEPLOY_BRANCH=main bash update-vm.sh
 #   4. Containers restart + health check
 #
 # Data (data_db.json, payments, referral wallet...) — volume lo safe, touch cheyyam.
@@ -18,8 +23,8 @@
 set -uo pipefail
 
 REPO_NEW="https://github.com/charanpendota98-prog/shubhalagnam.git"
-# Production deploys must always follow the reviewed, merged main branch.
-BRANCH="main"
+# Default is reviewed main. Set DEPLOY_BRANCH explicitly for pre-merge staging only.
+BRANCH="${DEPLOY_BRANCH:-main}"
 TS=$(date +%Y%m%d-%H%M%S)
 BACKUP_DIR="vm-backups"
 STAMP="[$(date +%H:%M:%S)]"

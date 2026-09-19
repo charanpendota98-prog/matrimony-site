@@ -14,6 +14,7 @@ import ShowcaseStrip from "@/components/ShowcaseStrip";
 import { SITE_CONFIG } from "@/lib/site-config";
 import { apiGet } from "@/lib/api";
 import { useLang, type Lang } from "@/lib/lang";
+import WeddingStoryHero from "@/components/WeddingStoryHero";
 
 const BOT = SITE_CONFIG.officialChannelUrl;
 
@@ -599,6 +600,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* ================= CINEMATIC WEDDING STORY ================= */}
+      <WeddingStoryHero />
 
       {/* ================= WEDDING VIBE BANNER (AI promo) ================= */}
       <section className="relative overflow-hidden">

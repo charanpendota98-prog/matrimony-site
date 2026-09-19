@@ -1,31 +1,54 @@
 # ============================================================
-# MANA VIVAHA — PRODUCTION overrides (deploy ki idi vadandi)
+# MANA VIVAHA — production overrides
 # Deploy: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
-# Base file = dev (reload + npm run dev). Ee file = prod (no reload, restart, safe flags).
-# ⚠️ backend --workers 1 ONLY (data in-memory + JSON snapshot — ekkuva workers = data split!)
+# All required secrets are deliberately mandatory; no dev fallback is allowed.
 # ============================================================
 services:
+  postgres:
+    ports: !reset []
+  redis:
+    ports: !reset []
   backend:
+    ports: !reset []
     command: uvicorn main:app --host 0.0.0.0 --port 8000 --workers 1
     restart: unless-stopped
+    volumes: !override
+      - cardsdata:/tmp/cards
+      - photosdata:/tmp/photos
+      - publishlogs:/app/publish_logs
+      - controldata:/var/lib/manavivaha
     environment:
-      - TSAP_AUTH_MODE=${TSAP_AUTH_MODE:-on}
-      - TSAP_API_KEY=${TSAP_API_KEY}
-      - ADMIN_KEY=${ADMIN_KEY}
-      - JWT_SECRET=${JWT_SECRET}
-      - CORS_ORIGINS=${CORS_ORIGINS}
-      - PUBLIC_SITE_URL=${PUBLIC_SITE_URL}
+      - APP_ENV=production
+      - TSAP_AUTH_MODE=on
+      - TSAP_API_KEY=${TSAP_API_KEY:?TSAP_API_KEY is required}
+      - TSAP_AUTH_SECRET=${TSAP_AUTH_SECRET:?TSAP_AUTH_SECRET is required}
+      - ADMIN_KEY=${ADMIN_KEY:?ADMIN_KEY is required}
+      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET is required}
+      - CONTROL_ACCOUNTS_JSON=${CONTROL_ACCOUNTS_JSON:?CONTROL_ACCOUNTS_JSON is required}
+      - CONTROL_SESSION_TTL_SECONDS=${CONTROL_SESSION_TTL_SECONDS:-28800}
+      - CONTROL_AUDIT_FILE=${CONTROL_AUDIT_FILE:-/var/lib/manavivaha/control-audit.jsonl}
+      - CORS_ORIGINS=${CORS_ORIGINS:?CORS_ORIGINS is required}
+      - PUBLIC_SITE_URL=${PUBLIC_SITE_URL:?PUBLIC_SITE_URL is required}
       - OTP_CHANNELS=${OTP_CHANNELS:-sms}
+      - OTP_DEV_MODE=false
       - SMS_ROUTE=${SMS_ROUTE:-msg91}
       - SMS_SENDER=${SMS_SENDER}
       - MSG91_KEY=${MSG91_KEY}
       - MSG91_TEMPLATE=${MSG91_TEMPLATE}
       - FAST2SMS_KEY=${FAST2SMS_KEY}
+      - WHATSAPP_MODE=${WHATSAPP_MODE:-off}
+      - WHATSAPP_BRIDGE_URL=${WHATSAPP_BRIDGE_URL}
+      - WA_INSTANCES=${WA_INSTANCES}
+      - WA_MIN_GAP=${WA_MIN_GAP:-120}
+      - WA_MAX_GAP=${WA_MAX_GAP:-170}
+      - WA_MIN_GAP_INTEREST=${WA_MIN_GAP_INTEREST:-60}
+      - WA_MAX_GAP_INTEREST=${WA_MAX_GAP_INTEREST:-120}
+      - WA_MIN_GAP_OTP=${WA_MIN_GAP_OTP:-25}
+      - WA_MAX_GAP_OTP=${WA_MAX_GAP_OTP:-60}
       - PAYMENTS_LIVE=${PAYMENTS_LIVE:-true}
-      - PAYMENT_AUTO_APPROVE=${PAYMENT_AUTO_APPROVE:-false}
+      - PAYMENT_AUTO_APPROVE=false
       - DEMO_SEED_ENABLED=false
       - LAUNCH_SEED_COUNT=0
-      - OTP_DEV_MODE=false
 
   frontend:
     build:
@@ -36,14 +59,27 @@ services:
         NEXT_PUBLIC_SUPPORT_EMAIL: ${NEXT_PUBLIC_SUPPORT_EMAIL}
     command: npm run start -- -p 3000 -H 0.0.0.0
     restart: unless-stopped
+    volumes: !reset []
     environment:
       - BACKEND_URL=http://backend:8000
       - NEXT_PUBLIC_SUPPORT_PHONE=${NEXT_PUBLIC_SUPPORT_PHONE}
       - NEXT_PUBLIC_SUPPORT_WHATSAPP=${NEXT_PUBLIC_SUPPORT_WHATSAPP}
       - NEXT_PUBLIC_SUPPORT_EMAIL=${NEXT_PUBLIC_SUPPORT_EMAIL}
 
+  whatsapp-bridge:
+    ports: !reset []
+  whatsapp-bridge2:
+    ports: !reset []
+  whatsapp-bridge3:
+    ports: !reset []
   bot:
     restart: unless-stopped
     environment:
-      - TSAP_API_KEY=${TSAP_API_KEY}
+      - TSAP_API_KEY=${TSAP_API_KEY:?TSAP_API_KEY is required}
       - API_BASE=http://backend:8000
+
+volumes:
+  cardsdata:
+  photosdata:
+  publishlogs:
+  controldata:

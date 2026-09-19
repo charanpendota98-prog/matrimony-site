@@ -30,6 +30,11 @@ from typing import Any, Deque, Dict, Iterable, List, Optional, Tuple
 from fastapi import HTTPException, Request
 from fastapi.responses import JSONResponse
 
+try:
+    import control_auth as CONTROL_AUTH
+except Exception:  # keeps isolated utility tests importable
+    CONTROL_AUTH = None
+
 # ---------------------------------------------------------------------------
 # 0. CONFIG
 # ---------------------------------------------------------------------------
@@ -133,6 +138,10 @@ def token_from_request(request: Request) -> Optional[Dict[str, Any]]:
 def is_admin(request: Request) -> bool:
     if request is None:
         return False
+    # Private control session is the preferred production path. Legacy headers
+    # remain only for backwards compatibility and are never exposed by the UI.
+    if CONTROL_AUTH and CONTROL_AUTH.role(request) == "owner":
+        return True
     key = (request.headers.get("x-admin-key") or "").strip()
     if key and hmac.compare_digest(key, ADMIN_KEY):
         return True
@@ -143,8 +152,12 @@ def is_admin(request: Request) -> bool:
 
 
 def is_staff(request: Request) -> bool:
-    """👤 WAVE 41 — staff key (limited role). Owner key kaakunda staff key iste True."""
-    if request is None or not STAFF_KEY:
+    """Worker/control roles can only use endpoints explicitly marked staff_ok."""
+    if request is None:
+        return False
+    if CONTROL_AUTH and CONTROL_AUTH.role(request) in {"worker", "moderator", "support"}:
+        return True
+    if not STAFF_KEY:
         return False
     key = (request.headers.get("x-admin-key") or "").strip()
     return bool(key) and not is_admin(request) and hmac.compare_digest(key, STAFF_KEY)

@@ -6,7 +6,7 @@ from fastapi import FastAPI, HTTPException, Request, UploadFile, File, Form, Bod
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, Response
 from typing import Any, Dict, Optional
-import os, random, json, re
+import os, random, json, re, hashlib, hmac
 import threading
 from collections import defaultdict
 from datetime import datetime, timedelta
@@ -63,6 +63,7 @@ from publisher import (dead_letters, requeue_dead,
 from wa_antiban import ENGINE as WA_ENGINE
 # 🛡️ WAVE 9 — hardening layer (auth tokens, admin key, rate limit, validation, abuse ledger)
 import db_store as DBSTORE  # noqa: E402  # 🌊 WAVE 22 — core DB persistence
+import control_auth as CONTROL_AUTH  # private operations portal sessions
 import money_audit as MAUD  # noqa: E402  # 🌊 WAVE 26 — money audit trail
 import retention as RETENTION  # 🗑️ WAVE 40: 3-year profile auto-delete (archive first)
 from hardening import (
@@ -127,6 +128,71 @@ import advanced11 as A11
 app = FastAPI(title="TSAP Matrimony API — Ultra Advanced", version="2.0")
 
 
+# ---------------------------------------------------------------------------
+# PRIVATE CONTROL PORTAL — one login, server-side roles, no public admin key
+# ---------------------------------------------------------------------------
+@app.post("/api/control/login")
+def control_login(payload: dict, request: Request, response: Response):
+    result = CONTROL_AUTH.login((payload or {}).get("username", ""), (payload or {}).get("password", ""), request)
+    response.set_cookie(**CONTROL_AUTH.cookie_options(), value=result.pop("session"))
+    return {"success": True, **result, "message": "Authenticated"}
+
+
+@app.get("/api/control/me")
+def control_me(request: Request):
+    item = CONTROL_AUTH.require(request)
+    return {"success": True, "role": item["role"], "username": item["username"],
+            "expires_at": item["expires"], "csrf": item["csrf"]}
+
+
+@app.post("/api/control/logout")
+def control_logout(request: Request, response: Response):
+    item = CONTROL_AUTH.require(request)
+    if not CONTROL_AUTH.csrf_valid(request, item):
+        raise HTTPException(403, "CSRF validation failed")
+    CONTROL_AUTH.logout(request)
+    response.delete_cookie(CONTROL_AUTH.COOKIE_NAME, path="/")
+    return {"success": True}
+
+
+@app.get("/api/control/summary")
+def control_summary(request: Request):
+    item = CONTROL_AUTH.require(request)
+    # Workers receive counts only; no phone/email/payment values are serialized.
+    result = {"success": True, "role": item["role"], "profiles": len(DB_USERS),
+              "pending_profiles": sum(1 for u in DB_USERS if str(u.get("status", "pending")) == "pending"),
+              "open_reports": sum(1 for r in DB_REPORTS if str(r.get("status", "open")) == "open")}
+    if item["role"] == "owner":
+        result.update({"payments": len(DB_PAYMENTS), "audit": CONTROL_AUTH.audit_recent(50)})
+    return result
+
+
+@app.get("/api/control/profile-queue")
+def control_profile_queue(request: Request, status: str = "pending", limit: int = 50):
+    """Safe operations queue. This endpoint deliberately has no phone/email/payment fields."""
+    item = CONTROL_AUTH.require(request)
+    if status not in {"pending", "approved", "rejected", "all"}:
+        raise HTTPException(400, "Invalid queue status")
+    limit = max(1, min(int(limit), 100))
+    rows = []
+    for user in DB_USERS:
+        current = str(user.get("status", "pending"))
+        if status != "all" and current != status:
+            continue
+        rows.append({"tsap_id": str(user.get("tsap_id", "")),
+                     "full_name": str(user.get("full_name", ""))[:120],
+                     "gender": str(user.get("gender", ""))[:20],
+                     "age": user.get("age"),
+                     "district": str(user.get("district", ""))[:80],
+                     "status": current,
+                     "photo_status": str(user.get("photo_status", "none")),
+                     "created_at": user.get("created_at", "")})
+        if len(rows) >= limit:
+            break
+    CONTROL_AUTH.audit("control_queue_view", item["username"], request, status=status, count=len(rows))
+    return {"success": True, "items": rows, "role": item["role"]}
+
+
 # 🌊 WAVE 26 — GLOBAL SAFETY NET: ekkada crash aina Telugu JSON (raw 500 never).
 #    User ki easy message + ref code (support ki chepthe admin log lo chusthadu).
 @app.exception_handler(Exception)
@@ -160,6 +226,18 @@ except Exception as _e:
 
 @app.on_event("startup")
 async def _startup_publisher():
+    # Never bring an unconfigured operations plane online in production.
+    if str(os.getenv("APP_ENV", "")).lower() in {"production", "prod"}:
+        if not os.getenv("TSAP_AUTH_SECRET", "").strip() or len(os.getenv("TSAP_AUTH_SECRET", "")) < 32:
+            raise RuntimeError("TSAP_AUTH_SECRET (32+ random chars) is required in production")
+        if not os.getenv("ADMIN_KEY", "").strip() or len(os.getenv("ADMIN_KEY", "")) < 32:
+            raise RuntimeError("ADMIN_KEY (32+ random chars) is required in production")
+        if not CONTROL_AUTH._accounts():
+            raise RuntimeError("No CONTROL owner/worker account configured in production")
+        otp_ready = bool(os.getenv("MSG91_KEY", "").strip() or os.getenv("FAST2SMS_KEY", "").strip())
+        otp_ready = otp_ready or (os.getenv("WHATSAPP_MODE", "").lower() == "bridge" and bool(os.getenv("WA_INSTANCES", "").strip() or os.getenv("WHATSAPP_BRIDGE_URL", "").strip()))
+        if not otp_ready:
+            raise RuntimeError("Production OTP provider is not configured (WhatsApp bridge or SMS provider required)")
     ok = start_worker()
     st = publish_status()
     start_wa_worker()
@@ -3133,8 +3211,10 @@ def auth_reset(payload: dict):
         raise
     except Exception:
         pass
-    if code != rec.get("code"):
-        raise HTTPException(400, "❌ OTP tappu — మళ్లీ try చెయ్యండి")
+    expected = str(rec.get("code_hash", ""))
+    valid = hmac.compare_digest(_otp_digest(code), expected) if expected else hmac.compare_digest(code, str(rec.get("code", "")))
+    if not valid:
+        raise HTTPException(400, "❌ OTP తప్పు లేదా invalid — మళ్లీ try చెయ్యండి")
     u = next((x for x in DB_USERS if x.get("phone") == phone), None)
     if not u:
         raise HTTPException(404, "ఈ number తో account లేదు — ముందు register అవ్వండి")
@@ -3144,6 +3224,11 @@ def auth_reset(payload: dict):
     PW_LOCKS.pop(phone, None)
     return {"success": True, "tsap_id": u["tsap_id"], "auth_token": sign_token(u["tsap_id"]),
             "message_telugu": "✅ Password మారింది — ఇప్పుడు number + password తో login చెయ్యండి 🔑"}
+
+
+def _otp_digest(code: str) -> str:
+    secret = os.getenv("TSAP_AUTH_SECRET", "tsap-otp-dev-only").encode("utf-8")
+    return hmac.new(secret, str(code).encode("utf-8"), hashlib.sha256).hexdigest()
 
 
 @app.post("/api/otp/send")
@@ -3174,13 +3259,18 @@ def otp_send(payload: dict):
             "success": False, "message_telugu": "⚠️ Ganta లో 5 OTP limit — 1 hour తర్వాత try చెయ్యండి (abuse protection)"})
     code = f"{random.randint(1000, 9999)}"
     purpose = str(d.get("purpose", "login")).strip()[:16] or "login"
-    DB_OTPS[phone] = {"code": code, "expires": (datetime.utcnow() + timedelta(minutes=10)).isoformat(),
+    DB_OTPS[phone] = {"code_hash": _otp_digest(code), "expires": (datetime.utcnow() + timedelta(minutes=10)).isoformat(),
                       "tries": 0, "sent_at": datetime.utcnow().isoformat(), "purpose": purpose,
                       "history": (_hour + [datetime.utcnow().isoformat()])[-10:]}
     # 🌊 WAVE 18 — FREE channels first (WA bridge → Telegram → SMS), dev fallback
     ch = otp_channel_send(phone, code, DB_USERS)
-    DB_OTPS[phone]["channel"] = ch.get("channel", "dev")
-    dev = str(os.getenv("OTP_DEV_MODE", "true")).lower() in ("1", "true", "yes", "on")
+    DB_OTPS[phone]["channel"] = ch.get("channel", "none")
+    dev = str(os.getenv("OTP_DEV_MODE", "false")).lower() in ("1", "true", "yes", "on")
+    if str(os.getenv("APP_ENV", "")).lower() in ("production", "prod"):
+        dev = False
+    if not ch.get("ok") and not dev:
+        DB_OTPS.pop(phone, None)
+        raise HTTPException(503, "OTP service temporarily unavailable — please try again later")
     out = {"success": True, "phone": f"XXXXXX{phone[-4:]}", "expires_in_min": 10,
            "channel": ch.get("channel", "dev"), "purpose": purpose,
            "message_telugu": f"📱 OTP వచ్చింది (+91 XXXXXX{phone[-4:]}). 10 నిమిషాల్లో enter చెయ్యండి."}
@@ -3214,8 +3304,11 @@ def otp_verify(payload: dict):
         abuse_log("otp_locked", phone[-4:])
         abuse_count("otp_locked")
         raise HTTPException(429, "చాలా sarlu try చేశారు — కొత్త OTP teesukondi (15 min lock)")
-    if code != rec["code"]:
-        return JSONResponse(status_code=400, content={"success": False, "message_telugu": "❌ OTP tappu — మళ్లీ try చెయ్యండి",
+    expected = str(rec.get("code_hash", ""))
+    # Backward-compatible read for OTPs created before the hash migration.
+    valid = hmac.compare_digest(_otp_digest(code), expected) if expected else hmac.compare_digest(code, str(rec.get("code", "")))
+    if not valid:
+        return JSONResponse(status_code=400, content={"success": False, "error": "invalid_otp", "message_telugu": "❌ OTP తప్పు లేదా invalid — సరైన OTP enter చెయ్యండి",
                                                       "tries_left": max(0, 5 - rec["tries"])})
     VERIFIED_PHONES.add(phone)
     DB_OTPS.pop(phone, None)
